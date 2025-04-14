@@ -56,7 +56,7 @@ export default function AuthPage() {
   useEffect(() => {
     // Redirect if already logged in
     if (user) {
-      setLocation("/");
+      setLocation("/dashboard");
     }
   }, [user, setLocation]);
 
@@ -66,7 +66,11 @@ export default function AuthPage() {
 
   const onRegister = (data: z.infer<typeof registerSchema>) => {
     const { confirmPassword, ...registerData } = data;
-    registerMutation.mutate(registerData);
+    registerMutation.mutate({
+      ...registerData,
+      role: "player", // Default role for new registrations
+      assignedTo: null
+    });
   };
 
   return (

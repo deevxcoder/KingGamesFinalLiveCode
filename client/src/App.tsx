@@ -9,6 +9,7 @@ import { UserRole } from "@shared/schema";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
 import HomePage from "@/pages/home-page";
+import PublicHomePage from "@/pages/public-home-page";
 import GamePage from "@/pages/game-page";
 import UserManagementPage from "@/pages/user-management-page";
 import SubadminManagementPage from "@/pages/subadmin-management-page";
@@ -17,7 +18,12 @@ import GameHistoryPage from "@/pages/game-history-page";
 function Router() {
   return (
     <Switch>
-      <ProtectedRoute path="/" component={HomePage} />
+      {/* Public routes */}
+      <Route path="/" component={PublicHomePage} />
+      <Route path="/auth" component={AuthPage} />
+      
+      {/* Protected routes */}
+      <ProtectedRoute path="/dashboard" component={HomePage} />
       <ProtectedRoute path="/play" component={GamePage} />
       <ProtectedRoute 
         path="/users" 
@@ -30,7 +36,8 @@ function Router() {
         allowedRoles={[UserRole.ADMIN]}
       />
       <ProtectedRoute path="/history" component={GameHistoryPage} />
-      <Route path="/auth" component={AuthPage} />
+      
+      {/* 404 route */}
       <Route component={NotFound} />
     </Switch>
   );

@@ -28,7 +28,7 @@ export default function Sidebar() {
   const menuItems = [
     {
       name: "Dashboard",
-      path: "/",
+      path: "/dashboard",
       icon: <LayoutDashboard className="w-5 h-5 mr-3" />,
       visible: true,
     },
@@ -54,6 +54,14 @@ export default function Sidebar() {
       name: "Game History",
       path: "/history",
       icon: <Clock className="w-5 h-5 mr-3" />,
+      visible: true,
+    },
+    {
+      name: "Back to Home",
+      path: "/",
+      icon: <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7m-7-7v14"></path>
+            </svg>,
       visible: true,
     },
   ];
