@@ -118,7 +118,7 @@ export default function MarketCard({
         {status === "open" && (
           <Button 
             className="w-full"
-            onClick={() => navigate(`/game/satamatka/${id}`)}
+            onClick={() => setLocation(`/game/satamatka/${id}`)}
           >
             Place Bet <ArrowRightCircle className="ml-2 h-4 w-4" />
           </Button>
@@ -127,7 +127,7 @@ export default function MarketCard({
           <Button 
             className="w-full" 
             variant="outline"
-            onClick={() => navigate(`/game/satamatka/${id}/games`)}
+            onClick={() => setLocation(`/game/satamatka/${id}/games`)}
           >
             View Games
           </Button>

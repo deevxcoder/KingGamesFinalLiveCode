@@ -11,7 +11,9 @@ import {
   Menu, 
   X,
   ShieldCheck,
-  History
+  History,
+  Target,
+  Dice1
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -49,6 +51,12 @@ export default function Sidebar() {
       name: "Play Game",
       path: "/play",
       icon: <Play className="w-5 h-5 mr-3" />,
+      visible: true,
+    },
+    {
+      name: "Markets",
+      path: "/markets",
+      icon: <Target className="w-5 h-5 mr-3" />,
       visible: true,
     },
     {

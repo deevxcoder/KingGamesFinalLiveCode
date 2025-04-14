@@ -15,6 +15,8 @@ import UserManagementPage from "@/pages/user-management-page";
 import SubadminManagementPage from "@/pages/subadmin-management-page";
 import GameHistoryPage from "@/pages/game-history-page";
 import ActionHistoryPage from "@/pages/action-history-page";
+import MarketListPage from "@/pages/market-list-page";
+import SatamatkaGamePage from "@/pages/satamatka-game-page";
 
 function Router() {
   return (
