@@ -6,6 +6,7 @@ import { UserRole } from "@shared/schema";
 import Sidebar from "@/components/sidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import {
   Table,
@@ -38,7 +39,9 @@ import {
   User, 
   DollarSign, 
   PlusCircle, 
-  MinusCircle 
+  MinusCircle,
+  Edit,
+  Key
 } from "lucide-react";
 
 export default function UserManagementPage() {
@@ -46,8 +49,11 @@ export default function UserManagementPage() {
   const { toast } = useToast();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [amount, setAmount] = useState<number>(0);
+  const [username, setUsername] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [isAddFundsDialogOpen, setIsAddFundsDialogOpen] = useState(false);
   const [isRemoveFundsDialogOpen, setIsRemoveFundsDialogOpen] = useState(false);
+  const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
 
   // Fetch users
   const { data: users = [], isLoading } = useQuery({
@@ -124,6 +130,31 @@ export default function UserManagementPage() {
     },
   });
 
+  // Edit user mutation
+  const editUserMutation = useMutation({
+    mutationFn: async ({ userId, username, password }: { userId: number; username?: string; password?: string }) => {
+      const res = await apiRequest("PATCH", `/api/users/${userId}/edit`, { username, password });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      setIsEditUserDialogOpen(false);
+      setUsername("");
+      setPassword("");
+      toast({
+        title: "User updated",
+        description: "The user's information has been updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update user",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleBlockUser = (userId: number) => {
     blockUserMutation.mutate(userId);
   };
@@ -134,12 +165,35 @@ export default function UserManagementPage() {
 
   const handleAddFunds = () => {
     if (!selectedUser || amount <= 0) return;
-    updateBalanceMutation.mutate({ userId: selectedUser.id, amount });
+    // Convert dollar amount to cents (multiply by 100)
+    updateBalanceMutation.mutate({ userId: selectedUser.id, amount: amount * 100 });
   };
 
   const handleRemoveFunds = () => {
     if (!selectedUser || amount <= 0) return;
-    updateBalanceMutation.mutate({ userId: selectedUser.id, amount: -amount });
+    // Convert dollar amount to cents (multiply by 100)
+    updateBalanceMutation.mutate({ userId: selectedUser.id, amount: -amount * 100 });
+  };
+
+  const handleEditUser = () => {
+    if (!selectedUser) return;
+    const updatedFields: { username?: string; password?: string } = {};
+    if (username.trim()) updatedFields.username = username;
+    if (password.trim()) updatedFields.password = password;
+    
+    if (Object.keys(updatedFields).length === 0) {
+      toast({
+        title: "No changes made",
+        description: "Please enter a new username or password",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    editUserMutation.mutate({ 
+      userId: selectedUser.id, 
+      ...updatedFields 
+    });
   };
 
   const openAddFundsDialog = (user: any) => {
@@ -152,6 +206,13 @@ export default function UserManagementPage() {
     setSelectedUser(user);
     setAmount(0);
     setIsRemoveFundsDialogOpen(true);
+  };
+
+  const openEditUserDialog = (user: any) => {
+    setSelectedUser(user);
+    setUsername("");
+    setPassword("");
+    setIsEditUserDialogOpen(true);
   };
 
   return (
@@ -238,6 +299,14 @@ export default function UserManagementPage() {
                                   title="Remove funds"
                                 >
                                   <MinusCircle className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditUserDialog(user)}
+                                  title="Edit user"
+                                >
+                                  <Edit className="h-4 w-4" />
                                 </Button>
                                 {user.isBlocked ? (
                                   <Button
@@ -340,6 +409,56 @@ export default function UserManagementPage() {
               variant="destructive"
             >
               {updateBalanceMutation.isPending ? "Processing..." : "Remove Funds"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={isEditUserDialogOpen} onOpenChange={setIsEditUserDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update {selectedUser?.username}'s account information
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <div className="flex items-center gap-2">
+                <User className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="New username"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center gap-2">
+                <Key className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="New password"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditUserDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleEditUser} 
+              disabled={(!username.trim() && !password.trim()) || editUserMutation.isPending}
+            >
+              {editUserMutation.isPending ? "Processing..." : "Update User"}
             </Button>
           </DialogFooter>
         </DialogContent>
