@@ -393,6 +393,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(err);
     }
   });
+  
+  // Get games for a specific user (admin/subadmin only)
+  app.get("/api/games/:userId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      // Get the user to verify permissions
+      const targetUser = await storage.getUser(userId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check permissions - subadmins can only view their assigned users
+      if (req.user!.role === UserRole.SUBADMIN && targetUser.assignedTo !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to view this user's data" });
+      }
+      
+      const games = await storage.getGamesByUserId(userId);
+      res.json(games);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Get all transactions (for admins and subadmins) or user's transactions
   app.get("/api/transactions", async (req, res, next) => {
@@ -422,6 +445,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         transactions = await storage.getTransactionsByUserId(req.user!.id);
       }
       
+      res.json(transactions);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Get transactions for a specific user (admin/subadmin only)
+  app.get("/api/transactions/:userId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.userId);
+      
+      // Get the user to verify permissions
+      const targetUser = await storage.getUser(userId);
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check permissions - subadmins can only view their assigned users
+      if (req.user!.role === UserRole.SUBADMIN && targetUser.assignedTo !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to view this user's data" });
+      }
+      
+      const transactions = await storage.getTransactionsByUserId(userId);
       res.json(transactions);
     } catch (err) {
       next(err);

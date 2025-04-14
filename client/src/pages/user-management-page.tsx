@@ -70,6 +70,28 @@ export default function UserManagementPage() {
     queryKey: ["/api/users"],
     enabled: !!user,
   });
+  
+  // Fetch user transactions
+  const { data: userTransactions = [], isLoading: isLoadingTransactions } = useQuery({
+    queryKey: ["/api/transactions", selectedUser?.id],
+    queryFn: async () => {
+      if (!selectedUser) return [];
+      const res = await apiRequest("GET", `/api/transactions/${selectedUser.id}`);
+      return await res.json();
+    },
+    enabled: !!selectedUser && isUserDetailsDialogOpen && detailsTab === "transactions",
+  });
+  
+  // Fetch user games
+  const { data: userGames = [], isLoading: isLoadingGames } = useQuery({
+    queryKey: ["/api/games", selectedUser?.id],
+    queryFn: async () => {
+      if (!selectedUser) return [];
+      const res = await apiRequest("GET", `/api/games/${selectedUser.id}`);
+      return await res.json();
+    },
+    enabled: !!selectedUser && isUserDetailsDialogOpen && (detailsTab === "bets" || detailsTab === "active-bets"),
+  });
 
   // Block user mutation
   const blockUserMutation = useMutation({
@@ -224,6 +246,12 @@ export default function UserManagementPage() {
     setPassword("");
     setIsEditUserDialogOpen(true);
   };
+  
+  const openUserDetailsDialog = (user: any) => {
+    setSelectedUser(user);
+    setDetailsTab("transactions");
+    setIsUserDetailsDialogOpen(true);
+  };
 
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
@@ -317,6 +345,15 @@ export default function UserManagementPage() {
                                   title="Edit user"
                                 >
                                   <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openUserDetailsDialog(user)}
+                                  title="View details"
+                                  className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
+                                >
+                                  <Info className="h-4 w-4" />
                                 </Button>
                                 {user.isBlocked ? (
                                   <Button
@@ -469,6 +506,173 @@ export default function UserManagementPage() {
               disabled={(!username.trim() && !password.trim()) || editUserMutation.isPending}
             >
               {editUserMutation.isPending ? "Processing..." : "Update User"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* User Details Dialog */}
+      <Dialog 
+        open={isUserDetailsDialogOpen} 
+        onOpenChange={setIsUserDetailsDialogOpen}
+      >
+        <DialogContent style={{maxWidth: "90vw", width: "90vw"}}>
+          <DialogHeader>
+            <DialogTitle>User Details: {selectedUser?.username}</DialogTitle>
+            <DialogDescription>
+              View transaction history, bet history, and active bets
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="w-full">
+            <div className="flex border-b mb-4">
+              <button 
+                type="button"
+                className={`px-4 py-2 flex items-center gap-2 ${detailsTab === "transactions" ? "border-b-2 border-primary font-medium" : ""}`}
+                onClick={() => setDetailsTab("transactions")}
+              >
+                <History className="h-4 w-4" />
+                <span>Transactions</span>
+              </button>
+              <button 
+                type="button"
+                className={`px-4 py-2 flex items-center gap-2 ${detailsTab === "bets" ? "border-b-2 border-primary font-medium" : ""}`}
+                onClick={() => setDetailsTab("bets")}
+              >
+                <FileText className="h-4 w-4" />
+                <span>Bet History</span>
+              </button>
+              <button 
+                type="button"
+                className={`px-4 py-2 flex items-center gap-2 ${detailsTab === "active-bets" ? "border-b-2 border-primary font-medium" : ""}`}
+                onClick={() => setDetailsTab("active-bets")}
+              >
+                <BarChart className="h-4 w-4" />
+                <span>Active Bets</span>
+              </button>
+            </div>
+            
+            {/* Transactions Tab */}
+            {detailsTab === "transactions" && (
+              <div className="py-4">
+                {isLoadingTransactions ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : userTransactions.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No transaction history found
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Type</TableHead>
+                          <TableHead>Amount</TableHead>
+                          <TableHead>Description</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {userTransactions.map((transaction: any) => (
+                          <TableRow key={transaction.id}>
+                            <TableCell>
+                              {new Date(transaction.createdAt).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
+                                <div className="flex items-center gap-1">
+                                  {transaction.amount > 0 ? (
+                                    <ArrowUp className="h-3 w-3 text-green-500" />
+                                  ) : (
+                                    <ArrowDown className="h-3 w-3 text-red-500" />
+                                  )}
+                                  {transaction.amount > 0 ? "Deposit" : "Withdrawal"}
+                                </div>
+                              </Badge>
+                            </TableCell>
+                            <TableCell className={transaction.amount > 0 ? "text-green-500" : "text-red-500"}>
+                              {transaction.amount > 0 ? "+" : ""}{(transaction.amount / 100).toFixed(2)}
+                            </TableCell>
+                            <TableCell>{transaction.description || "Balance update"}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Bet History Tab */}
+            {detailsTab === "bets" && (
+              <div className="py-4">
+                {isLoadingGames ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : userGames.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No bet history found
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Game</TableHead>
+                          <TableHead>Bet Amount</TableHead>
+                          <TableHead>Prediction</TableHead>
+                          <TableHead>Result</TableHead>
+                          <TableHead>Payout</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {userGames.map((game: any) => (
+                          <TableRow key={game.id}>
+                            <TableCell>
+                              {new Date(game.createdAt).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-1">
+                                <Coins className="h-4 w-4" />
+                                Coin Flip
+                              </div>
+                            </TableCell>
+                            <TableCell>${(game.betAmount / 100).toFixed(2)}</TableCell>
+                            <TableCell>{game.prediction}</TableCell>
+                            <TableCell>
+                              <Badge variant={game.prediction === game.result ? "outline" : "secondary"}>
+                                {game.result}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className={game.payout > 0 ? "text-green-500" : "text-red-500"}>
+                              {game.payout > 0 ? "+" : ""}${(game.payout / 100).toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {/* Active Bets Tab */}
+            {detailsTab === "active-bets" && (
+              <div className="py-4">
+                <div className="text-center py-8 text-muted-foreground">
+                  No active bets found
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsUserDetailsDialogOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
