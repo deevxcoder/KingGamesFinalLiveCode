@@ -24,9 +24,30 @@ export type GameOutcomeType = typeof GameOutcome[keyof typeof GameOutcome];
 export const GameType = {
   COIN_FLIP: "coin_flip",
   SATAMATKA: "satamatka",
+  TEAM_MATCH: "team_match",
 } as const;
 
 export type GameTypeValue = typeof GameType[keyof typeof GameType];
+
+// Team Match results
+export const TeamMatchResult = {
+  TEAM_A: "team_a",
+  TEAM_B: "team_b",
+  DRAW: "draw",
+  PENDING: "pending",
+} as const;
+
+export type TeamMatchResultValue = typeof TeamMatchResult[keyof typeof TeamMatchResult];
+
+// Match categories
+export const MatchCategory = {
+  CRICKET: "cricket",
+  FOOTBALL: "football",
+  BASKETBALL: "basketball",
+  OTHER: "other",
+} as const;
+
+export type MatchCategoryValue = typeof MatchCategory[keyof typeof MatchCategory];
 
 // Satamatka Market types
 export const MarketType = {
@@ -79,15 +100,17 @@ export const games = pgTable("games", {
   userId: integer("user_id")
     .notNull()
     .references(() => users.id),
-  gameType: text("game_type").notNull().default(GameType.COIN_FLIP), // coin_flip or satamatka
+  gameType: text("game_type").notNull().default(GameType.COIN_FLIP), // coin_flip, satamatka, or team_match
   betAmount: integer("bet_amount").notNull(), // in cents
-  prediction: text("prediction").notNull(), // heads/tails or number for satamatka
-  result: text("result").notNull(), // heads/tails or number for satamatka
+  prediction: text("prediction").notNull(), // heads/tails or number for satamatka or team_a/team_b/draw for team_match
+  result: text("result").notNull(), // heads/tails or number for satamatka or team_a/team_b/draw for team_match
   payout: integer("payout").notNull(), // in cents
   createdAt: timestamp("created_at").defaultNow(),
   // For Satamatka games
   marketId: integer("market_id").references(() => satamatkaMarkets.id),
-  gameMode: text("game_mode"), // jodi, hurf, cross, odd_even
+  gameMode: text("game_mode"), // jodi, hurf, cross, odd_even for satamatka
+  // For Team Match games
+  matchId: integer("match_id").references(() => teamMatches.id),
 });
 
 export const insertGameSchema = createInsertSchema(games)
@@ -100,9 +123,10 @@ export const insertGameSchema = createInsertSchema(games)
     payout: true,
     marketId: true,
     gameMode: true,
+    matchId: true,
   })
   .extend({
-    gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA]).default(GameType.COIN_FLIP),
+    gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA, GameType.TEAM_MATCH]).default(GameType.COIN_FLIP),
   });
 
 export type InsertGame = z.infer<typeof insertGameSchema>;
@@ -190,11 +214,64 @@ export const gamesRelations = relations(games, ({ one }) => ({
     references: [satamatkaMarkets.id],
     relationName: "marketGames",
   }),
+  match: one(teamMatches, {
+    fields: [games.matchId],
+    references: [teamMatches.id],
+    relationName: "teamMatchGames",
+  }),
 }));
 
 export const satamatkaMarketsRelations = relations(satamatkaMarkets, ({ many }) => ({
   games: many(games, { relationName: "marketGames" }),
 }));
+
+// Team Matches Schema
+export const teamMatches = pgTable("team_matches", {
+  id: serial("id").primaryKey(),
+  teamA: text("team_a").notNull(),
+  teamB: text("team_b").notNull(),
+  category: text("category").notNull().default(MatchCategory.CRICKET), // cricket, football, basketball, other
+  description: text("description"),
+  matchTime: timestamp("match_time").notNull(),
+  result: text("result").notNull().default(TeamMatchResult.PENDING), // team_a, team_b, draw, pending
+  oddTeamA: integer("odd_team_a").notNull().default(200), // 2.00 decimal odds represented as integer (200)
+  oddTeamB: integer("odd_team_b").notNull().default(200), // 2.00 decimal odds
+  oddDraw: integer("odd_draw").default(300), // 3.00 decimal odds
+  status: text("status").notNull().default("open"), // open, closed, resulted
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTeamMatchSchema = createInsertSchema(teamMatches)
+  .pick({
+    teamA: true,
+    teamB: true,
+    category: true,
+    description: true,
+    matchTime: true,
+    result: true,
+    oddTeamA: true,
+    oddTeamB: true,
+    oddDraw: true,
+    status: true,
+  })
+  .extend({
+    category: z.enum([
+      MatchCategory.CRICKET,
+      MatchCategory.FOOTBALL,
+      MatchCategory.BASKETBALL,
+      MatchCategory.OTHER
+    ]).default(MatchCategory.CRICKET),
+    result: z.enum([
+      TeamMatchResult.TEAM_A,
+      TeamMatchResult.TEAM_B,
+      TeamMatchResult.DRAW,
+      TeamMatchResult.PENDING
+    ]).default(TeamMatchResult.PENDING),
+    status: z.enum(["open", "closed", "resulted"]).default("open"),
+  });
+
+export type InsertTeamMatch = z.infer<typeof insertTeamMatchSchema>;
+export type TeamMatch = typeof teamMatches.$inferSelect;
 
 export const transactionsRelations = relations(transactions, ({ one }) => ({
   // User who this transaction affects
@@ -209,4 +286,8 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
     references: [users.id],
     relationName: "performedByTransactions",
   }),
+}));
+
+export const teamMatchesRelations = relations(teamMatches, ({ many }) => ({
+  games: many(games, { relationName: "teamMatchGames" }),
 }));

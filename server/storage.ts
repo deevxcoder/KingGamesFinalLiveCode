@@ -3,6 +3,7 @@ import {
   games, 
   transactions, 
   satamatkaMarkets,
+  teamMatches,
   User, 
   InsertUser, 
   Game, 
@@ -11,7 +12,9 @@ import {
   InsertTransaction, 
   UserRole, 
   SatamatkaMarket,
-  InsertSatamatkaMarket
+  InsertSatamatkaMarket,
+  TeamMatch,
+  InsertTeamMatch
 } from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
@@ -47,6 +50,16 @@ export interface IStorage {
   updateSatamatkaMarketResults(id: number, openResult?: string, closeResult?: string): Promise<SatamatkaMarket | undefined>;
   updateSatamatkaMarketStatus(id: number, status: string): Promise<SatamatkaMarket | undefined>;
   getSatamatkaGamesByMarketId(marketId: number): Promise<Game[]>;
+
+  // Team Match methods
+  createTeamMatch(match: InsertTeamMatch): Promise<TeamMatch>;
+  getTeamMatch(id: number): Promise<TeamMatch | undefined>;
+  getAllTeamMatches(): Promise<TeamMatch[]>;
+  getActiveTeamMatches(): Promise<TeamMatch[]>;
+  updateTeamMatchResult(id: number, result: string): Promise<TeamMatch | undefined>;
+  updateTeamMatchStatus(id: number, status: string): Promise<TeamMatch | undefined>;
+  getTeamMatchesByCategory(category: string): Promise<TeamMatch[]>; 
+  getTeamMatchGamesByMatchId(matchId: number): Promise<Game[]>;
 
   // Transaction methods
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
@@ -425,6 +438,75 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(games)
       .where(eq(games.marketId, marketId))
+      .orderBy(desc(games.createdAt));
+  }
+
+  // Team Match methods
+  async createTeamMatch(match: InsertTeamMatch): Promise<TeamMatch> {
+    const [createdMatch] = await db.insert(teamMatches).values(match).returning();
+    return createdMatch;
+  }
+
+  async getTeamMatch(id: number): Promise<TeamMatch | undefined> {
+    const [match] = await db.select().from(teamMatches).where(eq(teamMatches.id, id));
+    return match;
+  }
+
+  async getAllTeamMatches(): Promise<TeamMatch[]> {
+    return await db.select().from(teamMatches).orderBy(desc(teamMatches.createdAt));
+  }
+
+  async getActiveTeamMatches(): Promise<TeamMatch[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(teamMatches)
+      .where(
+        and(
+          gte(teamMatches.matchTime, now), // Match time is in the future
+          eq(teamMatches.status, "open")
+        )
+      )
+      .orderBy(teamMatches.matchTime);
+  }
+
+  async updateTeamMatchResult(id: number, result: string): Promise<TeamMatch | undefined> {
+    // When setting result, also update status to "resulted"
+    const [match] = await db
+      .update(teamMatches)
+      .set({ 
+        result,
+        status: "resulted" 
+      })
+      .where(eq(teamMatches.id, id))
+      .returning();
+    
+    return match;
+  }
+
+  async updateTeamMatchStatus(id: number, status: string): Promise<TeamMatch | undefined> {
+    const [match] = await db
+      .update(teamMatches)
+      .set({ status })
+      .where(eq(teamMatches.id, id))
+      .returning();
+    
+    return match;
+  }
+
+  async getTeamMatchesByCategory(category: string): Promise<TeamMatch[]> {
+    return await db
+      .select()
+      .from(teamMatches)
+      .where(eq(teamMatches.category, category))
+      .orderBy(desc(teamMatches.createdAt));
+  }
+
+  async getTeamMatchGamesByMatchId(matchId: number): Promise<Game[]> {
+    return await db
+      .select()
+      .from(games)
+      .where(eq(games.matchId, matchId))
       .orderBy(desc(games.createdAt));
   }
 }
