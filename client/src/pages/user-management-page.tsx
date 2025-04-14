@@ -41,7 +41,15 @@ import {
   PlusCircle, 
   MinusCircle,
   Edit,
-  Key
+  Key,
+  Info,
+  Clock,
+  BarChart,
+  ArrowDown,
+  ArrowUp,
+  Coins,
+  History,
+  FileText
 } from "lucide-react";
 
 export default function UserManagementPage() {
@@ -54,6 +62,8 @@ export default function UserManagementPage() {
   const [isAddFundsDialogOpen, setIsAddFundsDialogOpen] = useState(false);
   const [isRemoveFundsDialogOpen, setIsRemoveFundsDialogOpen] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
+  const [isUserDetailsDialogOpen, setIsUserDetailsDialogOpen] = useState(false);
+  const [detailsTab, setDetailsTab] = useState("transactions");
 
   // Fetch users
   const { data: users = [], isLoading } = useQuery({
