@@ -30,10 +30,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const gameData = insertGameSchema.parse({
         userId: req.user!.id,
+        gameType: req.body.gameType || GameType.COIN_FLIP,
         betAmount: req.body.betAmount,
         prediction: req.body.prediction,
         result: req.body.result,
         payout: req.body.payout,
+        marketId: req.body.marketId,
+        gameMode: req.body.gameMode,
       });
 
       // Verify user has enough balance
@@ -109,6 +112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Record the game
       const game = await storage.createGame({
         userId: user.id,
+        gameType: GameType.COIN_FLIP,
         betAmount,
         prediction,
         result,
@@ -478,6 +482,241 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const transactions = await storage.getTransactionsByUserId(userId);
       res.json(transactions);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Satamatka Market Routes
+  
+  // Get all satamatka markets
+  app.get("/api/satamatka/markets", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const markets = await storage.getAllSatamatkaMarkets();
+      res.json(markets);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get active satamatka markets (open for betting)
+  app.get("/api/satamatka/markets/active", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const markets = await storage.getActiveSatamatkaMarkets();
+      res.json(markets);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get a specific satamatka market
+  app.get("/api/satamatka/markets/:id", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const marketId = Number(req.params.id);
+      const market = await storage.getSatamatkaMarket(marketId);
+      
+      if (!market) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+      
+      res.json(market);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get all games for a specific market
+  app.get("/api/satamatka/markets/:id/games", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      const marketId = Number(req.params.id);
+      const market = await storage.getSatamatkaMarket(marketId);
+      
+      if (!market) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+      
+      const games = await storage.getSatamatkaGamesByMarketId(marketId);
+      res.json(games);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Admin routes for managing markets
+  app.post("/api/satamatka/markets", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const marketData = insertSatamatkaMarketSchema.parse(req.body);
+      const market = await storage.createSatamatkaMarket(marketData);
+      res.status(201).json(market);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Update market status
+  app.patch("/api/satamatka/markets/:id/status", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const marketId = Number(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || !["open", "closed", "resulted"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const market = await storage.updateSatamatkaMarketStatus(marketId, status);
+      
+      if (!market) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+      
+      res.json(market);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Update market results
+  app.patch("/api/satamatka/markets/:id/results", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const marketId = Number(req.params.id);
+      const { openResult, closeResult } = req.body;
+      
+      if (openResult === undefined && closeResult === undefined) {
+        return res.status(400).json({ message: "Either openResult or closeResult must be provided" });
+      }
+      
+      // Validate results are two-digit numbers (00-99)
+      const validateResult = (result: string | undefined) => {
+        if (result === undefined) return true;
+        return /^[0-9]{2}$/.test(result);
+      };
+      
+      if (!validateResult(openResult) || !validateResult(closeResult)) {
+        return res.status(400).json({ message: "Results must be two-digit numbers (00-99)" });
+      }
+      
+      const market = await storage.updateSatamatkaMarketResults(marketId, openResult, closeResult);
+      
+      if (!market) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+      
+      res.json(market);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Play Satamatka game
+  app.post("/api/satamatka/play", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (req.user!.isBlocked) {
+        return res.status(403).json({ message: "Your account is blocked" });
+      }
+
+      const { marketId, betAmount, gameMode, prediction } = req.body;
+      
+      // Validate input
+      if (!marketId || !betAmount || betAmount <= 0 || !gameMode || !prediction) {
+        return res.status(400).json({ message: "Invalid input parameters" });
+      }
+
+      // Validate game mode
+      if (!Object.values(SatamatkaGameMode).includes(gameMode)) {
+        return res.status(400).json({ message: "Invalid game mode" });
+      }
+
+      // Check if market exists and is open
+      const market = await storage.getSatamatkaMarket(marketId);
+      if (!market) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+
+      if (market.status !== "open") {
+        return res.status(400).json({ message: "Market is closed for betting" });
+      }
+
+      // Validate prediction based on game mode
+      const validatePrediction = () => {
+        switch (gameMode) {
+          case SatamatkaGameMode.JODI:
+            // For Jodi, prediction should be a two-digit number
+            return /^[0-9]{2}$/.test(prediction);
+          case SatamatkaGameMode.HURF:
+            // For Hurf, prediction should be a single digit
+            return /^[0-9]$/.test(prediction);
+          case SatamatkaGameMode.CROSS:
+            // For Cross, prediction should be a single digit
+            return /^[0-9]$/.test(prediction);
+          case SatamatkaGameMode.ODD_EVEN:
+            // For Odd-Even, prediction should be "odd" or "even"
+            return prediction === "odd" || prediction === "even";
+          default:
+            return false;
+        }
+      };
+
+      if (!validatePrediction()) {
+        return res.status(400).json({ message: "Invalid prediction for selected game mode" });
+      }
+
+      // Check user balance
+      const user = await storage.getUser(req.user!.id);
+      if (!user || user.balance < betAmount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+
+      // For now, we'll record the game but not determine the result yet
+      // Results will be determined when the market results are published
+      // For simplicity, we'll use a placeholder for the result
+      const result = "pending";
+      const payout = 0; // Will be calculated when results are published
+      
+      // Update user balance (deduct bet amount)
+      const newBalance = user.balance - betAmount;
+      await storage.updateUserBalance(user.id, newBalance);
+
+      // Record the game
+      const game = await storage.createGame({
+        userId: user.id,
+        gameType: GameType.SATAMATKA,
+        betAmount,
+        prediction,
+        result,
+        payout,
+        marketId,
+        gameMode,
+      });
+
+      // Return game info with updated user balance
+      res.json({
+        game,
+        user: {
+          ...user,
+          balance: newBalance,
+          password: undefined,
+        },
+      });
     } catch (err) {
       next(err);
     }
