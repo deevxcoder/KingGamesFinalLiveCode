@@ -221,7 +221,7 @@ const gameCards = [
     id: "coinflip",
     title: "Coin Flip",
     description: "Classic heads or tails betting with 50/50 odds for instant wins.",
-    imageBg: "linear-gradient(to right, #3b82f6, #10b981)",
+    imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
     path: "/games",
     popularity: "high" as const,
     winRate: 50
@@ -230,7 +230,7 @@ const gameCards = [
     id: "satamatka",
     title: "Satta Matka",
     description: "Traditional Indian betting game with multiple betting options.",
-    imageBg: "linear-gradient(to right, #ec4899, #10b981)",
+    imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
     path: "/satamatka",
     popularity: "medium" as const,
     winRate: 36
@@ -239,7 +239,7 @@ const gameCards = [
     id: "cricket",
     title: "Cricket Betting",
     description: "Bet on your favorite cricket teams and matches.",
-    imageBg: "linear-gradient(to right, #10b981, #3b82f6)",
+    imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
     path: "/cricket",
     popularity: "high" as const,
     winRate: 42
@@ -269,7 +269,7 @@ export default function PublicHomePage() {
             id: "slide1",
             title: "The Premier Betting Platform",
             description: "Experience the thrill of betting with real-time results and attractive payouts. Play anywhere, anytime.",
-            backgroundImage: "linear-gradient(to right, #3b82f6, #10b981)",
+            backgroundImage: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
             buttonText: "Start Betting Now",
             buttonLink: "/auth"
           },
@@ -277,7 +277,7 @@ export default function PublicHomePage() {
             id: "slide2",
             title: "Satta Matka Games",
             description: "Play the traditional Indian betting game with multiple options and high payouts.",
-            backgroundImage: "linear-gradient(to right, #ec4899, #10b981)",
+            backgroundImage: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
             buttonText: "Play Satta Matka",
             buttonLink: "/auth"
           },
@@ -285,7 +285,7 @@ export default function PublicHomePage() {
             id: "slide3",
             title: "Sports Betting",
             description: "Bet on your favorite sports teams and win big with our competitive odds.",
-            backgroundImage: "linear-gradient(to right, #10b981, #3b82f6)",
+            backgroundImage: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
             buttonText: "Start Sports Betting",
             buttonLink: "/auth"
           }

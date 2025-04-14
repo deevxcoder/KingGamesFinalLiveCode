@@ -56,8 +56,8 @@ export default function GameCard({
   return (
     <Card className="overflow-hidden h-full transition-all duration-200 hover:shadow-md border-border">
       <div 
-        className="h-40 bg-cover bg-center"
-        style={{ backgroundImage: `url(${imageBg})` }}
+        className="h-40 bg-cover bg-center relative"
+        style={{ backgroundImage: imageBg }}
       >
         <div className="h-full w-full bg-gradient-to-b from-transparent to-black/70 flex items-end p-4">
           <div>
@@ -82,7 +82,7 @@ export default function GameCard({
       
       <CardFooter className="p-4 pt-0 gap-2">
         <Button 
-          className="w-full bg-gradient-to-r from-primary to-blue-400"
+          className="w-full bg-primary hover:bg-primary/90"
           onClick={() => {
             // If user is logged in, go to the game or dashboard
             // If not, redirect to auth page
