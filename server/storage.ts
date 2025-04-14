@@ -68,6 +68,26 @@ export class DatabaseStorage implements IStorage {
     
     // Seed the database with initial test data
     this.seedInitialData();
+    
+    // Check if Satamatka markets exist and seed them if not
+    this.checkAndSeedSatamatkaMarkets();
+  }
+  
+  /**
+   * Check if Satamatka markets exist and seed them if not
+   */
+  private async checkAndSeedSatamatkaMarkets() {
+    try {
+      const existingMarkets = await db.select().from(satamatkaMarkets);
+      
+      if (existingMarkets.length === 0) {
+        console.log("Seeding Satamatka markets...");
+        await this.seedSatamatkaMarkets();
+        console.log("Satamatka markets seeded successfully!");
+      }
+    } catch (error) {
+      console.error("Error checking/seeding Satamatka markets:", error);
+    }
   }
 
   /**

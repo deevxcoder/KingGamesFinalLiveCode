@@ -23,14 +23,14 @@ export default function MarketListPage() {
   const [activeTab, setActiveTab] = useState("active");
 
   // Query for all markets
-  const { data: allMarkets, isLoading: isLoadingAll } = useQuery({
+  const { data: allMarkets = [], isLoading: isLoadingAll } = useQuery<SatamatkaMarket[]>({
     queryKey: ["/api/satamatka/markets"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
   // Query for active markets
-  const { data: activeMarkets, isLoading: isLoadingActive } = useQuery({
+  const { data: activeMarkets = [], isLoading: isLoadingActive } = useQuery<SatamatkaMarket[]>({
     queryKey: ["/api/satamatka/markets/active"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
@@ -73,8 +73,8 @@ export default function MarketListPage() {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ))
-            ) : activeMarkets && activeMarkets.length > 0 ? (
-              activeMarkets.map((market: SatamatkaMarket) => (
+            ) : activeMarkets.length > 0 ? (
+              activeMarkets.map((market) => (
                 <MarketCard
                   key={market.id}
                   id={market.id}
@@ -113,8 +113,8 @@ export default function MarketListPage() {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ))
-            ) : allMarkets && allMarkets.length > 0 ? (
-              allMarkets.map((market: SatamatkaMarket) => (
+            ) : allMarkets.length > 0 ? (
+              allMarkets.map((market) => (
                 <MarketCard
                   key={market.id}
                   id={market.id}

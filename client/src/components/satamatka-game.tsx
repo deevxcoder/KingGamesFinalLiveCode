@@ -109,7 +109,7 @@ export default function SatamatkaGame() {
   // Mutation for placing a bet
   const placeBetMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      return apiRequest<any>("/api/satamatka/play", {
+      return apiRequest("/api/satamatka/play", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
