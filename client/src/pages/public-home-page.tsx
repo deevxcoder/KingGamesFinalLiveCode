@@ -221,7 +221,7 @@ const gameCards = [
     id: "coinflip",
     title: "Coin Flip",
     description: "Classic heads or tails betting with 50/50 odds for instant wins.",
-    imageBg: "linear-gradient(to right, #3b82f6, #8b5cf6)",
+    imageBg: "linear-gradient(to right, #3b82f6, #10b981)",
     path: "/games",
     popularity: "high" as const,
     winRate: 50
@@ -230,7 +230,7 @@ const gameCards = [
     id: "satamatka",
     title: "Satta Matka",
     description: "Traditional Indian betting game with multiple betting options.",
-    imageBg: "linear-gradient(to right, #ec4899, #8b5cf6)",
+    imageBg: "linear-gradient(to right, #ec4899, #10b981)",
     path: "/satamatka",
     popularity: "medium" as const,
     winRate: 36
@@ -269,7 +269,7 @@ export default function PublicHomePage() {
             id: "slide1",
             title: "The Premier Betting Platform",
             description: "Experience the thrill of betting with real-time results and attractive payouts. Play anywhere, anytime.",
-            backgroundImage: "linear-gradient(to right, #3b82f6, #8b5cf6)",
+            backgroundImage: "linear-gradient(to right, #3b82f6, #10b981)",
             buttonText: "Start Betting Now",
             buttonLink: "/auth"
           },
@@ -277,7 +277,7 @@ export default function PublicHomePage() {
             id: "slide2",
             title: "Satta Matka Games",
             description: "Play the traditional Indian betting game with multiple options and high payouts.",
-            backgroundImage: "linear-gradient(to right, #ec4899, #8b5cf6)",
+            backgroundImage: "linear-gradient(to right, #ec4899, #10b981)",
             buttonText: "Play Satta Matka",
             buttonLink: "/auth"
           },
@@ -450,7 +450,7 @@ export default function PublicHomePage() {
           
           <div className="text-center mt-8">
             <Button 
-              className="px-6 py-6 text-lg bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-600"
+              className="px-6 py-6 text-lg bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-600"
               onClick={() => setLocation("/auth")}
             >
               Register Now

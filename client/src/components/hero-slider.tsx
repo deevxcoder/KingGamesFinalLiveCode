@@ -107,7 +107,7 @@ export default function HeroSlider({
                         {slide.description}
                       </p>
                       <Button 
-                        className="px-4 py-2 sm:px-6 sm:py-4 md:px-8 md:py-6 text-sm sm:text-base md:text-lg bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-600"
+                        className="px-4 py-2 sm:px-6 sm:py-4 md:px-8 md:py-6 text-sm sm:text-base md:text-lg bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-600"
                         onClick={() => setLocation(slide.buttonLink)}
                       >
                         {slide.buttonText}
