@@ -450,7 +450,7 @@ export default function PublicHomePage() {
           
           <div className="text-center mt-8">
             <Button 
-              className="px-6 py-6 text-lg bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-600"
+              className="px-6 py-6 text-lg bg-primary hover:bg-primary/90"
               onClick={() => setLocation("/auth")}
             >
               Register Now
