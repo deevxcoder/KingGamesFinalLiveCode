@@ -49,12 +49,91 @@ export class MemStorage implements IStorage {
       checkPeriod: 86400000, // 24h
     });
 
-    // Create initial admin user for testing
-    this.createUser({
+    // Seed test users for demonstration purposes
+    this.seedTestUsers();
+  }
+  
+  /**
+   * Seed test users with different roles for demonstration
+   */
+  private async seedTestUsers() {
+    // Import the hashPassword function from auth.ts
+    const { hashPassword } = await import('./auth');
+    
+    // Admin user
+    const admin = await this.createUser({
       username: "admin",
-      password: "admin123", // This will be hashed in auth.ts
+      password: await hashPassword("admin123"),
       role: UserRole.ADMIN,
     });
+    
+    // Subadmin user (assigned to admin)
+    const subadmin = await this.createUser({
+      username: "subadmin",
+      password: await hashPassword("subadmin123"),
+      role: UserRole.SUBADMIN,
+      assignedTo: admin.id,
+    });
+    
+    // Player user (assigned to admin)
+    const player1 = await this.createUser({
+      username: "player1",
+      password: await hashPassword("player123"),
+      role: UserRole.PLAYER,
+      assignedTo: admin.id,
+    });
+    
+    // Player user (assigned to subadmin)
+    const player2 = await this.createUser({
+      username: "player2",
+      password: await hashPassword("player123"),
+      role: UserRole.PLAYER,
+      assignedTo: subadmin.id,
+    });
+    
+    // Seed some games for player1
+    this.seedGames(player1.id, 10);
+    
+    // Seed some games for player2
+    this.seedGames(player2.id, 5);
+    
+    console.log("Test users and data seeded successfully!");
+    console.log("----------------------------------------");
+    console.log("Test Accounts:");
+    console.log("- Admin: username=admin, password=admin123");
+    console.log("- Subadmin: username=subadmin, password=subadmin123");
+    console.log("- Player 1: username=player1, password=player123");
+    console.log("- Player 2: username=player2, password=player123");
+    console.log("----------------------------------------");
+  }
+  
+  /**
+   * Seed random games for a user
+   */
+  private seedGames(userId: number, count: number) {
+    const now = new Date();
+    
+    for (let i = 0; i < count; i++) {
+      const betAmount = Math.floor(Math.random() * 1000) + 100; // Random between 100-1100
+      const prediction = Math.random() > 0.5 ? "heads" : "tails";
+      const result = Math.random() > 0.5 ? "heads" : "tails";
+      const isWin = prediction === result;
+      const payout = isWin ? Math.floor(betAmount * 1.95) : 0;
+      
+      // Create game with timestamp slightly in the past
+      const pastTime = new Date(now.getTime() - (i * 15 * 60 * 1000)); // 15 minutes between games
+      
+      const gameId = this.gameIdCounter++;
+      this.games.set(gameId, {
+        id: gameId,
+        userId,
+        betAmount,
+        prediction,
+        result,
+        payout,
+        createdAt: pastTime,
+      });
+    }
   }
 
   // User methods

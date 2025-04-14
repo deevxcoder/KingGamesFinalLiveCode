@@ -86,14 +86,13 @@ export default function Sidebar() {
           <ul>
             {menuItems.filter(item => item.visible).map((item) => (
               <li key={item.path} className="mb-1">
-                <Link href={item.path}>
-                  <a className={cn(
+                <Link href={item.path}
+                  className={cn(
                     "flex items-center px-4 py-3 text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg mx-2 transition-colors",
                     location === item.path && "bg-accent text-accent-foreground"
                   )}>
                     {item.icon}
                     {item.name}
-                  </a>
                 </Link>
               </li>
             ))}
@@ -147,17 +146,16 @@ export default function Sidebar() {
             <ul className="space-y-2">
               {menuItems.filter(item => item.visible).map((item) => (
                 <li key={item.path}>
-                  <Link href={item.path}>
-                    <a 
-                      className={cn(
-                        "flex items-center px-4 py-3 text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors",
-                        location === item.path && "bg-accent text-accent-foreground"
-                      )}
-                      onClick={toggleMobileMenu}
-                    >
-                      {item.icon}
-                      {item.name}
-                    </a>
+                  <Link 
+                    href={item.path}
+                    className={cn(
+                      "flex items-center px-4 py-3 text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg transition-colors",
+                      location === item.path && "bg-accent text-accent-foreground"
+                    )}
+                    onClick={toggleMobileMenu}
+                  >
+                    {item.icon}
+                    {item.name}
                   </Link>
                 </li>
               ))}
