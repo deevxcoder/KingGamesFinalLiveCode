@@ -12,6 +12,7 @@ import {
 import ResponsiveHeader from "@/components/responsive-header";
 import ProfessionalFooter from "@/components/professional-footer";
 import GameCard from "@/components/game-card";
+import HeroSlider from "@/components/hero-slider";
 import { Trophy, Target, Shield, ArrowRight } from "lucide-react";
 
 // Sample game data
@@ -61,43 +62,36 @@ export default function PublicHomePage() {
       {/* Header */}
       <ResponsiveHeader />
 
-      {/* Hero Section */}
-      <section className="py-12 md:py-20 bg-gradient-to-b from-background to-background/95">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-            <div className="lg:w-1/2">
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 leading-tight">
-                The Premier Betting <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400">Platform</span>
-              </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8">
-                Experience the thrill of betting with real-time results and attractive payouts. Play anywhere, anytime.
-              </p>
-              <div className="flex flex-wrap gap-4">
-                <Button 
-                  className="px-6 py-6 text-lg bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-600"
-                  onClick={() => setLocation("/auth")}
-                >
-                  Start Betting Now
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="px-6 py-6 text-lg"
-                  onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                >
-                  Learn More
-                </Button>
-              </div>
-            </div>
-            <div className="lg:w-1/2 flex justify-center mt-8 lg:mt-0">
-              <div className="relative w-64 h-64 sm:w-80 sm:h-80 perspective-1000">
-                <div className="absolute w-full h-full rounded-full flex items-center justify-center text-white text-3xl font-bold bg-gradient-to-r from-amber-500 to-amber-600 animate-pulse shadow-xl">
-                  COIN FLIP
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero Slider Section */}
+      <HeroSlider 
+        slides={[
+          {
+            id: "slide1",
+            title: "The Premier Betting Platform",
+            description: "Experience the thrill of betting with real-time results and attractive payouts. Play anywhere, anytime.",
+            backgroundImage: "linear-gradient(to right, #3b82f6, #8b5cf6)",
+            buttonText: "Start Betting Now",
+            buttonLink: "/auth"
+          },
+          {
+            id: "slide2",
+            title: "Satta Matka Games",
+            description: "Play the traditional Indian betting game with multiple options and high payouts.",
+            backgroundImage: "linear-gradient(to right, #ec4899, #8b5cf6)",
+            buttonText: "Play Satta Matka",
+            buttonLink: "/auth"
+          },
+          {
+            id: "slide3",
+            title: "Sports Betting",
+            description: "Bet on your favorite sports teams and win big with our competitive odds.",
+            backgroundImage: "linear-gradient(to right, #10b981, #3b82f6)",
+            buttonText: "Start Sports Betting",
+            buttonLink: "/auth"
+          }
+        ]}
+        autoPlayInterval={5000}
+      />
 
       {/* Game Cards Section */}
       <section className="py-16" id="games">
