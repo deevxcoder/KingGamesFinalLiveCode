@@ -2,7 +2,16 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, requireRole } from "./auth";
 import { storage } from "./storage";
-import { GameOutcome, insertGameSchema, insertTransactionSchema, UserRole } from "@shared/schema";
+import { 
+  GameOutcome, 
+  GameType,
+  MarketType, 
+  SatamatkaGameMode,
+  insertGameSchema, 
+  insertTransactionSchema, 
+  insertSatamatkaMarketSchema, 
+  UserRole 
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
