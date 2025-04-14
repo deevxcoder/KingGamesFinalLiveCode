@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/use-auth";
 
 interface GameCardProps {
   id: string;
@@ -31,6 +32,7 @@ export default function GameCard({
   winRate
 }: GameCardProps) {
   const [_, setLocation] = useLocation();
+  const { user } = useAuth() || {};
 
   const getPopularityBadge = () => {
     switch (popularity) {
@@ -81,10 +83,18 @@ export default function GameCard({
       <CardFooter className="p-4 pt-0 gap-2">
         <Button 
           className="w-full bg-gradient-to-r from-primary to-blue-400"
-          onClick={() => setLocation(path)}
+          onClick={() => {
+            // If user is logged in, go to the game or dashboard
+            // If not, redirect to auth page
+            if (user) {
+              setLocation(path);
+            } else {
+              setLocation("/auth");
+            }
+          }}
         >
           <Play className="h-4 w-4 mr-2" />
-          Play Now
+          {user ? "Play Now" : "Login to Play"}
         </Button>
       </CardFooter>
     </Card>
