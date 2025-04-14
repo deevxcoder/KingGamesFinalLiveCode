@@ -9,6 +9,19 @@ import { queryClient, apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
+// Define SatamatkaMarket interface
+interface SatamatkaMarket {
+  id: number;
+  name: string;
+  type: string;
+  openTime: string;
+  closeTime: string;
+  openResult?: string;
+  closeResult?: string;
+  status: string;
+  createdAt: string;
+}
+
 import {
   Card,
   CardContent,
@@ -96,8 +109,11 @@ export default function SatamatkaGame() {
   // Mutation for placing a bet
   const placeBetMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      return apiRequest("/api/satamatka/play", {
+      return apiRequest<any>("/api/satamatka/play", {
         method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           marketId: marketId,
           gameMode: data.gameMode,
@@ -277,7 +293,10 @@ export default function SatamatkaGame() {
     );
   }
 
-  if (market.status !== "open") {
+  // TypeScript check to ensure market has the expected properties
+  const typedMarket = market as unknown as SatamatkaMarket;
+  
+  if (typedMarket.status !== "open") {
     return (
       <div className="container mx-auto py-6">
         <Alert>
@@ -310,10 +329,10 @@ export default function SatamatkaGame() {
           <ChevronLeft className="h-4 w-4 mr-1" /> Back
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">{market.name}</h1>
+          <h1 className="text-3xl font-bold">{typedMarket.name}</h1>
           <p className="text-muted-foreground">
-            Open: {format(new Date(market.openTime), "h:mm a")} | Close:{" "}
-            {format(new Date(market.closeTime), "h:mm a")}
+            Open: {format(new Date(typedMarket.openTime), "h:mm a")} | Close:{" "}
+            {format(new Date(typedMarket.closeTime), "h:mm a")}
           </p>
         </div>
         <Badge className="ml-auto bg-green-500 hover:bg-green-600 text-white">

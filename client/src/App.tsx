@@ -41,6 +41,10 @@ function Router() {
       <ProtectedRoute path="/history" component={GameHistoryPage} />
       <ProtectedRoute path="/actions" component={ActionHistoryPage} />
       
+      {/* Satamatka Market routes */}
+      <ProtectedRoute path="/markets" component={MarketListPage} />
+      <ProtectedRoute path="/game/satamatka/:id" component={SatamatkaGamePage} />
+      
       {/* 404 route */}
       <Route component={NotFound} />
     </Switch>

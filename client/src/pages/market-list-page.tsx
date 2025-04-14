@@ -73,7 +73,7 @@ export default function MarketListPage() {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ))
-            ) : activeMarkets?.length ? (
+            ) : activeMarkets && activeMarkets.length > 0 ? (
               activeMarkets.map((market: SatamatkaMarket) => (
                 <MarketCard
                   key={market.id}
@@ -113,7 +113,7 @@ export default function MarketListPage() {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ))
-            ) : allMarkets?.length ? (
+            ) : allMarkets && allMarkets.length > 0 ? (
               allMarkets.map((market: SatamatkaMarket) => (
                 <MarketCard
                   key={market.id}
