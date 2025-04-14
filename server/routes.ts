@@ -281,6 +281,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(err);
     }
   });
+  
+  // Edit user (username/password)
+  app.patch("/api/users/:id/edit", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.id);
+      const { username, password } = req.body;
+      
+      // Verify at least one field is provided
+      if (!username && !password) {
+        return res.status(400).json({ message: "No updates provided" });
+      }
+      
+      // Get the user to verify permissions
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check permissions - subadmins can only update their assigned users
+      if (req.user!.role === UserRole.SUBADMIN && user.assignedTo !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to modify this user" });
+      }
+      
+      // If username is provided, check if it's already taken
+      if (username) {
+        const existingUser = await storage.getUserByUsername(username);
+        if (existingUser && existingUser.id !== userId) {
+          return res.status(400).json({ message: "Username already taken" });
+        }
+      }
+      
+      // Update the user
+      const updatedUser = await storage.updateUser(userId, { username, password });
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Remove password from response
+      const { password: pwd, ...userWithoutPassword } = updatedUser;
+      res.json(userWithoutPassword);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Get user statistics
   app.get("/api/users/stats", async (req, res, next) => {
@@ -311,6 +355,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get recent games limited to 10
       const games = await storage.getAllGames(10);
       res.json(games);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get all games (for admins and subadmins) or user's games
+  app.get("/api/games", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      let games;
+      
+      if (req.user!.role === UserRole.ADMIN) {
+        // Admins can see all games
+        games = await storage.getAllGames();
+      } else if (req.user!.role === UserRole.SUBADMIN) {
+        // Subadmins can only see games from users assigned to them
+        const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
+        const userIds = assignedUsers.map(user => user.id);
+        
+        // Also include the subadmin's own games
+        userIds.push(req.user!.id);
+        
+        // Get all games and filter by user IDs
+        const allGames = await storage.getAllGames();
+        games = allGames.filter(game => userIds.includes(game.userId));
+      } else {
+        // Regular users can only see their own games
+        games = await storage.getGamesByUserId(req.user!.id);
+      }
+      
+      res.json(games);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get all transactions (for admins and subadmins) or user's transactions
+  app.get("/api/transactions", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      let transactions;
+      
+      if (req.user!.role === UserRole.ADMIN) {
+        // Admins can see all transactions
+        transactions = await storage.getAllTransactions();
+      } else if (req.user!.role === UserRole.SUBADMIN) {
+        // Subadmins can only see transactions from users assigned to them
+        const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
+        const userIds = assignedUsers.map(user => user.id);
+        
+        // Also include the subadmin's own transactions
+        userIds.push(req.user!.id);
+        
+        // Get all transactions and filter by user IDs
+        const allTransactions = await storage.getAllTransactions();
+        transactions = allTransactions.filter(transaction => userIds.includes(transaction.userId));
+      } else {
+        // Regular users can only see their own transactions
+        transactions = await storage.getTransactionsByUserId(req.user!.id);
+      }
+      
+      res.json(transactions);
     } catch (err) {
       next(err);
     }

@@ -15,6 +15,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   getUsersByAssignedTo(assignedToId: number): Promise<User[]>;
   updateUserBalance(userId: number, newBalance: number): Promise<User | undefined>;
+  updateUser(userId: number, data: {username?: string; password?: string}): Promise<User | undefined>;
   blockUser(userId: number): Promise<User | undefined>;
   unblockUser(userId: number): Promise<User | undefined>;
   assignUserToAdmin(userId: number, adminId: number): Promise<User | undefined>;
@@ -27,6 +28,7 @@ export interface IStorage {
   // Transaction methods
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getTransactionsByUserId(userId: number): Promise<Transaction[]>;
+  getAllTransactions(limit?: number): Promise<Transaction[]>;
 
   // Session store
   sessionStore: session.Store;
@@ -168,6 +170,25 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return user;
   }
+  
+  async updateUser(userId: number, data: {username?: string; password?: string}): Promise<User | undefined> {
+    // Only update fields that are provided
+    const updateData: any = {};
+    if (data.username) updateData.username = data.username;
+    if (data.password) {
+      const { hashPassword } = await import('./auth');
+      updateData.password = await hashPassword(data.password);
+    }
+    
+    if (Object.keys(updateData).length === 0) return this.getUser(userId);
+    
+    const [user] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
 
   async blockUser(userId: number): Promise<User | undefined> {
     const [user] = await db
@@ -232,6 +253,16 @@ export class DatabaseStorage implements IStorage {
       .from(transactions)
       .where(eq(transactions.userId, userId))
       .orderBy(desc(transactions.createdAt));
+  }
+  
+  async getAllTransactions(limit?: number): Promise<Transaction[]> {
+    const query = db.select().from(transactions).orderBy(desc(transactions.createdAt));
+    
+    if (limit) {
+      query.limit(limit);
+    }
+    
+    return await query;
   }
 }
 

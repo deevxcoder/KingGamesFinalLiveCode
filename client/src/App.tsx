@@ -14,6 +14,7 @@ import GamePage from "@/pages/game-page";
 import UserManagementPage from "@/pages/user-management-page";
 import SubadminManagementPage from "@/pages/subadmin-management-page";
 import GameHistoryPage from "@/pages/game-history-page";
+import ActionHistoryPage from "@/pages/action-history-page";
 
 function Router() {
   return (
@@ -36,6 +37,7 @@ function Router() {
         allowedRoles={[UserRole.ADMIN]}
       />
       <ProtectedRoute path="/history" component={GameHistoryPage} />
+      <ProtectedRoute path="/actions" component={ActionHistoryPage} />
       
       {/* 404 route */}
       <Route component={NotFound} />
