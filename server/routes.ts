@@ -7,9 +7,12 @@ import {
   GameType,
   MarketType, 
   SatamatkaGameMode,
+  TeamMatchResult,
+  MatchCategory,
   insertGameSchema, 
   insertTransactionSchema, 
-  insertSatamatkaMarketSchema, 
+  insertSatamatkaMarketSchema,
+  insertTeamMatchSchema,
   UserRole 
 } from "@shared/schema";
 
