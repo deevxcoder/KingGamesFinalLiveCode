@@ -20,6 +20,34 @@ export const GameOutcome = {
 
 export type GameOutcomeType = typeof GameOutcome[keyof typeof GameOutcome];
 
+// Game types
+export const GameType = {
+  COIN_FLIP: "coin_flip",
+  SATAMATKA: "satamatka",
+} as const;
+
+export type GameTypeValue = typeof GameType[keyof typeof GameType];
+
+// Satamatka Market types
+export const MarketType = {
+  DISHAWAR: "dishawar",
+  GALI: "gali",
+  MUMBAI: "mumbai",
+  KALYAN: "kalyan",
+} as const;
+
+export type MarketTypeValue = typeof MarketType[keyof typeof MarketType];
+
+// Satamatka Game modes
+export const SatamatkaGameMode = {
+  JODI: "jodi",
+  HURF: "hurf",
+  CROSS: "cross",
+  ODD_EVEN: "odd_even",
+} as const;
+
+export type SatamatkaGameModeValue = typeof SatamatkaGameMode[keyof typeof SatamatkaGameMode];
+
 // User Schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -51,28 +79,65 @@ export const games = pgTable("games", {
   userId: integer("user_id")
     .notNull()
     .references(() => users.id),
+  gameType: text("game_type").notNull().default(GameType.COIN_FLIP), // coin_flip or satamatka
   betAmount: integer("bet_amount").notNull(), // in cents
-  prediction: text("prediction").notNull(), // heads or tails
-  result: text("result").notNull(), // heads or tails
+  prediction: text("prediction").notNull(), // heads/tails or number for satamatka
+  result: text("result").notNull(), // heads/tails or number for satamatka
   payout: integer("payout").notNull(), // in cents
   createdAt: timestamp("created_at").defaultNow(),
+  // For Satamatka games
+  marketId: integer("market_id").references(() => satamatkaMarkets.id),
+  gameMode: text("game_mode"), // jodi, hurf, cross, odd_even
 });
 
 export const insertGameSchema = createInsertSchema(games)
   .pick({
     userId: true,
+    gameType: true,
     betAmount: true,
     prediction: true,
     result: true,
     payout: true,
+    marketId: true,
+    gameMode: true,
   })
   .extend({
-    prediction: z.enum([GameOutcome.HEADS, GameOutcome.TAILS]),
-    result: z.enum([GameOutcome.HEADS, GameOutcome.TAILS]),
+    gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA]).default(GameType.COIN_FLIP),
   });
 
 export type InsertGame = z.infer<typeof insertGameSchema>;
 export type Game = typeof games.$inferSelect;
+
+// Satamatka Markets Schema
+export const satamatkaMarkets = pgTable("satamatka_markets", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // dishawar, gali, mumbai, kalyan
+  openTime: timestamp("open_time").notNull(),
+  closeTime: timestamp("close_time").notNull(),
+  openResult: text("open_result"), // Two-digit number (00-99)
+  closeResult: text("close_result"), // Two-digit number (00-99)
+  status: text("status").notNull().default("open"), // open, closed, resulted
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
+  .pick({
+    name: true,
+    type: true,
+    openTime: true,
+    closeTime: true,
+    openResult: true,
+    closeResult: true,
+    status: true,
+  })
+  .extend({
+    type: z.enum([MarketType.DISHAWAR, MarketType.GALI, MarketType.MUMBAI, MarketType.KALYAN]),
+    status: z.enum(["open", "closed", "resulted"]).default("open"),
+  });
+
+export type InsertSatamatkaMarket = z.infer<typeof insertSatamatkaMarketSchema>;
+export type SatamatkaMarket = typeof satamatkaMarkets.$inferSelect;
 
 // Fund Transaction Schema
 export const transactions = pgTable("transactions", {
@@ -120,6 +185,15 @@ export const gamesRelations = relations(games, ({ one }) => ({
     fields: [games.userId],
     references: [users.id],
   }),
+  market: one(satamatkaMarkets, {
+    fields: [games.marketId],
+    references: [satamatkaMarkets.id],
+    relationName: "marketGames",
+  }),
+}));
+
+export const satamatkaMarketsRelations = relations(satamatkaMarkets, ({ many }) => ({
+  games: many(games, { relationName: "marketGames" }),
 }));
 
 export const transactionsRelations = relations(transactions, ({ one }) => ({

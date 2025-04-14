@@ -1,8 +1,22 @@
-import { users, games, transactions, User, InsertUser, Game, InsertGame, Transaction, InsertTransaction, UserRole } from "@shared/schema";
+import { 
+  users, 
+  games, 
+  transactions, 
+  satamatkaMarkets,
+  User, 
+  InsertUser, 
+  Game, 
+  InsertGame, 
+  Transaction, 
+  InsertTransaction, 
+  UserRole, 
+  SatamatkaMarket,
+  InsertSatamatkaMarket
+} from "@shared/schema";
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, gte, lte } from "drizzle-orm";
 
 // Connect to PostgreSQL for session storage
 const PostgresSessionStore = connectPg(session);
@@ -24,6 +38,15 @@ export interface IStorage {
   createGame(game: InsertGame): Promise<Game>;
   getGamesByUserId(userId: number): Promise<Game[]>;
   getAllGames(limit?: number): Promise<Game[]>;
+
+  // Satamatka Market methods
+  createSatamatkaMarket(market: InsertSatamatkaMarket): Promise<SatamatkaMarket>;
+  getSatamatkaMarket(id: number): Promise<SatamatkaMarket | undefined>;
+  getAllSatamatkaMarkets(): Promise<SatamatkaMarket[]>;
+  getActiveSatamatkaMarkets(): Promise<SatamatkaMarket[]>;
+  updateSatamatkaMarketResults(id: number, openResult?: string, closeResult?: string): Promise<SatamatkaMarket | undefined>;
+  updateSatamatkaMarketStatus(id: number, status: string): Promise<SatamatkaMarket | undefined>;
+  getSatamatkaGamesByMarketId(marketId: number): Promise<Game[]>;
 
   // Transaction methods
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
@@ -97,6 +120,9 @@ export class DatabaseStorage implements IStorage {
         // Seed some games for player2
         await this.seedGamesForUser(player2.id, 5);
         
+        // Seed Satamatka markets
+        await this.seedSatamatkaMarkets();
+        
         console.log("Test users and data seeded successfully!");
         console.log("----------------------------------------");
         console.log("Test Accounts:");
@@ -108,6 +134,54 @@ export class DatabaseStorage implements IStorage {
       }
     } catch (error) {
       console.error("Error seeding initial data:", error);
+    }
+  }
+  
+  /**
+   * Seed Satamatka markets
+   */
+  private async seedSatamatkaMarkets() {
+    const now = new Date();
+    const markets = [
+      {
+        name: "Dishawar Morning",
+        type: "dishawar",
+        openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0), // 9:00 AM
+        closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 30), // 10:30 AM
+        status: "open",
+      },
+      {
+        name: "Gali Day",
+        type: "gali",
+        openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 0), // 11:00 AM
+        closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 30), // 12:30 PM
+        status: "open",
+      },
+      {
+        name: "Mumbai Afternoon",
+        type: "mumbai",
+        openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 0), // 2:00 PM
+        closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 15, 30), // 3:30 PM
+        status: "open",
+      },
+      {
+        name: "Kalyan Evening",
+        type: "kalyan",
+        openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0), // 5:00 PM
+        closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 30), // 6:30 PM
+        status: "open",
+      },
+      {
+        name: "Dishawar Night",
+        type: "dishawar",
+        openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0), // 8:00 PM
+        closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 21, 30), // 9:30 PM
+        status: "open",
+      },
+    ];
+    
+    for (const market of markets) {
+      await this.createSatamatkaMarket(market as InsertSatamatkaMarket);
     }
   }
   
@@ -129,6 +203,7 @@ export class DatabaseStorage implements IStorage {
       
       await db.insert(games).values({
         userId,
+        gameType: "coin_flip", // explicitly set game type for existing games
         betAmount,
         prediction,
         result,
@@ -263,6 +338,74 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await query;
+  }
+
+  // Satamatka Market methods
+  async createSatamatkaMarket(market: InsertSatamatkaMarket): Promise<SatamatkaMarket> {
+    const [createdMarket] = await db.insert(satamatkaMarkets).values(market).returning();
+    return createdMarket;
+  }
+
+  async getSatamatkaMarket(id: number): Promise<SatamatkaMarket | undefined> {
+    const [market] = await db.select().from(satamatkaMarkets).where(eq(satamatkaMarkets.id, id));
+    return market;
+  }
+
+  async getAllSatamatkaMarkets(): Promise<SatamatkaMarket[]> {
+    return await db.select().from(satamatkaMarkets).orderBy(desc(satamatkaMarkets.createdAt));
+  }
+
+  async getActiveSatamatkaMarkets(): Promise<SatamatkaMarket[]> {
+    const now = new Date();
+    return await db
+      .select()
+      .from(satamatkaMarkets)
+      .where(
+        and(
+          gte(satamatkaMarkets.closeTime, now), // Market's close time is in the future
+          eq(satamatkaMarkets.status, "open")
+        )
+      )
+      .orderBy(satamatkaMarkets.closeTime);
+  }
+
+  async updateSatamatkaMarketResults(id: number, openResult?: string, closeResult?: string): Promise<SatamatkaMarket | undefined> {
+    const updateData: any = {};
+    if (openResult !== undefined) updateData.openResult = openResult;
+    if (closeResult !== undefined) updateData.closeResult = closeResult;
+    
+    if (Object.keys(updateData).length === 0) return this.getSatamatkaMarket(id);
+    
+    // If close result is being set, automatically update status to "resulted"
+    if (closeResult !== undefined) {
+      updateData.status = "resulted";
+    }
+    
+    const [market] = await db
+      .update(satamatkaMarkets)
+      .set(updateData)
+      .where(eq(satamatkaMarkets.id, id))
+      .returning();
+    
+    return market;
+  }
+
+  async updateSatamatkaMarketStatus(id: number, status: string): Promise<SatamatkaMarket | undefined> {
+    const [market] = await db
+      .update(satamatkaMarkets)
+      .set({ status })
+      .where(eq(satamatkaMarkets.id, id))
+      .returning();
+    
+    return market;
+  }
+
+  async getSatamatkaGamesByMarketId(marketId: number): Promise<Game[]> {
+    return await db
+      .select()
+      .from(games)
+      .where(eq(games.marketId, marketId))
+      .orderBy(desc(games.createdAt));
   }
 }
 
