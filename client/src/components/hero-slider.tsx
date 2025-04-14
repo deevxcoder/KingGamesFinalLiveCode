@@ -83,7 +83,7 @@ export default function HeroSlider({
   return (
     <div className="relative">
       <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex h-[400px] sm:h-[500px] md:h-[600px]">
+        <div className="flex h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
           {slides.map((slide, index) => (
             <div 
               key={slide.id} 
@@ -99,15 +99,15 @@ export default function HeroSlider({
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 flex items-center">
                   <div className="container mx-auto px-4 md:px-8">
-                    <div className="max-w-2xl">
-                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4">
+                    <div className="max-w-2xl pt-0 sm:pt-0 md:pt-0 lg:pt-0">
+                      <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-4 leading-tight">
                         {slide.title}
                       </h1>
-                      <p className="text-white/90 text-lg sm:text-xl mb-6">
+                      <p className="text-white/90 text-sm sm:text-base md:text-lg mb-4 sm:mb-6 max-w-md">
                         {slide.description}
                       </p>
                       <Button 
-                        className="px-8 py-6 text-lg bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-600"
+                        className="px-4 py-2 sm:px-6 sm:py-4 md:px-8 md:py-6 text-sm sm:text-base md:text-lg bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-600"
                         onClick={() => setLocation(slide.buttonLink)}
                       >
                         {slide.buttonText}
@@ -124,27 +124,27 @@ export default function HeroSlider({
       {/* Navigation buttons */}
       <button 
         onClick={scrollPrev}
-        className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-all"
+        className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-1 sm:p-2 transition-all"
         aria-label="Previous slide"
       >
-        <ChevronLeft className="w-6 h-6" />
+        <ChevronLeft className="w-4 h-4 sm:w-6 sm:h-6" />
       </button>
       <button 
         onClick={scrollNext}
-        className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 transition-all"
+        className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-1 sm:p-2 transition-all"
         aria-label="Next slide"
       >
-        <ChevronRight className="w-6 h-6" />
+        <ChevronRight className="w-4 h-4 sm:w-6 sm:h-6" />
       </button>
       
       {/* Dots indicators */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-        <div className="flex space-x-2">
+      <div className="absolute bottom-2 sm:bottom-4 left-0 right-0 flex justify-center">
+        <div className="flex space-x-1.5 sm:space-x-2">
           {scrollSnaps.map((_, index) => (
             <button
               key={index}
               onClick={() => scrollTo(index)}
-              className={`w-3 h-3 rounded-full transition-all ${
+              className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full transition-all ${
                 index === selectedIndex
                   ? 'bg-white scale-100'
                   : 'bg-white/50 scale-75'
