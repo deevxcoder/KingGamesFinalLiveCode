@@ -38,11 +38,6 @@ export default function RecentResults({ results }: RecentResultsProps) {
   const [_, setLocation] = useLocation();
   const [tab, setTab] = useState("today");
   
-  const formatResult = (result?: string) => {
-    if (!result) return "-";
-    return result;
-  };
-  
   if (results.length === 0) {
     return (
       <Card>
@@ -120,6 +115,11 @@ function ResultItem({ result }: { result: MarketResult }) {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const formatResult = (result?: string) => {
+    if (!result) return "-";
+    return result;
   };
 
   const timeAgo = formatDistanceToNow(new Date(result.createdAt), { addSuffix: true });

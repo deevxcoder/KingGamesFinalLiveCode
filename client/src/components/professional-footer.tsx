@@ -44,38 +44,43 @@ export default function ProfessionalFooter() {
             <h3 className="text-lg font-bold mb-4 text-foreground">Quick Links</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/dashboard">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Home
-                  </a>
+                <Link 
+                  href="/dashboard"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
+                  Home
                 </Link>
               </li>
               <li>
-                <Link href="/games">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Games
-                  </a>
+                <Link 
+                  href="/games"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
+                  Games
                 </Link>
               </li>
               <li>
-                <Link href="/game-history">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Game History
-                  </a>
+                <Link 
+                  href="/game-history"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
+                  Game History
                 </Link>
               </li>
               <li>
-                <Link href="/markets">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Markets
-                  </a>
+                <Link 
+                  href="/markets"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
+                  Markets
                 </Link>
               </li>
               <li>
-                <Link href="/auth">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm">
-                    Login/Register
-                  </a>
+                <Link 
+                  href="/auth"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
+                >
+                  Login/Register
                 </Link>
               </li>
             </ul>
@@ -86,35 +91,39 @@ export default function ProfessionalFooter() {
             <h3 className="text-lg font-bold mb-4 text-foreground">Support</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/help">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center">
-                    <HelpCircle className="h-4 w-4 mr-2" />
-                    Help Center
-                  </a>
+                <Link 
+                  href="/help"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center"
+                >
+                  <HelpCircle className="h-4 w-4 mr-2" />
+                  Help Center
                 </Link>
               </li>
               <li>
-                <Link href="/faq">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center">
-                    <FileText className="h-4 w-4 mr-2" />
-                    FAQ
-                  </a>
+                <Link 
+                  href="/faq"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  FAQ
                 </Link>
               </li>
               <li>
-                <Link href="/responsible-gaming">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center">
-                    <AlertTriangle className="h-4 w-4 mr-2" />
-                    Responsible Gaming
-                  </a>
+                <Link 
+                  href="/responsible-gaming"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center"
+                >
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Responsible Gaming
                 </Link>
               </li>
               <li>
-                <Link href="/security">
-                  <a className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center">
-                    <Shield className="h-4 w-4 mr-2" />
-                    Security
-                  </a>
+                <Link 
+                  href="/security"
+                  className="text-muted-foreground hover:text-primary transition-colors text-sm flex items-center"
+                >
+                  <Shield className="h-4 w-4 mr-2" />
+                  Security
                 </Link>
               </li>
             </ul>
