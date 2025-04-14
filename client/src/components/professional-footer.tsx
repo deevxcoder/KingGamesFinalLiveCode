@@ -160,20 +160,23 @@ export default function ProfessionalFooter() {
             &copy; {currentYear} CoinFlip. All rights reserved.
           </p>
           <div className="flex space-x-6">
-            <Link href="/terms">
-              <a className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Terms of Service
-              </a>
+            <Link 
+              href="/terms"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Terms of Service
             </Link>
-            <Link href="/privacy">
-              <a className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Privacy Policy
-              </a>
+            <Link 
+              href="/privacy"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Privacy Policy
             </Link>
-            <Link href="/cookies">
-              <a className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Cookie Policy
-              </a>
+            <Link 
+              href="/cookies"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cookie Policy
             </Link>
           </div>
         </div>
