@@ -157,13 +157,13 @@ export default function HomePage() {
             {/* Featured Games Section */}
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold flex items-center">
-                  <Play className="h-5 w-5 mr-2 text-primary" />
+                <h2 className="text-xl font-bold flex items-center text-slate-200">
+                  <Play className="h-5 w-5 mr-2 text-blue-500" />
                   Featured Games
                 </h2>
                 <Button 
                   variant="ghost" 
-                  className="text-primary text-sm"
+                  className="text-blue-400 hover:text-blue-300 text-sm hover:bg-slate-800/60"
                   onClick={() => setLocation("/games")}
                 >
                   View All

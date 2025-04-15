@@ -49,9 +49,9 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
   };
 
   return (
-    <Card className="bg-card rounded-xl shadow-xl border border-border">
+    <Card className="bg-slate-900/70 rounded-xl shadow-xl border border-slate-800">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">
+        <CardTitle className="text-xl font-bold text-slate-200">
           {showFullHistory ? "Game History" : "Recent Games"}
         </CardTitle>
       </CardHeader>
@@ -60,18 +60,18 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead>Time</TableHead>
-                <TableHead>Bet Amount</TableHead>
-                <TableHead>Prediction</TableHead>
-                <TableHead>Result</TableHead>
-                <TableHead>Profit/Loss</TableHead>
+              <TableRow className="border-slate-800">
+                <TableHead className="text-slate-400">Time</TableHead>
+                <TableHead className="text-slate-400">Bet Amount</TableHead>
+                <TableHead className="text-slate-400">Prediction</TableHead>
+                <TableHead className="text-slate-400">Result</TableHead>
+                <TableHead className="text-slate-400">Profit/Loss</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayGames.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                <TableRow className="border-slate-800">
+                  <TableCell colSpan={5} className="text-center py-4 text-slate-500">
                     No games played yet
                   </TableCell>
                 </TableRow>
@@ -79,18 +79,18 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                 displayGames.map((game) => {
                   const isWin = game.payout > 0;
                   return (
-                    <TableRow key={game.id} className="hover:bg-accent/10 transition-colors">
-                      <TableCell className="whitespace-nowrap text-sm">
+                    <TableRow key={game.id} className="hover:bg-slate-800/50 transition-colors border-slate-800">
+                      <TableCell className="whitespace-nowrap text-sm text-slate-400">
                         {formatTime(game.createdAt)}
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-sm">
+                      <TableCell className="whitespace-nowrap text-sm text-slate-300">
                         ${(game.betAmount / 100).toFixed(2)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <Badge variant="outline" className={
                           game.prediction === GameOutcome.HEADS
-                            ? "bg-amber-100/10 text-amber-500 border-amber-500/20"
-                            : "bg-red-100/10 text-red-500 border-red-500/20"
+                            ? "bg-indigo-900/30 text-indigo-300 border-indigo-500/30"
+                            : "bg-blue-900/30 text-blue-300 border-blue-500/30"
                         }>
                           {game.prediction}
                         </Badge>
@@ -98,14 +98,14 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                       <TableCell className="whitespace-nowrap">
                         <Badge variant="outline" className={
                           game.result === GameOutcome.HEADS
-                            ? "bg-amber-100/10 text-amber-500 border-amber-500/20"
-                            : "bg-red-100/10 text-red-500 border-red-500/20"
+                            ? "bg-indigo-900/30 text-indigo-300 border-indigo-500/30"
+                            : "bg-blue-900/30 text-blue-300 border-blue-500/30"
                         }>
                           {game.result}
                         </Badge>
                       </TableCell>
                       <TableCell className={`whitespace-nowrap text-sm ${
-                        isWin ? "text-green-500" : "text-red-500"
+                        isWin ? "text-blue-400" : "text-slate-400"
                       }`}>
                         {isWin ? "+" : ""}${((isWin ? game.payout - game.betAmount : -game.betAmount) / 100).toFixed(2)}
                       </TableCell>
@@ -121,7 +121,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
           <div className="mt-6 text-center">
             <Button 
               variant="link" 
-              className="text-primary hover:text-primary/80"
+              className="text-blue-400 hover:text-blue-300"
               onClick={() => setLocation("/history")}
             >
               View All History
