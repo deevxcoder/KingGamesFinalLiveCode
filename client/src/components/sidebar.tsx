@@ -14,7 +14,8 @@ import {
   History,
   Target,
   Trophy,
-  BarChart2
+  BarChart2,
+  Calculator
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -90,7 +91,13 @@ export default function Sidebar() {
       icon: <Clock className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
     },
-    // Everyone
+    // Admin and Subadmin Management
+    {
+      name: "Jantri Management",
+      path: "/jantri-management",
+      icon: <Calculator className="w-5 h-5 mr-3" />,
+      visible: isAdmin || isSubadmin,
+    },
     {
       name: "Risk Management",
       path: "/risk-management",

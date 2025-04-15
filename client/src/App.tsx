@@ -20,6 +20,7 @@ import SatamatkaGamePage from "@/pages/satamatka-game-page";
 import TeamMatchPage from "@/pages/team-match-page";
 import AdminMarketManagementPage from "@/pages/admin-market-management-page";
 import AdminTeamMatchPage from "@/pages/admin-team-match-page";
+import JantriManagementPage from "@/pages/jantri-management-page";
 
 function Router() {
   return (

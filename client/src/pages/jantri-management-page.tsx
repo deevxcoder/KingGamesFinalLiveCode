@@ -340,7 +340,7 @@ export default function JantriManagementPage() {
                   <CardTitle className="flex items-center">
                     <span className="mr-2">{market.marketName}: Number {selectedNumber}</span>
                     {/* Check if there are bets for this specific market and number */}
-                    {market.numbers.find(n => n.number === selectedNumber)?.totalBets > 0 ? (
+                    {(market.numbers.find(n => n.number === selectedNumber)?.totalBets ?? 0) > 0 ? (
                       <Badge className="bg-green-500">Active Bets</Badge>
                     ) : (
                       <Badge variant="outline">No Bets</Badge>
@@ -397,7 +397,7 @@ export default function JantriManagementPage() {
                     </div>
                   )}
                   
-                  {isAdmin && market.numbers.find(n => n.number === selectedNumber)?.totalBets > 0 && (
+                  {isAdmin && (market.numbers.find(n => n.number === selectedNumber)?.totalBets ?? 0) > 0 && (
                     <>
                       <Separator className="my-4" />
                       <div className="space-y-2">
