@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "./hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
-import { UserRole } from "@shared/schema";
+import { UserRole } from "./lib/types";
 
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/auth-page";
@@ -21,6 +21,7 @@ import TeamMatchPage from "@/pages/team-match-page";
 import AdminMarketManagementPage from "@/pages/admin-market-management-page";
 import AdminTeamMatchPage from "@/pages/admin-team-match-page";
 import JantriManagementPage from "@/pages/jantri-management-page";
+import WalletPage from "@/pages/wallet-page";
 
 function Router() {
   return (
@@ -93,6 +94,12 @@ function Router() {
         path="/sports" 
         component={TeamMatchPage}
         allowedRoles={[UserRole.PLAYER]} 
+      />
+      
+      {/* Wallet route - accessible to all authenticated users */}
+      <ProtectedRoute
+        path="/wallet"
+        component={WalletPage}
       />
       
       {/* 404 route */}

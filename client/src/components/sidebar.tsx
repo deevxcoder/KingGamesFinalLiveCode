@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { UserRole } from "@shared/schema";
+import { UserRole } from "@/lib/types";
 import { 
   LayoutDashboard, 
   Users, 
@@ -15,7 +15,8 @@ import {
   Target,
   Trophy,
   BarChart2,
-  Calculator
+  Calculator,
+  Wallet
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -90,6 +91,13 @@ export default function Sidebar() {
       path: "/history",
       icon: <Clock className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
+    },
+    // Wallet - accessible by all users
+    {
+      name: "Wallet",
+      path: "/wallet",
+      icon: <Wallet className="w-5 h-5 mr-3" />,
+      visible: true,
     },
     // Admin and Subadmin Management
     {
