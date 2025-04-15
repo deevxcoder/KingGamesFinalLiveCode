@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, foreignKey } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, foreignKey, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -49,7 +49,7 @@ export const MatchCategory = {
 
 export type MatchCategoryValue = typeof MatchCategory[keyof typeof MatchCategory];
 
-// Satamatka Market types
+// Market types
 export const MarketType = {
   DISHAWAR: "dishawar",
   GALI: "gali",
@@ -59,24 +59,47 @@ export const MarketType = {
 
 export type MarketTypeValue = typeof MarketType[keyof typeof MarketType];
 
-// Satamatka Game modes
+// Satamatka Game Modes
 export const SatamatkaGameMode = {
-  JODI: "jodi",
-  HURF: "hurf",
-  CROSS: "cross",
-  ODD_EVEN: "odd_even",
+  SINGLE: "single", // Bet on a single digit (0-9)
+  JODI: "jodi", // Bet on two-digit number (00-99)
+  PATTI: "patti", // Bet on three-digit number (000-999)
 } as const;
 
 export type SatamatkaGameModeValue = typeof SatamatkaGameMode[keyof typeof SatamatkaGameMode];
 
-// User Schema
+// Payment Method Enums
+export const PaymentMode = {
+  UPI: 'upi',
+  BANK: 'bank',
+  CASH: 'cash',
+} as const;
+
+export type PaymentModeType = typeof PaymentMode[keyof typeof PaymentMode];
+
+export const RequestStatus = {
+  PENDING: 'pending',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+} as const;
+
+export type RequestStatusType = typeof RequestStatus[keyof typeof RequestStatus];
+
+export const RequestType = {
+  DEPOSIT: 'deposit',
+  WITHDRAWAL: 'withdrawal',
+} as const;
+
+export type RequestTypeValue = typeof RequestType[keyof typeof RequestType];
+
+// Tables
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").notNull().default(UserRole.PLAYER),
-  balance: integer("balance").notNull().default(1000), // Starting balance of 1000 cents ($10.00)
-  assignedTo: integer("assigned_to").references(() => users.id), // ID of admin/subadmin this user is assigned to
+  role: text("role").notNull().default(UserRole.PLAYER), // admin, subadmin, player
+  balance: integer("balance").notNull().default(0),
+  assignedTo: integer("assigned_to").references(() => users.id),
   isBlocked: boolean("is_blocked").notNull().default(false),
 });
 
@@ -88,29 +111,27 @@ export const insertUserSchema = createInsertSchema(users)
     assignedTo: true,
   })
   .extend({
-    role: z.enum([UserRole.ADMIN, UserRole.SUBADMIN, UserRole.PLAYER]).default(UserRole.PLAYER),
+    role: z.enum([UserRole.ADMIN, UserRole.SUBADMIN, UserRole.PLAYER]),
+  })
+  .partial({
+    assignedTo: true,
   });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-// Game Records Schema
 export const games = pgTable("games", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id")
-    .notNull()
-    .references(() => users.id),
-  gameType: text("game_type").notNull().default(GameType.COIN_FLIP), // coin_flip, satamatka, or team_match
-  betAmount: integer("bet_amount").notNull(), // in cents
-  prediction: text("prediction").notNull(), // heads/tails or number for satamatka or team_a/team_b/draw for team_match
-  result: text("result").notNull(), // heads/tails or number for satamatka or team_a/team_b/draw for team_match
-  payout: integer("payout").notNull(), // in cents
+  userId: integer("user_id").notNull().references(() => users.id),
+  gameType: text("game_type").notNull().default(GameType.COIN_FLIP), // coin_flip, satamatka, team_match
+  betAmount: integer("bet_amount").notNull(),
+  prediction: text("prediction").notNull(), // For coin flip: "heads" or "tails", for satamatka: "0" to "9" or "00" to "99"
+  result: text("result"), // For coin flip: "heads" or "tails", for satamatka: "0" to "9" or "00" to "99"
+  payout: integer("payout").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
-  // For Satamatka games
   marketId: integer("market_id").references(() => satamatkaMarkets.id),
-  gameMode: text("game_mode"), // jodi, hurf, cross, odd_even for satamatka
-  // For Team Match games
   matchId: integer("match_id").references(() => teamMatches.id),
+  gameMode: text("game_mode"), // For satamatka: "single", "jodi", "patti"
 });
 
 export const insertGameSchema = createInsertSchema(games)
@@ -122,28 +143,31 @@ export const insertGameSchema = createInsertSchema(games)
     result: true,
     payout: true,
     marketId: true,
-    gameMode: true,
     matchId: true,
+    gameMode: true,
   })
   .extend({
-    gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA, GameType.TEAM_MATCH]).default(GameType.COIN_FLIP),
+    gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA, GameType.TEAM_MATCH]),
+    gameMode: z.enum([SatamatkaGameMode.SINGLE, SatamatkaGameMode.JODI, SatamatkaGameMode.PATTI]).optional(),
+  })
+  .partial({
+    result: true,
+    marketId: true,
+    matchId: true,
+    gameMode: true,
   });
 
 export type InsertGame = z.infer<typeof insertGameSchema>;
 export type Game = typeof games.$inferSelect;
 
-// Satamatka Markets Schema
 export const satamatkaMarkets = pgTable("satamatka_markets", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: text("type").notNull(), // dishawar, gali, mumbai, kalyan
-  coverImage: text("cover_image"), // URL or path to cover image
-  marketDate: timestamp("market_date").notNull(), // Date of the market
   openTime: timestamp("open_time").notNull(),
   closeTime: timestamp("close_time").notNull(),
-  resultTime: timestamp("result_time").notNull(), // Time when result will be declared
-  openResult: text("open_result"), // Two-digit number (00-99)
-  closeResult: text("close_result"), // Two-digit number (00-99)
+  openResult: text("open_result"),
+  closeResult: text("close_result"),
   status: text("status").notNull().default("open"), // open, closed, resulted
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -152,11 +176,8 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
   .pick({
     name: true,
     type: true,
-    coverImage: true,
-    marketDate: true,
     openTime: true,
     closeTime: true,
-    resultTime: true,
     openResult: true,
     closeResult: true,
     status: true,
@@ -170,7 +191,25 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
 export type InsertSatamatkaMarket = z.infer<typeof insertSatamatkaMarketSchema>;
 export type SatamatkaMarket = typeof satamatkaMarkets.$inferSelect;
 
-// Fund Transaction Schema
+// Wallet Request Schema
+export const walletRequests = pgTable("wallet_requests", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  amount: integer("amount").notNull(), // in cents
+  requestType: text("request_type").notNull(), // 'deposit' or 'withdrawal'
+  paymentMode: text("payment_mode").notNull(), // 'upi', 'bank', 'cash'
+  paymentDetails: json("payment_details").notNull(),
+  status: text("status").notNull().default(RequestStatus.PENDING), // 'pending', 'approved', 'rejected'
+  proofImageUrl: text("proof_image_url"),
+  notes: text("notes"),
+  reviewedBy: integer("reviewed_by").references(() => users.id), // ID of admin/subadmin who reviewed this request
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Transaction Schema
 export const transactions = pgTable("transactions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id")
@@ -180,57 +219,46 @@ export const transactions = pgTable("transactions", {
   performedBy: integer("performed_by")
     .notNull()
     .references(() => users.id), // ID of admin/subadmin who performed this action
+  requestId: integer("request_id").references(() => walletRequests.id), // Reference to the wallet request if applicable
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Insert schemas
 export const insertTransactionSchema = createInsertSchema(transactions)
   .pick({
     userId: true,
     amount: true,
     performedBy: true,
+    requestId: true,
+  })
+  .partial({
+    requestId: true,
   });
+
+export const insertWalletRequestSchema = createInsertSchema(walletRequests)
+  .pick({
+    userId: true,
+    amount: true,
+    requestType: true,
+    paymentMode: true,
+    paymentDetails: true,
+    proofImageUrl: true,
+    notes: true,
+  })
+  .extend({
+    requestType: z.enum([RequestType.DEPOSIT, RequestType.WITHDRAWAL]),
+    paymentMode: z.enum([PaymentMode.UPI, PaymentMode.BANK, PaymentMode.CASH]),
+  })
+  .partial({
+    proofImageUrl: true,
+    notes: true,
+  });
+
+export type InsertWalletRequest = z.infer<typeof insertWalletRequestSchema>;
+export type WalletRequest = typeof walletRequests.$inferSelect;
 
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
-
-// Define relations after all tables are defined
-export const usersRelations = relations(users, ({ one, many }) => ({
-  // Self-relation for assignedTo
-  assignedToUser: one(users, {
-    fields: [users.assignedTo],
-    references: [users.id],
-    relationName: "assignedToUser",
-  }),
-  // Inverse of assignedTo relation
-  assignedUsers: many(users, { relationName: "assignedToUser" }),
-  // Relation to games
-  games: many(games),
-  // Relation to transactions
-  transactions: many(transactions, { relationName: "userTransactions" }),
-  // Relation to transactions performed by this user
-  performedTransactions: many(transactions, { relationName: "performedByTransactions" }),
-}));
-
-export const gamesRelations = relations(games, ({ one }) => ({
-  user: one(users, {
-    fields: [games.userId],
-    references: [users.id],
-  }),
-  market: one(satamatkaMarkets, {
-    fields: [games.marketId],
-    references: [satamatkaMarkets.id],
-    relationName: "marketGames",
-  }),
-  match: one(teamMatches, {
-    fields: [games.matchId],
-    references: [teamMatches.id],
-    relationName: "teamMatchGames",
-  }),
-}));
-
-export const satamatkaMarketsRelations = relations(satamatkaMarkets, ({ many }) => ({
-  games: many(games, { relationName: "marketGames" }),
-}));
 
 // Team Matches Schema
 export const teamMatches = pgTable("team_matches", {
@@ -280,6 +308,47 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
 export type InsertTeamMatch = z.infer<typeof insertTeamMatchSchema>;
 export type TeamMatch = typeof teamMatches.$inferSelect;
 
+// Define relations after all tables are defined
+export const usersRelations = relations(users, ({ one, many }) => ({
+  // Self-relation for assignedTo
+  assignedToUser: one(users, {
+    fields: [users.assignedTo],
+    references: [users.id],
+    relationName: "assignedToUser",
+  }),
+  // Inverse of assignedTo relation
+  assignedUsers: many(users, { relationName: "assignedToUser" }),
+  // Relation to games
+  games: many(games),
+  // Relation to transactions
+  transactions: many(transactions, { relationName: "userTransactions" }),
+  // Relation to transactions performed by this user
+  performedTransactions: many(transactions, { relationName: "performedByTransactions" }),
+  // Relation to wallet requests
+  walletRequests: many(walletRequests),
+}));
+
+export const gamesRelations = relations(games, ({ one }) => ({
+  user: one(users, {
+    fields: [games.userId],
+    references: [users.id],
+  }),
+  market: one(satamatkaMarkets, {
+    fields: [games.marketId],
+    references: [satamatkaMarkets.id],
+    relationName: "marketGames",
+  }),
+  match: one(teamMatches, {
+    fields: [games.matchId],
+    references: [teamMatches.id],
+    relationName: "teamMatchGames",
+  }),
+}));
+
+export const satamatkaMarketsRelations = relations(satamatkaMarkets, ({ many }) => ({
+  games: many(games, { relationName: "marketGames" }),
+}));
+
 export const transactionsRelations = relations(transactions, ({ one }) => ({
   // User who this transaction affects
   user: one(users, {
@@ -293,6 +362,26 @@ export const transactionsRelations = relations(transactions, ({ one }) => ({
     references: [users.id],
     relationName: "performedByTransactions",
   }),
+  // Relation to wallet request
+  request: one(walletRequests, {
+    fields: [transactions.requestId],
+    references: [walletRequests.id],
+  }),
+}));
+
+export const walletRequestsRelations = relations(walletRequests, ({ one, many }) => ({
+  // User who made this request
+  user: one(users, {
+    fields: [walletRequests.userId],
+    references: [users.id],
+  }),
+  // Admin/subadmin who reviewed this request
+  reviewer: one(users, {
+    fields: [walletRequests.reviewedBy],
+    references: [users.id],
+  }),
+  // Transactions related to this request
+  transactions: many(transactions),
 }));
 
 export const teamMatchesRelations = relations(teamMatches, ({ many }) => ({

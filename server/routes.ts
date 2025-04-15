@@ -1038,6 +1038,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register wallet system routes
+  await import('./wallet-system').then(({ setupWalletRoutes }) => {
+    setupWalletRoutes(app);
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

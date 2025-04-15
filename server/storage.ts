@@ -1,21 +1,23 @@
 import { 
   users, 
   games, 
-  transactions, 
   satamatkaMarkets,
   teamMatches,
   User, 
   InsertUser, 
   Game, 
   InsertGame, 
-  Transaction, 
-  InsertTransaction, 
   UserRole, 
   SatamatkaMarket,
   InsertSatamatkaMarket,
   TeamMatch,
   InsertTeamMatch
 } from "@shared/schema";
+
+// Temporary solution until we update the schema
+const transactions = { id: 0 };
+type Transaction = any;
+type InsertTransaction = any;
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
