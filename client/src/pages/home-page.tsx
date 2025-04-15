@@ -18,7 +18,8 @@ import {
   BarChart2, 
   TrendingUp,
   Users,
-  ShieldCheck
+  ShieldCheck,
+  Target
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -162,6 +163,7 @@ export default function HomePage() {
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            {/* User Management */}
             <Button 
               className="py-6 bg-gradient-to-r from-violet-700 to-indigo-600 hover:from-violet-600 hover:to-indigo-500"
               onClick={() => setLocation("/users")}
@@ -170,6 +172,7 @@ export default function HomePage() {
               Manage Users
             </Button>
             
+            {/* Subadmin Management - Admin Only */}
             {isAdmin && (
               <Button 
                 variant="outline"
@@ -181,7 +184,8 @@ export default function HomePage() {
               </Button>
             )}
             
-            {isAdmin && (
+            {/* Risk Management */}
+            {(isAdmin || isSubadmin) && (
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-blue-300 hover:bg-slate-800 hover:text-blue-200"
@@ -189,6 +193,30 @@ export default function HomePage() {
               >
                 <BarChart2 className="h-5 w-5 mr-2" />
                 Risk Management
+              </Button>
+            )}
+            
+            {/* Market Management - Admin Only */}
+            {isAdmin && (
+              <Button 
+                variant="outline"
+                className="py-6 border-slate-700 text-emerald-300 hover:bg-slate-800 hover:text-emerald-200"
+                onClick={() => setLocation("/manage-markets")}
+              >
+                <Target className="h-5 w-5 mr-2" />
+                Manage Markets
+              </Button>
+            )}
+            
+            {/* Team Management - Admin Only */}
+            {isAdmin && (
+              <Button 
+                variant="outline"
+                className="py-6 border-slate-700 text-amber-300 hover:bg-slate-800 hover:text-amber-200"
+                onClick={() => setLocation("/manage-teams")}
+              >
+                <Trophy className="h-5 w-5 mr-2" />
+                Manage Teams
               </Button>
             )}
           </div>

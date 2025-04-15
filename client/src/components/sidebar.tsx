@@ -51,6 +51,20 @@ export default function Sidebar() {
       icon: <ShieldCheck className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
+    // Market Game Management - Admin Only
+    {
+      name: "Manage Markets",
+      path: "/manage-markets",
+      icon: <Target className="w-5 h-5 mr-3" />,
+      visible: isAdmin,
+    },
+    // Team Match Management - Admin Only
+    {
+      name: "Manage Teams",
+      path: "/manage-teams",
+      icon: <Trophy className="w-5 h-5 mr-3" />,
+      visible: isAdmin,
+    },
     // Regular Users Only (Game Related)
     {
       name: "Play Game",
