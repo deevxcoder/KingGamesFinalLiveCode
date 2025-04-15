@@ -120,8 +120,11 @@ export default function AdminMarketManagementPage() {
     defaultValues: {
       name: "",
       type: "",
+      coverImage: "",
+      marketDate: format(new Date(), "yyyy-MM-dd"),
       openTime: "",
       closeTime: "",
+      resultTime: "",
     },
   });
 
@@ -253,8 +256,11 @@ export default function AdminMarketManagementPage() {
     marketForm.reset({
       name: market.name,
       type: market.type,
+      coverImage: market.coverImage || "",
+      marketDate: format(parseISO(market.marketDate || market.openTime), "yyyy-MM-dd"),
       openTime: format(parseISO(market.openTime), "HH:mm"),
       closeTime: format(parseISO(market.closeTime), "HH:mm"),
+      resultTime: market.resultTime ? format(parseISO(market.resultTime), "HH:mm") : format(parseISO(market.closeTime), "HH:mm"),
     });
   };
 
@@ -286,8 +292,11 @@ export default function AdminMarketManagementPage() {
     marketForm.reset({
       name: "",
       type: "",
+      coverImage: "",
+      marketDate: format(new Date(), "yyyy-MM-dd"),
       openTime: "",
       closeTime: "",
+      resultTime: "",
     });
   };
 
@@ -512,14 +521,54 @@ export default function AdminMarketManagementPage() {
                   <FormItem>
                     <FormLabel>Market Type</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="e.g. morning" />
+                      <select 
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        {...field}
+                      >
+                        <option value="">Select market type</option>
+                        <option value="dishawar">Dishawar</option>
+                        <option value="gali">Gali</option>
+                        <option value="mumbai">Mumbai</option>
+                        <option value="kalyan">Kalyan</option>
+                      </select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               
-              <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={marketForm.control}
+                name="coverImage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cover Banner Image URL</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="https://example.com/banner.jpg" />
+                    </FormControl>
+                    <FormDescription>
+                      Enter a URL for the market banner image (optional)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={marketForm.control}
+                name="marketDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Market Date</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="date" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="grid grid-cols-3 gap-4">
                 <FormField
                   control={marketForm.control}
                   name="openTime"
@@ -540,6 +589,20 @@ export default function AdminMarketManagementPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Close Time</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="time" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={marketForm.control}
+                  name="resultTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Result Time</FormLabel>
                       <FormControl>
                         <Input {...field} type="time" />
                       </FormControl>
