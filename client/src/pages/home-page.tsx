@@ -136,7 +136,7 @@ export default function HomePage() {
               {canManageUsers && (
                 <div className="flex flex-wrap gap-2">
                   <Button 
-                    className="bg-gradient-to-r from-indigo-800 to-blue-600 hover:from-indigo-700 hover:to-blue-500"
+                    className="bg-gradient-to-r from-violet-700 to-indigo-600 hover:from-violet-600 hover:to-indigo-500"
                     onClick={() => setLocation("/users")}
                   >
                     Manage Users
@@ -144,7 +144,7 @@ export default function HomePage() {
                   {isAdmin && (
                     <Button 
                       variant="outline"
-                      className="border-slate-700 hover:bg-slate-800"
+                      className="border-slate-700 text-teal-300 hover:bg-slate-800 hover:text-teal-200"
                       onClick={() => setLocation("/subadmins")}
                     >
                       Manage Subadmins
@@ -201,7 +201,7 @@ export default function HomePage() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <Button 
-                className="py-8 text-lg bg-gradient-to-r from-indigo-800 to-blue-600 hover:from-indigo-700 hover:to-blue-500"
+                className="py-8 text-lg bg-gradient-to-r from-purple-700 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500"
                 onClick={() => setLocation("/play")}
               >
                 <Dice1 className="h-5 w-5 mr-2" />
@@ -210,7 +210,7 @@ export default function HomePage() {
               
               <Button 
                 variant="outline"
-                className="py-8 text-lg border-slate-700 hover:bg-slate-800/50"
+                className="py-8 text-lg border-slate-700 text-cyan-300 hover:bg-slate-800/50 hover:text-cyan-200"
                 onClick={() => setLocation("/markets")}
               >
                 <Calendar className="h-5 w-5 mr-2" />
@@ -219,7 +219,7 @@ export default function HomePage() {
               
               <Button 
                 variant="outline"
-                className="py-8 text-lg border-slate-700 hover:bg-slate-800/50"
+                className="py-8 text-lg border-slate-700 text-emerald-300 hover:bg-slate-800/50 hover:text-emerald-200"
                 onClick={() => setLocation("/game-history")}
               >
                 <BarChart2 className="h-5 w-5 mr-2" />
@@ -228,7 +228,7 @@ export default function HomePage() {
               
               <Button 
                 variant="outline"
-                className="py-8 text-lg border-slate-700 hover:bg-slate-800/50"
+                className="py-8 text-lg border-slate-700 text-amber-300 hover:bg-slate-800/50 hover:text-amber-200"
                 onClick={() => setLocation("/leaderboard")}
               >
                 <Trophy className="h-5 w-5 mr-2" />

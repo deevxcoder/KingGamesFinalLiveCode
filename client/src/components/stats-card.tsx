@@ -13,12 +13,12 @@ export default function StatsCard({ winRate, totalBets, showFullWidth = false }:
         <div className="flex items-center justify-between w-full">
           <div>
             <p className="text-sm text-slate-400">Win Rate</p>
-            <p className="text-xl font-bold text-blue-400">{winRate}%</p>
+            <p className="text-xl font-bold text-emerald-400">{winRate}%</p>
           </div>
           <div className="mx-4 h-10 border-r border-slate-800"></div>
           <div>
             <p className="text-sm text-slate-400">Total Bets</p>
-            <p className="text-xl font-bold text-slate-200">{totalBets}</p>
+            <p className="text-xl font-bold text-amber-300">{totalBets}</p>
           </div>
           
           {showFullWidth && (

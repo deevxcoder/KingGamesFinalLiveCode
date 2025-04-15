@@ -117,11 +117,11 @@ function ResultItem({ result }: { result: MarketResult }) {
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "open":
-        return <Badge variant="outline" className="bg-indigo-900/30 text-indigo-300 border-indigo-500/30">Open</Badge>;
+        return <Badge variant="outline" className="bg-violet-900/30 text-violet-300 border-violet-500/30">Open</Badge>;
       case "closed":
-        return <Badge variant="outline" className="bg-slate-800/80 text-slate-300 border-slate-700">Closed</Badge>;
+        return <Badge variant="outline" className="bg-amber-900/30 text-amber-300 border-amber-500/30">Closed</Badge>;
       case "resulted":
-        return <Badge variant="outline" className="bg-blue-900/30 text-blue-300 border-blue-500/30">Resulted</Badge>;
+        return <Badge variant="outline" className="bg-emerald-900/30 text-emerald-300 border-emerald-500/30">Resulted</Badge>;
       default:
         return <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-700">{status}</Badge>;
     }
@@ -150,11 +150,11 @@ function ResultItem({ result }: { result: MarketResult }) {
       <div className="flex justify-between mt-3 text-sm">
         <div className="flex-1">
           <p className="text-xs text-slate-500">Open Result</p>
-          <p className="font-medium text-blue-400">{formatResult(result.openResult)}</p>
+          <p className="font-medium text-pink-400">{formatResult(result.openResult)}</p>
         </div>
         <div className="flex-1 text-right">
           <p className="text-xs text-slate-500">Close Result</p>
-          <p className="font-medium text-indigo-400">{formatResult(result.closeResult)}</p>
+          <p className="font-medium text-cyan-400">{formatResult(result.closeResult)}</p>
         </div>
       </div>
     </div>

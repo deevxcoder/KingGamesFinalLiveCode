@@ -62,7 +62,7 @@ export default function RecentWinners({ winners }: RecentWinnersProps) {
                 className="flex items-center px-6 py-2 hover:bg-slate-800/50 transition-colors cursor-default"
               >
                 <div className="flex-shrink-0 mr-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-r from-indigo-800 to-blue-700 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 flex items-center justify-center">
                     <User className="h-5 w-5 text-white" />
                   </div>
                 </div>
@@ -84,12 +84,12 @@ export default function RecentWinners({ winners }: RecentWinnersProps) {
                 
                 <div className="flex-shrink-0 ml-2 flex items-center">
                   {profit > 100 ? (
-                    <Badge variant="outline" className="bg-indigo-900/30 text-indigo-300 border-indigo-500/30 flex items-center">
+                    <Badge variant="outline" className="bg-emerald-900/30 text-emerald-300 border-emerald-500/30 flex items-center">
                       <Sparkles className="h-3 w-3 mr-1" />
                       +${formattedProfit}
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="bg-blue-900/30 text-blue-300 border-blue-500/30">
+                    <Badge variant="outline" className="bg-teal-900/30 text-teal-300 border-teal-500/30">
                       +${formattedProfit}
                     </Badge>
                   )}

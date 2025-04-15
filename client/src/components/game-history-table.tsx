@@ -89,8 +89,8 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                       <TableCell className="whitespace-nowrap">
                         <Badge variant="outline" className={
                           game.prediction === GameOutcome.HEADS
-                            ? "bg-indigo-900/30 text-indigo-300 border-indigo-500/30"
-                            : "bg-blue-900/30 text-blue-300 border-blue-500/30"
+                            ? "bg-purple-900/30 text-purple-300 border-purple-500/30"
+                            : "bg-cyan-900/30 text-cyan-300 border-cyan-500/30"
                         }>
                           {game.prediction}
                         </Badge>
@@ -98,14 +98,14 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                       <TableCell className="whitespace-nowrap">
                         <Badge variant="outline" className={
                           game.result === GameOutcome.HEADS
-                            ? "bg-indigo-900/30 text-indigo-300 border-indigo-500/30"
-                            : "bg-blue-900/30 text-blue-300 border-blue-500/30"
+                            ? "bg-purple-900/30 text-purple-300 border-purple-500/30"
+                            : "bg-cyan-900/30 text-cyan-300 border-cyan-500/30"
                         }>
                           {game.result}
                         </Badge>
                       </TableCell>
                       <TableCell className={`whitespace-nowrap text-sm ${
-                        isWin ? "text-blue-400" : "text-slate-400"
+                        isWin ? "text-teal-400" : "text-slate-400"
                       }`}>
                         {isWin ? "+" : ""}${((isWin ? game.payout - game.betAmount : -game.betAmount) / 100).toFixed(2)}
                       </TableCell>
