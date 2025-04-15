@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { setupAuth, requireRole } from "./auth";
 import { storage } from "./storage";
+import { db } from "./db";
 import { 
   GameOutcome, 
   GameType,
@@ -13,8 +14,10 @@ import {
   insertTransactionSchema, 
   insertSatamatkaMarketSchema,
   insertTeamMatchSchema,
-  UserRole 
+  UserRole,
+  games
 } from "@shared/schema";
+import { eq, and, gte, desc } from "drizzle-orm";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -720,6 +723,258 @@ export async function registerRoutes(app: Express): Promise<Server> {
           password: undefined,
         },
       });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Team Match Routes
+
+  // Get all team matches
+  app.get("/api/team-matches", async (req, res, next) => {
+    try {
+      const matches = await storage.getAllTeamMatches();
+      res.json(matches);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get active team matches
+  app.get("/api/team-matches/active", async (req, res, next) => {
+    try {
+      const matches = await storage.getActiveTeamMatches();
+      res.json(matches);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get matches by category
+  app.get("/api/team-matches/category/:category", async (req, res, next) => {
+    try {
+      const category = req.params.category;
+      if (!Object.values(MatchCategory).includes(category as any)) {
+        return res.status(400).json({ message: "Invalid category" });
+      }
+      
+      const matches = await storage.getTeamMatchesByCategory(category);
+      res.json(matches);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get a specific match
+  app.get("/api/team-matches/:id", async (req, res, next) => {
+    try {
+      const matchId = Number(req.params.id);
+      const match = await storage.getTeamMatch(matchId);
+      
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      res.json(match);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Create a new team match (admin only)
+  app.post("/api/team-matches", requireRole(UserRole.ADMIN), async (req, res, next) => {
+    try {
+      const matchData = insertTeamMatchSchema.parse({
+        teamA: req.body.teamA,
+        teamB: req.body.teamB,
+        category: req.body.category,
+        description: req.body.description,
+        matchTime: req.body.matchTime,
+        oddTeamA: req.body.oddTeamA,
+        oddTeamB: req.body.oddTeamB,
+        oddDraw: req.body.oddDraw,
+      });
+      
+      const match = await storage.createTeamMatch(matchData);
+      res.status(201).json(match);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Update match status
+  app.patch("/api/team-matches/:id/status", requireRole(UserRole.ADMIN), async (req, res, next) => {
+    try {
+      const matchId = Number(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || !["open", "closed", "resulted"].includes(status)) {
+        return res.status(400).json({ message: "Invalid status" });
+      }
+      
+      const match = await storage.updateTeamMatchStatus(matchId, status);
+      
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      res.json(match);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Update match result
+  app.patch("/api/team-matches/:id/result", requireRole(UserRole.ADMIN), async (req, res, next) => {
+    try {
+      const matchId = Number(req.params.id);
+      const { result } = req.body;
+      
+      if (!result || !Object.values(TeamMatchResult).includes(result as any)) {
+        return res.status(400).json({ message: "Invalid result" });
+      }
+      
+      // Cannot set result to "pending"
+      if (result === TeamMatchResult.PENDING) {
+        return res.status(400).json({ message: "Cannot set result to pending" });
+      }
+      
+      // Verify match exists
+      const match = await storage.getTeamMatch(matchId);
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      // Update match result
+      const updatedMatch = await storage.updateTeamMatchResult(matchId, result);
+      
+      // Process all bets on this match
+      const matchGames = await storage.getTeamMatchGamesByMatchId(matchId);
+      for (const game of matchGames) {
+        const user = await storage.getUser(game.userId);
+        if (!user) continue;
+        
+        let payout = 0;
+        
+        // Check if prediction matches result
+        if (game.prediction === result) {
+          // Calculate payout based on odds
+          let odds = 0;
+          if (result === TeamMatchResult.TEAM_A) {
+            odds = match.oddTeamA / 100; // Convert from integer (200) to decimal (2.00)
+          } else if (result === TeamMatchResult.TEAM_B) {
+            odds = match.oddTeamB / 100;
+          } else if (result === TeamMatchResult.DRAW) {
+            odds = match.oddDraw ? match.oddDraw / 100 : 3.00; // Default to 3.00 if not set
+          }
+          
+          payout = Math.floor(game.betAmount * odds);
+        }
+        
+        // Update game payout
+        await db.update(games)
+          .set({ payout })
+          .where(eq(games.id, game.id));
+        
+        // Update user balance
+        await storage.updateUserBalance(user.id, user.balance + payout);
+      }
+      
+      res.json(updatedMatch);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Place a bet on a team match
+  app.post("/api/team-matches/:id/play", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (req.user!.isBlocked) {
+        return res.status(403).json({ message: "Your account is blocked" });
+      }
+      
+      const matchId = Number(req.params.id);
+      const { prediction, betAmount } = req.body;
+      
+      // Validate input
+      if (!betAmount || betAmount <= 0) {
+        return res.status(400).json({ message: "Invalid bet amount" });
+      }
+      
+      if (!prediction || !["team_a", "team_b", "draw"].includes(prediction)) {
+        return res.status(400).json({ message: "Invalid prediction" });
+      }
+      
+      // Get the match
+      const match = await storage.getTeamMatch(matchId);
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      // Check if match is still open for betting
+      if (match.status !== "open") {
+        return res.status(400).json({ message: "Match is not open for betting" });
+      }
+      
+      // Check if match time is in the future
+      const now = new Date();
+      if (new Date(match.matchTime) <= now) {
+        return res.status(400).json({ message: "Match has already started" });
+      }
+      
+      // Check user balance
+      const user = await storage.getUser(req.user!.id);
+      if (!user || user.balance < betAmount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+      
+      // Deduct bet amount from user balance
+      const newBalance = user.balance - betAmount;
+      await storage.updateUserBalance(user.id, newBalance);
+      
+      // Record the game (payout will be processed when result is set)
+      const game = await storage.createGame({
+        userId: user.id,
+        gameType: GameType.TEAM_MATCH,
+        betAmount,
+        prediction,
+        result: TeamMatchResult.PENDING, // Result will be updated when match ends
+        payout: 0, // Payout will be updated when result is set
+        matchId,
+      });
+      
+      // Return game info with updated user balance
+      res.json({
+        game,
+        match,
+        user: {
+          ...user,
+          balance: newBalance,
+          password: undefined,
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get games for a specific match
+  app.get("/api/team-matches/:id/games", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const matchId = Number(req.params.id);
+      
+      // Verify match exists
+      const match = await storage.getTeamMatch(matchId);
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      const games = await storage.getTeamMatchGamesByMatchId(matchId);
+      res.json(games);
     } catch (err) {
       next(err);
     }
