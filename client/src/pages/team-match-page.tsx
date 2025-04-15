@@ -11,6 +11,7 @@ import { Calendar, Clock, Trophy } from "lucide-react";
 import { IoFootball, IoBasketball } from "react-icons/io5";
 import { GiCricketBat } from "react-icons/gi";
 import ResponsiveHeader from '@/components/responsive-header';
+import Sidebar from '@/components/sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 
@@ -32,13 +33,16 @@ type TeamMatch = {
 
 export default function TeamMatchPage() {
   return (
-    <div className="min-h-screen bg-gray-950 text-white">
-      <ResponsiveHeader />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
-          Sports Betting
-        </h1>
-        <TeamMatchTabs />
+    <div className="min-h-screen bg-gray-950 text-white flex">
+      <Sidebar />
+      <div className="flex-1 lg:ml-64">
+        <ResponsiveHeader />
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
+            Sports Betting
+          </h1>
+          <TeamMatchTabs />
+        </div>
       </div>
     </div>
   );
