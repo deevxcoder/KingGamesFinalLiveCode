@@ -10,7 +10,16 @@ import BalanceCard from "@/components/balance-card";
 import StatsCard from "@/components/stats-card";
 import GameHistoryTable from "@/components/game-history-table";
 import { Button } from "@/components/ui/button";
-import { Play, Dice1, Trophy, Calendar, BarChart2, TrendingUp } from "lucide-react";
+import { 
+  Play, 
+  Dice1, 
+  Trophy, 
+  Calendar, 
+  BarChart2, 
+  TrendingUp,
+  Users,
+  ShieldCheck
+} from "lucide-react";
 import { useLocation } from "wouter";
 
 // Sample game cards data - in real app this would come from API
@@ -99,7 +108,9 @@ export default function HomePage() {
 
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
+  const isPlayer = user?.role === UserRole.PLAYER;
   const canManageUsers = isAdmin || isSubadmin;
+  const isAdminOrSubadmin = isAdmin || isSubadmin;
 
   return (
     <DashboardLayout title="Dashboard">
@@ -114,7 +125,9 @@ export default function HomePage() {
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
         <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 w-full lg:w-auto">
           <BalanceCard balance={user?.balance || 0} />
-          <StatsCard winRate={stats?.winRate || 0} totalBets={stats?.totalBets || 0} />
+          {isPlayer && (
+            <StatsCard winRate={stats?.winRate || 0} totalBets={stats?.totalBets || 0} />
+          )}
         </div>
         
         {/* Admin/Subadmin Controls - Only visible to admin/subadmin */}
@@ -139,87 +152,135 @@ export default function HomePage() {
         )}
       </div>
       
-      {/* Featured Games Section */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold flex items-center text-slate-200">
-            <Play className="h-5 w-5 mr-2 text-blue-500" />
-            Featured Games
-          </h2>
-          <Button 
-            variant="ghost" 
-            className="text-blue-400 hover:text-blue-300 text-sm hover:bg-slate-800/60"
-            onClick={() => setLocation("/games")}
-          >
-            View All
-          </Button>
+      {/* Admin/Subadmin message */}
+      {isAdminOrSubadmin && (
+        <div className="mb-8 p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
+          <h2 className="text-xl font-bold mb-3 text-slate-200">Admin Panel</h2>
+          <p className="text-slate-400 mb-4">
+            As an {isAdmin ? 'admin' : 'subadmin'}, you don't have permission to play games. 
+            Your role is to manage the platform and users only.
+          </p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+            <Button 
+              className="py-6 bg-gradient-to-r from-violet-700 to-indigo-600 hover:from-violet-600 hover:to-indigo-500"
+              onClick={() => setLocation("/users")}
+            >
+              <Users className="h-5 w-5 mr-2" />
+              Manage Users
+            </Button>
+            
+            {isAdmin && (
+              <Button 
+                variant="outline"
+                className="py-6 border-slate-700 text-teal-300 hover:bg-slate-800 hover:text-teal-200"
+                onClick={() => setLocation("/subadmins")}
+              >
+                <ShieldCheck className="h-5 w-5 mr-2" />
+                Manage Subadmins
+              </Button>
+            )}
+            
+            {isAdmin && (
+              <Button 
+                variant="outline"
+                className="py-6 border-slate-700 text-blue-300 hover:bg-slate-800 hover:text-blue-200"
+                onClick={() => setLocation("/actions")}
+              >
+                <BarChart2 className="h-5 w-5 mr-2" />
+                View Action History
+              </Button>
+            )}
+          </div>
         </div>
-        
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {gameCards.map((game) => (
-            <GameCard 
-              key={game.id}
-              id={game.id}
-              title={game.title}
-              description={game.description}
-              imageBg={game.imageBg}
-              path={game.path}
-              popularity={game.popularity}
-              winRate={game.winRate}
-            />
-          ))}
-        </div>
-      </div>
+      )}
       
-      {/* Recent Activity Section - Two column layout on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Recent Games */}
-        <GameHistoryTable games={recentGames} />
-        
-        {/* Right column - winners and results */}
-        <div className="space-y-6">
-          <RecentWinners winners={sampleRecentWinners} />
-          <RecentResults results={sampleMarketResults} />
-        </div>
-      </div>
-      
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <Button 
-          className="py-8 text-lg bg-gradient-to-r from-purple-700 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500"
-          onClick={() => setLocation("/play")}
-        >
-          <Dice1 className="h-5 w-5 mr-2" />
-          Play Games
-        </Button>
-        
-        <Button 
-          variant="outline"
-          className="py-8 text-lg border-slate-700 text-cyan-300 hover:bg-slate-800/50 hover:text-cyan-200"
-          onClick={() => setLocation("/markets")}
-        >
-          <Calendar className="h-5 w-5 mr-2" />
-          Markets
-        </Button>
-        
-        <Button 
-          variant="outline"
-          className="py-8 text-lg border-slate-700 text-emerald-300 hover:bg-slate-800/50 hover:text-emerald-200"
-          onClick={() => setLocation("/game-history")}
-        >
-          <BarChart2 className="h-5 w-5 mr-2" />
-          Game History
-        </Button>
-        
-        <Button 
-          variant="outline"
-          className="py-8 text-lg border-slate-700 text-amber-300 hover:bg-slate-800/50 hover:text-amber-200"
-          onClick={() => setLocation("/leaderboard")}
-        >
-          <Trophy className="h-5 w-5 mr-2" />
-          Leaderboard
-        </Button>
-      </div>
+      {/* Player Features - Only visible to players */}
+      {isPlayer && (
+        <>
+          {/* Featured Games Section */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold flex items-center text-slate-200">
+                <Play className="h-5 w-5 mr-2 text-blue-500" />
+                Featured Games
+              </h2>
+              <Button 
+                variant="ghost" 
+                className="text-blue-400 hover:text-blue-300 text-sm hover:bg-slate-800/60"
+                onClick={() => setLocation("/games")}
+              >
+                View All
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {gameCards.map((game) => (
+                <GameCard 
+                  key={game.id}
+                  id={game.id}
+                  title={game.title}
+                  description={game.description}
+                  imageBg={game.imageBg}
+                  path={game.path}
+                  popularity={game.popularity}
+                  winRate={game.winRate}
+                />
+              ))}
+            </div>
+          </div>
+          
+          {/* Recent Activity Section - Two column layout on desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Recent Games */}
+            <GameHistoryTable games={recentGames} />
+            
+            {/* Right column - winners and results */}
+            <div className="space-y-6">
+              <RecentWinners winners={sampleRecentWinners} />
+              <RecentResults results={sampleMarketResults} />
+            </div>
+          </div>
+          
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <Button 
+              className="py-8 text-lg bg-gradient-to-r from-purple-700 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500"
+              onClick={() => setLocation("/play")}
+            >
+              <Dice1 className="h-5 w-5 mr-2" />
+              Play Games
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="py-8 text-lg border-slate-700 text-cyan-300 hover:bg-slate-800/50 hover:text-cyan-200"
+              onClick={() => setLocation("/markets")}
+            >
+              <Calendar className="h-5 w-5 mr-2" />
+              Markets
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="py-8 text-lg border-slate-700 text-emerald-300 hover:bg-slate-800/50 hover:text-emerald-200"
+              onClick={() => setLocation("/history")}
+            >
+              <BarChart2 className="h-5 w-5 mr-2" />
+              Game History
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="py-8 text-lg border-slate-700 text-amber-300 hover:bg-slate-800/50 hover:text-amber-200"
+              onClick={() => setLocation("/leaderboard")}
+            >
+              <Trophy className="h-5 w-5 mr-2" />
+              Leaderboard
+            </Button>
+          </div>
+        </>
+      )}
     </DashboardLayout>
   );
 }
