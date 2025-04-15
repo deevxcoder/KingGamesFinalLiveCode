@@ -137,8 +137,11 @@ export const satamatkaMarkets = pgTable("satamatka_markets", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   type: text("type").notNull(), // dishawar, gali, mumbai, kalyan
+  coverImage: text("cover_image"), // URL or path to cover image
+  marketDate: timestamp("market_date").notNull(), // Date of the market
   openTime: timestamp("open_time").notNull(),
   closeTime: timestamp("close_time").notNull(),
+  resultTime: timestamp("result_time").notNull(), // Time when result will be declared
   openResult: text("open_result"), // Two-digit number (00-99)
   closeResult: text("close_result"), // Two-digit number (00-99)
   status: text("status").notNull().default("open"), // open, closed, resulted
@@ -149,14 +152,18 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
   .pick({
     name: true,
     type: true,
+    coverImage: true,
+    marketDate: true,
     openTime: true,
     closeTime: true,
+    resultTime: true,
     openResult: true,
     closeResult: true,
     status: true,
   })
   .extend({
     type: z.enum([MarketType.DISHAWAR, MarketType.GALI, MarketType.MUMBAI, MarketType.KALYAN]),
+    coverImage: z.string().optional(),
     status: z.enum(["open", "closed", "resulted"]).default("open"),
   });
 

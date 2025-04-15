@@ -67,8 +67,11 @@ interface SatamatkaMarket {
   id: number;
   name: string;
   type: string;
+  coverImage?: string;
+  marketDate: string;
   openTime: string;
   closeTime: string;
+  resultTime: string;
   openResult?: string;
   closeResult?: string;
   status: string;
@@ -86,9 +89,12 @@ const resultFormSchema = z.object({
 // Form schema for creating/editing markets
 const marketFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
-  type: z.string().min(2, "Type must be at least 2 characters"),
+  type: z.string().min(2, "Type is required"),
+  coverImage: z.string().optional(),
+  marketDate: z.string().min(1, "Date is required"),
   openTime: z.string().min(5, "Open time is required"),
   closeTime: z.string().min(5, "Close time is required"),
+  resultTime: z.string().min(5, "Result time is required"),
 });
 
 export default function AdminMarketManagementPage() {
