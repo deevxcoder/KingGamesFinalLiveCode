@@ -40,17 +40,17 @@ export default function RecentResults({ results }: RecentResultsProps) {
   
   if (results.length === 0) {
     return (
-      <Card>
+      <Card className="bg-slate-900/70 border-slate-800">
         <CardHeader>
-          <CardTitle className="text-xl flex items-center">
-            <BarChart2 className="w-5 h-5 text-primary mr-2" />
+          <CardTitle className="text-xl flex items-center text-slate-200">
+            <BarChart2 className="w-5 h-5 text-blue-400 mr-2" />
             Recent Results
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-6">
-            <Target className="h-12 w-12 text-muted-foreground/50 mb-2" />
-            <p className="text-muted-foreground text-sm">No recent results available</p>
+            <Target className="h-12 w-12 text-slate-700 mb-2" />
+            <p className="text-slate-500 text-sm">No recent results available</p>
           </div>
         </CardContent>
       </Card>
@@ -58,18 +58,28 @@ export default function RecentResults({ results }: RecentResultsProps) {
   }
 
   return (
-    <Card>
+    <Card className="bg-slate-900/70 border-slate-800">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl flex items-center">
-          <BarChart2 className="w-5 h-5 text-primary mr-2" />
+        <CardTitle className="text-xl flex items-center text-slate-200">
+          <BarChart2 className="w-5 h-5 text-blue-400 mr-2" />
           Recent Results
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0 pb-1">
         <Tabs defaultValue={tab} onValueChange={setTab} className="px-6">
-          <TabsList className="mb-4">
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="all">All Results</TabsTrigger>
+          <TabsList className="mb-4 bg-slate-800/60">
+            <TabsTrigger 
+              value="today" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-800 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+            >
+              Today
+            </TabsTrigger>
+            <TabsTrigger 
+              value="all" 
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-800 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+            >
+              All Results
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="today" className="mt-0">
@@ -92,7 +102,7 @@ export default function RecentResults({ results }: RecentResultsProps) {
       <CardFooter className="pt-1">
         <Button 
           variant="ghost" 
-          className="w-full text-primary flex items-center justify-center"
+          className="w-full text-blue-400 hover:text-blue-300 hover:bg-slate-800/60 flex items-center justify-center"
           onClick={() => setLocation("/markets")}
         >
           View All Results
@@ -107,13 +117,13 @@ function ResultItem({ result }: { result: MarketResult }) {
   const getStatusBadge = (status: string) => {
     switch (status.toLowerCase()) {
       case "open":
-        return <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">Open</Badge>;
+        return <Badge variant="outline" className="bg-indigo-900/30 text-indigo-300 border-indigo-500/30">Open</Badge>;
       case "closed":
-        return <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200">Closed</Badge>;
+        return <Badge variant="outline" className="bg-slate-800/80 text-slate-300 border-slate-700">Closed</Badge>;
       case "resulted":
-        return <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">Resulted</Badge>;
+        return <Badge variant="outline" className="bg-blue-900/30 text-blue-300 border-blue-500/30">Resulted</Badge>;
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className="bg-slate-800 text-slate-300 border-slate-700">{status}</Badge>;
     }
   };
 
@@ -125,11 +135,11 @@ function ResultItem({ result }: { result: MarketResult }) {
   const timeAgo = formatDistanceToNow(new Date(result.createdAt), { addSuffix: true });
   
   return (
-    <div className="p-3 rounded-lg border border-border bg-card/50">
+    <div className="p-3 rounded-lg border border-slate-800 bg-slate-800/50">
       <div className="flex justify-between items-start mb-2">
         <div>
-          <h4 className="font-medium text-sm">{result.name}</h4>
-          <div className="flex items-center text-xs text-muted-foreground mt-0.5">
+          <h4 className="font-medium text-sm text-slate-200">{result.name}</h4>
+          <div className="flex items-center text-xs text-slate-500 mt-0.5">
             <Clock className="h-3 w-3 mr-1" />
             <span>{timeAgo}</span>
           </div>
@@ -139,12 +149,12 @@ function ResultItem({ result }: { result: MarketResult }) {
       
       <div className="flex justify-between mt-3 text-sm">
         <div className="flex-1">
-          <p className="text-xs text-muted-foreground">Open Result</p>
-          <p className="font-medium">{formatResult(result.openResult)}</p>
+          <p className="text-xs text-slate-500">Open Result</p>
+          <p className="font-medium text-blue-400">{formatResult(result.openResult)}</p>
         </div>
         <div className="flex-1 text-right">
-          <p className="text-xs text-muted-foreground">Close Result</p>
-          <p className="font-medium">{formatResult(result.closeResult)}</p>
+          <p className="text-xs text-slate-500">Close Result</p>
+          <p className="font-medium text-indigo-400">{formatResult(result.closeResult)}</p>
         </div>
       </div>
     </div>

@@ -32,7 +32,7 @@ export default function MobileNav() {
       component: (
         <div className="flex flex-col items-center justify-center">
           <Wallet className="w-5 h-5" />
-          <span className="text-xs mt-1">${(user.balance / 100).toFixed(2)}</span>
+          <span className="text-xs mt-1 text-blue-300">${(user.balance / 100).toFixed(2)}</span>
         </div>
       ),
     },
@@ -44,7 +44,7 @@ export default function MobileNav() {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-card border-t border-border z-50 lg:hidden">
+    <div className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-50 lg:hidden">
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => (
           <Link
@@ -53,8 +53,8 @@ export default function MobileNav() {
             className={cn(
               "flex flex-col items-center justify-center w-full h-full text-xs",
               location === item.path
-                ? "text-primary"
-                : "text-muted-foreground hover:text-foreground"
+                ? "text-blue-400"
+                : "text-slate-400 hover:text-slate-200"
             )}
           >
             {item.component || (
