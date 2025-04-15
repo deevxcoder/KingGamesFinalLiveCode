@@ -103,7 +103,9 @@ const matchFormSchema = z.object({
   teamB: z.string().min(2, "Team B name must be at least 2 characters"),
   category: z.string().min(1, "Category is required"),
   description: z.string().optional(),
-  matchTime: z.string().min(5, "Match time is required"),
+  matchDate: z.string().min(1, "Match date is required"),
+  matchTime: z.string().min(1, "Match time is required"),
+  coverImage: z.string().optional(),
   oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   oddDraw: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000").optional(),
@@ -135,7 +137,9 @@ export default function AdminTeamMatchPage() {
       teamB: "",
       category: "cricket",
       description: "",
-      matchTime: "",
+      matchDate: format(new Date(), "yyyy-MM-dd"),
+      matchTime: "12:00",
+      coverImage: "",
       oddTeamA: 100,
       oddTeamB: 100,
       oddDraw: 300,
@@ -272,12 +276,15 @@ export default function AdminTeamMatchPage() {
   // Handle opening edit match dialog
   const handleEditMatch = (match: TeamMatch) => {
     setEditingMatch(match);
+    const matchDate = parseISO(match.matchTime);
     matchForm.reset({
       teamA: match.teamA,
       teamB: match.teamB,
       category: match.category,
       description: match.description || "",
-      matchTime: format(parseISO(match.matchTime), "yyyy-MM-dd'T'HH:mm"),
+      matchDate: format(matchDate, "yyyy-MM-dd"),
+      matchTime: format(matchDate, "HH:mm"),
+      coverImage: "",
       oddTeamA: match.oddTeamA,
       oddTeamB: match.oddTeamB,
       oddDraw: match.oddDraw || undefined,
@@ -298,7 +305,17 @@ export default function AdminTeamMatchPage() {
   };
 
   // Handle submit for adding/editing match
-  const onSubmitMatch = (data: z.infer<typeof matchFormSchema>) => {
+  const onSubmitMatch = (formData: z.infer<typeof matchFormSchema>) => {
+    // Combine date and time into a single ISO string for matchTime
+    const { matchDate, matchTime, ...restData } = formData;
+    const combinedDateTime = `${matchDate}T${matchTime}:00`;
+    
+    // Create the data object with combined date/time
+    const data = {
+      ...restData,
+      matchTime: combinedDateTime,
+    };
+    
     if (editingMatch) {
       updateMatch.mutate({ id: editingMatch.id, data });
     } else {
@@ -314,7 +331,9 @@ export default function AdminTeamMatchPage() {
       teamB: "",
       category: "cricket",
       description: "",
-      matchTime: "",
+      matchDate: format(new Date(), "yyyy-MM-dd"),
+      matchTime: "12:00",
+      coverImage: "",
       oddTeamA: 100,
       oddTeamB: 100,
       oddDraw: 300,
@@ -703,12 +722,12 @@ export default function AdminTeamMatchPage() {
                 
                 <FormField
                   control={matchForm.control}
-                  name="matchTime"
+                  name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Match Time</FormLabel>
+                      <FormLabel>Description (Optional)</FormLabel>
                       <FormControl>
-                        <Input {...field} type="datetime-local" />
+                        <Input {...field} placeholder="e.g. IPL 2025 Match #12" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -716,19 +735,82 @@ export default function AdminTeamMatchPage() {
                 />
               </div>
               
+              {/* Match Date and Time Selection - improved UX with separate fields */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={matchForm.control}
+                  name="matchDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Match Date</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={matchForm.control}
+                  name="matchTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Match Time</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Cover Banner Upload */}
               <FormField
                 control={matchForm.control}
-                name="description"
+                name="coverImage"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g. IPL 2025 Match #12" />
-                    </FormControl>
+                    <FormLabel>Cover Banner Image (Optional)</FormLabel>
+                    <div className="grid gap-2">
+                      <FormControl>
+                        <Input 
+                          type="url" 
+                          {...field} 
+                          placeholder="Enter image URL (e.g., https://example.com/banner.jpg)" 
+                        />
+                      </FormControl>
+                      
+                      {field.value && (
+                        <div className="p-2 border rounded-md">
+                          <img 
+                            src={field.value} 
+                            alt="Cover preview" 
+                            className="w-full h-40 object-cover rounded-md"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Invalid+Image+URL";
+                            }}
+                          />
+                        </div>
+                      )}
+                      
+                      <FormDescription>
+                        Recommended size: 1200×400 pixels. Use a URL from any image hosting service.
+                      </FormDescription>
+                    </div>
                     <FormMessage />
                   </FormItem>
                 )}
               />
+              
+
               
               <div className="grid grid-cols-3 gap-4">
                 <FormField
