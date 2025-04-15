@@ -38,13 +38,13 @@ export default function GameCard({
     switch (popularity) {
       case "high":
         return (
-          <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+          <Badge variant="outline" className="bg-indigo-900/30 text-indigo-300 border-indigo-500/30">
             Popular
           </Badge>
         );
       case "medium":
         return (
-          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
+          <Badge variant="outline" className="bg-blue-900/30 text-blue-300 border-blue-500/30">
             Trending
           </Badge>
         );

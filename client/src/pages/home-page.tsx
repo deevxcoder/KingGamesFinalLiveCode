@@ -21,7 +21,7 @@ const gameCards = [
     id: "coinflip",
     title: "Coin Flip",
     description: "Classic heads or tails betting with 50/50 odds for instant wins.",
-    imageBg: "linear-gradient(to right, #3b82f6, #8b5cf6)",
+    imageBg: "linear-gradient(to right, #1e293b, #3b5cb8)",
     path: "/play",
     popularity: "high" as const,
     winRate: 50
@@ -30,7 +30,7 @@ const gameCards = [
     id: "satamatka",
     title: "Satta Matka",
     description: "Traditional Indian betting game with multiple betting options.",
-    imageBg: "linear-gradient(to right, #ec4899, #8b5cf6)",
+    imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
     path: "/satamatka",
     popularity: "medium" as const,
     winRate: 36
@@ -136,7 +136,7 @@ export default function HomePage() {
               {canManageUsers && (
                 <div className="flex flex-wrap gap-2">
                   <Button 
-                    className="bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-600"
+                    className="bg-gradient-to-r from-indigo-800 to-blue-600 hover:from-indigo-700 hover:to-blue-500"
                     onClick={() => setLocation("/users")}
                   >
                     Manage Users
@@ -144,6 +144,7 @@ export default function HomePage() {
                   {isAdmin && (
                     <Button 
                       variant="outline"
+                      className="border-slate-700 hover:bg-slate-800"
                       onClick={() => setLocation("/subadmins")}
                     >
                       Manage Subadmins
@@ -200,7 +201,7 @@ export default function HomePage() {
             {/* Quick Actions */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               <Button 
-                className="py-8 text-lg bg-gradient-to-r from-primary/90 to-blue-500/90 hover:from-primary hover:to-blue-600"
+                className="py-8 text-lg bg-gradient-to-r from-indigo-800 to-blue-600 hover:from-indigo-700 hover:to-blue-500"
                 onClick={() => setLocation("/play")}
               >
                 <Dice1 className="h-5 w-5 mr-2" />
@@ -209,7 +210,7 @@ export default function HomePage() {
               
               <Button 
                 variant="outline"
-                className="py-8 text-lg border-primary/30 hover:bg-primary/5"
+                className="py-8 text-lg border-slate-700 hover:bg-slate-800/50"
                 onClick={() => setLocation("/markets")}
               >
                 <Calendar className="h-5 w-5 mr-2" />
@@ -218,7 +219,7 @@ export default function HomePage() {
               
               <Button 
                 variant="outline"
-                className="py-8 text-lg border-primary/30 hover:bg-primary/5"
+                className="py-8 text-lg border-slate-700 hover:bg-slate-800/50"
                 onClick={() => setLocation("/game-history")}
               >
                 <BarChart2 className="h-5 w-5 mr-2" />
@@ -227,7 +228,7 @@ export default function HomePage() {
               
               <Button 
                 variant="outline"
-                className="py-8 text-lg border-primary/30 hover:bg-primary/5"
+                className="py-8 text-lg border-slate-700 hover:bg-slate-800/50"
                 onClick={() => setLocation("/leaderboard")}
               >
                 <Trophy className="h-5 w-5 mr-2" />
