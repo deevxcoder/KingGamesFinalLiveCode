@@ -27,11 +27,11 @@ const gameCards = [
     winRate: 50
   },
   {
-    id: "satamatka",
-    title: "Satta Matka",
-    description: "Traditional Indian betting game with multiple betting options.",
+    id: "marketgame",
+    title: "Market Game",
+    description: "Strategic market betting game with multiple betting options.",
     imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
-    path: "/satamatka",
+    path: "/markets",
     popularity: "medium" as const,
     winRate: 36
   }
@@ -76,7 +76,7 @@ const sampleRecentWinners = [
   {
     id: 2,
     username: "betmaster",
-    game: "Satta Matka",
+    game: "Market Game",
     amount: 10000,
     payout: 50000,
     createdAt: new Date(Date.now() - 1800000).toISOString(),
