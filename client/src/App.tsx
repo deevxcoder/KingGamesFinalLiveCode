@@ -48,6 +48,11 @@ function Router() {
         component={ActionHistoryPage}
         allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
       />
+      <ProtectedRoute 
+        path="/jantri-management" 
+        component={JantriManagementPage}
+        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
+      />
       
       {/* Admin/Subadmin routes */}
       <ProtectedRoute 
