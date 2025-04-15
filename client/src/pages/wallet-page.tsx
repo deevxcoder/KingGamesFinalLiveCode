@@ -1,356 +1,542 @@
-import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Separator } from "@/components/ui/separator";
+import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import DashboardLayout from "@/components/dashboard-layout";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { formatDistanceToNow } from "date-fns";
-import { PaymentMode, RequestStatus, RequestType } from "@/lib/types";
+import { PaymentMode, RequestType, RequestStatus, WalletRequest, PaymentDetails } from "@/lib/types";
+
+// Form schemas
+const depositFormSchema = z.object({
+  amount: z.coerce.number().min(100, "Minimum deposit amount is ₹100").max(100000, "Maximum deposit amount is ₹100,000"),
+  paymentMode: z.enum(["upi", "bank", "cash"]),
+  paymentDetails: z.object({
+    upiId: z.string().optional(),
+    transactionId: z.string().optional(),
+    utrNumber: z.string().optional(),
+    bankName: z.string().optional(),
+    accountNumber: z.string().optional(),
+    ifscCode: z.string().optional(),
+    handlerName: z.string().optional(),
+    handlerId: z.string().optional(),
+  }),
+  notes: z.string().optional(),
+});
+
+const withdrawalFormSchema = z.object({
+  amount: z.coerce.number().min(500, "Minimum withdrawal amount is ₹500").max(50000, "Maximum withdrawal amount is ₹50,000"),
+  paymentMode: z.enum(["upi", "bank"]),
+  paymentDetails: z.object({
+    upiId: z.string().optional(),
+    bankName: z.string().optional(),
+    accountNumber: z.string().optional(),
+    ifscCode: z.string().optional(),
+  }),
+  notes: z.string().optional(),
+});
+
+type DepositFormValues = z.infer<typeof depositFormSchema>;
+type WithdrawalFormValues = z.infer<typeof withdrawalFormSchema>;
 
 export default function WalletPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<string>("deposit");
-  const [paymentDetails, setPaymentDetails] = useState<any>(null);
-  const [depositAmount, setDepositAmount] = useState<string>("");
-  const [withdrawAmount, setWithdrawAmount] = useState<string>("");
-  const [paymentMode, setPaymentMode] = useState<string>("");
-  const [paymentDetailsInput, setPaymentDetailsInput] = useState<any>({});
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [notes, setNotes] = useState<string>("");
-  const [viewRequestDialog, setViewRequestDialog] = useState<boolean>(false);
-  const [selectedRequest, setSelectedRequest] = useState<any>(null);
-  const [confirmCancelDialog, setConfirmCancelDialog] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState("balance");
+  const [proofImage, setProofImage] = useState<File | null>(null);
+  const [paymentModeDetails, setPaymentModeDetails] = useState<PaymentDetails | null>(null);
 
-  // Get wallet requests
-  const { data: requests, isLoading } = useQuery({
-    queryKey: ["/api/wallet/my-requests"],
-    enabled: !!user,
-  });
-
-  // Get payment details
-  const { data: paymentDetailsData } = useQuery({
+  // Fetch payment details from the system
+  const { data: systemPaymentDetails, isLoading: loadingPaymentDetails } = useQuery<PaymentDetails>({
     queryKey: ["/api/wallet/payment-details"],
+    queryFn: async ({ queryKey }) => {
+      const res = await fetch(queryKey[0] as string, {
+        credentials: "include",
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch payment details");
+      }
+      return res.json();
+    },
     onSuccess: (data) => {
-      setPaymentDetails(data);
-    },
-    enabled: !!user,
-  });
-
-  // Create deposit request
-  const depositMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      return apiRequest("/api/wallet/requests", {
-        method: "POST",
-        body: formData,
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Deposit Request Submitted",
-        description: "Your deposit request has been submitted for review.",
-      });
-      setDepositAmount("");
-      setPaymentMode("");
-      setPaymentDetailsInput({});
-      setSelectedImage(null);
-      setNotes("");
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/my-requests"] });
+      setPaymentModeDetails(data);
     },
     onError: (error: Error) => {
       toast({
         title: "Error",
-        description: error.message || "Failed to submit deposit request",
+        description: error.message,
         variant: "destructive",
       });
+    }
+  });
+
+  // Fetch user's wallet requests
+  const { 
+    data: walletRequests = [], 
+    isLoading: loadingRequests,
+    refetch: refetchRequests
+  } = useQuery<WalletRequest[]>({
+    queryKey: ["/api/wallet/my-requests"],
+    enabled: activeTab === "history",
+  });
+
+  // File upload handler
+  const handleProofImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setProofImage(e.target.files[0]);
+    }
+  };
+
+  // Upload proof image
+  const uploadProofImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append("proofImage", file);
+
+    try {
+      const res = await fetch('/api/upload/proof', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to upload image");
+      }
+
+      const data = await res.json();
+      return data.imageUrl;
+    } catch (error) {
+      console.error("Upload error:", error);
+      throw error;
+    }
+  };
+
+  // Form for handling deposits
+  const depositForm = useForm<DepositFormValues>({
+    resolver: zodResolver(depositFormSchema),
+    defaultValues: {
+      amount: 0,
+      paymentMode: "upi",
+      paymentDetails: {},
+      notes: "",
     },
   });
 
-  // Create withdrawal request
-  const withdrawMutation = useMutation({
-    mutationFn: async (data: any) => {
-      return apiRequest("/api/wallet/requests", {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+  // Form for handling withdrawals
+  const withdrawalForm = useForm<WithdrawalFormValues>({
+    resolver: zodResolver(withdrawalFormSchema),
+    defaultValues: {
+      amount: 0,
+      paymentMode: "upi",
+      paymentDetails: {},
+      notes: "",
+    },
+  });
+
+  // Create wallet request mutation
+  const createRequestMutation = useMutation({
+    mutationFn: async (data: {
+      amount: number;
+      requestType: RequestType;
+      paymentMode: PaymentMode;
+      paymentDetails: Record<string, string>;
+      proofImageUrl?: string;
+      notes?: string;
+    }) => {
+      const res = await apiRequest("POST", "/api/wallet/requests", data);
+      return res.json();
     },
     onSuccess: () => {
       toast({
-        title: "Withdrawal Request Submitted",
-        description: "Your withdrawal request has been submitted for review.",
+        title: "Request Submitted",
+        description: "Your request has been submitted successfully and is pending approval.",
       });
-      setWithdrawAmount("");
-      setPaymentMode("");
-      setPaymentDetailsInput({});
-      setNotes("");
-      queryClient.invalidateQueries({ queryKey: ["/api/wallet/my-requests"] });
+      // Reset forms
+      depositForm.reset();
+      withdrawalForm.reset();
+      setProofImage(null);
+      
+      // Refetch user data to update balance
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      
+      // Switch to history tab
+      setActiveTab("history");
+      refetchRequests();
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit withdrawal request",
+        title: "Request Failed",
+        description: error.message,
         variant: "destructive",
       });
     },
   });
 
   // Handle deposit form submission
-  const handleDepositSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!depositAmount || !paymentMode) {
-      toast({
-        title: "Error",
-        description: "Please fill all required fields",
-        variant: "destructive",
+  const handleDepositSubmit = async (values: DepositFormValues) => {
+    try {
+      // Validate if proof image is uploaded for deposits
+      if (!proofImage) {
+        toast({
+          title: "Error",
+          description: "Please upload proof of payment",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Upload proof image first
+      const imageUrl = await uploadProofImage(proofImage);
+
+      // Filter out undefined values from payment details
+      const paymentDetails: Record<string, string> = {};
+      Object.entries(values.paymentDetails).forEach(([key, value]) => {
+        if (value) paymentDetails[key] = value;
       });
-      return;
-    }
 
-    if (parseFloat(depositAmount) <= 0) {
-      toast({
-        title: "Error",
-        description: "Amount must be greater than zero",
-        variant: "destructive",
+      // Create deposit request
+      await createRequestMutation.mutateAsync({
+        amount: values.amount,
+        requestType: RequestType.DEPOSIT,
+        paymentMode: values.paymentMode as PaymentMode,
+        paymentDetails,
+        proofImageUrl: imageUrl,
+        notes: values.notes,
       });
-      return;
+    } catch (error) {
+      console.error("Deposit error:", error);
     }
-
-    if (paymentMode !== PaymentMode.CASH && !selectedImage) {
-      toast({
-        title: "Error",
-        description: "Please upload payment proof",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Create FormData for file upload
-    const formData = new FormData();
-    formData.append("amount", depositAmount);
-    formData.append("requestType", RequestType.DEPOSIT);
-    formData.append("paymentMode", paymentMode);
-    formData.append("paymentDetails", JSON.stringify(paymentDetailsInput));
-    if (notes) formData.append("notes", notes);
-    if (selectedImage) formData.append("proofImage", selectedImage);
-
-    depositMutation.mutate(formData);
   };
 
   // Handle withdrawal form submission
-  const handleWithdrawSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!withdrawAmount || !paymentMode) {
-      toast({
-        title: "Error",
-        description: "Please fill all required fields",
-        variant: "destructive",
+  const handleWithdrawalSubmit = async (values: WithdrawalFormValues) => {
+    try {
+      // Check if user has sufficient balance
+      if (user && user.balance < values.amount) {
+        toast({
+          title: "Insufficient Balance",
+          description: "You don't have enough balance for this withdrawal.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Filter out undefined values from payment details
+      const paymentDetails: Record<string, string> = {};
+      Object.entries(values.paymentDetails).forEach(([key, value]) => {
+        if (value) paymentDetails[key] = value;
       });
-      return;
-    }
 
-    const amount = parseFloat(withdrawAmount);
-    if (amount <= 0) {
-      toast({
-        title: "Error",
-        description: "Amount must be greater than zero",
-        variant: "destructive",
+      // Create withdrawal request
+      await createRequestMutation.mutateAsync({
+        amount: values.amount,
+        requestType: RequestType.WITHDRAWAL,
+        paymentMode: values.paymentMode as PaymentMode,
+        paymentDetails,
+        notes: values.notes,
       });
-      return;
-    }
-
-    if (amount > (user?.balance || 0)) {
-      toast({
-        title: "Error",
-        description: "Insufficient balance",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    const data = {
-      amount,
-      requestType: RequestType.WITHDRAWAL,
-      paymentMode,
-      paymentDetails: paymentDetailsInput,
-      notes,
-    };
-
-    withdrawMutation.mutate(data);
-  };
-
-  // Handle file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSelectedImage(e.target.files[0]);
+    } catch (error) {
+      console.error("Withdrawal error:", error);
     }
   };
 
-  // View request details
-  const handleViewRequest = (request: any) => {
-    setSelectedRequest(request);
-    setViewRequestDialog(true);
-  };
-
-  // Get status badge variant
-  const getStatusBadge = (status: string) => {
+  // Get color and icon for request status
+  const getStatusInfo = (status: RequestStatus) => {
     switch (status) {
       case RequestStatus.APPROVED:
-        return "success";
+        return { 
+          color: "text-green-600", 
+          bgColor: "bg-green-100", 
+          icon: <CheckCircle className="h-5 w-5 text-green-600" />
+        };
       case RequestStatus.REJECTED:
-        return "destructive";
+        return { 
+          color: "text-red-600", 
+          bgColor: "bg-red-100", 
+          icon: <XCircle className="h-5 w-5 text-red-600" />
+        };
+      case RequestStatus.PENDING:
       default:
-        return "secondary";
+        return { 
+          color: "text-yellow-600", 
+          bgColor: "bg-yellow-100", 
+          icon: <Clock className="h-5 w-5 text-yellow-600" />
+        };
     }
   };
 
-  // Get payment mode fields
-  const renderPaymentFields = () => {
-    if (!paymentMode) return null;
+  // Get title and icon for request type
+  const getRequestTypeInfo = (type: RequestType) => {
+    switch (type) {
+      case RequestType.DEPOSIT:
+        return { 
+          title: "Deposit", 
+          icon: <ArrowDown className="h-5 w-5 text-green-600" />
+        };
+      case RequestType.WITHDRAWAL:
+        return { 
+          title: "Withdrawal", 
+          icon: <ArrowUp className="h-5 w-5 text-blue-600" />
+        };
+      default:
+        return { 
+          title: "Unknown", 
+          icon: null
+        };
+    }
+  };
 
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  // Payment mode fields - what to show based on selected payment mode
+  const renderDepositPaymentFields = () => {
+    const paymentMode = depositForm.watch("paymentMode");
+    
     switch (paymentMode) {
-      case PaymentMode.UPI:
+      case "upi":
         return (
           <>
-            <div className="grid gap-2">
-              <Label htmlFor="upiId">UPI ID</Label>
-              <Input
-                id="upiId"
-                placeholder="name@upi"
-                value={paymentDetailsInput.upiId || ""}
-                onChange={(e) => setPaymentDetailsInput({ ...paymentDetailsInput, upiId: e.target.value })}
+            <div className="space-y-2">
+              <FormField
+                control={depositForm.control}
+                name="paymentDetails.transactionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transaction ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter UPI transaction ID" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={depositForm.control}
+                name="paymentDetails.utrNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>UTR Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter UTR number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            {activeTab === "withdraw" && (
-              <div className="grid gap-2">
-                <Label htmlFor="transactionId">Transaction ID (Optional)</Label>
-                <Input
-                  id="transactionId"
-                  placeholder="Transaction ID"
-                  value={paymentDetailsInput.transactionId || ""}
-                  onChange={(e) => setPaymentDetailsInput({ ...paymentDetailsInput, transactionId: e.target.value })}
-                />
-              </div>
+
+            {/* Display system UPI details */}
+            {paymentModeDetails?.upiDetails && (
+              <Alert className="mt-4 bg-blue-50">
+                <FileCheck className="h-4 w-4" />
+                <AlertTitle>UPI Payment Details</AlertTitle>
+                <AlertDescription>
+                  <p className="mt-2"><strong>UPI ID:</strong> {paymentModeDetails.upiDetails.upiId}</p>
+                  {paymentModeDetails.upiDetails.qrImageUrl && (
+                    <div className="mt-2">
+                      <p><strong>Scan QR Code:</strong></p>
+                      <img 
+                        src={paymentModeDetails.upiDetails.qrImageUrl} 
+                        alt="UPI QR Code" 
+                        className="w-48 h-48 mt-2 border border-gray-300"
+                      />
+                    </div>
+                  )}
+                </AlertDescription>
+              </Alert>
             )}
           </>
         );
       
-      case PaymentMode.BANK:
+      case "bank":
         return (
           <>
-            <div className="grid gap-2">
-              <Label htmlFor="bankName">Bank Name</Label>
-              <Input
-                id="bankName"
-                placeholder="Bank Name"
-                value={paymentDetailsInput.bankName || ""}
-                onChange={(e) => setPaymentDetailsInput({ ...paymentDetailsInput, bankName: e.target.value })}
+            <div className="space-y-2">
+              <FormField
+                control={depositForm.control}
+                name="paymentDetails.transactionId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transaction Reference</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter bank transfer reference" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={depositForm.control}
+                name="paymentDetails.utrNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>UTR Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter UTR number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="accountNumber">Account Number</Label>
-              <Input
-                id="accountNumber"
-                placeholder="Account Number"
-                value={paymentDetailsInput.accountNumber || ""}
-                onChange={(e) => setPaymentDetailsInput({ ...paymentDetailsInput, accountNumber: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="ifscCode">IFSC Code</Label>
-              <Input
-                id="ifscCode"
-                placeholder="IFSC Code"
-                value={paymentDetailsInput.ifscCode || ""}
-                onChange={(e) => setPaymentDetailsInput({ ...paymentDetailsInput, ifscCode: e.target.value })}
-              />
-            </div>
-            {activeTab === "withdraw" && (
-              <div className="grid gap-2">
-                <Label htmlFor="utrNumber">UTR Number (Optional)</Label>
-                <Input
-                  id="utrNumber"
-                  placeholder="UTR Number"
-                  value={paymentDetailsInput.utrNumber || ""}
-                  onChange={(e) => setPaymentDetailsInput({ ...paymentDetailsInput, utrNumber: e.target.value })}
-                />
-              </div>
+
+            {/* Display system bank details */}
+            {paymentModeDetails?.bankDetails && (
+              <Alert className="mt-4 bg-blue-50">
+                <FileCheck className="h-4 w-4" />
+                <AlertTitle>Bank Transfer Details</AlertTitle>
+                <AlertDescription>
+                  <p className="mt-2"><strong>Account Name:</strong> {paymentModeDetails.bankDetails.accountName}</p>
+                  <p><strong>Account Number:</strong> {paymentModeDetails.bankDetails.accountNumber}</p>
+                  <p><strong>IFSC Code:</strong> {paymentModeDetails.bankDetails.ifscCode}</p>
+                  <p><strong>Bank Name:</strong> {paymentModeDetails.bankDetails.bankName}</p>
+                </AlertDescription>
+              </Alert>
             )}
           </>
         );
       
-      case PaymentMode.CASH:
+      case "cash":
         return (
           <>
-            <div className="grid gap-2">
-              <Label htmlFor="handlerName">Handler Name</Label>
-              <Input
-                id="handlerName"
-                placeholder="Handler Name"
-                value={paymentDetailsInput.handlerName || ""}
-                onChange={(e) => setPaymentDetailsInput({ ...paymentDetailsInput, handlerName: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="handlerId">Handler ID/Mobile (Optional)</Label>
-              <Input
-                id="handlerId"
-                placeholder="Handler ID or Mobile"
-                value={paymentDetailsInput.handlerId || ""}
-                onChange={(e) => setPaymentDetailsInput({ ...paymentDetailsInput, handlerId: e.target.value })}
-              />
-            </div>
+            <FormField
+              control={depositForm.control}
+              name="paymentDetails.handlerName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Handler Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter handler's name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={depositForm.control}
+              name="paymentDetails.handlerId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Handler ID/Reference</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter handler's ID or reference" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Display system cash handler details */}
+            {paymentModeDetails?.cashDetails && (
+              <Alert className="mt-4 bg-blue-50">
+                <FileCheck className="h-4 w-4" />
+                <AlertTitle>Cash Handler Details</AlertTitle>
+                <AlertDescription>
+                  <p className="mt-2"><strong>Handler Name:</strong> {paymentModeDetails.cashDetails.handlerName}</p>
+                  {paymentModeDetails.cashDetails.contactNumber && (
+                    <p><strong>Contact:</strong> {paymentModeDetails.cashDetails.contactNumber}</p>
+                  )}
+                </AlertDescription>
+              </Alert>
+            )}
+          </>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  const renderWithdrawalPaymentFields = () => {
+    const paymentMode = withdrawalForm.watch("paymentMode");
+    
+    switch (paymentMode) {
+      case "upi":
+        return (
+          <FormField
+            control={withdrawalForm.control}
+            name="paymentDetails.upiId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>UPI ID</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter your UPI ID" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        );
+      
+      case "bank":
+        return (
+          <>
+            <FormField
+              control={withdrawalForm.control}
+              name="paymentDetails.bankName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Bank Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your bank name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={withdrawalForm.control}
+              name="paymentDetails.accountNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Account Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter your account number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={withdrawalForm.control}
+              name="paymentDetails.ifscCode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>IFSC Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter IFSC code" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </>
         );
       
@@ -361,509 +547,388 @@ export default function WalletPage() {
 
   return (
     <DashboardLayout title="Wallet">
-      <div className="grid gap-6">
-        {/* Balance Card */}
-        <Card className="shadow-md">
-          <CardHeader className="bg-primary/10 pb-2">
-            <CardTitle className="text-2xl">Your Balance</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-4xl font-bold">₹{user?.balance || 0}</p>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Available to bet or withdraw
+      <Tabs defaultValue="balance" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="balance">Balance</TabsTrigger>
+          <TabsTrigger value="deposit">Deposit</TabsTrigger>
+          <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
+          <TabsTrigger value="history" className="col-span-3 mt-2">Transaction History</TabsTrigger>
+        </TabsList>
+
+        {/* Balance Tab */}
+        <TabsContent value="balance" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Current Balance</CardTitle>
+              <CardDescription>Your current account balance</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col items-center justify-center py-6">
+                <div className="text-4xl font-bold text-primary">₹{user?.balance.toFixed(2)}</div>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Last updated: {new Date().toLocaleDateString('en-IN')}
                 </p>
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setActiveTab("withdraw")}
-                >
-                  Withdraw
-                </Button>
-                <Button 
-                  variant="default"
-                  onClick={() => setActiveTab("deposit")}
-                >
-                  Deposit
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+            <CardFooter className="flex justify-center gap-4">
+              <Button onClick={() => setActiveTab("deposit")}>
+                <ArrowDown className="mr-2 h-4 w-4" />
+                Deposit
+              </Button>
+              <Button onClick={() => setActiveTab("withdraw")} variant="outline">
+                <ArrowUp className="mr-2 h-4 w-4" />
+                Withdraw
+              </Button>
+            </CardFooter>
+          </Card>
 
-        {/* Tabs */}
-        <Tabs defaultValue="deposit" value={activeTab} onValueChange={setActiveTab}>
-          <div className="flex justify-between items-center mb-4">
-            <TabsList>
-              <TabsTrigger value="deposit">Deposit</TabsTrigger>
-              <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
-              <TabsTrigger value="history">Transaction History</TabsTrigger>
-            </TabsList>
-          </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>Your most recent wallet activities</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingRequests ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : walletRequests.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No recent transactions found.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {walletRequests.slice(0, 5).map((request) => {
+                    const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
+                    const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
+                    
+                    return (
+                      <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center">
+                          <div className="mr-4">
+                            {typeIcon}
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{title}</h4>
+                            <p className="text-sm text-muted-foreground">
+                              {formatDate(request.createdAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="font-semibold">
+                            ₹{request.amount.toFixed(2)}
+                          </span>
+                          <div className={`p-1 rounded-full ${bgColor}`}>
+                            {icon}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </CardContent>
+            <CardFooter>
+              <Button variant="outline" className="w-full" onClick={() => setActiveTab("history")}>
+                View All Transactions
+              </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
 
-          {/* Deposit Tab */}
-          <TabsContent value="deposit">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Deposit Form */}
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle>Deposit Funds</CardTitle>
-                  <CardDescription>
-                    Add money to your account using your preferred payment method
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleDepositSubmit} className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="depositAmount">Amount</Label>
-                      <Input
-                        id="depositAmount"
-                        type="number"
-                        placeholder="Enter amount"
-                        value={depositAmount}
-                        onChange={(e) => setDepositAmount(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="paymentMode">Payment Method</Label>
-                      <Select 
-                        value={paymentMode}
-                        onValueChange={(value) => {
-                          setPaymentMode(value);
-                          setPaymentDetailsInput({});
-                        }}
-                      >
-                        <SelectTrigger id="paymentMode">
-                          <SelectValue placeholder="Select payment method" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={PaymentMode.UPI}>UPI</SelectItem>
-                          <SelectItem value={PaymentMode.BANK}>Bank Transfer</SelectItem>
-                          <SelectItem value={PaymentMode.CASH}>Cash</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {renderPaymentFields()}
-                    {paymentMode && paymentMode !== PaymentMode.CASH && (
-                      <div className="grid gap-2">
-                        <Label htmlFor="proofImage">Payment Proof</Label>
-                        <Input
-                          id="proofImage"
-                          type="file"
-                          onChange={handleFileChange}
-                          accept="image/*"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          Upload screenshot of payment confirmation
+        {/* Deposit Tab */}
+        <TabsContent value="deposit">
+          <Card>
+            <CardHeader>
+              <CardTitle>Add Funds</CardTitle>
+              <CardDescription>
+                Deposit money into your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Form {...depositForm}>
+                <form onSubmit={depositForm.handleSubmit(handleDepositSubmit)} className="space-y-6">
+                  <FormField
+                    control={depositForm.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Amount (₹)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter amount" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={depositForm.control}
+                    name="paymentMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Method</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            defaultValue={field.value}
+                            onValueChange={field.onChange}
+                            className="flex flex-col space-y-1"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="upi" id="upi" />
+                              <Label htmlFor="upi">UPI</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="bank" id="bank" />
+                              <Label htmlFor="bank">Bank Transfer</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="cash" id="cash" />
+                              <Label htmlFor="cash">Cash</Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {renderDepositPaymentFields()}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="proofImage">Payment Proof Image</Label>
+                    <Input
+                      id="proofImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProofImageChange}
+                      className="cursor-pointer"
+                    />
+                    {proofImage && (
+                      <div className="mt-2">
+                        <p className="text-sm text-green-600">
+                          Image selected: {proofImage.name}
                         </p>
                       </div>
                     )}
-                    <div className="grid gap-2">
-                      <Label htmlFor="notes">Notes (Optional)</Label>
-                      <Input
-                        id="notes"
-                        placeholder="Any additional information"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                      />
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-2"
-                      disabled={depositMutation.isPending}
-                    >
-                      {depositMutation.isPending ? "Processing..." : "Submit Deposit Request"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
+                  </div>
 
-              {/* Payment Instructions */}
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle>Payment Instructions</CardTitle>
-                  <CardDescription>
-                    Follow these instructions to make your deposit
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  {paymentDetails ? (
-                    <>
-                      <div className="rounded-lg border p-4">
-                        <h3 className="font-medium mb-2">UPI Payment</h3>
-                        <p>UPI ID: {paymentDetails.upi?.id || "N/A"}</p>
-                        {paymentDetails.upi?.qrCode && (
-                          <div className="mt-2">
-                            <img 
-                              src={paymentDetails.upi.qrCode} 
-                              alt="UPI QR Code" 
-                              className="max-w-[200px] mx-auto my-2" 
-                            />
+                  <FormField
+                    control={depositForm.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Any additional information" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={createRequestMutation.isPending}
+                  >
+                    {createRequestMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Submit Deposit Request
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Withdraw Tab */}
+        <TabsContent value="withdraw">
+          <Card>
+            <CardHeader>
+              <CardTitle>Withdraw Funds</CardTitle>
+              <CardDescription>
+                Withdraw money from your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Alert className="mb-6 bg-blue-50">
+                <FileCheck className="h-4 w-4" />
+                <AlertTitle>Your balance: ₹{user?.balance.toFixed(2)}</AlertTitle>
+                <AlertDescription>
+                  Minimum withdrawal amount is ₹500. Maximum is ₹50,000.
+                </AlertDescription>
+              </Alert>
+
+              <Form {...withdrawalForm}>
+                <form onSubmit={withdrawalForm.handleSubmit(handleWithdrawalSubmit)} className="space-y-6">
+                  <FormField
+                    control={withdrawalForm.control}
+                    name="amount"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Amount (₹)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter amount" 
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={withdrawalForm.control}
+                    name="paymentMode"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Withdrawal Method</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            defaultValue={field.value}
+                            onValueChange={field.onChange}
+                            className="flex flex-col space-y-1"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="upi" id="w-upi" />
+                              <Label htmlFor="w-upi">UPI</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="bank" id="w-bank" />
+                              <Label htmlFor="w-bank">Bank Transfer</Label>
+                            </div>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {renderWithdrawalPaymentFields()}
+
+                  <FormField
+                    control={withdrawalForm.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="Any additional information" 
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <Button 
+                    type="submit" 
+                    className="w-full" 
+                    disabled={createRequestMutation.isPending}
+                  >
+                    {createRequestMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Submit Withdrawal Request
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* History Tab */}
+        <TabsContent value="history">
+          <Card>
+            <CardHeader>
+              <CardTitle>Transaction History</CardTitle>
+              <CardDescription>
+                All your wallet transactions
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingRequests ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : walletRequests.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No transaction history found.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {walletRequests.map((request) => {
+                    const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
+                    const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
+                    
+                    return (
+                      <div key={request.id} className="border rounded-lg overflow-hidden">
+                        <div className="flex items-center justify-between p-4">
+                          <div className="flex items-center">
+                            <div className="mr-4">
+                              {typeIcon}
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{title} - ₹{request.amount.toFixed(2)}</h4>
+                              <p className="text-sm text-muted-foreground">
+                                {formatDate(request.createdAt)}
+                              </p>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                      <div className="rounded-lg border p-4">
-                        <h3 className="font-medium mb-2">Bank Transfer</h3>
-                        <div className="grid gap-1">
-                          <p>Bank: {paymentDetails.bank?.name || "N/A"}</p>
-                          <p>Account Number: {paymentDetails.bank?.accountNumber || "N/A"}</p>
-                          <p>IFSC: {paymentDetails.bank?.ifscCode || "N/A"}</p>
-                          <p>Account Holder: {paymentDetails.bank?.accountHolder || "N/A"}</p>
+                          <div className={`px-3 py-1 rounded-full flex items-center ${bgColor}`}>
+                            {icon}
+                            <span className={`ml-1 text-sm font-medium ${color}`}>
+                              {request.status}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="px-4 pb-4 text-sm">
+                          <p><strong>Payment Method:</strong> {request.paymentMode}</p>
+                          
+                          {/* Payment details based on payment mode */}
+                          {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
+                            <p><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
+                          )}
+                          
+                          {request.paymentMode === PaymentMode.BANK && (
+                            <>
+                              {request.paymentDetails.bankName && 
+                                <p><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
+                              {request.paymentDetails.accountNumber && 
+                                <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
+                            </>
+                          )}
+                          
+                          {request.status === RequestStatus.REJECTED && request.notes && (
+                            <p className="mt-2 text-red-600">
+                              <strong>Reason:</strong> {request.notes}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      <div className="rounded-lg border p-4">
-                        <h3 className="font-medium mb-2">Cash Payment</h3>
-                        <p>{paymentDetails.cash?.instructions || "Contact administrator for cash deposit instructions."}</p>
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-center h-40">
-                      <p>Loading payment details...</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Withdraw Tab */}
-          <TabsContent value="withdraw">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Withdraw Form */}
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle>Withdraw Funds</CardTitle>
-                  <CardDescription>
-                    Withdraw money from your account to your preferred payment method
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleWithdrawSubmit} className="grid gap-4">
-                    <div className="grid gap-2">
-                      <Label htmlFor="withdrawAmount">Amount</Label>
-                      <Input
-                        id="withdrawAmount"
-                        type="number"
-                        placeholder="Enter amount"
-                        value={withdrawAmount}
-                        onChange={(e) => setWithdrawAmount(e.target.value)}
-                        required
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Available balance: ₹{user?.balance || 0}
-                      </p>
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="paymentMode">Payment Method</Label>
-                      <Select 
-                        value={paymentMode}
-                        onValueChange={(value) => {
-                          setPaymentMode(value);
-                          setPaymentDetailsInput({});
-                        }}
-                      >
-                        <SelectTrigger id="paymentMode">
-                          <SelectValue placeholder="Select payment method" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value={PaymentMode.UPI}>UPI</SelectItem>
-                          <SelectItem value={PaymentMode.BANK}>Bank Transfer</SelectItem>
-                          <SelectItem value={PaymentMode.CASH}>Cash</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {renderPaymentFields()}
-                    <div className="grid gap-2">
-                      <Label htmlFor="notes">Notes (Optional)</Label>
-                      <Input
-                        id="notes"
-                        placeholder="Any additional information"
-                        value={notes}
-                        onChange={(e) => setNotes(e.target.value)}
-                      />
-                    </div>
-                    <Button 
-                      type="submit" 
-                      className="w-full mt-2"
-                      disabled={withdrawMutation.isPending}
-                    >
-                      {withdrawMutation.isPending ? "Processing..." : "Submit Withdrawal Request"}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-
-              {/* Withdrawal Information */}
-              <Card className="shadow-md">
-                <CardHeader>
-                  <CardTitle>Withdrawal Information</CardTitle>
-                  <CardDescription>
-                    Important details about withdrawing funds
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-4">
-                  <div className="rounded-lg border p-4">
-                    <h3 className="font-medium mb-2">Processing Time</h3>
-                    <p>Withdrawals are typically processed within 24 hours. You will be notified once your withdrawal is approved.</p>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="font-medium mb-2">Withdrawal Limits</h3>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Minimum: ₹100</li>
-                      <li>Maximum: ₹50,000 per day</li>
-                    </ul>
-                  </div>
-                  <div className="rounded-lg border p-4">
-                    <h3 className="font-medium mb-2">Important Note</h3>
-                    <p>Please ensure your payment details are correct. Incorrect details may result in delayed or failed withdrawals.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
-
-          {/* Transaction History Tab */}
-          <TabsContent value="history">
-            <Card className="shadow-md">
-              <CardHeader>
-                <CardTitle>Transaction History</CardTitle>
-                <CardDescription>
-                  View your deposit and withdrawal history
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-40">
-                    <p>Loading transaction history...</p>
-                  </div>
-                ) : requests && requests.length > 0 ? (
-                  <Table>
-                    <TableCaption>Your recent transaction requests</TableCaption>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Method</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {requests.map((request: any) => (
-                        <TableRow key={request.id}>
-                          <TableCell>
-                            {new Date(request.createdAt).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            {request.requestType === RequestType.DEPOSIT ? "Deposit" : "Withdrawal"}
-                          </TableCell>
-                          <TableCell>₹{request.amount}</TableCell>
-                          <TableCell>
-                            {request.paymentMode === PaymentMode.UPI
-                              ? "UPI"
-                              : request.paymentMode === PaymentMode.BANK
-                              ? "Bank"
-                              : "Cash"}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusBadge(request.status)}>
-                              {request.status === RequestStatus.PENDING
-                                ? "Pending"
-                                : request.status === RequestStatus.APPROVED
-                                ? "Approved"
-                                : "Rejected"}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleViewRequest(request)}
-                            >
-                              View
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-40">
-                    <p className="text-muted-foreground mb-2">No transaction history found</p>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setActiveTab("deposit")}
-                    >
-                      Make your first deposit
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-
-      {/* View Request Dialog */}
-      <Dialog open={viewRequestDialog} onOpenChange={setViewRequestDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Transaction Request Details</DialogTitle>
-            <DialogDescription>
-              Details of your {selectedRequest?.requestType} request
-            </DialogDescription>
-          </DialogHeader>
-          {selectedRequest && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Type</span>
-                  <span>
-                    {selectedRequest.requestType === RequestType.DEPOSIT
-                      ? "Deposit"
-                      : "Withdrawal"}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Amount</span>
-                  <span>₹{selectedRequest.amount}</span>
-                </div>
-              </div>
-              <Separator />
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Status</span>
-                  <Badge variant={getStatusBadge(selectedRequest.status)} className="w-fit mt-1">
-                    {selectedRequest.status === RequestStatus.PENDING
-                      ? "Pending"
-                      : selectedRequest.status === RequestStatus.APPROVED
-                      ? "Approved"
-                      : "Rejected"}
-                  </Badge>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Date</span>
-                  <span>
-                    {new Date(selectedRequest.createdAt).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-              <Separator />
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Payment Method</span>
-                <span>
-                  {selectedRequest.paymentMode === PaymentMode.UPI
-                    ? "UPI"
-                    : selectedRequest.paymentMode === PaymentMode.BANK
-                    ? "Bank Transfer"
-                    : "Cash"}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">Payment Details</span>
-                {selectedRequest.paymentMode === PaymentMode.UPI && (
-                  <div className="mt-1">
-                    <p>UPI ID: {selectedRequest.paymentDetails.upiId || "N/A"}</p>
-                    {selectedRequest.paymentDetails.transactionId && (
-                      <p>Transaction ID: {selectedRequest.paymentDetails.transactionId}</p>
-                    )}
-                  </div>
-                )}
-                {selectedRequest.paymentMode === PaymentMode.BANK && (
-                  <div className="mt-1">
-                    <p>Bank: {selectedRequest.paymentDetails.bankName || "N/A"}</p>
-                    <p>Account: {selectedRequest.paymentDetails.accountNumber || "N/A"}</p>
-                    <p>IFSC: {selectedRequest.paymentDetails.ifscCode || "N/A"}</p>
-                    {selectedRequest.paymentDetails.utrNumber && (
-                      <p>UTR Number: {selectedRequest.paymentDetails.utrNumber}</p>
-                    )}
-                  </div>
-                )}
-                {selectedRequest.paymentMode === PaymentMode.CASH && (
-                  <div className="mt-1">
-                    <p>Handler: {selectedRequest.paymentDetails.handlerName || "N/A"}</p>
-                    {selectedRequest.paymentDetails.handlerId && (
-                      <p>Handler ID: {selectedRequest.paymentDetails.handlerId}</p>
-                    )}
-                  </div>
-                )}
-              </div>
-              {selectedRequest.proofImageUrl && (
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Payment Proof</span>
-                  <div className="mt-2">
-                    <img 
-                      src={selectedRequest.proofImageUrl} 
-                      alt="Payment Proof" 
-                      className="max-w-full rounded-md border" 
-                    />
-                  </div>
+                    );
+                  })}
                 </div>
               )}
-              {selectedRequest.notes && (
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Notes</span>
-                  <p className="text-sm">{selectedRequest.notes}</p>
-                </div>
-              )}
-
-              {/* Admin notes/response */}
-              {selectedRequest.status !== RequestStatus.PENDING && selectedRequest.reviewNotes && (
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">Admin Response</span>
-                  <p className="text-sm">{selectedRequest.reviewNotes}</p>
-                </div>
-              )}
-
-              {/* Request actions */}
-              {selectedRequest.status === RequestStatus.PENDING && (
-                <div className="flex justify-end mt-2">
-                  <Button
-                    variant="outline"
-                    className="text-destructive hover:text-destructive"
-                    onClick={() => setConfirmCancelDialog(true)}
-                  >
-                    Cancel Request
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Confirm Cancel Dialog */}
-      <AlertDialog open={confirmCancelDialog} onOpenChange={setConfirmCancelDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Transaction Request?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to cancel this request? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>No, keep it</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                // Handle cancel request
-                setConfirmCancelDialog(false);
-                setViewRequestDialog(false);
-                toast({
-                  title: "Request Cancelled",
-                  description: "Your request has been cancelled successfully.",
-                });
-                queryClient.invalidateQueries({ queryKey: ["/api/wallet/my-requests"] });
-              }}
-            >
-              Yes, cancel request
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </DashboardLayout>
   );
 }

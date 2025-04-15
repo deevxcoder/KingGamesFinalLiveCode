@@ -4,9 +4,17 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { insertUserSchema, User as SelectUser, InsertUser, UserRole } from "@shared/schema";
+import { User as SelectUser, UserRole } from "@/lib/types";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+
+// Type definitions for auth
+interface InsertUser {
+  username: string;
+  password: string;
+  role?: UserRole;
+  assignedTo?: number | null;
+}
 
 type AuthContextType = {
   user: SelectUser | null;
