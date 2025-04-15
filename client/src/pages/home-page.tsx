@@ -104,7 +104,7 @@ export default function HomePage() {
   const canManageUsers = isAdmin || isSubadmin;
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col min-h-screen bg-slate-950 text-slate-200">
       {/* Responsive Header - Shown on all devices */}
       <ResponsiveHeader />
       
@@ -119,9 +119,9 @@ export default function HomePage() {
             
             {/* Welcome Title */}
             <div className="mb-6">
-              <h1 className="text-2xl font-bold">Dashboard</h1>
-              <p className="text-muted-foreground">
-                Welcome back, <span className="font-medium">{user?.username}</span>!
+              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-500">Dashboard</h1>
+              <p className="text-slate-400">
+                Welcome back, <span className="font-medium text-slate-300">{user?.username}</span>!
               </p>
             </div>
             

@@ -54,12 +54,12 @@ export default function GameCard({
   };
 
   return (
-    <Card className="overflow-hidden h-full transition-all duration-200 hover:shadow-md border-border">
+    <Card className="overflow-hidden h-full transition-all duration-200 hover:shadow-lg border-slate-800 bg-slate-900/70 backdrop-blur-sm">
       <div 
         className="h-40 bg-cover bg-center relative"
         style={{ backgroundImage: imageBg }}
       >
-        <div className="h-full w-full bg-gradient-to-b from-transparent to-black/70 flex items-end p-4">
+        <div className="h-full w-full bg-gradient-to-b from-transparent to-black/80 flex items-end p-4">
           <div>
             <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
             {popularity !== "low" && (
@@ -74,15 +74,15 @@ export default function GameCard({
         
         {winRate !== undefined && (
           <div className="flex items-center mt-3 mb-1">
-            <Trophy className="h-4 w-4 text-amber-500 mr-1.5" />
-            <span className="text-sm font-medium">Win rate: {winRate}%</span>
+            <Trophy className="h-4 w-4 text-blue-400 mr-1.5" />
+            <span className="text-sm font-medium text-blue-100">Win rate: {winRate}%</span>
           </div>
         )}
       </CardContent>
       
       <CardFooter className="p-4 pt-0 gap-2">
         <Button 
-          className="w-full bg-primary hover:bg-primary/90"
+          className="w-full bg-gradient-to-r from-indigo-800 to-blue-600 hover:from-indigo-700 hover:to-blue-500"
           onClick={() => {
             // If user is logged in, go to the game or dashboard
             // If not, redirect to auth page
