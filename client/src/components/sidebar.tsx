@@ -26,6 +26,7 @@ export default function Sidebar() {
 
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
+  const isRegularUser = user?.role === UserRole.PLAYER;
   const canManageUsers = isAdmin || isSubadmin;
   
   const menuItems = [
@@ -35,42 +36,46 @@ export default function Sidebar() {
       icon: <LayoutDashboard className="w-5 h-5 mr-3" />,
       visible: true,
     },
+    // Admin and Subadmin Only
     {
       name: "User Management",
       path: "/users",
       icon: <Users className="w-5 h-5 mr-3" />,
       visible: canManageUsers,
     },
+    // Admin Only
     {
       name: "Subadmin Management",
       path: "/subadmins",
       icon: <ShieldCheck className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
+    // Regular Users Only (Game Related)
     {
       name: "Play Game",
       path: "/play",
       icon: <Play className="w-5 h-5 mr-3" />,
-      visible: true,
+      visible: isRegularUser,
     },
     {
       name: "Markets",
       path: "/markets",
       icon: <Target className="w-5 h-5 mr-3" />,
-      visible: true,
+      visible: isRegularUser,
     },
     {
       name: "Sports Betting",
       path: "/sports",
       icon: <Trophy className="w-5 h-5 mr-3" />,
-      visible: true,
+      visible: isRegularUser,
     },
     {
       name: "Game History",
       path: "/history",
       icon: <Clock className="w-5 h-5 mr-3" />,
-      visible: true,
+      visible: isRegularUser,
     },
+    // Everyone
     {
       name: "Action History",
       path: "/actions",

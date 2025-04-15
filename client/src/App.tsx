@@ -28,7 +28,24 @@ function Router() {
       
       {/* Protected routes */}
       <ProtectedRoute path="/dashboard" component={HomePage} />
-      <ProtectedRoute path="/play" component={GamePage} />
+      
+      {/* Player routes - only for normal players (not admin/subadmin) */}
+      <ProtectedRoute 
+        path="/play" 
+        component={GamePage} 
+        allowedRoles={[UserRole.PLAYER]}
+      />
+      <ProtectedRoute 
+        path="/history" 
+        component={GameHistoryPage} 
+        allowedRoles={[UserRole.PLAYER]}
+      />
+      <ProtectedRoute 
+        path="/actions" 
+        component={ActionHistoryPage}
+      />
+      
+      {/* Admin/Subadmin routes */}
       <ProtectedRoute 
         path="/users" 
         component={UserManagementPage} 
@@ -39,15 +56,23 @@ function Router() {
         component={SubadminManagementPage} 
         allowedRoles={[UserRole.ADMIN]}
       />
-      <ProtectedRoute path="/history" component={GameHistoryPage} />
-      <ProtectedRoute path="/actions" component={ActionHistoryPage} />
       
-      {/* Satamatka Market routes */}
-      <ProtectedRoute path="/markets" component={MarketListPage} />
-      <ProtectedRoute path="/game/satamatka/:id" component={SatamatkaGamePage} />
-      
-      {/* Team Match routes */}
-      <ProtectedRoute path="/sports" component={TeamMatchPage} />
+      {/* Game routes - only for normal players */}
+      <ProtectedRoute 
+        path="/markets" 
+        component={MarketListPage}
+        allowedRoles={[UserRole.PLAYER]} 
+      />
+      <ProtectedRoute 
+        path="/game/satamatka/:id" 
+        component={SatamatkaGamePage}
+        allowedRoles={[UserRole.PLAYER]} 
+      />
+      <ProtectedRoute 
+        path="/sports" 
+        component={TeamMatchPage}
+        allowedRoles={[UserRole.PLAYER]} 
+      />
       
       {/* 404 route */}
       <Route component={NotFound} />
