@@ -185,10 +185,10 @@ export default function HomePage() {
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-blue-300 hover:bg-slate-800 hover:text-blue-200"
-                onClick={() => setLocation("/actions")}
+                onClick={() => setLocation("/risk-management")}
               >
                 <BarChart2 className="h-5 w-5 mr-2" />
-                View Action History
+                Risk Management
               </Button>
             )}
           </div>

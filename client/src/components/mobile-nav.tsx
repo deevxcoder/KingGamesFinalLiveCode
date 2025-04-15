@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Play, History, User, Wallet } from "lucide-react";
+import { Home, Play, History, User, Wallet, BarChart2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserRole } from "@shared/schema";
@@ -35,6 +35,13 @@ export default function MobileNav() {
       icon: <History className="w-5 h-5" />,
       path: "/history",
       visible: isPlayer,
+    },
+    // Risk Management for admin/subadmin
+    {
+      name: "Risk",
+      icon: <BarChart2 className="w-5 h-5" />,
+      path: "/risk-management",
+      visible: isAdmin || isSubadmin,
     },
     // Balance for all users
     {

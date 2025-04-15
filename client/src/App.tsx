@@ -41,8 +41,9 @@ function Router() {
         allowedRoles={[UserRole.PLAYER]}
       />
       <ProtectedRoute 
-        path="/actions" 
+        path="/risk-management" 
         component={ActionHistoryPage}
+        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
       />
       
       {/* Admin/Subadmin routes */}
@@ -54,6 +55,18 @@ function Router() {
       <ProtectedRoute 
         path="/subadmins" 
         component={SubadminManagementPage} 
+        allowedRoles={[UserRole.ADMIN]}
+      />
+      
+      {/* Admin Market and Team Management routes */}
+      <ProtectedRoute 
+        path="/manage-markets" 
+        component={MarketListPage} 
+        allowedRoles={[UserRole.ADMIN]}
+      />
+      <ProtectedRoute 
+        path="/manage-teams" 
+        component={TeamMatchPage} 
         allowedRoles={[UserRole.ADMIN]}
       />
       
