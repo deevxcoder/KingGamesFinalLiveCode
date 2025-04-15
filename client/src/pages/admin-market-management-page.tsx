@@ -576,7 +576,27 @@ export default function AdminMarketManagementPage() {
                     <FormItem>
                       <FormLabel>Open Time</FormLabel>
                       <FormControl>
-                        <Input {...field} type="time" />
+                        <select 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          {...field}
+                        >
+                          <option value="">Select time</option>
+                          {Array.from({ length: 24 }).map((_, hour) => (
+                            Array.from({ length: 4 }).map((_, minute) => {
+                              const h = hour;
+                              const m = minute * 15;
+                              const timeValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                              const displayHour = h % 12 === 0 ? 12 : h % 12;
+                              const ampm = h < 12 ? 'AM' : 'PM';
+                              const displayTime = `${displayHour}:${m.toString().padStart(2, '0')} ${ampm}`;
+                              return (
+                                <option key={timeValue} value={timeValue}>
+                                  {displayTime}
+                                </option>
+                              );
+                            })
+                          ))}
+                        </select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -590,7 +610,27 @@ export default function AdminMarketManagementPage() {
                     <FormItem>
                       <FormLabel>Close Time</FormLabel>
                       <FormControl>
-                        <Input {...field} type="time" />
+                        <select 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          {...field}
+                        >
+                          <option value="">Select time</option>
+                          {Array.from({ length: 24 }).map((_, hour) => (
+                            Array.from({ length: 4 }).map((_, minute) => {
+                              const h = hour;
+                              const m = minute * 15;
+                              const timeValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                              const displayHour = h % 12 === 0 ? 12 : h % 12;
+                              const ampm = h < 12 ? 'AM' : 'PM';
+                              const displayTime = `${displayHour}:${m.toString().padStart(2, '0')} ${ampm}`;
+                              return (
+                                <option key={timeValue} value={timeValue}>
+                                  {displayTime}
+                                </option>
+                              );
+                            })
+                          ))}
+                        </select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -604,7 +644,27 @@ export default function AdminMarketManagementPage() {
                     <FormItem>
                       <FormLabel>Result Time</FormLabel>
                       <FormControl>
-                        <Input {...field} type="time" />
+                        <select 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          {...field}
+                        >
+                          <option value="">Select time</option>
+                          {Array.from({ length: 24 }).map((_, hour) => (
+                            Array.from({ length: 4 }).map((_, minute) => {
+                              const h = hour;
+                              const m = minute * 15;
+                              const timeValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                              const displayHour = h % 12 === 0 ? 12 : h % 12;
+                              const ampm = h < 12 ? 'AM' : 'PM';
+                              const displayTime = `${displayHour}:${m.toString().padStart(2, '0')} ${ampm}`;
+                              return (
+                                <option key={timeValue} value={timeValue}>
+                                  {displayTime}
+                                </option>
+                              );
+                            })
+                          ))}
+                        </select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
