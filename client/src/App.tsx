@@ -18,6 +18,7 @@ import ActionHistoryPage from "@/pages/action-history-page";
 import MarketListPage from "@/pages/market-list-page";
 import SatamatkaGamePage from "@/pages/satamatka-game-page";
 import TeamMatchPage from "@/pages/team-match-page";
+import AdminMarketManagementPage from "@/pages/admin-market-management-page";
 
 function Router() {
   return (
@@ -61,7 +62,7 @@ function Router() {
       {/* Admin Market and Team Management routes */}
       <ProtectedRoute 
         path="/manage-markets" 
-        component={MarketListPage} 
+        component={AdminMarketManagementPage} 
         allowedRoles={[UserRole.ADMIN]}
       />
       <ProtectedRoute 
