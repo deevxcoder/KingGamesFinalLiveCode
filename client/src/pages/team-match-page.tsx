@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -119,6 +119,229 @@ function TeamMatchTabs() {
   );
 }
 
+function TeamMatchBetting({ match, onClose }: { match: TeamMatch, onClose: () => void }) {
+  const [prediction, setPrediction] = useState<string | null>(null);
+  const [betAmount, setBetAmount] = useState<number>(100);
+  const { toast } = useToast();
+  const { user } = useAuth() || {};
+  const queryClient = useQueryClient();
+  const [isPending, setIsPending] = useState(false);
+
+  const formattedDate = format(new Date(match.matchTime), 'MMM dd, yyyy');
+  const formattedTime = format(new Date(match.matchTime), 'h:mm a');
+
+  const handlePredictionSelect = (value: string) => {
+    setPrediction(value);
+  };
+
+  const handleBetAmountSelect = (amount: number) => {
+    setBetAmount(amount);
+  };
+
+  const calculatePotentialWin = () => {
+    if (!prediction) return 0;
+
+    let odds = 0;
+    if (prediction === 'team_a') {
+      odds = match.oddTeamA / 100;
+    } else if (prediction === 'team_b') {
+      odds = match.oddTeamB / 100;
+    } else if (prediction === 'draw') {
+      odds = (match.oddDraw || 300) / 100;
+    }
+
+    return Math.floor(betAmount * odds);
+  };
+
+  const handlePlaceBet = async () => {
+    if (!prediction || betAmount <= 0) {
+      toast({
+        title: "Invalid Selection",
+        description: "Please select a prediction and bet amount",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      toast({
+        title: "Authentication Error",
+        description: "You must be logged in to place a bet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (user.balance < betAmount) {
+      toast({
+        title: "Insufficient Balance",
+        description: "You don't have enough balance to place this bet",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsPending(true);
+
+    try {
+      const response = await fetch(`/api/team-matches/${match.id}/play`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prediction,
+          betAmount,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to place bet");
+      }
+
+      const data = await response.json();
+      
+      // Update cached data
+      queryClient.invalidateQueries({ queryKey: ['/api/games/my-history'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+      
+      toast({
+        title: "Bet Placed Successfully!",
+        description: `Your bet of ₹${(betAmount/100).toFixed(2)} has been placed. Good luck!`,
+        variant: "default",
+      });
+      
+      onClose();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to place bet. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsPending(false);
+    }
+  };
+
+  const potentialWin = calculatePotentialWin();
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+      <Card className="bg-gray-900 text-white border-gray-800 w-full max-w-md mx-4">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Place your bet</CardTitle>
+            <Button variant="ghost" size="sm" onClick={onClose}>✕</Button>
+          </div>
+          <CardDescription className="text-gray-400">
+            {match.teamA} vs {match.teamB} | {formattedDate}, {formattedTime}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-4">
+            <Button
+              variant="outline"
+              className={`p-4 h-auto flex flex-col items-center justify-center ${
+                prediction === 'team_a' 
+                  ? 'bg-indigo-900/50 border-indigo-500' 
+                  : 'bg-gray-800 hover:bg-gray-700 border-gray-700'
+              }`}
+              onClick={() => handlePredictionSelect('team_a')}
+            >
+              <span className="font-medium">{match.teamA}</span>
+              <span className="text-xl font-bold text-indigo-400 mt-1">
+                {(match.oddTeamA / 100).toFixed(2)}x
+              </span>
+            </Button>
+            <Button
+              variant="outline"
+              className={`p-4 h-auto flex flex-col items-center justify-center ${
+                prediction === 'draw' 
+                  ? 'bg-indigo-900/50 border-indigo-500' 
+                  : 'bg-gray-800 hover:bg-gray-700 border-gray-700'
+              }`}
+              onClick={() => handlePredictionSelect('draw')}
+            >
+              <span className="font-medium">Draw</span>
+              <span className="text-xl font-bold text-indigo-400 mt-1">
+                {(match.oddDraw ? match.oddDraw / 100 : 3).toFixed(2)}x
+              </span>
+            </Button>
+            <Button
+              variant="outline"
+              className={`p-4 h-auto flex flex-col items-center justify-center ${
+                prediction === 'team_b' 
+                  ? 'bg-indigo-900/50 border-indigo-500' 
+                  : 'bg-gray-800 hover:bg-gray-700 border-gray-700'
+              }`}
+              onClick={() => handlePredictionSelect('team_b')}
+            >
+              <span className="font-medium">{match.teamB}</span>
+              <span className="text-xl font-bold text-indigo-400 mt-1">
+                {(match.oddTeamB / 100).toFixed(2)}x
+              </span>
+            </Button>
+          </div>
+          <div className="mt-4">
+            <label className="text-sm text-gray-400 mb-2 block">Bet Amount</label>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                className={`flex-1 ${betAmount === 10000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
+                onClick={() => handleBetAmountSelect(10000)}
+              >
+                ₹100
+              </Button>
+              <Button 
+                variant="outline" 
+                className={`flex-1 ${betAmount === 50000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
+                onClick={() => handleBetAmountSelect(50000)}
+              >
+                ₹500
+              </Button>
+              <Button 
+                variant="outline" 
+                className={`flex-1 ${betAmount === 100000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
+                onClick={() => handleBetAmountSelect(100000)}
+              >
+                ₹1000
+              </Button>
+            </div>
+          </div>
+          <div className="p-4 bg-gray-800 rounded-md mt-4">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-400">Potential win:</span>
+              <span className="font-bold text-indigo-400">₹{(potentialWin/100).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between text-sm mt-2">
+              <span className="text-gray-400">Your balance:</span>
+              <span className="font-medium text-gray-300">₹{user ? (user.balance/100).toFixed(2) : '0.00'}</span>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
+            onClick={handlePlaceBet}
+            disabled={!prediction || betAmount <= 0 || isPending}
+          >
+            {isPending ? (
+              <span className="flex items-center">
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </span>
+            ) : 'Place Bet'}
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}
+
 function MatchCard({ match }: { match: TeamMatch }) {
   const [isOpen, setIsOpen] = useState(false);
   const [, setLocation] = useLocation();
@@ -228,71 +451,7 @@ function MatchCard({ match }: { match: TeamMatch }) {
       </CardFooter>
       
       {isOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <Card className="bg-gray-900 text-white border-gray-800 w-full max-w-md mx-4">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>Place your bet</CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>✕</Button>
-              </div>
-              <CardDescription className="text-gray-400">
-                {match.teamA} vs {match.teamB} | {formattedDate}, {formattedTime}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-3 gap-4">
-                <Button
-                  variant="outline"
-                  className="p-4 h-auto flex flex-col items-center justify-center bg-gray-800 hover:bg-gray-700 border-gray-700"
-                >
-                  <span className="font-medium">{match.teamA}</span>
-                  <span className="text-xl font-bold text-indigo-400 mt-1">
-                    {(match.oddTeamA / 100).toFixed(2)}x
-                  </span>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="p-4 h-auto flex flex-col items-center justify-center bg-gray-800 hover:bg-gray-700 border-gray-700"
-                >
-                  <span className="font-medium">Draw</span>
-                  <span className="text-xl font-bold text-indigo-400 mt-1">
-                    {(match.oddDraw ? match.oddDraw / 100 : 3).toFixed(2)}x
-                  </span>
-                </Button>
-                <Button
-                  variant="outline"
-                  className="p-4 h-auto flex flex-col items-center justify-center bg-gray-800 hover:bg-gray-700 border-gray-700"
-                >
-                  <span className="font-medium">{match.teamB}</span>
-                  <span className="text-xl font-bold text-indigo-400 mt-1">
-                    {(match.oddTeamB / 100).toFixed(2)}x
-                  </span>
-                </Button>
-              </div>
-              <div className="mt-4">
-                <label className="text-sm text-gray-400 mb-2 block">Bet Amount</label>
-                <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1">₹100</Button>
-                  <Button variant="outline" className="flex-1">₹500</Button>
-                  <Button variant="outline" className="flex-1">₹1000</Button>
-                </div>
-              </div>
-              <div className="p-4 bg-gray-800 rounded-md mt-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Potential win:</span>
-                  <span className="font-bold text-indigo-400">₹0.00</span>
-                </div>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                className="w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700"
-              >
-                Place Bet
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+        <TeamMatchBetting match={match} onClose={() => setIsOpen(false)} />
       )}
     </Card>
   );

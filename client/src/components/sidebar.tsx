@@ -13,7 +13,7 @@ import {
   ShieldCheck,
   History,
   Target,
-  Dice1
+  Trophy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -57,6 +57,12 @@ export default function Sidebar() {
       name: "Markets",
       path: "/markets",
       icon: <Target className="w-5 h-5 mr-3" />,
+      visible: true,
+    },
+    {
+      name: "Sports Betting",
+      path: "/sports",
+      icon: <Trophy className="w-5 h-5 mr-3" />,
       visible: true,
     },
     {

@@ -17,6 +17,7 @@ import GameHistoryPage from "@/pages/game-history-page";
 import ActionHistoryPage from "@/pages/action-history-page";
 import MarketListPage from "@/pages/market-list-page";
 import SatamatkaGamePage from "@/pages/satamatka-game-page";
+import TeamMatchPage from "@/pages/team-match-page";
 
 function Router() {
   return (
@@ -44,6 +45,9 @@ function Router() {
       {/* Satamatka Market routes */}
       <ProtectedRoute path="/markets" component={MarketListPage} />
       <ProtectedRoute path="/game/satamatka/:id" component={SatamatkaGamePage} />
+      
+      {/* Team Match routes */}
+      <ProtectedRoute path="/sports" component={TeamMatchPage} />
       
       {/* 404 route */}
       <Route component={NotFound} />
