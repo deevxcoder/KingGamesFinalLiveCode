@@ -979,6 +979,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(err);
     }
   });
+  
+  // Jantri Management Routes
+  app.get("/api/jantri/stats", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      // Get active markets
+      const markets = await storage.getActiveSatamatkaMarkets();
+      
+      // Generate all numbers from 00 to 99
+      const allNumbers = Array.from({ length: 100 }, (_, i) => i.toString().padStart(2, '0'));
+      
+      // For each market, get games and calculate stats
+      const jantriStats = await Promise.all(markets.map(async (market) => {
+        const games = await storage.getSatamatkaGamesByMarketId(market.id);
+        
+        // If subadmin, filter only their assigned users' games
+        let filteredGames = games;
+        if (req.user?.role === "subadmin") {
+          const assignedUsers = await storage.getUsersByAssignedTo(req.user.id);
+          const assignedUserIds = assignedUsers.map(user => user.id);
+          filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
+        }
+        
+        // Calculate stats for each number
+        const numberStats = allNumbers.map(number => {
+          // Find games with this number as prediction
+          const numberGames = filteredGames.filter(game => 
+            game.prediction === number && game.gameType === "satamatka"
+          );
+          
+          // Get unique users
+          const uniqueUsers = new Set(numberGames.map(game => game.userId)).size;
+          
+          // Calculate totals
+          const totalBets = numberGames.length;
+          const totalAmount = numberGames.reduce((sum, game) => sum + game.betAmount, 0);
+          const potentialWinAmount = numberGames.reduce((sum, game) => sum + game.payout, 0);
+          
+          return {
+            number,
+            totalBets,
+            totalAmount,
+            potentialWinAmount,
+            uniqueUsers
+          };
+        });
+        
+        return {
+          marketId: market.id,
+          marketName: market.name,
+          numbers: numberStats
+        };
+      }));
+      
+      res.json(jantriStats);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
