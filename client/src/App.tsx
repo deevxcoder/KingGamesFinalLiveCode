@@ -19,6 +19,7 @@ import MarketListPage from "@/pages/market-list-page";
 import SatamatkaGamePage from "@/pages/satamatka-game-page";
 import TeamMatchPage from "@/pages/team-match-page";
 import AdminMarketManagementPage from "@/pages/admin-market-management-page";
+import AdminTeamMatchPage from "@/pages/admin-team-match-page";
 
 function Router() {
   return (
@@ -67,7 +68,7 @@ function Router() {
       />
       <ProtectedRoute 
         path="/manage-teams" 
-        component={TeamMatchPage} 
+        component={AdminTeamMatchPage} 
         allowedRoles={[UserRole.ADMIN]}
       />
       
