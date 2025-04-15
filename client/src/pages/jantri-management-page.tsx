@@ -177,7 +177,9 @@ export default function JantriManagementPage() {
                           <Button
                             key={number}
                             variant={selectedNumber === number ? "default" : "outline"}
-                            className={`w-12 h-12 p-0 ${hasBets ? "bg-amber-100 hover:bg-amber-200 border-amber-300" : ""} ${selectedNumber === number ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
+                            className={`w-12 h-12 p-0 
+                              ${hasBets ? "border-amber-500 hover:border-amber-600 bg-amber-500/10 hover:bg-amber-500/20" : ""} 
+                              ${selectedNumber === number ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
                             onClick={() => setSelectedNumber(number)}
                           >
                             <span className="font-bold">{number}</span>
@@ -223,38 +225,38 @@ export default function JantriManagementPage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-slate-50 p-4 rounded-lg border flex flex-col">
+                    <div className="bg-card p-4 rounded-lg border flex flex-col">
                       <span className="text-muted-foreground text-sm flex items-center mb-2">
                         <Users className="w-4 h-4 mr-1" /> Unique Players
                       </span>
-                      <span className="text-2xl font-bold">
+                      <span className="text-2xl font-bold text-primary">
                         {selectedNumberStats?.uniqueUsers || 0}
                       </span>
                     </div>
                     
-                    <div className="bg-slate-50 p-4 rounded-lg border flex flex-col">
+                    <div className="bg-card p-4 rounded-lg border flex flex-col">
                       <span className="text-muted-foreground text-sm flex items-center mb-2">
                         <Calculator className="w-4 h-4 mr-1" /> Total Bets
                       </span>
-                      <span className="text-2xl font-bold">
+                      <span className="text-2xl font-bold text-primary">
                         {selectedNumberStats?.totalBets || 0}
                       </span>
                     </div>
                     
-                    <div className="bg-slate-50 p-4 rounded-lg border flex flex-col">
+                    <div className="bg-card p-4 rounded-lg border flex flex-col">
                       <span className="text-muted-foreground text-sm flex items-center mb-2">
                         <DollarSign className="w-4 h-4 mr-1" /> Total Amount
                       </span>
-                      <span className="text-2xl font-bold">
+                      <span className="text-2xl font-bold text-primary">
                         ₹{((selectedNumberStats?.totalAmount || 0) / 100).toFixed(2)}
                       </span>
                     </div>
                     
-                    <div className="bg-slate-50 p-4 rounded-lg border flex flex-col">
+                    <div className="bg-card p-4 rounded-lg border flex flex-col">
                       <span className="text-muted-foreground text-sm flex items-center mb-2">
                         <ArrowUpRight className="w-4 h-4 mr-1" /> Potential Payout
                       </span>
-                      <span className="text-2xl font-bold text-orange-600">
+                      <span className="text-2xl font-bold text-amber-500">
                         ₹{((selectedNumberStats?.potentialWinAmount || 0) / 100).toFixed(2)}
                       </span>
                     </div>
@@ -312,7 +314,9 @@ export default function JantriManagementPage() {
                             <Button
                               key={number}
                               variant={selectedNumber === number ? "default" : "outline"}
-                              className={`w-12 h-12 p-0 ${hasBets ? "bg-amber-100 hover:bg-amber-200 border-amber-300" : ""} ${selectedNumber === number ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
+                              className={`w-12 h-12 p-0 
+                                ${hasBets ? "border-amber-500 hover:border-amber-600 bg-amber-500/10 hover:bg-amber-500/20" : ""} 
+                                ${selectedNumber === number ? "bg-primary text-primary-foreground hover:bg-primary/90" : ""}`}
                               onClick={() => setSelectedNumber(number)}
                             >
                               <span className="font-bold">{number}</span>
@@ -359,38 +363,38 @@ export default function JantriManagementPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-slate-50 p-4 rounded-lg border flex flex-col">
+                      <div className="bg-card p-4 rounded-lg border flex flex-col">
                         <span className="text-muted-foreground text-sm flex items-center mb-2">
                           <Users className="w-4 h-4 mr-1" /> Unique Players
                         </span>
-                        <span className="text-2xl font-bold">
+                        <span className="text-2xl font-bold text-primary">
                           {market.numbers.find(n => n.number === selectedNumber)?.uniqueUsers || 0}
                         </span>
                       </div>
                       
-                      <div className="bg-slate-50 p-4 rounded-lg border flex flex-col">
+                      <div className="bg-card p-4 rounded-lg border flex flex-col">
                         <span className="text-muted-foreground text-sm flex items-center mb-2">
                           <Calculator className="w-4 h-4 mr-1" /> Total Bets
                         </span>
-                        <span className="text-2xl font-bold">
+                        <span className="text-2xl font-bold text-primary">
                           {market.numbers.find(n => n.number === selectedNumber)?.totalBets || 0}
                         </span>
                       </div>
                       
-                      <div className="bg-slate-50 p-4 rounded-lg border flex flex-col">
+                      <div className="bg-card p-4 rounded-lg border flex flex-col">
                         <span className="text-muted-foreground text-sm flex items-center mb-2">
                           <DollarSign className="w-4 h-4 mr-1" /> Total Amount
                         </span>
-                        <span className="text-2xl font-bold">
+                        <span className="text-2xl font-bold text-primary">
                           ₹{((market.numbers.find(n => n.number === selectedNumber)?.totalAmount || 0) / 100).toFixed(2)}
                         </span>
                       </div>
                       
-                      <div className="bg-slate-50 p-4 rounded-lg border flex flex-col">
+                      <div className="bg-card p-4 rounded-lg border flex flex-col">
                         <span className="text-muted-foreground text-sm flex items-center mb-2">
                           <ArrowUpRight className="w-4 h-4 mr-1" /> Potential Payout
                         </span>
-                        <span className="text-2xl font-bold text-orange-600">
+                        <span className="text-2xl font-bold text-amber-500">
                           ₹{((market.numbers.find(n => n.number === selectedNumber)?.potentialWinAmount || 0) / 100).toFixed(2)}
                         </span>
                       </div>
