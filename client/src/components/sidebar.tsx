@@ -18,7 +18,9 @@ import {
   Calculator,
   Wallet,
   Settings,
-  Sliders
+  Sliders,
+  BadgeDollarSign,
+  Landmark
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -113,6 +115,12 @@ export default function Sidebar() {
       path: "/risk-management",
       icon: <BarChart2 className="w-5 h-5 mr-3" />,
       visible: isAdmin || isSubadmin,
+    },
+    {
+      name: "Fund Management",
+      path: "/fund-management",
+      icon: <Landmark className="w-5 h-5 mr-3" />,
+      visible: isAdmin,
     },
     // Settings
     {

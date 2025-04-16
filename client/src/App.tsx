@@ -24,6 +24,7 @@ import JantriManagementPage from "@/pages/jantri-management-page";
 import WalletPage from "@/pages/wallet-page";
 import AdminSettingsPage from "@/pages/admin-settings-page";
 import SubadminSettingsPage from "@/pages/subadmin-settings-page";
+import FundManagementPage from "@/pages/fund-management-page";
 
 function Router() {
   return (
@@ -55,6 +56,11 @@ function Router() {
         path="/jantri-management" 
         component={JantriManagementPage}
         allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
+      />
+      <ProtectedRoute 
+        path="/fund-management" 
+        component={FundManagementPage}
+        allowedRoles={[UserRole.ADMIN]}
       />
       
       {/* Admin/Subadmin routes */}
