@@ -289,7 +289,7 @@ export default function FundManagementPage() {
     
     const matchesType = typeFilter === "all" || 
       (typeFilter === "deposit" && request.requestType === RequestType.DEPOSIT) ||
-      (typeFilter === "withdraw" && request.requestType === RequestType.WITHDRAW);
+      (typeFilter === "withdraw" && request.requestType === RequestType.WITHDRAWAL);
     
     const matchesSearch = searchTerm === "" || 
       (request.user && request.user.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -333,7 +333,7 @@ export default function FundManagementPage() {
             Deposit
           </Badge>
         );
-      case RequestType.WITHDRAW:
+      case RequestType.WITHDRAWAL:
         return (
           <Badge variant="outline" className="border-red-500 text-red-500">
             <ArrowDown className="h-3 w-3 mr-1" />
@@ -350,10 +350,10 @@ export default function FundManagementPage() {
     switch (mode) {
       case PaymentMode.UPI:
         return "UPI";
-      case PaymentMode.BANK_TRANSFER:
+      case PaymentMode.BANK:
         return "Bank Transfer";
-      case PaymentMode.ONLINE_WALLET:
-        return "Online Wallet";
+      case PaymentMode.CASH:
+        return "Cash";
       default:
         return mode;
     }
@@ -862,7 +862,7 @@ export default function FundManagementPage() {
                       </>
                     )}
                     
-                    {selectedRequest.paymentMode === PaymentMode.BANK_TRANSFER && (
+                    {selectedRequest.paymentMode === PaymentMode.BANK && (
                       <>
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-muted-foreground">Bank Name:</span>
