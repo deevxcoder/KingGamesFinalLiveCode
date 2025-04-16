@@ -541,6 +541,248 @@ export class DatabaseStorage implements IStorage {
       .where(eq(games.matchId, matchId))
       .orderBy(desc(games.createdAt));
   }
+
+  // System Settings methods
+  async getSystemSetting(settingType: string, settingKey: string): Promise<SystemSetting | undefined> {
+    const [setting] = await db
+      .select()
+      .from(systemSettings)
+      .where(
+        and(
+          eq(systemSettings.settingType, settingType),
+          eq(systemSettings.settingKey, settingKey)
+        )
+      );
+    return setting;
+  }
+
+  async upsertSystemSetting(settingType: string, settingKey: string, settingValue: string): Promise<SystemSetting> {
+    // First check if the setting exists
+    const existing = await this.getSystemSetting(settingType, settingKey);
+    
+    if (existing) {
+      // Update existing setting
+      const [updated] = await db
+        .update(systemSettings)
+        .set({ 
+          settingValue,
+          updatedAt: new Date()
+        })
+        .where(
+          and(
+            eq(systemSettings.settingType, settingType),
+            eq(systemSettings.settingKey, settingKey)
+          )
+        )
+        .returning();
+      return updated;
+    } else {
+      // Create new setting
+      const [created] = await db
+        .insert(systemSettings)
+        .values({
+          settingType,
+          settingKey,
+          settingValue,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      return created;
+    }
+  }
+
+  async getSystemSettingsByType(settingType: string): Promise<SystemSetting[]> {
+    return await db
+      .select()
+      .from(systemSettings)
+      .where(eq(systemSettings.settingType, settingType))
+      .orderBy(systemSettings.settingKey);
+  }
+  
+  // Subadmin Commission methods
+  async getSubadminCommissions(subadminId: number): Promise<SubadminCommission[]> {
+    return await db
+      .select()
+      .from(subadminCommissions)
+      .where(eq(subadminCommissions.subadminId, subadminId))
+      .orderBy(subadminCommissions.gameType);
+  }
+
+  async upsertSubadminCommission(subadminId: number, gameType: string, commissionRate: number): Promise<SubadminCommission> {
+    // Check if commission already exists
+    const [existing] = await db
+      .select()
+      .from(subadminCommissions)
+      .where(
+        and(
+          eq(subadminCommissions.subadminId, subadminId),
+          eq(subadminCommissions.gameType, gameType)
+        )
+      );
+    
+    if (existing) {
+      // Update existing commission
+      const [updated] = await db
+        .update(subadminCommissions)
+        .set({ 
+          commissionRate,
+          updatedAt: new Date()
+        })
+        .where(eq(subadminCommissions.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new commission
+      const [created] = await db
+        .insert(subadminCommissions)
+        .values({
+          subadminId,
+          gameType,
+          commissionRate,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      return created;
+    }
+  }
+  
+  // User Discount methods
+  async getUserDiscounts(userId: number, subadminId: number): Promise<UserDiscount[]> {
+    return await db
+      .select()
+      .from(userDiscounts)
+      .where(
+        and(
+          eq(userDiscounts.userId, userId),
+          eq(userDiscounts.subadminId, subadminId)
+        )
+      )
+      .orderBy(userDiscounts.gameType);
+  }
+
+  async upsertUserDiscount(subadminId: number, userId: number, gameType: string, discountRate: number): Promise<UserDiscount> {
+    // Check if discount already exists
+    const [existing] = await db
+      .select()
+      .from(userDiscounts)
+      .where(
+        and(
+          eq(userDiscounts.subadminId, subadminId),
+          eq(userDiscounts.userId, userId),
+          eq(userDiscounts.gameType, gameType)
+        )
+      );
+    
+    if (existing) {
+      // Update existing discount
+      const [updated] = await db
+        .update(userDiscounts)
+        .set({ 
+          discountRate,
+          updatedAt: new Date()
+        })
+        .where(eq(userDiscounts.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new discount
+      const [created] = await db
+        .insert(userDiscounts)
+        .values({
+          subadminId,
+          userId,
+          gameType,
+          discountRate,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      return created;
+    }
+  }
+  
+  // Game Odds methods
+  async getGameOdds(gameType: string): Promise<GameOdd[]> {
+    return await db
+      .select()
+      .from(gameOdds)
+      .where(
+        and(
+          eq(gameOdds.gameType, gameType),
+          eq(gameOdds.isActive, true)
+        )
+      );
+  }
+
+  async getGameOddsBySubadmin(subadminId: number, gameType?: string): Promise<GameOdd[]> {
+    let query = db
+      .select()
+      .from(gameOdds)
+      .where(
+        and(
+          eq(gameOdds.subadminId, subadminId),
+          eq(gameOdds.isActive, true)
+        )
+      );
+    
+    if (gameType) {
+      query = query.where(eq(gameOdds.gameType, gameType));
+    }
+    
+    return await query.orderBy(gameOdds.gameType);
+  }
+
+  async upsertGameOdd(gameType: string, oddValue: number, setByAdmin: boolean, subadminId?: number): Promise<GameOdd> {
+    // Construct query conditions
+    const conditions = [
+      eq(gameOdds.gameType, gameType),
+      eq(gameOdds.setByAdmin, setByAdmin),
+    ];
+    
+    if (subadminId) {
+      conditions.push(eq(gameOdds.subadminId, subadminId));
+    } else {
+      conditions.push(eq(gameOdds.subadminId, null));
+    }
+    
+    // Check if odd already exists
+    const [existing] = await db
+      .select()
+      .from(gameOdds)
+      .where(and(...conditions));
+    
+    if (existing) {
+      // Update existing odd
+      const [updated] = await db
+        .update(gameOdds)
+        .set({ 
+          oddValue,
+          updatedAt: new Date()
+        })
+        .where(eq(gameOdds.id, existing.id))
+        .returning();
+      return updated;
+    } else {
+      // Create new odd
+      const [created] = await db
+        .insert(gameOdds)
+        .values({
+          gameType,
+          oddValue,
+          setByAdmin,
+          subadminId: subadminId || null,
+          isActive: true,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      return created;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

@@ -1038,6 +1038,182 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Settings routes
+  // System Settings
+  app.get("/api/settings", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const settingType = req.query.type as string;
+      
+      if (!settingType) {
+        return res.status(400).json({ message: "Setting type is required" });
+      }
+      
+      const settings = await storage.getSystemSettingsByType(settingType);
+      res.json(settings);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  app.post("/api/settings", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const { settingType, settingKey, settingValue } = req.body;
+      
+      if (!settingType || !settingKey || !settingValue) {
+        return res.status(400).json({ message: "settingType, settingKey, and settingValue are required" });
+      }
+      
+      const setting = await storage.upsertSystemSetting(settingType, settingKey, settingValue);
+      res.json(setting);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Game Odds Settings
+  app.get("/api/game-odds", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const gameType = req.query.gameType as string;
+      
+      if (!gameType) {
+        return res.status(400).json({ message: "Game type is required" });
+      }
+      
+      const odds = await storage.getGameOdds(gameType);
+      res.json(odds);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  app.get("/api/game-odds/subadmin/:subadminId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const subadminId = Number(req.params.subadminId);
+      const gameType = req.query.gameType as string;
+      
+      // Check if the user is authorized to access this resource
+      if (req.user.role === UserRole.SUBADMIN && req.user.id !== subadminId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const odds = await storage.getGameOddsBySubadmin(subadminId, gameType);
+      res.json(odds);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  app.post("/api/game-odds", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const { gameType, oddValue, setByAdmin, subadminId } = req.body;
+      
+      if (!gameType || oddValue === undefined) {
+        return res.status(400).json({ message: "gameType and oddValue are required" });
+      }
+      
+      // Admin can set odds for anyone, subadmin can only set their own odds
+      if (req.user.role === UserRole.SUBADMIN) {
+        if (setByAdmin === true) {
+          return res.status(403).json({ message: "Subadmins cannot set admin odds" });
+        }
+        
+        if (subadminId && subadminId !== req.user.id) {
+          return res.status(403).json({ message: "Subadmins can only set their own odds" });
+        }
+      }
+      
+      const odds = await storage.upsertGameOdd(
+        gameType, 
+        oddValue,
+        req.user.role === UserRole.ADMIN ? (setByAdmin || true) : false,
+        req.user.role === UserRole.ADMIN ? subadminId : req.user.id
+      );
+      
+      res.json(odds);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Subadmin Commission routes
+  app.get("/api/commissions/subadmin/:subadminId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const subadminId = Number(req.params.subadminId);
+      
+      // Check if the user is authorized to access this resource
+      if (req.user.role === UserRole.SUBADMIN && req.user.id !== subadminId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      const commissions = await storage.getSubadminCommissions(subadminId);
+      res.json(commissions);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  app.post("/api/commissions/subadmin", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const { subadminId, gameType, commissionRate } = req.body;
+      
+      if (!subadminId || !gameType || commissionRate === undefined) {
+        return res.status(400).json({ message: "subadminId, gameType, and commissionRate are required" });
+      }
+      
+      // Verify the subadmin exists and is actually a subadmin
+      const subadmin = await storage.getUser(subadminId);
+      if (!subadmin || subadmin.role !== UserRole.SUBADMIN) {
+        return res.status(400).json({ message: "Invalid subadmin ID" });
+      }
+      
+      const commission = await storage.upsertSubadminCommission(subadminId, gameType, commissionRate);
+      res.json(commission);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // User Discount routes
+  app.get("/api/discounts/user/:userId", requireRole([UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const userId = Number(req.params.userId);
+      const subadminId = req.user.id;
+      
+      // Verify the user is assigned to this subadmin
+      const user = await storage.getUser(userId);
+      if (!user || user.assignedTo !== subadminId) {
+        return res.status(403).json({ message: "User is not assigned to you" });
+      }
+      
+      const discounts = await storage.getUserDiscounts(userId, subadminId);
+      res.json(discounts);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  app.post("/api/discounts/user", requireRole([UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const { userId, gameType, discountRate } = req.body;
+      const subadminId = req.user.id;
+      
+      if (!userId || !gameType || discountRate === undefined) {
+        return res.status(400).json({ message: "userId, gameType, and discountRate are required" });
+      }
+      
+      // Verify the user is assigned to this subadmin
+      const user = await storage.getUser(userId);
+      if (!user || user.assignedTo !== subadminId) {
+        return res.status(403).json({ message: "User is not assigned to you" });
+      }
+      
+      const discount = await storage.upsertUserDiscount(subadminId, userId, gameType, discountRate);
+      res.json(discount);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
   // Register wallet system routes
   await import('./wallet-system').then(({ setupWalletRoutes }) => {
     setupWalletRoutes(app);
