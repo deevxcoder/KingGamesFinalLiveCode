@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { UserRole } from "@shared/schema";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -213,8 +214,8 @@ export default function AuthPage() {
       {/* Right side - Hero */}
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary/90 to-blue-500/90 p-8 flex-col justify-center text-white">
         <div className="max-w-md mx-auto">
-          <h1 className="text-4xl font-bold mb-4">Welcome to CoinFlip</h1>
-          <h2 className="text-xl mb-6">The premier coin toss betting platform</h2>
+          <h1 className="text-4xl font-bold mb-4">Welcome to <span className="text-white">King</span><span className="text-amber-300">Games</span></h1>
+          <h2 className="text-xl mb-6">The premier online gaming platform</h2>
           
           <div className="space-y-4">
             <div className="flex items-start space-x-2">

@@ -21,7 +21,10 @@ export default function ProfessionalFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Column 1: About */}
           <div>
-            <h3 className="text-lg font-bold mb-4 text-foreground">CoinFlip</h3>
+            <h3 className="text-lg font-bold mb-4 text-foreground">
+              <span className="text-primary">King</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
+            </h3>
             <p className="text-muted-foreground text-sm mb-4">
               Experience the thrill of betting with our secure and fair gaming platform.
               We provide a premium betting experience with real-time results and attractive payouts.
