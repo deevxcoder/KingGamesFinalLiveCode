@@ -25,9 +25,10 @@ export default function AdminSettingsPage() {
   // Game Odds Settings
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.95");
   const [satamatkaOdds, setSatamatkaOdds] = useState({
-    single: "9.00",
     jodi: "90.00",
-    patti: "140.00",
+    harf: "9.00",
+    crossing: "95.00",
+    odd_even: "1.90",
   });
 
   // Subadmin Commission Settings
@@ -83,28 +84,37 @@ export default function AdminSettingsPage() {
   useQuery({
     queryKey: ['/api/game-odds', 'satamatka'],
     queryFn: async () => {
-      const modes = ['single', 'jodi', 'patti'];
+      const modes = ['jodi', 'harf', 'crossing', 'odd_even'];
       const results = await Promise.all(
         modes.map(mode => 
           apiRequest(`/api/game-odds?gameType=satamatka_${mode}`)
         )
       );
       
-      return { single: results[0], jodi: results[1], patti: results[2] };
+      return { 
+        jodi: results[0], 
+        harf: results[1], 
+        crossing: results[2],
+        odd_even: results[3] 
+      };
     },
     onSuccess: (data) => {
       const updatedOdds = { ...satamatkaOdds };
-      
-      if (data.single && data.single.length > 0) {
-        updatedOdds.single = (data.single[0].oddValue / 100).toFixed(2);
-      }
       
       if (data.jodi && data.jodi.length > 0) {
         updatedOdds.jodi = (data.jodi[0].oddValue / 100).toFixed(2);
       }
       
-      if (data.patti && data.patti.length > 0) {
-        updatedOdds.patti = (data.patti[0].oddValue / 100).toFixed(2);
+      if (data.harf && data.harf.length > 0) {
+        updatedOdds.harf = (data.harf[0].oddValue / 100).toFixed(2);
+      }
+      
+      if (data.crossing && data.crossing.length > 0) {
+        updatedOdds.crossing = (data.crossing[0].oddValue / 100).toFixed(2);
+      }
+      
+      if (data.odd_even && data.odd_even.length > 0) {
+        updatedOdds.odd_even = (data.odd_even[0].oddValue / 100).toFixed(2);
       }
       
       setSatamatkaOdds(updatedOdds);
@@ -376,20 +386,7 @@ export default function AdminSettingsPage() {
                     <div>
                       <h3 className="text-lg font-medium">Satamatka</h3>
                       <Separator className="my-2" />
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="satamatka-single">Single Digit (0-9)</Label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              id="satamatka-single" 
-                              value={satamatkaOdds.single} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, single: e.target.value})} 
-                              placeholder="9.00"
-                              className="max-w-[120px]"
-                            />
-                            <span>×</span>
-                          </div>
-                        </div>
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <div className="space-y-2">
                           <Label htmlFor="satamatka-jodi">Jodi (00-99)</Label>
                           <div className="flex items-center gap-2">
@@ -404,13 +401,39 @@ export default function AdminSettingsPage() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="satamatka-patti">Patti (000-999)</Label>
+                          <Label htmlFor="satamatka-harf">Harf</Label>
                           <div className="flex items-center gap-2">
                             <Input 
-                              id="satamatka-patti" 
-                              value={satamatkaOdds.patti} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, patti: e.target.value})} 
-                              placeholder="140.00"
+                              id="satamatka-harf" 
+                              value={satamatkaOdds.harf} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, harf: e.target.value})} 
+                              placeholder="9.00"
+                              className="max-w-[120px]"
+                            />
+                            <span>×</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="satamatka-crossing">Crossing</Label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              id="satamatka-crossing" 
+                              value={satamatkaOdds.crossing} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, crossing: e.target.value})} 
+                              placeholder="95.00"
+                              className="max-w-[120px]"
+                            />
+                            <span>×</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="satamatka-odd-even">Odd-Even</Label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              id="satamatka-odd-even" 
+                              value={satamatkaOdds.odd_even} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, odd_even: e.target.value})} 
+                              placeholder="1.90"
                               className="max-w-[120px]"
                             />
                             <span>×</span>

@@ -59,11 +59,12 @@ export const MarketType = {
 
 export type MarketTypeValue = typeof MarketType[keyof typeof MarketType];
 
-// Satamatka Game Modes
+// Satamatka Game Modes for Dishawar/Gali markets
 export const SatamatkaGameMode = {
-  SINGLE: "single", // Bet on a single digit (0-9)
   JODI: "jodi", // Bet on two-digit number (00-99)
-  PATTI: "patti", // Bet on three-digit number (000-999)
+  HARF: "harf", // Bet on a single digit in a specific position (left or right)
+  CROSSING: "crossing", // Cross betting
+  ODD_EVEN: "odd_even", // Bet on whether the result will be odd or even
 } as const;
 
 export type SatamatkaGameModeValue = typeof SatamatkaGameMode[keyof typeof SatamatkaGameMode];
@@ -148,7 +149,12 @@ export const insertGameSchema = createInsertSchema(games)
   })
   .extend({
     gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA, GameType.TEAM_MATCH]),
-    gameMode: z.enum([SatamatkaGameMode.SINGLE, SatamatkaGameMode.JODI, SatamatkaGameMode.PATTI]).optional(),
+    gameMode: z.enum([
+      SatamatkaGameMode.JODI,
+      SatamatkaGameMode.HARF,
+      SatamatkaGameMode.CROSSING, 
+      SatamatkaGameMode.ODD_EVEN
+    ]).optional(),
   })
   .partial({
     result: true,
