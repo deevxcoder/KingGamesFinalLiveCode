@@ -142,8 +142,9 @@ export default function JantriManagementPage() {
   }
   
   // Game types for filtering
-  const gameTypes = ["All Games", "Jodi", "Harf", "Crossing", "Odd-Even"];
+  const gameTypes = ["All Games", "Jodi", "Harf", "Crossing", "Odd_Even"];
   const [activeGameType, setActiveGameType] = useState("All Games");
+  const [selectedStatGameType, setSelectedStatGameType] = useState("All Games");
   
   // Calculate overall stats for all numbers
   const calculateOverallStats = () => {
@@ -152,7 +153,13 @@ export default function JantriManagementPage() {
         totalActiveBets: 0,
         totalActiveUsers: 0,
         totalBetAmount: 0,
-        totalPotentialWin: 0
+        totalPotentialWin: 0,
+        gameTypeStats: {
+          Jodi: { amount: 0, potentialWin: 0 },
+          Harf: { amount: 0, potentialWin: 0 },
+          Crossing: { amount: 0, potentialWin: 0 },
+          Odd_Even: { amount: 0, potentialWin: 0 }
+        }
       };
     }
     
@@ -161,6 +168,14 @@ export default function JantriManagementPage() {
     let totalPotentialWin = 0;
     const uniqueUsers = new Set<number>();
     
+    // Game-type specific stats
+    const gameTypeStats = {
+      Jodi: { amount: 0, potentialWin: 0 },
+      Harf: { amount: 0, potentialWin: 0 },
+      Crossing: { amount: 0, potentialWin: 0 },
+      Odd_Even: { amount: 0, potentialWin: 0 }
+    };
+    
     jantriStats.forEach(market => {
       market.numbers.forEach(numStats => {
         if (numStats.totalBets > 0) {
@@ -168,6 +183,21 @@ export default function JantriManagementPage() {
           totalBetAmount += numStats.totalAmount;
           totalPotentialWin += numStats.potentialWinAmount;
           uniqueUsers.add(numStats.uniqueUsers);
+          
+          // For this example, we'll simulate game type distribution
+          // In a real implementation, this would come from actual game type data
+          // Assume 40% Jodi, 20% Harf, 20% Crossing, 20% Odd_Even
+          gameTypeStats.Jodi.amount += numStats.totalAmount * 0.4;
+          gameTypeStats.Jodi.potentialWin += numStats.potentialWinAmount * 0.4;
+          
+          gameTypeStats.Harf.amount += numStats.totalAmount * 0.2;
+          gameTypeStats.Harf.potentialWin += numStats.potentialWinAmount * 0.2;
+          
+          gameTypeStats.Crossing.amount += numStats.totalAmount * 0.2;
+          gameTypeStats.Crossing.potentialWin += numStats.potentialWinAmount * 0.2;
+          
+          gameTypeStats.Odd_Even.amount += numStats.totalAmount * 0.2;
+          gameTypeStats.Odd_Even.potentialWin += numStats.potentialWinAmount * 0.2;
         }
       });
     });
@@ -176,7 +206,8 @@ export default function JantriManagementPage() {
       totalActiveBets,
       totalActiveUsers: uniqueUsers.size,
       totalBetAmount,
-      totalPotentialWin
+      totalPotentialWin,
+      gameTypeStats
     };
   };
   
@@ -266,6 +297,89 @@ export default function JantriManagementPage() {
         </Card>
       </div>
       
+      {/* Game Type Specific Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="border border-blue-500/20 shadow-md bg-gradient-to-br from-blue-500/5 to-blue-500/10">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Jodi Bets</p>
+                <p className="text-2xl font-bold text-foreground">₹{(overallStats.gameTypeStats.Jodi.amount / 100).toFixed(2)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
+                <GamepadIcon className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Potential Win:</span>
+              <span className="text-sm font-medium text-amber-500">
+                ₹{(overallStats.gameTypeStats.Jodi.potentialWin / 100).toFixed(2)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border border-green-500/20 shadow-md bg-gradient-to-br from-green-500/5 to-green-500/10">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Harf Bets</p>
+                <p className="text-2xl font-bold text-foreground">₹{(overallStats.gameTypeStats.Harf.amount / 100).toFixed(2)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
+                <GamepadIcon className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Potential Win:</span>
+              <span className="text-sm font-medium text-amber-500">
+                ₹{(overallStats.gameTypeStats.Harf.potentialWin / 100).toFixed(2)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border border-purple-500/20 shadow-md bg-gradient-to-br from-purple-500/5 to-purple-500/10">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Crossing Bets</p>
+                <p className="text-2xl font-bold text-foreground">₹{(overallStats.gameTypeStats.Crossing.amount / 100).toFixed(2)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-500">
+                <GamepadIcon className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Potential Win:</span>
+              <span className="text-sm font-medium text-amber-500">
+                ₹{(overallStats.gameTypeStats.Crossing.potentialWin / 100).toFixed(2)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border border-indigo-500/20 shadow-md bg-gradient-to-br from-indigo-500/5 to-indigo-500/10">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Odd/Even Bets</p>
+                <p className="text-2xl font-bold text-foreground">₹{(overallStats.gameTypeStats.Odd_Even.amount / 100).toFixed(2)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-500">
+                <GamepadIcon className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Potential Win:</span>
+              <span className="text-sm font-medium text-amber-500">
+                ₹{(overallStats.gameTypeStats.Odd_Even.potentialWin / 100).toFixed(2)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
       {/* Game Type Filter */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
@@ -343,16 +457,28 @@ export default function JantriManagementPage() {
           {selectedNumber && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <span className="mr-2">Number {selectedNumber} Statistics</span>
-                  {selectedNumberStats && selectedNumberStats.totalBets > 0 ? (
-                    <Badge className="bg-green-500">Active Bets</Badge>
-                  ) : (
-                    <Badge variant="outline">No Bets</Badge>
-                  )}
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <span className="mr-2 text-xl font-semibold">Number {selectedNumber} Statistics</span>
+                    {selectedNumberStats && selectedNumberStats.totalBets > 0 ? (
+                      <Badge className="bg-green-500">Active Bets</Badge>
+                    ) : (
+                      <Badge variant="outline">No Bets</Badge>
+                    )}
+                  </div>
+                  <Select value={selectedStatGameType} onValueChange={setSelectedStatGameType}>
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue placeholder="Game Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {gameTypes.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <CardDescription>
-                  Combined betting data across all markets
+                  Betting data for {selectedNumber} {selectedStatGameType !== "All Games" ? `in ${selectedStatGameType} game mode` : "across all game types"}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -480,17 +606,29 @@ export default function JantriManagementPage() {
             {selectedNumber && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <span className="mr-2">{market.marketName}: Number {selectedNumber}</span>
-                    {/* Check if there are bets for this specific market and number */}
-                    {(market.numbers.find(n => n.number === selectedNumber)?.totalBets ?? 0) > 0 ? (
-                      <Badge className="bg-green-500">Active Bets</Badge>
-                    ) : (
-                      <Badge variant="outline">No Bets</Badge>
-                    )}
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <span className="mr-2 text-xl font-semibold">{market.marketName}: Number {selectedNumber}</span>
+                      {/* Check if there are bets for this specific market and number */}
+                      {(market.numbers.find(n => n.number === selectedNumber)?.totalBets ?? 0) > 0 ? (
+                        <Badge className="bg-green-500">Active Bets</Badge>
+                      ) : (
+                        <Badge variant="outline">No Bets</Badge>
+                      )}
+                    </div>
+                    <Select value={selectedStatGameType} onValueChange={setSelectedStatGameType}>
+                      <SelectTrigger className="w-[160px]">
+                        <SelectValue placeholder="Game Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {gameTypes.map(type => (
+                          <SelectItem key={type} value={type}>{type}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <CardDescription>
-                    Betting statistics for {selectedNumber} in {market.marketName}
+                    Betting statistics for {selectedNumber} in {market.marketName} {selectedStatGameType !== "All Games" ? `(${selectedStatGameType} mode)` : ""}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
