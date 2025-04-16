@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,11 +42,16 @@ export default function AdminSettingsPage() {
   });
 
   // Load payment settings
-  const { isLoading: isLoadingPayment } = useQuery({
+  const { data: paymentSettings, isLoading: isLoadingPayment } = useQuery<any[]>({
     queryKey: ['/api/settings', 'payment'],
-    queryFn: () => apiRequest('/api/settings?type=payment'),
-    onSuccess: (data) => {
-      data.forEach((setting: any) => {
+    queryFn: () => apiRequest("GET", '/api/settings?type=payment')
+      .then(res => res.json()),
+  });
+
+  // Process payment settings when they load
+  useEffect(() => {
+    if (paymentSettings) {
+      paymentSettings.forEach((setting: any) => {
         switch (setting.settingKey) {
           case 'upi_id':
             setUpiId(setting.settingValue);
@@ -66,23 +71,26 @@ export default function AdminSettingsPage() {
         }
       });
     }
-  });
+  }, [paymentSettings]);
 
   // Load game odds
-  const { isLoading: isLoadingOdds } = useQuery({
+  const { data: coinFlipOddsData, isLoading: isLoadingOdds } = useQuery<any[]>({
     queryKey: ['/api/game-odds', 'coin_flip'],
-    queryFn: () => apiRequest('/api/game-odds?gameType=coin_flip'),
-    onSuccess: (data) => {
-      if (data && data.length > 0) {
-        // Convert integer odds to decimal (250 -> "2.50")
-        const oddValueDecimal = (data[0].oddValue / 100).toFixed(2);
-        setCoinFlipOdds(oddValueDecimal);
-      }
-    }
+    queryFn: () => apiRequest("GET", '/api/game-odds?gameType=coin_flip')
+      .then(res => res.json()),
   });
 
+  // Process coin flip odds when they load
+  useEffect(() => {
+    if (coinFlipOddsData && coinFlipOddsData.length > 0) {
+      // Convert integer odds to decimal (250 -> "2.50")
+      const oddValueDecimal = (coinFlipOddsData[0].oddValue / 100).toFixed(2);
+      setCoinFlipOdds(oddValueDecimal);
+    }
+  }, [coinFlipOddsData]);
+
   // Load satamatka odds
-  useQuery({
+  const { data: satamatkaOddsData } = useQuery<any>({
     queryKey: ['/api/game-odds', 'satamatka'],
     queryFn: async () => {
       const modes = ['jodi', 'harf', 'crossing', 'odd_even'];
@@ -100,32 +108,37 @@ export default function AdminSettingsPage() {
         odd_even: results[3] 
       };
     },
-    onSuccess: (data) => {
+  });
+
+  // Process satamatka odds when they load
+  useEffect(() => {
+    if (satamatkaOddsData) {
       const updatedOdds = { ...satamatkaOdds };
       
-      if (data.jodi && data.jodi.length > 0) {
-        updatedOdds.jodi = (data.jodi[0].oddValue / 100).toFixed(2);
+      if (satamatkaOddsData.jodi && satamatkaOddsData.jodi.length > 0) {
+        updatedOdds.jodi = (satamatkaOddsData.jodi[0].oddValue / 100).toFixed(2);
       }
       
-      if (data.harf && data.harf.length > 0) {
-        updatedOdds.harf = (data.harf[0].oddValue / 100).toFixed(2);
+      if (satamatkaOddsData.harf && satamatkaOddsData.harf.length > 0) {
+        updatedOdds.harf = (satamatkaOddsData.harf[0].oddValue / 100).toFixed(2);
       }
       
-      if (data.crossing && data.crossing.length > 0) {
-        updatedOdds.crossing = (data.crossing[0].oddValue / 100).toFixed(2);
+      if (satamatkaOddsData.crossing && satamatkaOddsData.crossing.length > 0) {
+        updatedOdds.crossing = (satamatkaOddsData.crossing[0].oddValue / 100).toFixed(2);
       }
       
-      if (data.odd_even && data.odd_even.length > 0) {
-        updatedOdds.odd_even = (data.odd_even[0].oddValue / 100).toFixed(2);
+      if (satamatkaOddsData.odd_even && satamatkaOddsData.odd_even.length > 0) {
+        updatedOdds.odd_even = (satamatkaOddsData.odd_even[0].oddValue / 100).toFixed(2);
       }
       
       setSatamatkaOdds(updatedOdds);
     }
-  });
+  }, [satamatkaOddsData]);
 
   // Save settings mutation
   const saveMutation = useMutation({
-    mutationFn: (settings: any) => apiRequest('/api/settings', 'POST', settings),
+    mutationFn: (settings: any) => apiRequest("POST", '/api/settings', settings)
+      .then(res => res.json()),
     onSuccess: () => {
       toast({
         title: "Settings Saved",
@@ -144,7 +157,8 @@ export default function AdminSettingsPage() {
 
   // Save game odds mutation
   const saveOddsMutation = useMutation({
-    mutationFn: (odds: any) => apiRequest('/api/game-odds', 'POST', odds),
+    mutationFn: (odds: any) => apiRequest("POST", '/api/game-odds', odds)
+      .then(res => res.json()),
     onSuccess: () => {
       toast({
         title: "Game Odds Saved",
@@ -163,7 +177,8 @@ export default function AdminSettingsPage() {
 
   // Save commission mutation
   const saveCommissionMutation = useMutation({
-    mutationFn: (commission: any) => apiRequest('/api/commissions/subadmin', 'POST', commission),
+    mutationFn: (commission: any) => apiRequest("POST", '/api/commissions/subadmin', commission)
+      .then(res => res.json()),
     onSuccess: () => {
       toast({
         title: "Commission Rates Saved",
