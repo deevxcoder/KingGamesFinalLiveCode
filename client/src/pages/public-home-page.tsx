@@ -144,7 +144,7 @@ const sampleRecentWinners = [
   {
     id: 2,
     username: "betmaster",
-    game: "Satta Matka",
+    game: "Market Game",
     amount: 10000,
     payout: 50000,
     createdAt: new Date(Date.now() - 1800000).toISOString(),
@@ -168,7 +168,7 @@ const sampleRecentWinners = [
   {
     id: 5,
     username: "gameknight",
-    game: "Satta Matka",
+    game: "Market Game",
     amount: 5000,
     payout: 25000,
     createdAt: new Date(Date.now() - 10800000).toISOString(),
@@ -192,7 +192,7 @@ const sampleRecentWinners = [
   {
     id: 8,
     username: "wagermasters",
-    game: "Satta Matka",
+    game: "Market Game",
     amount: 7500,
     payout: 37500,
     createdAt: new Date(Date.now() - 21600000).toISOString(),
@@ -228,8 +228,8 @@ const gameCards = [
   },
   {
     id: "satamatka",
-    title: "Satta Matka",
-    description: "Traditional Indian betting game with multiple betting options.",
+    title: "Market Game",
+    description: "Play market-based games with multiple betting options and high payouts.",
     imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
     path: "/satamatka",
     popularity: "medium" as const,
@@ -275,10 +275,10 @@ export default function PublicHomePage() {
           },
           {
             id: "slide2",
-            title: "Satta Matka Games",
-            description: "Play the traditional Indian betting game with multiple options and high payouts.",
+            title: "Market Games",
+            description: "Play exciting market-based games with multiple options and win big payouts.",
             backgroundImage: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-            buttonText: "Play Satta Matka",
+            buttonText: "Play Market Games",
             buttonLink: "/auth"
           },
           {
