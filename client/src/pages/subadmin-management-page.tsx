@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { UserRole } from "@shared/schema";
-import Sidebar from "@/components/sidebar";
+import DashboardLayout from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -67,7 +67,7 @@ export default function SubadminManagementPage() {
   // Fetch users that are subadmins
   const { data: subadmins = [], isLoading } = useQuery({
     queryKey: ["/api/users"],
-    select: (data) => data.filter((user: any) => user.role === UserRole.SUBADMIN),
+    select: (data: any) => data.filter((user: any) => user.role === UserRole.SUBADMIN),
     enabled: !!user && user.role === UserRole.ADMIN,
   });
 
@@ -155,102 +155,96 @@ export default function SubadminManagementPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto pt-0 lg:pt-0">
-        <div className="container mx-auto px-4 py-4 lg:py-6">
-          <Card className="mb-6">
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle>Subadmin Management</CardTitle>
-                  <CardDescription>
-                    Create and manage subadmin accounts
-                  </CardDescription>
-                </div>
-                <Button
-                  onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-gradient-to-r from-primary to-blue-500"
-                >
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Create Subadmin
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Username</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+    <DashboardLayout title="Subadmin Management">
+      <Card className="mb-6">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Subadmin Management</CardTitle>
+              <CardDescription>
+                Create and manage subadmin accounts
+              </CardDescription>
+            </div>
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="bg-gradient-to-r from-primary to-blue-500"
+            >
+              <UserPlus className="h-4 w-4 mr-2" />
+              Create Subadmin
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {subadmins.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={3} className="text-center py-4">
+                        No subadmins found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    subadmins.map((subadmin: any) => (
+                      <TableRow key={subadmin.id}>
+                        <TableCell className="font-medium">
+                          {subadmin.username}
+                        </TableCell>
+                        <TableCell>
+                          {subadmin.isBlocked ? (
+                            <Badge variant="destructive">Blocked</Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                              Active
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            {subadmin.isBlocked ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUnblockSubadmin(subadmin.id)}
+                                className="text-green-500 border-green-500/20 hover:bg-green-500/10"
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Unblock
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleBlockSubadmin(subadmin.id)}
+                                className="text-red-500 border-red-500/20 hover:bg-red-500/10"
+                              >
+                                <Ban className="h-4 w-4 mr-2" />
+                                Block
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {subadmins.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={3} className="text-center py-4">
-                            No subadmins found
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        subadmins.map((subadmin: any) => (
-                          <TableRow key={subadmin.id}>
-                            <TableCell className="font-medium">
-                              {subadmin.username}
-                            </TableCell>
-                            <TableCell>
-                              {subadmin.isBlocked ? (
-                                <Badge variant="destructive">Blocked</Badge>
-                              ) : (
-                                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                                  Active
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                {subadmin.isBlocked ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleUnblockSubadmin(subadmin.id)}
-                                    className="text-green-500 border-green-500/20 hover:bg-green-500/10"
-                                  >
-                                    <CheckCircle className="h-4 w-4 mr-2" />
-                                    Unblock
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBlockSubadmin(subadmin.id)}
-                                    className="text-red-500 border-red-500/20 hover:bg-red-500/10"
-                                  >
-                                    <Ban className="h-4 w-4 mr-2" />
-                                    Block
-                                  </Button>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
       
       {/* Create Subadmin Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -304,6 +298,6 @@ export default function SubadminManagementPage() {
           </Form>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }

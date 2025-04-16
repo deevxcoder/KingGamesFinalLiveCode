@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { UserRole } from "@shared/schema";
-import Sidebar from "@/components/sidebar";
+import DashboardLayout from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -254,141 +254,135 @@ export default function UserManagementPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto pt-0 lg:pt-0">
-        <div className="container mx-auto px-4 py-4 lg:py-6">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-              <CardDescription>
-                Manage player accounts, balances, and status
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Username</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Balance</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Actions</TableHead>
+    <DashboardLayout title="User Management">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+          <CardDescription>
+            Manage player accounts, balances, and status
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Username</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead>Balance</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {(users as any[]).length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5} className="text-center py-4">
+                        No users found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    (users as any[]).map((user: any) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4" />
+                            {user.username}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={
+                            user.role === UserRole.ADMIN 
+                              ? "default" 
+                              : user.role === UserRole.SUBADMIN 
+                                ? "outline" 
+                                : "secondary"
+                          }>
+                            {user.role}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>${(user.balance / 100).toFixed(2)}</TableCell>
+                        <TableCell>
+                          {user.isBlocked ? (
+                            <Badge variant="destructive">Blocked</Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                              Active
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openAddFundsDialog(user)}
+                              title="Add funds"
+                            >
+                              <PlusCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openRemoveFundsDialog(user)}
+                              title="Remove funds"
+                            >
+                              <MinusCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openEditUserDialog(user)}
+                              title="Edit user"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openUserDetailsDialog(user)}
+                              title="View details"
+                              className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
+                            >
+                              <Info className="h-4 w-4" />
+                            </Button>
+                            {user.isBlocked ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleUnblockUser(user.id)}
+                                className="text-green-500 border-green-500/20 hover:bg-green-500/10"
+                                title="Unblock user"
+                              >
+                                <CheckCircle className="h-4 w-4" />
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleBlockUser(user.id)}
+                                className="text-red-500 border-red-500/20 hover:bg-red-500/10"
+                                title="Block user"
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
                       </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {users.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4">
-                            No users found
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        users.map((user: any) => (
-                          <TableRow key={user.id}>
-                            <TableCell className="font-medium">
-                              <div className="flex items-center gap-2">
-                                <User className="h-4 w-4" />
-                                {user.username}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant={
-                                user.role === UserRole.ADMIN 
-                                  ? "default" 
-                                  : user.role === UserRole.SUBADMIN 
-                                    ? "outline" 
-                                    : "secondary"
-                              }>
-                                {user.role}
-                              </Badge>
-                            </TableCell>
-                            <TableCell>${(user.balance / 100).toFixed(2)}</TableCell>
-                            <TableCell>
-                              {user.isBlocked ? (
-                                <Badge variant="destructive">Blocked</Badge>
-                              ) : (
-                                <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                                  Active
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openAddFundsDialog(user)}
-                                  title="Add funds"
-                                >
-                                  <PlusCircle className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openRemoveFundsDialog(user)}
-                                  title="Remove funds"
-                                >
-                                  <MinusCircle className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openEditUserDialog(user)}
-                                  title="Edit user"
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => openUserDetailsDialog(user)}
-                                  title="View details"
-                                  className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
-                                >
-                                  <Info className="h-4 w-4" />
-                                </Button>
-                                {user.isBlocked ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleUnblockUser(user.id)}
-                                    className="text-green-500 border-green-500/20 hover:bg-green-500/10"
-                                    title="Unblock user"
-                                  >
-                                    <CheckCircle className="h-4 w-4" />
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleBlockUser(user.id)}
-                                    className="text-red-500 border-red-500/20 hover:bg-red-500/10"
-                                    title="Block user"
-                                  >
-                                    <Ban className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
       
       {/* Add Funds Dialog */}
       <Dialog open={isAddFundsDialogOpen} onOpenChange={setIsAddFundsDialogOpen}>
@@ -635,21 +629,12 @@ export default function UserManagementPage() {
                             <TableCell>
                               {new Date(game.createdAt).toLocaleString()}
                             </TableCell>
-                            <TableCell>
-                              <div className="flex items-center gap-1">
-                                <Coins className="h-4 w-4" />
-                                Coin Flip
-                              </div>
-                            </TableCell>
+                            <TableCell>{game.gameType || "Coin Flip"}</TableCell>
                             <TableCell>${(game.betAmount / 100).toFixed(2)}</TableCell>
                             <TableCell>{game.prediction}</TableCell>
-                            <TableCell>
-                              <Badge variant={game.prediction === game.result ? "outline" : "secondary"}>
-                                {game.result}
-                              </Badge>
-                            </TableCell>
-                            <TableCell className={game.payout > 0 ? "text-green-500" : "text-red-500"}>
-                              {game.payout > 0 ? "+" : ""}${(game.payout / 100).toFixed(2)}
+                            <TableCell>{game.result || "Pending"}</TableCell>
+                            <TableCell className={(game.payout || 0) > 0 ? "text-green-500" : "text-red-500"}>
+                              {(game.payout || 0) > 0 ? `+$${(game.payout / 100).toFixed(2)}` : "$0.00"}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -677,6 +662,6 @@ export default function UserManagementPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </DashboardLayout>
   );
 }

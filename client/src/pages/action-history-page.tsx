@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { UserRole } from "@shared/schema";
-import Sidebar from "@/components/sidebar";
+import DashboardLayout from "@/components/dashboard-layout";
 import {
   Card,
   CardContent,
@@ -60,7 +60,7 @@ export default function ActionHistoryPage() {
   });
 
   // Filter transactions based on search and filter
-  const filteredTransactions = transactions.filter((transaction: any) => {
+  const filteredTransactions = (transactions as any[]).filter((transaction: any) => {
     const matchesSearch = searchTerm === "" || 
       transaction.userId.toString().includes(searchTerm) ||
       (transaction.user?.username && transaction.user.username.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -72,7 +72,7 @@ export default function ActionHistoryPage() {
   });
 
   // Filter games based on search and filter
-  const filteredGames = games.filter((game: any) => {
+  const filteredGames = (games as any[]).filter((game: any) => {
     const matchesSearch = searchTerm === "" || 
       game.userId.toString().includes(searchTerm) ||
       (game.user?.username && game.user.username.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -206,95 +206,89 @@ export default function ActionHistoryPage() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background text-foreground">
-      <Sidebar />
-      
-      <main className="flex-1 overflow-y-auto pt-0 lg:pt-0">
-        <div className="container mx-auto px-4 py-4 lg:py-6">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Action History</CardTitle>
-              <CardDescription>
-                View transactions and game history
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs defaultValue="transactions" onValueChange={setTab} value={tab}>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-                  <TabsList className="mb-4 md:mb-0">
-                    <TabsTrigger value="transactions">Transactions</TabsTrigger>
-                    <TabsTrigger value="games">Games</TabsTrigger>
-                  </TabsList>
-                  
-                  <div className="flex flex-col md:flex-row gap-4 md:items-center">
-                    <div className="relative">
-                      <Search className="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search user..."
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        className="pl-8 w-full md:w-60"
-                      />
-                    </div>
-                    
-                    {tab === "transactions" && (
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="transaction-filter" className="hidden md:inline">Filter:</Label>
-                        <Select value={transactionFilter} onValueChange={setTransactionFilter}>
-                          <SelectTrigger id="transaction-filter" className="w-full md:w-40">
-                            <SelectValue placeholder="Filter transactions" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Transactions</SelectItem>
-                            <SelectItem value="positive">Deposits Only</SelectItem>
-                            <SelectItem value="negative">Withdrawals Only</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    
-                    {tab === "games" && (
-                      <div className="flex items-center gap-2">
-                        <Label htmlFor="game-filter" className="hidden md:inline">Filter:</Label>
-                        <Select value={gameFilter} onValueChange={setGameFilter}>
-                          <SelectTrigger id="game-filter" className="w-full md:w-40">
-                            <SelectValue placeholder="Filter games" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All Games</SelectItem>
-                            <SelectItem value="wins">Wins Only</SelectItem>
-                            <SelectItem value="losses">Losses Only</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                  </div>
+    <DashboardLayout title="Action History">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Action History</CardTitle>
+          <CardDescription>
+            View transactions and game history
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="transactions" onValueChange={setTab} value={tab}>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+              <TabsList className="mb-4 md:mb-0">
+                <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                <TabsTrigger value="games">Games</TabsTrigger>
+              </TabsList>
+              
+              <div className="flex flex-col md:flex-row gap-4 md:items-center">
+                <div className="relative">
+                  <Search className="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search user..."
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                    className="pl-8 w-full md:w-60"
+                  />
                 </div>
                 
-                <TabsContent value="transactions" className="mt-0">
-                  {transactionsLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  ) : (
-                    renderTransactionsTable()
-                  )}
-                </TabsContent>
+                {tab === "transactions" && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="transaction-filter" className="hidden md:inline">Filter:</Label>
+                    <Select value={transactionFilter} onValueChange={setTransactionFilter}>
+                      <SelectTrigger id="transaction-filter" className="w-full md:w-40">
+                        <SelectValue placeholder="Filter transactions" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Transactions</SelectItem>
+                        <SelectItem value="positive">Deposits Only</SelectItem>
+                        <SelectItem value="negative">Withdrawals Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
                 
-                <TabsContent value="games" className="mt-0">
-                  {gamesLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    </div>
-                  ) : (
-                    renderGamesTable()
-                  )}
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
+                {tab === "games" && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="game-filter" className="hidden md:inline">Filter:</Label>
+                    <Select value={gameFilter} onValueChange={setGameFilter}>
+                      <SelectTrigger id="game-filter" className="w-full md:w-40">
+                        <SelectValue placeholder="Filter games" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Games</SelectItem>
+                        <SelectItem value="wins">Wins Only</SelectItem>
+                        <SelectItem value="losses">Losses Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <TabsContent value="transactions" className="mt-0">
+              {transactionsLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                renderTransactionsTable()
+              )}
+            </TabsContent>
+            
+            <TabsContent value="games" className="mt-0">
+              {gamesLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                renderGamesTable()
+              )}
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </DashboardLayout>
   );
 }
