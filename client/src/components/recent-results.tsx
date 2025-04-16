@@ -25,7 +25,7 @@ interface MarketResult {
   openTime: string;
   closeTime: string;
   openResult?: string;
-  closeResult?: string;
+  closeResult?: string | null;
   status: string;
   createdAt: string;
 }
@@ -147,14 +147,10 @@ function ResultItem({ result }: { result: MarketResult }) {
         {getStatusBadge(result.status)}
       </div>
       
-      <div className="flex justify-between mt-3 text-sm">
-        <div className="flex-1">
-          <p className="text-xs text-slate-500">Open Result</p>
-          <p className="font-medium text-pink-400">{formatResult(result.openResult)}</p>
-        </div>
-        <div className="flex-1 text-right">
-          <p className="text-xs text-slate-500">Close Result</p>
-          <p className="font-medium text-cyan-400">{formatResult(result.closeResult)}</p>
+      <div className="flex justify-center mt-3 text-sm">
+        <div className="text-center">
+          <p className="text-xs text-slate-500">Result</p>
+          <p className="font-medium text-2xl text-pink-400">{formatResult(result.openResult)}</p>
         </div>
       </div>
     </div>

@@ -34,9 +34,10 @@ export default function AdminSettingsPage() {
   // Subadmin Commission Settings
   const [commissionRates, setCommissionRates] = useState({
     coin_flip: "2.5",
-    satamatka_single: "5.0",
     satamatka_jodi: "3.5",
-    satamatka_patti: "2.0",
+    satamatka_harf: "4.0",
+    satamatka_crossing: "3.0",
+    satamatka_odd_even: "2.0",
     team_match: "3.0"
   });
 
@@ -224,13 +225,6 @@ export default function AdminSettingsPage() {
     });
     
     // Save Satamatka odds
-    const singleOddValue = Math.round(parseFloat(satamatkaOdds.single) * 100);
-    saveOddsMutation.mutate({
-      gameType: "satamatka_single",
-      oddValue: singleOddValue,
-      setByAdmin: true
-    });
-    
     const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 100);
     saveOddsMutation.mutate({
       gameType: "satamatka_jodi",
@@ -238,10 +232,24 @@ export default function AdminSettingsPage() {
       setByAdmin: true
     });
     
-    const pattiOddValue = Math.round(parseFloat(satamatkaOdds.patti) * 100);
+    const harfOddValue = Math.round(parseFloat(satamatkaOdds.harf) * 100);
     saveOddsMutation.mutate({
-      gameType: "satamatka_patti",
-      oddValue: pattiOddValue,
+      gameType: "satamatka_harf",
+      oddValue: harfOddValue,
+      setByAdmin: true
+    });
+    
+    const crossingOddValue = Math.round(parseFloat(satamatkaOdds.crossing) * 100);
+    saveOddsMutation.mutate({
+      gameType: "satamatka_crossing",
+      oddValue: crossingOddValue,
+      setByAdmin: true
+    });
+    
+    const oddEvenOddValue = Math.round(parseFloat(satamatkaOdds.odd_even) * 100);
+    saveOddsMutation.mutate({
+      gameType: "satamatka_odd_even",
+      oddValue: oddEvenOddValue,
       setByAdmin: true
     });
   };
@@ -484,20 +492,6 @@ export default function AdminSettingsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="commission-satamatka-single">Satamatka Single Commission</Label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        id="commission-satamatka-single" 
-                        value={commissionRates.satamatka_single} 
-                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_single: e.target.value})} 
-                        placeholder="5.0"
-                        className="max-w-[120px]"
-                      />
-                      <span>%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
                     <Label htmlFor="commission-satamatka-jodi">Satamatka Jodi Commission</Label>
                     <div className="flex items-center gap-2">
                       <Input 
@@ -512,12 +506,40 @@ export default function AdminSettingsPage() {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="commission-satamatka-patti">Satamatka Patti Commission</Label>
+                    <Label htmlFor="commission-satamatka-harf">Satamatka Harf Commission</Label>
                     <div className="flex items-center gap-2">
                       <Input 
-                        id="commission-satamatka-patti" 
-                        value={commissionRates.satamatka_patti} 
-                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_patti: e.target.value})} 
+                        id="commission-satamatka-harf" 
+                        value={commissionRates.satamatka_harf} 
+                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_harf: e.target.value})} 
+                        placeholder="4.0"
+                        className="max-w-[120px]"
+                      />
+                      <span>%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="commission-satamatka-crossing">Satamatka Crossing Commission</Label>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        id="commission-satamatka-crossing" 
+                        value={commissionRates.satamatka_crossing} 
+                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_crossing: e.target.value})} 
+                        placeholder="3.0"
+                        className="max-w-[120px]"
+                      />
+                      <span>%</span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="commission-satamatka-odd-even">Satamatka Odd-Even Commission</Label>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        id="commission-satamatka-odd-even" 
+                        value={commissionRates.satamatka_odd_even} 
+                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_odd_even: e.target.value})} 
                         placeholder="2.0"
                         className="max-w-[120px]"
                       />
