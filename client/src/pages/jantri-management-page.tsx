@@ -11,13 +11,18 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Calculator,
   Users,
   DollarSign,
   BarChart3,
   ArrowUpRight,
-  Clock
+  Clock,
+  GamepadIcon,
+  TrendingUp,
+  AlertTriangle,
+  Filter
 } from "lucide-react";
 
 interface BettingStats {
@@ -136,6 +141,47 @@ export default function JantriManagementPage() {
     numberRows.push(allNumbers.slice(i, i + columnsPerRow));
   }
   
+  // Game types for filtering
+  const gameTypes = ["All Games", "Jodi", "Harf", "Crossing", "Odd-Even"];
+  const [activeGameType, setActiveGameType] = useState("All Games");
+  
+  // Calculate overall stats for all numbers
+  const calculateOverallStats = () => {
+    if (!jantriStats || jantriStats.length === 0) {
+      return {
+        totalActiveBets: 0,
+        totalActiveUsers: 0,
+        totalBetAmount: 0,
+        totalPotentialWin: 0
+      };
+    }
+    
+    let totalActiveBets = 0;
+    let totalBetAmount = 0;
+    let totalPotentialWin = 0;
+    const uniqueUsers = new Set<number>();
+    
+    jantriStats.forEach(market => {
+      market.numbers.forEach(numStats => {
+        if (numStats.totalBets > 0) {
+          totalActiveBets += numStats.totalBets;
+          totalBetAmount += numStats.totalAmount;
+          totalPotentialWin += numStats.potentialWinAmount;
+          uniqueUsers.add(numStats.uniqueUsers);
+        }
+      });
+    });
+    
+    return {
+      totalActiveBets,
+      totalActiveUsers: uniqueUsers.size,
+      totalBetAmount,
+      totalPotentialWin
+    };
+  };
+  
+  const overallStats = calculateOverallStats();
+  
   return (
     <DashboardLayout title="Jantri Management">
       <div className="mb-6">
@@ -143,6 +189,99 @@ export default function JantriManagementPage() {
         <p className="text-muted-foreground">
           View betting statistics for each number across all markets
         </p>
+      </div>
+      
+      {/* Summary Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <Card className="bg-white">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Active Bets</p>
+                <p className="text-2xl font-bold">{overallStats.totalActiveBets}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+                <Calculator className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm text-green-500">
+              <TrendingUp className="h-4 w-4 mr-1" />
+              <span className="font-medium">Active betting activity</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Active Users</p>
+                <p className="text-2xl font-bold">{overallStats.totalActiveUsers}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+                <Users className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm text-green-500">
+              <TrendingUp className="h-4 w-4 mr-1" />
+              <span className="font-medium">Unique players with active bets</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Bet Amount</p>
+                <p className="text-2xl font-bold">₹{(overallStats.totalBetAmount / 100).toFixed(2)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+                <DollarSign className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm text-green-500">
+              <TrendingUp className="h-4 w-4 mr-1" />
+              <span className="font-medium">Total amount at stake</span>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-white">
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Potential Payout</p>
+                <p className="text-2xl font-bold text-amber-500">₹{(overallStats.totalPotentialWin / 100).toFixed(2)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                <ArrowUpRight className="h-6 w-6" />
+              </div>
+            </div>
+            <div className="mt-4 flex items-center text-sm text-amber-500">
+              <AlertTriangle className="h-4 w-4 mr-1" />
+              <span className="font-medium">Maximum potential payouts</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Game Type Filter */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm font-medium">Filter by Game Type:</span>
+        </div>
+        <Select value={activeGameType} onValueChange={setActiveGameType}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Select Game Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {gameTypes.map(type => (
+              <SelectItem key={type} value={type}>{type}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
