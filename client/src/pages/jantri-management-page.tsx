@@ -193,68 +193,68 @@ export default function JantriManagementPage() {
       
       {/* Summary Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="bg-white">
+        <Card className="border border-primary/10 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Active Bets</p>
-                <p className="text-2xl font-bold">{overallStats.totalActiveBets}</p>
+                <p className="text-2xl font-bold text-foreground">{overallStats.totalActiveBets}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
+              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                 <Calculator className="h-6 w-6" />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-sm text-green-500">
+            <div className="mt-4 flex items-center text-sm text-primary">
               <TrendingUp className="h-4 w-4 mr-1" />
               <span className="font-medium">Active betting activity</span>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-white">
+        <Card className="border border-primary/10 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Active Users</p>
-                <p className="text-2xl font-bold">{overallStats.totalActiveUsers}</p>
+                <p className="text-2xl font-bold text-foreground">{overallStats.totalActiveUsers}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
+              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                 <Users className="h-6 w-6" />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-sm text-green-500">
+            <div className="mt-4 flex items-center text-sm text-primary">
               <TrendingUp className="h-4 w-4 mr-1" />
               <span className="font-medium">Unique players with active bets</span>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-white">
+        <Card className="border border-primary/10 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total Bet Amount</p>
-                <p className="text-2xl font-bold">₹{(overallStats.totalBetAmount / 100).toFixed(2)}</p>
+                <p className="text-2xl font-bold text-foreground">₹{(overallStats.totalBetAmount / 100).toFixed(2)}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
                 <DollarSign className="h-6 w-6" />
               </div>
             </div>
-            <div className="mt-4 flex items-center text-sm text-green-500">
+            <div className="mt-4 flex items-center text-sm text-primary">
               <TrendingUp className="h-4 w-4 mr-1" />
               <span className="font-medium">Total amount at stake</span>
             </div>
           </CardContent>
         </Card>
         
-        <Card className="bg-white">
+        <Card className="border border-amber-500/20 shadow-md bg-gradient-to-br from-amber-500/5 to-amber-500/10">
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Potential Payout</p>
                 <p className="text-2xl font-bold text-amber-500">₹{(overallStats.totalPotentialWin / 100).toFixed(2)}</p>
               </div>
-              <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+              <div className="h-12 w-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500">
                 <ArrowUpRight className="h-6 w-6" />
               </div>
             </div>
@@ -364,7 +364,7 @@ export default function JantriManagementPage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-card p-4 rounded-lg border flex flex-col">
+                    <div className="bg-card/20 p-4 rounded-lg border border-primary/10 flex flex-col">
                       <span className="text-muted-foreground text-sm flex items-center mb-2">
                         <Users className="w-4 h-4 mr-1" /> Unique Players
                       </span>
@@ -373,7 +373,7 @@ export default function JantriManagementPage() {
                       </span>
                     </div>
                     
-                    <div className="bg-card p-4 rounded-lg border flex flex-col">
+                    <div className="bg-card/20 p-4 rounded-lg border border-primary/10 flex flex-col">
                       <span className="text-muted-foreground text-sm flex items-center mb-2">
                         <Calculator className="w-4 h-4 mr-1" /> Total Bets
                       </span>
@@ -382,7 +382,7 @@ export default function JantriManagementPage() {
                       </span>
                     </div>
                     
-                    <div className="bg-card p-4 rounded-lg border flex flex-col">
+                    <div className="bg-card/20 p-4 rounded-lg border border-primary/10 flex flex-col">
                       <span className="text-muted-foreground text-sm flex items-center mb-2">
                         <DollarSign className="w-4 h-4 mr-1" /> Total Amount
                       </span>
@@ -391,7 +391,7 @@ export default function JantriManagementPage() {
                       </span>
                     </div>
                     
-                    <div className="bg-card p-4 rounded-lg border flex flex-col">
+                    <div className="bg-card/20 p-4 rounded-lg border border-amber-500/20 flex flex-col">
                       <span className="text-muted-foreground text-sm flex items-center mb-2">
                         <ArrowUpRight className="w-4 h-4 mr-1" /> Potential Payout
                       </span>
@@ -502,7 +502,7 @@ export default function JantriManagementPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="bg-card p-4 rounded-lg border flex flex-col">
+                      <div className="bg-card/20 p-4 rounded-lg border border-primary/10 flex flex-col">
                         <span className="text-muted-foreground text-sm flex items-center mb-2">
                           <Users className="w-4 h-4 mr-1" /> Unique Players
                         </span>
@@ -511,7 +511,7 @@ export default function JantriManagementPage() {
                         </span>
                       </div>
                       
-                      <div className="bg-card p-4 rounded-lg border flex flex-col">
+                      <div className="bg-card/20 p-4 rounded-lg border border-primary/10 flex flex-col">
                         <span className="text-muted-foreground text-sm flex items-center mb-2">
                           <Calculator className="w-4 h-4 mr-1" /> Total Bets
                         </span>
@@ -520,7 +520,7 @@ export default function JantriManagementPage() {
                         </span>
                       </div>
                       
-                      <div className="bg-card p-4 rounded-lg border flex flex-col">
+                      <div className="bg-card/20 p-4 rounded-lg border border-primary/10 flex flex-col">
                         <span className="text-muted-foreground text-sm flex items-center mb-2">
                           <DollarSign className="w-4 h-4 mr-1" /> Total Amount
                         </span>
@@ -529,7 +529,7 @@ export default function JantriManagementPage() {
                         </span>
                       </div>
                       
-                      <div className="bg-card p-4 rounded-lg border flex flex-col">
+                      <div className="bg-card/20 p-4 rounded-lg border border-amber-500/20 flex flex-col">
                         <span className="text-muted-foreground text-sm flex items-center mb-2">
                           <ArrowUpRight className="w-4 h-4 mr-1" /> Potential Payout
                         </span>
