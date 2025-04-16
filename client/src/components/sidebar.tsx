@@ -16,7 +16,9 @@ import {
   Trophy,
   BarChart2,
   Calculator,
-  Wallet
+  Wallet,
+  Settings,
+  Sliders
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -111,6 +113,19 @@ export default function Sidebar() {
       path: "/risk-management",
       icon: <BarChart2 className="w-5 h-5 mr-3" />,
       visible: isAdmin || isSubadmin,
+    },
+    // Settings
+    {
+      name: "Settings",
+      path: "/settings",
+      icon: <Settings className="w-5 h-5 mr-3" />,
+      visible: isAdmin,
+    },
+    {
+      name: "Settings",
+      path: "/settings/subadmin",
+      icon: <Sliders className="w-5 h-5 mr-3" />,
+      visible: isSubadmin,
     },
     {
       name: "Back to Home",

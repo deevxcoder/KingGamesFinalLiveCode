@@ -22,6 +22,8 @@ import AdminMarketManagementPage from "@/pages/admin-market-management-page";
 import AdminTeamMatchPage from "@/pages/admin-team-match-page";
 import JantriManagementPage from "@/pages/jantri-management-page";
 import WalletPage from "@/pages/wallet-page";
+import AdminSettingsPage from "@/pages/admin-settings-page";
+import SubadminSettingsPage from "@/pages/subadmin-settings-page";
 
 function Router() {
   return (
@@ -77,6 +79,18 @@ function Router() {
         path="/manage-teams" 
         component={AdminTeamMatchPage} 
         allowedRoles={[UserRole.ADMIN]}
+      />
+      
+      {/* Settings routes */}
+      <ProtectedRoute 
+        path="/settings" 
+        component={AdminSettingsPage} 
+        allowedRoles={[UserRole.ADMIN]}
+      />
+      <ProtectedRoute 
+        path="/settings/subadmin" 
+        component={SubadminSettingsPage} 
+        allowedRoles={[UserRole.SUBADMIN]}
       />
       
       {/* Game routes - only for normal players */}
