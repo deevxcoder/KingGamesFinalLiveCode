@@ -88,7 +88,8 @@ export default function AdminSettingsPage() {
       const modes = ['jodi', 'harf', 'crossing', 'odd_even'];
       const results = await Promise.all(
         modes.map(mode => 
-          apiRequest(`/api/game-odds?gameType=satamatka_${mode}`)
+          apiRequest("GET", `/api/game-odds?gameType=satamatka_${mode}`)
+            .then(res => res.json())
         )
       );
       
