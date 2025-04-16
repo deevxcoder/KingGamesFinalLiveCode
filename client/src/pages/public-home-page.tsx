@@ -325,14 +325,14 @@ export default function PublicHomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-16 bg-card/30" id="features">
+      <section className="py-16 bg-slate-900/40" id="features">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-12">Why Choose Us</h2>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="border-border">
               <CardHeader>
-                <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                   <Trophy className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Simple Betting</CardTitle>
@@ -349,7 +349,7 @@ export default function PublicHomePage() {
             
             <Card className="border-border">
               <CardHeader>
-                <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                   <Target className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Real-Time Results</CardTitle>
@@ -366,7 +366,7 @@ export default function PublicHomePage() {
             
             <Card className="border-border">
               <CardHeader>
-                <div className="mb-2 h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                   <Shield className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Safe & Secure</CardTitle>
@@ -460,7 +460,7 @@ export default function PublicHomePage() {
       </section>
 
       {/* Recent Activity Section */}
-      <section className="py-16 bg-card/20" id="recent-activity">
+      <section className="py-16 bg-slate-950/30" id="recent-activity">
         <div className="container mx-auto px-4">
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">Recent Activity</h2>
           
