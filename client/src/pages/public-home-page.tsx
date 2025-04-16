@@ -332,7 +332,7 @@ export default function PublicHomePage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             <Card className="border-border">
               <CardHeader>
-                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-800 flex items-center justify-center">
                   <Trophy className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Simple Betting</CardTitle>
@@ -349,7 +349,7 @@ export default function PublicHomePage() {
             
             <Card className="border-border">
               <CardHeader>
-                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-800 flex items-center justify-center">
                   <Target className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Real-Time Results</CardTitle>
@@ -366,7 +366,7 @@ export default function PublicHomePage() {
             
             <Card className="border-border">
               <CardHeader>
-                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
+                <div className="mb-2 h-12 w-12 rounded-lg bg-slate-800 flex items-center justify-center">
                   <Shield className="h-6 w-6 text-primary" />
                 </div>
                 <CardTitle>Safe & Secure</CardTitle>
@@ -392,7 +392,7 @@ export default function PublicHomePage() {
           <div className="grid md:grid-cols-3 gap-6">
             <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="pb-2 flex flex-row items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xl font-bold shrink-0 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-primary text-xl font-bold shrink-0 shadow-sm">
                   1
                 </div>
                 <div>
@@ -411,7 +411,7 @@ export default function PublicHomePage() {
             
             <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="pb-2 flex flex-row items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xl font-bold shrink-0 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-primary text-xl font-bold shrink-0 shadow-sm">
                   2
                 </div>
                 <div>
@@ -430,7 +430,7 @@ export default function PublicHomePage() {
             
             <Card className="border-border shadow-sm hover:shadow-md transition-shadow">
               <CardHeader className="pb-2 flex flex-row items-start space-x-4">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xl font-bold shrink-0 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center text-primary text-xl font-bold shrink-0 shadow-sm">
                   3
                 </div>
                 <div>
