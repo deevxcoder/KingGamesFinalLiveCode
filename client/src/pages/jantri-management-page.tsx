@@ -141,10 +141,11 @@ export default function JantriManagementPage() {
     numberRows.push(allNumbers.slice(i, i + columnsPerRow));
   }
   
-  // Game types for filtering
+  // Game types and market filters
   const gameTypes = ["All Games", "Jodi", "Harf", "Crossing", "Odd_Even"];
   const [activeGameType, setActiveGameType] = useState("All Games");
   const [selectedStatGameType, setSelectedStatGameType] = useState("All Games");
+  const [selectedMarketFilter, setSelectedMarketFilter] = useState("All Markets");
   
   // Calculate overall stats for all numbers
   const calculateOverallStats = () => {
@@ -380,22 +381,56 @@ export default function JantriManagementPage() {
         </Card>
       </div>
       
-      {/* Game Type Filter */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Filter by Game Type:</span>
+      {/* Filters Section */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div className="w-full md:w-auto flex flex-col md:flex-row gap-4 items-start md:items-center">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filters:</span>
+          </div>
+          
+          <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+            {/* Market Filter */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Market:</span>
+              <Select value={selectedMarketFilter} onValueChange={setSelectedMarketFilter}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="Select Market" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All Markets">All Markets</SelectItem>
+                  {displayStats.map(market => (
+                    <SelectItem key={market.marketId} value={market.marketName}>
+                      {market.marketName}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Game Type Filter */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-muted-foreground">Game Type:</span>
+              <Select value={activeGameType} onValueChange={setActiveGameType}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <SelectValue placeholder="Select Game Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {gameTypes.map(type => (
+                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
-        <Select value={activeGameType} onValueChange={setActiveGameType}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select Game Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {gameTypes.map(type => (
-              <SelectItem key={type} value={type}>{type}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        
+        <div className="hidden md:flex">
+          <Badge variant="outline" className="bg-primary/5 text-primary">
+            {selectedMarketFilter !== "All Markets" ? selectedMarketFilter : "All Markets"} • 
+            {activeGameType !== "All Games" ? ` ${activeGameType} Games` : " All Game Types"}
+          </Badge>
+        </div>
       </div>
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
