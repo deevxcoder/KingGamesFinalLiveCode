@@ -80,7 +80,8 @@ export default function AuthPage() {
       <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8 bg-background">
         <Card className="w-full max-w-md mx-auto">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">
+            <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+              <img src="/images/royal-k-logo.svg" alt="Royal K Logo" className="w-8 h-8" />
               <span className="text-primary">King</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
             </CardTitle>
@@ -214,7 +215,14 @@ export default function AuthPage() {
       {/* Right side - Hero */}
       <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-slate-900 to-primary/80 p-8 flex-col justify-center text-white">
         <div className="max-w-md mx-auto">
-          <h1 className="text-4xl font-bold mb-4">Welcome to <span className="text-white">King</span><span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-amber-300">Games</span></h1>
+          <h1 className="text-4xl font-bold mb-4 flex items-center gap-2">
+            Welcome to 
+            <span className="flex items-center">
+              <img src="/images/royal-k-logo.svg" alt="Royal K Logo" className="w-10 h-10 mr-1" />
+              <span className="text-white">King</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-amber-300">Games</span>
+            </span>
+          </h1>
           <h2 className="text-xl mb-6">The premier online gaming platform</h2>
           
           <div className="space-y-4">

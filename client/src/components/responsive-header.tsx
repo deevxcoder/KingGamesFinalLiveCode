@@ -34,7 +34,8 @@ export default function ResponsiveHeader() {
     return (
       <header className="w-full bg-card/50 border-b border-border py-4">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold flex items-center gap-1">
+            <img src="/images/royal-k-logo.svg" alt="Royal K Logo" className="w-7 h-7" />
             <span className="text-primary">King</span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
           </h1>
@@ -56,7 +57,8 @@ export default function ResponsiveHeader() {
     <header className="w-full bg-card/50 border-b border-border py-3 sticky top-0 z-40">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold">
+          <h1 className="text-2xl font-bold flex items-center gap-1">
+            <img src="/images/royal-k-logo.svg" alt="Royal K Logo" className="w-7 h-7" />
             <span className="text-primary">King</span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
           </h1>
@@ -98,7 +100,8 @@ export default function ResponsiveHeader() {
             <SheetContent side="right">
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold">
+                  <h2 className="text-xl font-bold flex items-center gap-1">
+                    <img src="/images/royal-k-logo.svg" alt="Royal K Logo" className="w-6 h-6" />
                     <span className="text-primary">King</span>
                     <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
                   </h2>
