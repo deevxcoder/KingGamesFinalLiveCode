@@ -56,14 +56,14 @@ import { format } from "date-fns";
 // Game modes in the Satamatka game
 const GAME_MODES = {
   jodi: "Jodi (Full Number)",
-  hurf: "Hurf (Single Digit)",
-  cross: "Cross Digit",
+  harf: "Harf (Single Digit)",
+  crossing: "Crossing Digit",
   odd_even: "Odd-Even",
 };
 
 // Define the form schema
 const formSchema = z.object({
-  gameMode: z.enum(["jodi", "hurf", "cross", "odd_even"], {
+  gameMode: z.enum(["jodi", "harf", "crossing", "odd_even"], {
     required_error: "Please select a game mode",
   }),
   prediction: z.string().min(1, "Prediction is required"),
@@ -109,17 +109,11 @@ export default function SatamatkaGame() {
   // Mutation for placing a bet
   const placeBetMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      return apiRequest("/api/satamatka/play", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          marketId: marketId,
-          gameMode: data.gameMode,
-          prediction: data.prediction,
-          betAmount: data.betAmount,
-        }),
+      return apiRequest("/api/satamatka/play", "POST", {
+        marketId: marketId,
+        gameMode: data.gameMode,
+        prediction: data.prediction,
+        betAmount: data.betAmount,
       });
     },
     onSuccess: () => {
@@ -183,7 +177,7 @@ export default function SatamatkaGame() {
           })}
         </div>
       );
-    } else if (selectedGameMode === "hurf" || selectedGameMode === "cross") {
+    } else if (selectedGameMode === "harf" || selectedGameMode === "crossing") {
       // Generate grid of 10 numbers (0-9)
       return (
         <div className="grid grid-cols-5 gap-2 p-2">
@@ -232,9 +226,9 @@ export default function SatamatkaGame() {
     switch (selectedGameMode) {
       case "jodi":
         return "Predict the exact two-digit number (00-99). Payout ratio: 90x";
-      case "hurf":
+      case "harf":
         return "Predict a single digit (0-9). Payout ratio: 9x";
-      case "cross":
+      case "crossing":
         return "Predict a single digit that appears in either position. Payout ratio: 4.5x";
       case "odd_even":
         return "Predict if the result will be odd or even. Payout ratio: 1.8x";
@@ -474,10 +468,10 @@ function calculatePotentialWin(gameMode: string, betAmount: number): number {
     case "jodi":
       payoutRatio = 90;
       break;
-    case "hurf":
+    case "harf":
       payoutRatio = 9;
       break;
-    case "cross":
+    case "crossing":
       payoutRatio = 4.5;
       break;
     case "odd_even":
