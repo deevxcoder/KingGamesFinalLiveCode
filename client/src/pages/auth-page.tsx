@@ -179,7 +179,7 @@ export default function AuthPage() {
                     
                     <Button
                       type="submit"
-                      className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700"
+                      className="w-full bg-gradient-to-r from-primary to-blue-400 hover:from-blue-600 hover:to-primary-focus"
                       disabled={registerMutation.isPending}
                     >
                       {registerMutation.isPending ? "Creating account..." : "Create Account"}
@@ -212,9 +212,9 @@ export default function AuthPage() {
       </div>
       
       {/* Right side - Hero */}
-      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-primary/90 to-blue-500/90 p-8 flex-col justify-center text-white">
+      <div className="hidden md:flex md:w-1/2 bg-gradient-to-br from-slate-900 to-primary/80 p-8 flex-col justify-center text-white">
         <div className="max-w-md mx-auto">
-          <h1 className="text-4xl font-bold mb-4">Welcome to <span className="text-white">King</span><span className="text-amber-300">Games</span></h1>
+          <h1 className="text-4xl font-bold mb-4">Welcome to <span className="text-white">King</span><span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-amber-300">Games</span></h1>
           <h2 className="text-xl mb-6">The premier online gaming platform</h2>
           
           <div className="space-y-4">
