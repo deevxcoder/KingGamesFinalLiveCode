@@ -3,6 +3,10 @@ import {
   games, 
   satamatkaMarkets,
   teamMatches,
+  systemSettings,
+  subadminCommissions,
+  userDiscounts,
+  gameOdds,
   User, 
   InsertUser, 
   Game, 
@@ -11,7 +15,15 @@ import {
   SatamatkaMarket,
   InsertSatamatkaMarket,
   TeamMatch,
-  InsertTeamMatch
+  InsertTeamMatch,
+  SystemSetting,
+  InsertSystemSetting,
+  SubadminCommission,
+  InsertSubadminCommission,
+  UserDiscount,
+  InsertUserDiscount,
+  GameOdd,
+  InsertGameOdd
 } from "@shared/schema";
 
 // Temporary solution until we update the schema
@@ -67,6 +79,24 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getTransactionsByUserId(userId: number): Promise<Transaction[]>;
   getAllTransactions(limit?: number): Promise<Transaction[]>;
+
+  // System Settings methods
+  getSystemSetting(settingType: string, settingKey: string): Promise<SystemSetting | undefined>;
+  upsertSystemSetting(settingType: string, settingKey: string, settingValue: string): Promise<SystemSetting>;
+  getSystemSettingsByType(settingType: string): Promise<SystemSetting[]>;
+  
+  // Subadmin Commission methods
+  getSubadminCommissions(subadminId: number): Promise<SubadminCommission[]>;
+  upsertSubadminCommission(subadminId: number, gameType: string, commissionRate: number): Promise<SubadminCommission>;
+  
+  // User Discount methods
+  getUserDiscounts(userId: number, subadminId: number): Promise<UserDiscount[]>;
+  upsertUserDiscount(subadminId: number, userId: number, gameType: string, discountRate: number): Promise<UserDiscount>;
+  
+  // Game Odds methods
+  getGameOdds(gameType: string): Promise<GameOdd[]>;
+  getGameOddsBySubadmin(subadminId: number, gameType?: string): Promise<GameOdd[]>;
+  upsertGameOdd(gameType: string, oddValue: number, setByAdmin: boolean, subadminId?: number): Promise<GameOdd>;
 
   // Session store
   sessionStore: session.Store;

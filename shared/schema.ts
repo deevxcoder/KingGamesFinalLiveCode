@@ -437,7 +437,7 @@ export type UserDiscount = typeof userDiscounts.$inferSelect;
 export const gameOdds = pgTable("game_odds", {
   id: serial("id").primaryKey(),
   gameType: text("game_type").notNull(), // satamatka_single, satamatka_jodi, etc.
-  oddValue: decimal("odd_value", { precision: 10, scale: 2 }).notNull(), // multiplier
+  oddValue: integer("odd_value").notNull(), // multiplier (stored as integer, e.g. 250 = 2.50x)
   setByAdmin: boolean("set_by_admin").default(true).notNull(), // true if set by admin, false if by subadmin
   subadminId: integer("subadmin_id").references(() => users.id, { onDelete: "cascade" }),
   isActive: boolean("is_active").default(true).notNull(),
