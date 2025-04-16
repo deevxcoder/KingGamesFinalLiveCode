@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, foreignKey, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, foreignKey, json, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -386,4 +386,79 @@ export const walletRequestsRelations = relations(walletRequests, ({ one, many })
 
 export const teamMatchesRelations = relations(teamMatches, ({ many }) => ({
   games: many(games, { relationName: "teamMatchGames" }),
+}));
+
+// System Settings Schema
+export const systemSettings = pgTable("system_settings", {
+  id: serial("id").primaryKey(),
+  settingType: text("setting_type").notNull(), // payment, odds, commission, etc.
+  settingKey: text("setting_key").notNull(),
+  settingValue: text("setting_value").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSystemSettingSchema = createInsertSchema(systemSettings);
+export type InsertSystemSetting = z.infer<typeof insertSystemSettingSchema>;
+export type SystemSetting = typeof systemSettings.$inferSelect;
+
+// SubAdmin Commission Schema
+export const subadminCommissions = pgTable("subadmin_commissions", {
+  id: serial("id").primaryKey(),
+  subadminId: integer("subadmin_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  gameType: text("game_type").notNull(), // satamatka_single, satamatka_jodi, etc.
+  commissionRate: integer("commission_rate").notNull(), // percentage (stored as integer, e.g. 525 = 5.25%)
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertSubadminCommissionSchema = createInsertSchema(subadminCommissions);
+export type InsertSubadminCommission = z.infer<typeof insertSubadminCommissionSchema>;
+export type SubadminCommission = typeof subadminCommissions.$inferSelect;
+
+// User Discount Schema (set by subadmin)
+export const userDiscounts = pgTable("user_discounts", {
+  id: serial("id").primaryKey(),
+  subadminId: integer("subadmin_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  gameType: text("game_type").notNull(), // satamatka_single, satamatka_jodi, etc.
+  discountRate: integer("discount_rate").notNull(), // percentage (stored as integer, e.g. 525 = 5.25%)
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertUserDiscountSchema = createInsertSchema(userDiscounts);
+export type InsertUserDiscount = z.infer<typeof insertUserDiscountSchema>;
+export type UserDiscount = typeof userDiscounts.$inferSelect;
+
+// Game Odds Schema
+export const gameOdds = pgTable("game_odds", {
+  id: serial("id").primaryKey(),
+  gameType: text("game_type").notNull(), // satamatka_single, satamatka_jodi, etc.
+  oddValue: decimal("odd_value", { precision: 10, scale: 2 }).notNull(), // multiplier
+  setByAdmin: boolean("set_by_admin").default(true).notNull(), // true if set by admin, false if by subadmin
+  subadminId: integer("subadmin_id").references(() => users.id, { onDelete: "cascade" }),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertGameOddSchema = createInsertSchema(gameOdds);
+export type InsertGameOdd = z.infer<typeof insertGameOddSchema>;
+export type GameOdd = typeof gameOdds.$inferSelect;
+
+// Relations
+export const subadminCommissionsRelations = relations(subadminCommissions, ({ one }) => ({
+  subadmin: one(users, { fields: [subadminCommissions.subadminId], references: [users.id] }),
+}));
+
+export const userDiscountsRelations = relations(userDiscounts, ({ one }) => ({
+  subadmin: one(users, { fields: [userDiscounts.subadminId], references: [users.id] }),
+  user: one(users, { fields: [userDiscounts.userId], references: [users.id] }),
+}));
+
+export const gameOddsRelations = relations(gameOdds, ({ one }) => ({
+  subadmin: one(users, { fields: [gameOdds.subadminId], references: [users.id] }),
 }));
