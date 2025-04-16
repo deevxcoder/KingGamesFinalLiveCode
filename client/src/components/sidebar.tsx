@@ -156,8 +156,9 @@ export default function Sidebar() {
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 h-full bg-slate-900 border-r border-slate-800">
         <div className="p-4 flex items-center justify-center border-b border-slate-800">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-500">
-            CoinFlip
+          <h1 className="text-2xl font-bold">
+            <span className="text-primary">King</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
           </h1>
         </div>
         
@@ -168,7 +169,7 @@ export default function Sidebar() {
                 <Link href={item.path}
                   className={cn(
                     "flex items-center px-4 py-3 text-slate-200 hover:bg-slate-800 hover:text-white rounded-lg mx-2 transition-colors",
-                    location === item.path && "bg-gradient-to-r from-indigo-800 to-blue-700 text-white"
+                    location === item.path && "bg-gradient-to-r from-primary to-purple-700 text-white"
                   )}>
                     {item.icon}
                     {item.name}
@@ -181,7 +182,7 @@ export default function Sidebar() {
         {/* User Info */}
         <div className="p-4 border-t border-slate-800">
           <div className="flex items-center">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-700 to-blue-600 flex items-center justify-center text-white font-bold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-white font-bold">
               <span>{user?.username?.charAt(0).toUpperCase()}</span>
             </div>
             <div className="ml-3">
@@ -203,8 +204,9 @@ export default function Sidebar() {
       
       {/* Mobile Nav */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-slate-900 border-b border-slate-800 p-4 flex items-center justify-between">
-        <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-500">
-          CoinFlip
+        <h1 className="text-xl font-bold">
+          <span className="text-primary">King</span>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
         </h1>
         <Button 
           variant="ghost" 
@@ -230,7 +232,7 @@ export default function Sidebar() {
                     href={item.path}
                     className={cn(
                       "flex items-center px-4 py-3 text-slate-200 hover:bg-slate-800 hover:text-white rounded-lg transition-colors",
-                      location === item.path && "bg-gradient-to-r from-indigo-800 to-blue-700 text-white"
+                      location === item.path && "bg-gradient-to-r from-primary to-purple-700 text-white"
                     )}
                     onClick={toggleMobileMenu}
                   >
@@ -254,7 +256,7 @@ export default function Sidebar() {
             </Button>
             
             <div className="mt-4 flex items-center">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-700 to-blue-600 flex items-center justify-center text-white font-bold text-sm">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-primary to-purple-600 flex items-center justify-center text-white font-bold text-sm">
                 <span>{user?.username?.charAt(0).toUpperCase()}</span>
               </div>
               <div className="ml-2">

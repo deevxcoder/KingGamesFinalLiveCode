@@ -160,7 +160,7 @@ export default function ProfessionalFooter() {
         
         <div className="flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-muted-foreground mb-4 md:mb-0">
-            &copy; {currentYear} CoinFlip. All rights reserved.
+            &copy; {currentYear} <span className="text-primary">King</span><span className="text-purple-400">Games</span>. All rights reserved.
           </p>
           <div className="flex space-x-6">
             <Link 
@@ -187,7 +187,7 @@ export default function ProfessionalFooter() {
         {/* Made with love */}
         <div className="mt-6 text-center">
           <p className="text-xs text-muted-foreground flex items-center justify-center">
-            Made with <Heart className="h-3 w-3 mx-1 text-red-500" /> by CoinFlip Team
+            Made with <Heart className="h-3 w-3 mx-1 text-red-500" /> by <span className="text-primary ml-1">King</span><span className="text-purple-400">Games</span> Team
           </p>
         </div>
       </div>
