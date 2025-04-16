@@ -34,8 +34,9 @@ export default function ResponsiveHeader() {
     return (
       <header className="w-full bg-card/50 border-b border-border py-4">
         <div className="container mx-auto px-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400">
-            CoinFlip
+          <h1 className="text-2xl font-bold">
+            <span className="text-primary">King</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
           </h1>
           <div className="flex">
             <Button
@@ -55,8 +56,9 @@ export default function ResponsiveHeader() {
     <header className="w-full bg-card/50 border-b border-border py-3 sticky top-0 z-40">
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400">
-            CoinFlip
+          <h1 className="text-2xl font-bold">
+            <span className="text-primary">King</span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
           </h1>
         </div>
         
@@ -96,8 +98,9 @@ export default function ResponsiveHeader() {
             <SheetContent side="right">
               <div className="flex flex-col h-full">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400">
-                    CoinFlip
+                  <h2 className="text-xl font-bold">
+                    <span className="text-primary">King</span>
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
                   </h2>
                   <SheetClose asChild>
                     <Button variant="ghost" size="icon">

@@ -79,8 +79,9 @@ export default function AuthPage() {
       <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8 bg-background">
         <Card className="w-full max-w-md mx-auto">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-400">
-              CoinFlip
+            <CardTitle className="text-2xl font-bold text-center">
+              <span className="text-primary">King</span>
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
             </CardTitle>
             <CardDescription className="text-center">
               Sign in to your account or create a new one
