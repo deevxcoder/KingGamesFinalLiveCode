@@ -211,82 +211,25 @@ export default function ActionHistoryPage() {
         <CardHeader>
           <CardTitle>Risk Management</CardTitle>
           <CardDescription>
-            View transactions and game history
+            Advanced risk analytics and management tools
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="transactions" onValueChange={setTab} value={tab}>
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-              <TabsList className="mb-4 md:mb-0">
-                <TabsTrigger value="transactions">Transactions</TabsTrigger>
-                <TabsTrigger value="games">Games</TabsTrigger>
-              </TabsList>
-              
-              <div className="flex flex-col md:flex-row gap-4 md:items-center">
-                <div className="relative">
-                  <Search className="absolute left-2 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search user..."
-                    value={searchTerm}
-                    onChange={handleSearchChange}
-                    className="pl-8 w-full md:w-60"
-                  />
-                </div>
-                
-                {tab === "transactions" && (
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="transaction-filter" className="hidden md:inline">Filter:</Label>
-                    <Select value={transactionFilter} onValueChange={setTransactionFilter}>
-                      <SelectTrigger id="transaction-filter" className="w-full md:w-40">
-                        <SelectValue placeholder="Filter transactions" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Transactions</SelectItem>
-                        <SelectItem value="positive">Deposits Only</SelectItem>
-                        <SelectItem value="negative">Withdrawals Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-                
-                {tab === "games" && (
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="game-filter" className="hidden md:inline">Filter:</Label>
-                    <Select value={gameFilter} onValueChange={setGameFilter}>
-                      <SelectTrigger id="game-filter" className="w-full md:w-40">
-                        <SelectValue placeholder="Filter games" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Games</SelectItem>
-                        <SelectItem value="wins">Wins Only</SelectItem>
-                        <SelectItem value="losses">Losses Only</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-              </div>
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+              <Filter className="h-10 w-10 text-primary" />
             </div>
-            
-            <TabsContent value="transactions" className="mt-0">
-              {transactionsLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                renderTransactionsTable()
-              )}
-            </TabsContent>
-            
-            <TabsContent value="games" className="mt-0">
-              {gamesLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              ) : (
-                renderGamesTable()
-              )}
-            </TabsContent>
-          </Tabs>
+            <h2 className="text-2xl font-bold mb-2">Coming Soon</h2>
+            <p className="text-muted-foreground max-w-md mb-8">
+              Our team is working on building powerful risk management tools to help you analyze betting patterns, 
+              identify risk factors, and protect your business. This feature will be available in the next update.
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse"></div>
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse delay-150"></div>
+              <div className="h-2 w-2 rounded-full bg-primary animate-pulse delay-300"></div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </DashboardLayout>
