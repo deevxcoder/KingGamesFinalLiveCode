@@ -14,7 +14,7 @@ import GamePage from "@/pages/game-page";
 import UserManagementPage from "@/pages/user-management-page";
 import SubadminManagementPage from "@/pages/subadmin-management-page";
 import GameHistoryPage from "@/pages/game-history-page";
-import ActionHistoryPage from "@/pages/action-history-page";
+import RiskManagementPage from "@/pages/risk-management-page";
 import MarketListPage from "@/pages/market-list-page";
 import SatamatkaGamePage from "@/pages/satamatka-game-page";
 import TeamMatchPage from "@/pages/team-match-page";
@@ -46,7 +46,7 @@ function Router() {
       />
       <ProtectedRoute 
         path="/risk-management" 
-        component={ActionHistoryPage}
+        component={RiskManagementPage}
         allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
       />
       <ProtectedRoute 

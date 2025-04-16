@@ -118,7 +118,7 @@ export default function Sidebar() {
       icon: <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7m-7-7v14"></path>
             </svg>,
-      visible: true,
+      visible: isRegularUser,
     },
   ];
   
@@ -131,7 +131,7 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-slate-900 border-r border-slate-800">
+      <aside className="hidden lg:flex flex-col w-64 h-full bg-slate-900 border-r border-slate-800">
         <div className="p-4 flex items-center justify-center border-b border-slate-800">
           <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-500">
             CoinFlip
