@@ -212,7 +212,96 @@ export default function JantriManagementPage() {
     };
   };
   
+  // Calculate filtered stats based on selected market and game type
+  const calculateFilteredStats = () => {
+    if (!jantriStats || jantriStats.length === 0) {
+      return {
+        totalActiveBets: 0,
+        totalActiveUsers: 0,
+        totalBetAmount: 0,
+        totalPotentialWin: 0
+      };
+    }
+    
+    let totalActiveBets = 0;
+    let totalBetAmount = 0;
+    let totalPotentialWin = 0;
+    const uniqueUsers = new Set<number>();
+    
+    const filteredMarkets = selectedMarketFilter === "All Markets" 
+      ? jantriStats 
+      : jantriStats.filter(market => market.marketName === selectedMarketFilter);
+    
+    // Distribution multiplier based on selected game type
+    const gameTypeMultiplier = {
+      "All Games": 1,
+      "Jodi": 0.4,  // 40% of bets are Jodi in our simulation
+      "Harf": 0.2,  // 20% of bets are Harf
+      "Crossing": 0.2, // 20% of bets are Crossing
+      "Odd_Even": 0.2  // 20% of bets are Odd/Even
+    };
+    
+    const multiplier = gameTypeMultiplier[activeGameType as keyof typeof gameTypeMultiplier] || 1;
+    
+    filteredMarkets.forEach(market => {
+      market.numbers.forEach(numStats => {
+        if (numStats.totalBets > 0) {
+          // Apply the multiplier based on game type filter
+          const adjustedBets = activeGameType === "All Games" 
+            ? numStats.totalBets 
+            : Math.round(numStats.totalBets * multiplier);
+            
+          const adjustedAmount = activeGameType === "All Games" 
+            ? numStats.totalAmount 
+            : numStats.totalAmount * multiplier;
+            
+          const adjustedPotentialWin = activeGameType === "All Games" 
+            ? numStats.potentialWinAmount 
+            : numStats.potentialWinAmount * multiplier;
+          
+          totalActiveBets += adjustedBets;
+          totalBetAmount += adjustedAmount;
+          totalPotentialWin += adjustedPotentialWin;
+          uniqueUsers.add(numStats.uniqueUsers);
+        }
+      });
+    });
+    
+    return {
+      totalActiveBets,
+      totalActiveUsers: uniqueUsers.size,
+      totalBetAmount,
+      totalPotentialWin
+    };
+  };
+  
   const overallStats = calculateOverallStats();
+  const filteredStats = calculateFilteredStats();
+  
+  // Set active tab based on selected market filter
+  useEffect(() => {
+    if (selectedMarketFilter !== "All Markets") {
+      // Find the market ID for the selected market name
+      const marketId = displayStats.find(m => m.marketName === selectedMarketFilter)?.marketId;
+      if (marketId) {
+        setActiveTab(marketId.toString());
+      }
+    } else {
+      setActiveTab("all");
+    }
+  }, [selectedMarketFilter, displayStats]);
+  
+  // Sync market filter with active tab
+  useEffect(() => {
+    if (activeTab !== "all") {
+      const marketName = displayStats.find(m => m.marketId.toString() === activeTab)?.marketName;
+      if (marketName && marketName !== selectedMarketFilter) {
+        setSelectedMarketFilter(marketName);
+      }
+    } else if (selectedMarketFilter !== "All Markets") {
+      setSelectedMarketFilter("All Markets");
+    }
+  }, [activeTab, displayStats]);
   
   return (
     <DashboardLayout title="Jantri Management">
@@ -432,6 +521,96 @@ export default function JantriManagementPage() {
           </Badge>
         </div>
       </div>
+      
+      {/* Filtered Stats Section */}
+      {(selectedMarketFilter !== "All Markets" || activeGameType !== "All Games") && (
+        <div className="mb-6">
+          <div className="flex items-center mb-4">
+            <Filter className="h-4 w-4 mr-2 text-primary" />
+            <h3 className="text-lg font-medium">
+              Filtered Statistics: 
+              <span className="text-primary ml-2">
+                {selectedMarketFilter !== "All Markets" ? selectedMarketFilter : "All Markets"} •
+                {activeGameType !== "All Games" ? ` ${activeGameType}` : " All Games"}
+              </span>
+            </h3>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="border border-primary/10 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Active Bets</p>
+                    <p className="text-2xl font-bold text-foreground">{filteredStats.totalActiveBets}</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                    <Calculator className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center text-sm text-primary">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span className="font-medium">Filtered betting activity</span>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border border-primary/10 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Active Users</p>
+                    <p className="text-2xl font-bold text-foreground">{filteredStats.totalActiveUsers}</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                    <Users className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center text-sm text-primary">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span className="font-medium">Unique filtered players</span>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border border-primary/10 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Bet Amount</p>
+                    <p className="text-2xl font-bold text-foreground">₹{(filteredStats.totalBetAmount / 100).toFixed(2)}</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                    <DollarSign className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center text-sm text-primary">
+                  <TrendingUp className="h-4 w-4 mr-1" />
+                  <span className="font-medium">Filtered amount at stake</span>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card className="border border-amber-500/20 shadow-md bg-gradient-to-br from-amber-500/5 to-amber-500/10">
+              <CardContent className="pt-6">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Potential Payout</p>
+                    <p className="text-2xl font-bold text-amber-500">₹{(filteredStats.totalPotentialWin / 100).toFixed(2)}</p>
+                  </div>
+                  <div className="h-12 w-12 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500">
+                    <ArrowUpRight className="h-6 w-6" />
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center text-sm text-amber-500">
+                  <AlertTriangle className="h-4 w-4 mr-1" />
+                  <span className="font-medium">Filtered potential payouts</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
       
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
