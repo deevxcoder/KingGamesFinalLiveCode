@@ -668,11 +668,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           case SatamatkaGameMode.JODI:
             // For Jodi, prediction should be a two-digit number
             return /^[0-9]{2}$/.test(prediction);
-          case SatamatkaGameMode.HURF:
-            // For Hurf, prediction should be a single digit
+          case SatamatkaGameMode.HARF:
+            // For Harf, prediction should be a single digit
             return /^[0-9]$/.test(prediction);
-          case SatamatkaGameMode.CROSS:
-            // For Cross, prediction should be a single digit
+          case SatamatkaGameMode.CROSSING:
+            // For Crossing, prediction should be a single digit
             return /^[0-9]$/.test(prediction);
           case SatamatkaGameMode.ODD_EVEN:
             // For Odd-Even, prediction should be "odd" or "even"
