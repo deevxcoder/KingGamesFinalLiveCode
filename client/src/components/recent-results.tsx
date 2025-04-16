@@ -70,13 +70,13 @@ export default function RecentResults({ results }: RecentResultsProps) {
           <TabsList className="mb-4 bg-slate-800/60">
             <TabsTrigger 
               value="today" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-800 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-700 data-[state=active]:text-white"
             >
               Today
             </TabsTrigger>
             <TabsTrigger 
               value="all" 
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-indigo-800 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-purple-700 data-[state=active]:text-white"
             >
               All Results
             </TabsTrigger>
@@ -102,7 +102,7 @@ export default function RecentResults({ results }: RecentResultsProps) {
       <CardFooter className="pt-1">
         <Button 
           variant="ghost" 
-          className="w-full text-blue-400 hover:text-blue-300 hover:bg-slate-800/60 flex items-center justify-center"
+          className="w-full text-primary hover:text-purple-400 hover:bg-slate-800/60 flex items-center justify-center"
           onClick={() => setLocation("/markets")}
         >
           View All Results
@@ -129,7 +129,15 @@ function ResultItem({ result }: { result: MarketResult }) {
 
   const formatResult = (result?: string) => {
     if (!result) return "-";
-    return result;
+    
+    // For Dishawar and Gali markets, ensure two-digit format with leading zero if needed
+    if (result.length === 1) {
+      return `0${result}`;
+    } else if (result.length === 2) {
+      return result;
+    } else {
+      return result;
+    }
   };
 
   const timeAgo = formatDistanceToNow(new Date(result.createdAt), { addSuffix: true });
@@ -150,7 +158,11 @@ function ResultItem({ result }: { result: MarketResult }) {
       <div className="flex justify-center mt-3 text-sm">
         <div className="text-center">
           <p className="text-xs text-slate-500">Result</p>
-          <p className="font-medium text-2xl text-pink-400">{formatResult(result.openResult)}</p>
+          <p className={`font-medium text-3xl ${result.name === "Dishawar" || result.name === "Gali" 
+            ? "text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary"
+            : "text-pink-400"}`}>
+            {formatResult(result.openResult)}
+          </p>
         </div>
       </div>
     </div>
