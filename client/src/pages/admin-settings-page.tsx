@@ -390,7 +390,7 @@ export default function AdminSettingsPage() {
                 <>
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-lg font-medium">Coin Flip</h3>
+                      <h3 className="text-lg font-medium">Royal Toss Game</h3>
                       <Separator className="my-2" />
                       <div className="space-y-2">
                         <Label htmlFor="coinFlipOdds">Win Multiplier</Label>
@@ -494,7 +494,7 @@ export default function AdminSettingsPage() {
               <div className="space-y-4">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="commission-coin-flip">Coin Flip Commission</Label>
+                    <Label htmlFor="commission-coin-flip">Royal Toss Commission</Label>
                     <div className="flex items-center gap-2">
                       <Input 
                         id="commission-coin-flip" 

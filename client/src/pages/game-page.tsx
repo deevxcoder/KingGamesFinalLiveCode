@@ -15,7 +15,7 @@ export default function GamePage() {
   });
 
   return (
-    <DashboardLayout title="Coin Flip Game">
+    <DashboardLayout title="Royal Coin Toss">
       {/* Balance and Stats Bar */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
         <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 w-full lg:w-auto">

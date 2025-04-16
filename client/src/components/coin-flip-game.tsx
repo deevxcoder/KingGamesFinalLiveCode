@@ -129,7 +129,11 @@ export default function CoinFlipGame() {
   return (
     <Card className="bg-card rounded-xl shadow-xl border border-border mb-8">
       <CardHeader>
-        <CardTitle className="text-xl font-bold text-center">Coin Toss Game</CardTitle>
+        <CardTitle className="text-xl font-bold text-center">
+          <span className="text-primary">King</span>
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
+          <span className="ml-2">Royal Toss</span>
+        </CardTitle>
       </CardHeader>
       
       <CardContent>

@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { UserRole } from "@shared/schema";
+import { UserRole } from "@/lib/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -69,7 +69,7 @@ export default function AuthPage() {
     const { confirmPassword, ...registerData } = data;
     registerMutation.mutate({
       ...registerData,
-      role: "player", // Default role for new registrations
+      role: UserRole.PLAYER, // Default role for new registrations
       assignedTo: null
     });
   };
@@ -222,7 +222,7 @@ export default function AuthPage() {
               <svg className="w-6 h-6 mt-0.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
               </svg>
-              <p>Simple and exciting coin toss game with real-time results</p>
+              <p>Exciting Royal Toss game with real-time results</p>
             </div>
             
             <div className="flex items-start space-x-2">
