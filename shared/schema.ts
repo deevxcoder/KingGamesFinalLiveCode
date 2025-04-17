@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, foreignKey, json, decimal } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, foreignKey, json, jsonb, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
@@ -134,6 +134,7 @@ export const games = pgTable("games", {
   marketId: integer("market_id").references(() => satamatkaMarkets.id),
   matchId: integer("match_id").references(() => teamMatches.id),
   gameMode: text("game_mode"), // For satamatka: "single", "jodi", "patti"
+  gameData: jsonb("game_data"), // For cricket_toss: team names, odds, etc.
 });
 
 export const insertGameSchema = createInsertSchema(games)
@@ -147,6 +148,7 @@ export const insertGameSchema = createInsertSchema(games)
     marketId: true,
     matchId: true,
     gameMode: true,
+    gameData: true,
   })
   .extend({
     gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA, GameType.TEAM_MATCH, GameType.CRICKET_TOSS]),
@@ -156,12 +158,14 @@ export const insertGameSchema = createInsertSchema(games)
       SatamatkaGameMode.CROSSING, 
       SatamatkaGameMode.ODD_EVEN
     ]).optional(),
+    gameData: z.any().optional(), 
   })
   .partial({
     result: true,
     marketId: true,
     matchId: true,
     gameMode: true,
+    gameData: true,
   });
 
 export type InsertGame = z.infer<typeof insertGameSchema>;
