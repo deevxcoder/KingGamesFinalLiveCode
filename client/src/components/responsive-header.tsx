@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Menu, X, Wallet, ChevronDown } from "lucide-react";
+import { Menu, X, Wallet, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { 
@@ -13,9 +13,11 @@ import {
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
-  DropdownMenuTrigger 
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import { UserRole } from "@shared/schema";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function ResponsiveHeader() {
   const [_, setLocation] = useLocation();
@@ -74,17 +76,21 @@ export default function ResponsiveHeader() {
           {/* User dropdown menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" className="rounded-full">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center text-white font-bold text-sm overflow-hidden">
-                  <span>{user.username.charAt(0).toUpperCase()}</span>
-                </div>
+              <Button variant="outline" size="icon" className="rounded-full hover:bg-primary/10 border-primary/20">
+                <Avatar className="h-9 w-9 bg-gradient-to-r from-primary to-blue-400">
+                  <AvatarFallback className="text-white font-bold text-sm">
+                    {user.username.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <div className="flex items-center gap-3 p-3 border-b border-border">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
-                  <span>{user.username.charAt(0).toUpperCase()}</span>
-                </div>
+                <Avatar className="h-12 w-12 bg-gradient-to-r from-primary to-blue-400">
+                  <AvatarFallback className="text-white font-bold text-lg">
+                    {user.username.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="font-medium">{user.username}</p>
                   <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
@@ -99,11 +105,14 @@ export default function ResponsiveHeader() {
                   <span className="font-medium text-sm">₹{(user.balance / 100).toFixed(2)}</span>
                 </div>
               </div>
-              <DropdownMenuItem onClick={() => setLocation("/profile")} className="mt-1">
-                Profile
+              <DropdownMenuItem onClick={() => setLocation("/profile")} className="mt-1 flex items-center gap-2">
+                <UserIcon className="h-4 w-4" />
+                <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
-                Logout
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive flex items-center gap-2">
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -131,9 +140,11 @@ export default function ResponsiveHeader() {
                 </div>
                 
                 <div className="flex items-center mb-6 p-3 bg-muted/50 rounded-lg">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center text-white font-bold text-lg mr-3">
-                    <span>{user.username.charAt(0).toUpperCase()}</span>
-                  </div>
+                  <Avatar className="h-12 w-12 bg-gradient-to-r from-primary to-blue-400 mr-3">
+                    <AvatarFallback className="text-white font-bold text-lg">
+                      {user.username.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
                   <div>
                     <p className="font-medium">{user.username}</p>
                     <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
@@ -148,17 +159,31 @@ export default function ResponsiveHeader() {
                   <span className="font-bold">₹{(user.balance / 100).toFixed(2)}</span>
                 </div>
                 
-                <div className="mt-auto">
+                <div className="space-y-3 mt-4">
+                  <SheetClose asChild>
+                    <Button 
+                      variant="outline" 
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={() => setLocation("/profile")}
+                    >
+                      <UserIcon className="h-4 w-4" />
+                      My Profile
+                    </Button>
+                  </SheetClose>
+                  
                   <SheetClose asChild>
                     <Button 
                       variant="destructive" 
-                      className="w-full"
+                      className="w-full flex items-center justify-center gap-2"
                       onClick={handleLogout}
                     >
+                      <LogOut className="h-4 w-4" />
                       Logout
                     </Button>
                   </SheetClose>
                 </div>
+                
+                <div className="mt-auto"></div>
               </div>
             </SheetContent>
           </Sheet>
