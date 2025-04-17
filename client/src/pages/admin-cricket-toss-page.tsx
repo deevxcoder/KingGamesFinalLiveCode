@@ -352,10 +352,13 @@ export default function AdminCricketTossPage() {
 
   // Get result display
   const getResultDisplay = (result: string | null, game: CricketTossGame) => {
-    if (!game.gameData) return "Pending";
-    if (result === null || result === "pending") return "Pending";
-    if (result === "team_a") return game.gameData.teamA;
-    if (result === "team_b") return game.gameData.teamB;
+    if (result === null || result === "" || result === "pending") return "Pending";
+    if (result === "team_a") {
+      return game.gameData ? game.gameData.teamA : "Team A";
+    }
+    if (result === "team_b") {
+      return game.gameData ? game.gameData.teamB : "Team B";
+    }
     return result;
   };
 
@@ -497,10 +500,10 @@ export default function AdminCricketTossPage() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value={TeamMatchResult.TEAM_A}>
-                          {declareResultGame?.teamA} Won the Toss
+                          {declareResultGame?.gameData?.teamA} Won the Toss
                         </SelectItem>
                         <SelectItem value={TeamMatchResult.TEAM_B}>
-                          {declareResultGame?.teamB} Won the Toss
+                          {declareResultGame?.gameData?.teamB} Won the Toss
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -744,7 +747,71 @@ function CricketTossTable({
       </div>
     );
   }
+
+  // Check if games have gameData property
+  const hasValidGameData = games.some(game => game.gameData);
   
+  if (!hasValidGameData) {
+    return (
+      <div className="border rounded-lg bg-background p-6">
+        <div className="text-center mb-6">
+          <GiCricketBat className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-xl font-medium">Game Data Missing</p>
+          <p className="text-muted-foreground mt-1">
+            The Cricket Toss games exist but do not have complete data.
+            Please create new games with proper game data.
+          </p>
+        </div>
+        
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Game ID</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Result</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {games.map((game) => (
+                <TableRow key={game.id}>
+                  <TableCell>
+                    <div className="font-medium">
+                      Game #{game.id}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      User ID: {game.userId}
+                    </div>
+                  </TableCell>
+                  <TableCell>{formatDate(game.createdAt)}</TableCell>
+                  <TableCell>
+                    <StatusBadge status={game.status} />
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {game.result || "Pending"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button 
+                      variant={game.status === "resulted" ? "outline" : "default"}
+                      size="sm" 
+                      onClick={() => handleDeclareResult(game)}
+                      disabled={game.status !== "open"}
+                    >
+                      <CheckCircle2 className="h-4 w-4 mr-1" />
+                      {game.status === "resulted" ? "Update Result" : "Declare Result"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="border rounded-lg overflow-hidden">
       <Table>
@@ -762,16 +829,24 @@ function CricketTossTable({
           {games.map((game) => (
             <TableRow key={game.id}>
               <TableCell>
-                <div className="font-medium">
-                  {game.gameData?.teamA} vs {game.gameData?.teamB}
-                </div>
-                {game.gameData?.description && (
-                  <div className="text-xs text-muted-foreground mt-1">
-                    {game.gameData.description}
+                {game.gameData ? (
+                  <>
+                    <div className="font-medium">
+                      {game.gameData.teamA} vs {game.gameData.teamB}
+                    </div>
+                    {game.gameData.description && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {game.gameData.description}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="font-medium">
+                    Game #{game.id}
                   </div>
                 )}
               </TableCell>
-              <TableCell>{game.gameData ? formatDate(game.gameData.tossTime) : '-'}</TableCell>
+              <TableCell>{game.gameData ? formatDate(game.gameData.tossTime) : formatDate(game.createdAt)}</TableCell>
               <TableCell>{game.gameData ? `${game.gameData.oddTeamA} / ${game.gameData.oddTeamB}` : '-'}</TableCell>
               <TableCell>
                 <StatusBadge status={game.status} />
@@ -781,15 +856,17 @@ function CricketTossTable({
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => handleEditGame(game)}
-                    disabled={game.status !== "open"}
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
+                  {game.gameData && (
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleEditGame(game)}
+                      disabled={game.status !== "open"}
+                    >
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                  )}
                   <Button 
                     variant={game.status === "resulted" ? "outline" : "default"}
                     size="sm" 
