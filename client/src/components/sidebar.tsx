@@ -67,9 +67,16 @@ export default function Sidebar() {
     },
     // Team Match Management - Admin Only
     {
-      name: "Manage Sports & Toss",
+      name: "Manage Sports",
       path: "/manage-teams",
       icon: <Trophy className="w-5 h-5 mr-3" />,
+      visible: isAdmin,
+    },
+    // Cricket Toss Management - Admin Only
+    {
+      name: "Manage Cricket Toss",
+      path: "/manage-cricket-toss",
+      icon: <GiCricketBat className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
     // Regular Users Only (Game Related)

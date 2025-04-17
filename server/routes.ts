@@ -19,6 +19,7 @@ import {
 } from "@shared/schema";
 import { eq, and, gte, desc } from "drizzle-orm";
 import { setupCricketTossRoutes } from "./cricket-toss";
+import { setupCricketTossApiRoutes } from "./cricket-toss-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes

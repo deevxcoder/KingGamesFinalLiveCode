@@ -21,6 +21,7 @@ import TeamMatchPage from "@/pages/team-match-page";
 import CricketTossPage from "@/pages/cricket-toss-page";
 import AdminMarketManagementPage from "@/pages/admin-market-management-page";
 import AdminTeamMatchPage from "@/pages/admin-team-match-page";
+import AdminCricketTossPage from "@/pages/admin-cricket-toss-page";
 import JantriManagementPage from "@/pages/jantri-management-page";
 import WalletPage from "@/pages/wallet-page";
 import AdminSettingsPage from "@/pages/admin-settings-page";
@@ -85,6 +86,11 @@ function Router() {
       <ProtectedRoute 
         path="/manage-teams" 
         component={AdminTeamMatchPage} 
+        allowedRoles={[UserRole.ADMIN]}
+      />
+      <ProtectedRoute 
+        path="/manage-cricket-toss" 
+        component={AdminCricketTossPage} 
         allowedRoles={[UserRole.ADMIN]}
       />
       
