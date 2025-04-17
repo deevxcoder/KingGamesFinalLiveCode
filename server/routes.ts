@@ -20,6 +20,8 @@ import {
 import { eq, and, gte, desc } from "drizzle-orm";
 import { setupCricketTossRoutes } from "./cricket-toss";
 import { setupCricketTossApiRoutes } from "./cricket-toss-api";
+import { setupWalletRoutes } from "./wallet-system";
+import { setupUploadRoutes } from "./upload-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -30,6 +32,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup Cricket Toss API for admin management
   setupCricketTossApiRoutes(app);
+  
+  // Setup wallet routes for deposits and withdrawals
+  setupWalletRoutes(app);
+  
+  // Setup file upload routes
+  setupUploadRoutes(app);
 
   // Game routes
   app.post("/api/games", async (req, res, next) => {

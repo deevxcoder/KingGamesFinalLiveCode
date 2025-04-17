@@ -195,25 +195,40 @@ export default function WalletPage() {
       }
 
       // Upload proof image first
-      const imageUrl = await uploadProofImage(proofImage);
+      try {
+        const imageUrl = await uploadProofImage(proofImage);
+        
+        // Filter out undefined values from payment details
+        const paymentDetails: Record<string, string> = {};
+        Object.entries(values.paymentDetails).forEach(([key, value]) => {
+          if (value) paymentDetails[key] = value;
+        });
 
-      // Filter out undefined values from payment details
-      const paymentDetails: Record<string, string> = {};
-      Object.entries(values.paymentDetails).forEach(([key, value]) => {
-        if (value) paymentDetails[key] = value;
-      });
-
-      // Create deposit request
-      await createRequestMutation.mutateAsync({
-        amount: values.amount,
-        requestType: RequestType.DEPOSIT,
-        paymentMode: values.paymentMode as PaymentMode,
-        paymentDetails,
-        proofImageUrl: imageUrl,
-        notes: values.notes,
-      });
-    } catch (error) {
+        // Create deposit request
+        await createRequestMutation.mutateAsync({
+          amount: values.amount,
+          requestType: RequestType.DEPOSIT,
+          paymentMode: values.paymentMode as PaymentMode,
+          paymentDetails,
+          proofImageUrl: imageUrl,
+          notes: values.notes,
+        });
+        
+      } catch (uploadError) {
+        console.error("Image upload error:", uploadError);
+        toast({
+          title: "Upload Failed",
+          description: "Failed to upload payment proof. Please try again.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
       console.error("Deposit error:", error);
+      toast({
+        title: "Deposit Request Failed",
+        description: error.message || "An error occurred while processing your deposit request.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -244,8 +259,16 @@ export default function WalletPage() {
         paymentDetails,
         notes: values.notes,
       });
-    } catch (error) {
+      
+      // Success notification handled by the createRequestMutation onSuccess
+      
+    } catch (error: any) {
       console.error("Withdrawal error:", error);
+      toast({
+        title: "Withdrawal Request Failed",
+        description: error.message || "An error occurred while processing your withdrawal request.",
+        variant: "destructive",
+      });
     }
   };
 
