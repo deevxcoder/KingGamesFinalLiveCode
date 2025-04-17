@@ -208,10 +208,14 @@ export default function AdminCricketTossPage() {
     enabled: !!user,
   });
 
-  // Filter games by status
-  const openGames = allGames.filter(game => game.status === "open");
-  const closedGames = allGames.filter(game => game.status === "closed");
-  const resultedGames = allGames.filter(game => game.status === "resulted");
+  // Filter games by result status
+  const openGames = allGames.filter(game => 
+    (game.result === null || game.result === "" || game.result === "pending"));
+  const resultedGames = allGames.filter(game => 
+    (game.result === "team_a" || game.result === "team_b"));
+  const closedGames = allGames.filter(game => 
+    (game.result !== null && game.result !== "" && game.result !== "pending" && 
+     game.result !== "team_a" && game.result !== "team_b"));
 
   // Get games for current tab
   const getGamesForTab = () => {
@@ -225,7 +229,13 @@ export default function AdminCricketTossPage() {
 
   // Filter games by search query
   const filteredGames = getGamesForTab().filter(game => {
+    // If search query is empty, return all games
+    if (searchQuery === "") return true;
+    
+    // If no gameData, still show it in the results but only when search is empty
     if (!game.gameData) return false;
+    
+    // Otherwise, filter by team names and description
     return game.gameData.teamA.toLowerCase().includes(searchQuery.toLowerCase()) || 
     game.gameData.teamB.toLowerCase().includes(searchQuery.toLowerCase()) ||
     game.gameData.description?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -362,25 +372,25 @@ export default function AdminCricketTossPage() {
     });
   };
 
-  // Status badge component
-  const StatusBadge = ({ status }: { status: string }) => {
+  // Status badge component based on result field
+  const StatusBadge = ({ result }: { result: string | null }) => {
     let color = "";
-    switch (status) {
-      case "open":
-        color = "bg-green-500 hover:bg-green-600";
-        break;
-      case "closed":
-        color = "bg-yellow-500 hover:bg-yellow-600";
-        break;
-      case "resulted":
-        color = "bg-blue-500 hover:bg-blue-600";
-        break;
-      default:
-        color = "bg-slate-500 hover:bg-slate-600";
+    let statusText = "";
+    
+    if (result === null || result === "" || result === "pending") {
+      color = "bg-green-500 hover:bg-green-600";
+      statusText = "Open";
+    } else if (result === "team_a" || result === "team_b") {
+      color = "bg-blue-500 hover:bg-blue-600";
+      statusText = "Resulted";
+    } else {
+      color = "bg-yellow-500 hover:bg-yellow-600";
+      statusText = "Closed";
     }
+    
     return (
       <Badge className={color}>
-        {status.replace('_', ' ')}
+        {statusText}
       </Badge>
     );
   };
@@ -785,7 +795,7 @@ interface CricketTossTableProps {
   handleEditGame: (game: CricketTossGame) => void;
   handleDeclareResult: (game: CricketTossGame) => void;
   formatDate: (date: string) => string;
-  StatusBadge: React.FC<{ status: string }>;
+  StatusBadge: React.FC<{ result: string | null }>;
   getResultDisplay: (result: string | null, game: CricketTossGame) => string;
 }
 
@@ -821,69 +831,8 @@ function CricketTossTable({
     );
   }
 
-  // Check if games have gameData property
-  const hasValidGameData = games.some(game => game.gameData);
-  
-  if (!hasValidGameData) {
-    return (
-      <div className="border rounded-lg bg-background p-6">
-        <div className="text-center mb-6">
-          <GiCricketBat className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-xl font-medium">Game Data Missing</p>
-          <p className="text-muted-foreground mt-1">
-            The Cricket Toss games exist but do not have complete data.
-            Please create new games with proper game data.
-          </p>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Game ID</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Result</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {games.map((game) => (
-                <TableRow key={game.id}>
-                  <TableCell>
-                    <div className="font-medium">
-                      Game #{game.id}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      User ID: {game.userId}
-                    </div>
-                  </TableCell>
-                  <TableCell>{formatDate(game.createdAt)}</TableCell>
-                  <TableCell>
-                    <StatusBadge status={game.status} />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {game.result || "Pending"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant={game.status === "resulted" ? "outline" : "default"}
-                      size="sm" 
-                      onClick={() => handleDeclareResult(game)}
-                      disabled={game.status !== "open"}
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                      {game.status === "resulted" ? "Update Result" : "Declare Result"}
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-    );
-  }
+  // Check if any games have gameData property - if at least one has it, we'll show the full table
+  const hasAnyGameData = games.some(game => game.gameData);
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -922,7 +871,7 @@ function CricketTossTable({
               <TableCell>{game.gameData ? formatDate(game.gameData.tossTime) : formatDate(game.createdAt)}</TableCell>
               <TableCell>{game.gameData ? `${game.gameData.oddTeamA} / ${game.gameData.oddTeamB}` : '-'}</TableCell>
               <TableCell>
-                <StatusBadge status={game.status} />
+                <StatusBadge result={game.result} />
               </TableCell>
               <TableCell className="font-medium">
                 {getResultDisplay(game.result, game)}
@@ -934,17 +883,17 @@ function CricketTossTable({
                       variant="outline" 
                       size="sm" 
                       onClick={() => handleEditGame(game)}
-                      disabled={game.status !== "open"}
+                      disabled={!(game.result === null || game.result === "" || game.result === "pending")}
                     >
                       <Edit className="h-4 w-4 mr-1" />
                       Edit
                     </Button>
                   )}
                   <Button 
-                    variant={game.status === "resulted" ? "outline" : "default"}
+                    variant={(game.result === "team_a" || game.result === "team_b") ? "outline" : "default"}
                     size="sm" 
                     onClick={() => handleDeclareResult(game)}
-                    disabled={game.status !== "open"}
+                    disabled={!(game.result === null || game.result === "" || game.result === "pending")}
                   >
                     <CheckCircle2 className="h-4 w-4 mr-1" />
                     {game.status === "resulted" ? "Update Result" : "Declare Result"}
