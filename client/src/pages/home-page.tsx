@@ -8,6 +8,7 @@ import RecentWinners from "@/components/recent-winners";
 import RecentResults from "@/components/recent-results";
 import BalanceCard from "@/components/balance-card";
 import StatsCard from "@/components/stats-card";
+import PromoSlider from "@/components/promo-slider";
 import GameHistoryTable from "@/components/game-history-table";
 import { Button } from "@/components/ui/button";
 import { 
@@ -140,18 +141,23 @@ export default function HomePage() {
         </p>
       </div>
       
-      {/* Balance and Stats Bar */}
+      {/* Balance Bar for Admin/Subadmin, Promo Slider for Players */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
-        <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 w-full lg:w-auto">
-          <BalanceCard balance={user?.balance || 0} />
-          {isPlayer && (
-            <StatsCard winRate={stats?.winRate || 0} totalBets={stats?.totalBets || 0} />
-          )}
-        </div>
+        {isPlayer ? (
+          // Promo Slider for Players
+          <div className="w-full">
+            <PromoSlider />
+          </div>
+        ) : (
+          // Balance card for Admin/Subadmin
+          <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 w-full lg:w-auto">
+            <BalanceCard balance={user?.balance || 0} />
+          </div>
+        )}
         
         {/* Admin/Subadmin Controls - Only visible to admin/subadmin */}
         {canManageUsers && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2 mt-4 lg:mt-0">
             <Button 
               className="bg-gradient-to-r from-violet-700 to-indigo-600 hover:from-violet-600 hover:to-indigo-500"
               onClick={() => setLocation("/users")}
@@ -253,7 +259,7 @@ export default function HomePage() {
               </h2>
             </div>
             
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {gameCards.map((game) => (
                 <GameCard 
                   key={game.id}
