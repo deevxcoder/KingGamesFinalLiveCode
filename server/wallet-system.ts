@@ -1,7 +1,8 @@
 import { db } from './db';
 import express, { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { UserRole } from '@shared/schema';
+import { UserRole, walletRequests, users, transactions, systemSettings } from '@shared/schema';
+import { eq, desc, and } from 'drizzle-orm';
 
 // Payment Modes
 export const PaymentMode = {
@@ -77,26 +78,19 @@ export type WalletRequest = {
 // Helper functions for wallet requests
 export async function createWalletRequest(walletRequest: Omit<WalletRequest, 'id' | 'status' | 'reviewedBy' | 'createdAt' | 'updatedAt'>) {
   try {
-    // Store the request directly in the database using SQL
-    const result = await db.execute(
-      `INSERT INTO wallet_requests 
-       (user_id, amount, request_type, payment_mode, payment_details, status, proof_image_url, notes, created_at, updated_at) 
-       VALUES 
-       ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) 
-       RETURNING *`,
-      [
-        walletRequest.userId,
-        walletRequest.amount,
-        walletRequest.requestType,
-        walletRequest.paymentMode,
-        JSON.stringify(walletRequest.paymentDetails),
-        RequestStatus.PENDING,
-        walletRequest.proofImageUrl || null,
-        walletRequest.notes || null,
-      ]
-    );
+    // Store the request using Drizzle ORM
+    const result = await db.insert(walletRequests).values({
+      userId: walletRequest.userId,
+      amount: walletRequest.amount,
+      requestType: walletRequest.requestType,
+      paymentMode: walletRequest.paymentMode,
+      paymentDetails: walletRequest.paymentDetails,
+      status: RequestStatus.PENDING,
+      proofImageUrl: walletRequest.proofImageUrl || null,
+      notes: walletRequest.notes || null,
+    }).returning();
 
-    return result.rows[0];
+    return result[0];
   } catch (error) {
     console.error('Error creating wallet request:', error);
     throw new Error('Failed to create wallet request');
@@ -105,41 +99,55 @@ export async function createWalletRequest(walletRequest: Omit<WalletRequest, 'id
 
 export async function getWalletRequests(userId?: number, status?: string, requestType?: string, adminId?: number) {
   try {
-    let query = `
-      SELECT wr.*, u.username as user_username, r.username as reviewer_username
-      FROM wallet_requests wr
-      LEFT JOIN users u ON wr.user_id = u.id
-      LEFT JOIN users r ON wr.reviewed_by = r.id
-      WHERE 1=1
-    `;
-    
-    const params: any[] = [];
-    let paramCount = 1;
-    
+    // Start with a base query
+    let query = db.select().from(walletRequests);
+
+    // Apply filters
     if (userId) {
-      query += ` AND wr.user_id = $${paramCount++}`;
-      params.push(userId);
+      query = query.where(eq(walletRequests.userId, userId));
     }
     
     if (status) {
-      query += ` AND wr.status = $${paramCount++}`;
-      params.push(status);
+      query = query.where(eq(walletRequests.status, status));
     }
     
     if (requestType) {
-      query += ` AND wr.request_type = $${paramCount++}`;
-      params.push(requestType);
+      query = query.where(eq(walletRequests.requestType, requestType));
     }
     
+    // Handle admin filtering
     if (adminId) {
-      query += ` AND u.assigned_to = $${paramCount++}`;
-      params.push(adminId);
+      // This is a bit more complex as we need to join with users
+      // For simplicity, we'll use a more direct approach for now
+      const requests = await db.query.walletRequests.findMany({
+        where: (walletRequest, { eq, and }) => {
+          const conditions = [];
+          
+          if (userId) conditions.push(eq(walletRequest.userId, userId));
+          if (status) conditions.push(eq(walletRequest.status, status));
+          if (requestType) conditions.push(eq(walletRequest.requestType, requestType));
+          
+          return and(...conditions);
+        },
+        with: {
+          user: true,
+          reviewer: true,
+        },
+        orderBy: (walletRequest, { desc }) => [desc(walletRequest.createdAt)]
+      });
+      
+      // Filter for assigned users
+      if (adminId) {
+        return requests.filter(request => request.user?.assignedTo === adminId);
+      }
+      
+      return requests;
     }
     
-    query += ' ORDER BY wr.created_at DESC';
+    // Order by most recent first
+    query = query.orderBy(desc(walletRequests.createdAt));
     
-    const result = await db.execute(query, params);
-    return result.rows;
+    return await query;
   } catch (error) {
     console.error('Error getting wallet requests:', error);
     throw new Error('Failed to get wallet requests');
