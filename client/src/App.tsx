@@ -18,6 +18,7 @@ import RiskManagementPage from "@/pages/risk-management-page";
 import MarketListPage from "@/pages/market-list-page";
 import SatamatkaGamePage from "@/pages/satamatka-game-page";
 import TeamMatchPage from "@/pages/team-match-page";
+import CricketTossPage from "@/pages/cricket-toss-page";
 import AdminMarketManagementPage from "@/pages/admin-market-management-page";
 import AdminTeamMatchPage from "@/pages/admin-team-match-page";
 import JantriManagementPage from "@/pages/jantri-management-page";
@@ -113,6 +114,11 @@ function Router() {
       <ProtectedRoute 
         path="/sports" 
         component={TeamMatchPage}
+        allowedRoles={[UserRole.PLAYER]} 
+      />
+      <ProtectedRoute 
+        path="/cricket-toss" 
+        component={CricketTossPage}
         allowedRoles={[UserRole.PLAYER]} 
       />
       

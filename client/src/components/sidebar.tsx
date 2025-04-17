@@ -22,6 +22,7 @@ import {
   BadgeDollarSign,
   Landmark
 } from "lucide-react";
+import { GiCricketBat } from "react-icons/gi";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
@@ -88,6 +89,12 @@ export default function Sidebar() {
       name: "Sports Betting",
       path: "/sports",
       icon: <Trophy className="w-5 h-5 mr-3" />,
+      visible: isRegularUser,
+    },
+    {
+      name: "Cricket Toss",
+      path: "/cricket-toss",
+      icon: <GiCricketBat className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
     },
     {
