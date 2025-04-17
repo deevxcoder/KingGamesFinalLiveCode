@@ -259,8 +259,8 @@ export default function SubadminSettingsPage() {
   
   // Get users assigned to this subadmin
   const { isLoading: isLoadingUsers, data: assignedUsers = [] } = useQuery({
-    queryKey: ['/api/users/assigned'],
-    queryFn: () => apiRequest('GET', '/api/users/assigned'),
+    queryKey: ['/api/users'],
+    queryFn: () => apiRequest('GET', '/api/users'),
     enabled: !!user?.id && user?.role === UserRole.SUBADMIN,
     select: (data: any) => data.filter((u: any) => u.role === UserRole.PLAYER),
   });
@@ -444,6 +444,74 @@ export default function SubadminSettingsPage() {
 
   return (
     <DashboardLayout title={isAdminViewingSubadmin ? "Subadmin Commission Settings" : "Subadmin Settings"}>
+      {/* Create User Dialog */}
+      <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              Create a new player account that will be assigned to you.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...createUserForm}>
+            <form onSubmit={createUserForm.handleSubmit(handleCreateUser)} className="space-y-4">
+              <FormField
+                control={createUserForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createUserForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Enter password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createUserForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Confirm password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsCreateUserDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createUserMutation.isPending}>
+                  {createUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create User
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
       {isAdminViewingSubadmin && (
         <div className="flex items-center mb-4">
           <Button 
@@ -691,10 +759,23 @@ export default function SubadminSettingsPage() {
         <TabsContent value="discounts">
           <Card>
             <CardHeader>
-              <CardTitle>User Discount Settings</CardTitle>
-              <CardDescription>
-                Set special discount rates for specific users. These discounts improve their winning payouts.
-              </CardDescription>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <CardTitle>User Discount Settings</CardTitle>
+                  <CardDescription>
+                    Set special discount rates for specific users. These discounts improve their winning payouts.
+                  </CardDescription>
+                </div>
+                {user?.role === UserRole.SUBADMIN && (
+                  <Button
+                    onClick={() => setIsCreateUserDialogOpen(true)}
+                    className="flex items-center gap-1 whitespace-nowrap ml-auto"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    Add User
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
@@ -712,6 +793,10 @@ export default function SubadminSettingsPage() {
                         {isLoadingUsers ? (
                           <div className="flex justify-center p-2">
                             <Loader2 className="h-4 w-4 animate-spin" />
+                          </div>
+                        ) : assignedUsers.length === 0 ? (
+                          <div className="p-3 text-center text-sm text-muted-foreground">
+                            No users assigned to you. Add a user first.
                           </div>
                         ) : (
                           assignedUsers.map((user: any) => (
