@@ -50,7 +50,6 @@ export default function CoinFlipGame() {
       setResult(data.game.result);
       
       // Wait for the coin flip animation to complete (2 seconds)
-      // then wait for 0.5 seconds after that to show the popup
       setTimeout(() => {
         // Set flipping to false (stop spinning)
         setIsFlipping(false);
@@ -64,15 +63,12 @@ export default function CoinFlipGame() {
           result: data.game.result
         });
         
-        // Short delay before showing popup (let user see final coin state)
-        setTimeout(() => {
-          // Show appropriate popup
-          if (isWin) {
-            setShowWinPopup(true);
-          } else {
-            setShowLosePopup(true);
-          }
-        }, 500); // 500ms delay after coin stops
+        // Show appropriate popup immediately
+        if (isWin) {
+          setShowWinPopup(true);
+        } else {
+          setShowLosePopup(true);
+        }
       }, 2000); // 2 seconds for coin flip animation
     },
     onError: (error: Error) => {
@@ -235,7 +231,7 @@ export default function CoinFlipGame() {
                       ✓
                     </div>
                   )}
-                  <span className="text-sm sm:text-base">ASHOKA PILLAR (HEADS)</span>
+                  <span className="text-sm sm:text-base">HEADS</span>
                 </Button>
                 <Button
                   onClick={() => selectPrediction(GameOutcome.TAILS)}
@@ -251,7 +247,7 @@ export default function CoinFlipGame() {
                       ✓
                     </div>
                   )}
-                  <span className="text-sm sm:text-base">RUPEE (TAILS)</span>
+                  <span className="text-sm sm:text-base">TAILS</span>
                 </Button>
               </div>
             </div>
