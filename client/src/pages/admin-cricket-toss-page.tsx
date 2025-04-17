@@ -200,11 +200,10 @@ export default function AdminCricketTossPage() {
     }
   ];
 
-  // Query for all cricket toss games (replace with real API call later)
-  const { data: allGames = mockGames, isLoading: isLoadingGames } = useQuery<CricketTossGame[]>({
+  // Query for all cricket toss games
+  const { data: allGames = [], isLoading: isLoadingGames } = useQuery<CricketTossGame[]>({
     queryKey: ["/api/cricket-toss"],
-    // This will be replaced with a real API call:
-    // queryFn: getQueryFn({ on401: "throw" }),
+    queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
 
@@ -764,16 +763,16 @@ function CricketTossTable({
             <TableRow key={game.id}>
               <TableCell>
                 <div className="font-medium">
-                  {game.teamA} vs {game.teamB}
+                  {game.gameData?.teamA} vs {game.gameData?.teamB}
                 </div>
-                {game.description && (
+                {game.gameData?.description && (
                   <div className="text-xs text-muted-foreground mt-1">
-                    {game.description}
+                    {game.gameData.description}
                   </div>
                 )}
               </TableCell>
-              <TableCell>{formatDate(game.tossTime)}</TableCell>
-              <TableCell>{game.oddTeamA} / {game.oddTeamB}</TableCell>
+              <TableCell>{game.gameData ? formatDate(game.gameData.tossTime) : '-'}</TableCell>
+              <TableCell>{game.gameData ? `${game.gameData.oddTeamA} / ${game.gameData.oddTeamB}` : '-'}</TableCell>
               <TableCell>
                 <StatusBadge status={game.status} />
               </TableCell>
