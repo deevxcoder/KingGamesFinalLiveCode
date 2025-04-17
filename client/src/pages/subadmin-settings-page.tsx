@@ -68,7 +68,7 @@ export default function SubadminSettingsPage() {
     queryFn: async () => {
       const gameTypes = ['coin_flip', 'satamatka_single', 'satamatka_jodi', 'satamatka_patti'];
       const results = await Promise.all(
-        gameTypes.map(type => apiRequest(`/api/game-odds?gameType=${type}`))
+        gameTypes.map(type => apiRequest('GET', `/api/game-odds?gameType=${type}`))
       );
       
       return {
@@ -121,7 +121,7 @@ export default function SubadminSettingsPage() {
   // Load subadmin's own odds
   const { isLoading: isLoadingSubadminOdds } = useQuery({
     queryKey: ['/api/game-odds/subadmin', user?.id],
-    queryFn: () => apiRequest(`/api/game-odds/subadmin/${user?.id}`),
+    queryFn: () => apiRequest('GET', `/api/game-odds/subadmin/${user?.id}`),
     enabled: !!user?.id,
     onSuccess: (data) => {
       if (data && data.length > 0) {
@@ -178,8 +178,8 @@ export default function SubadminSettingsPage() {
 
   // Get users assigned to this subadmin
   const { data: assignedUsers, isLoading: isLoadingUsers } = useQuery({
-    queryKey: ['/api/users/assigned'],
-    queryFn: () => apiRequest('/api/users/assigned'),
+    queryKey: ['/api/users'],
+    queryFn: () => apiRequest('GET', '/api/users'),
     enabled: !!user?.id
   });
 
