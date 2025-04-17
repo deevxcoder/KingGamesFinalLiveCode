@@ -103,6 +103,7 @@ const tossGameFormSchema = z.object({
   tossTime: z.string().min(1, "Toss time is required"),
   oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
+  imageUrl: z.string().optional(),
 });
 
 export default function AdminCricketTossPage() {
@@ -356,6 +357,7 @@ export default function AdminCricketTossPage() {
       tossTime: "12:00",
       oddTeamA: 200,
       oddTeamB: 200,
+      imageUrl: "",
     });
   };
 
@@ -658,17 +660,51 @@ export default function AdminCricketTossPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Toss Time</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="time" 
-                          {...field} 
-                        />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select time" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Array.from({ length: 24 }).map((_, hour) => (
+                            <React.Fragment key={hour}>
+                              <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</SelectItem>
+                              <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>{hour.toString().padStart(2, '0')}:30</SelectItem>
+                            </React.Fragment>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+              
+              {/* Banner Image URL */}
+              <FormField
+                control={gameForm.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Banner Image URL</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="e.g. https://example.com/image.jpg" 
+                        {...field} 
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Enter a URL for the banner image (optional)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <div className="grid grid-cols-2 gap-4">
                 <FormField

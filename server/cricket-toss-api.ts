@@ -11,6 +11,7 @@ const createCricketTossSchema = z.object({
   tossTime: z.string(),
   oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
+  imageUrl: z.string().optional(),
 });
 
 // Schema for updating a cricket toss game status
@@ -115,17 +116,18 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         userId: req.user!.id,
         gameType: GameType.CRICKET_TOSS,
         betAmount: 0, // This will be set when user places a bet
-        prediction: "", // Required by schema, will be set when user places a bet
+        prediction: "pending", // Required by schema, using "pending" as placeholder
         gameData: {
           teamA,
           teamB,
           description: description || "",
           tossTime,
           oddTeamA,
-          oddTeamB
+          oddTeamB,
+          imageUrl: validationResult.data.imageUrl || ""
         },
         status: "open",
-        result: null,
+        result: "pending", // Required by schema, using "pending" as placeholder
         payout: 0 // This will be calculated when the result is declared
       };
       
@@ -297,7 +299,7 @@ export function setupCricketTossApiRoutes(app: express.Express) {
           originalGameId: gameId // Reference to the original game
         },
         status: "pending",
-        result: null,
+        result: "pending", // Use pending instead of null
         payout: potentialPayout
       };
       
