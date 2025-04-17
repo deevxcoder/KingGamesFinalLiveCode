@@ -366,10 +366,10 @@ export function setupWalletRoutes(app: express.Express) {
       
       // Update or insert payment details
       await db.execute(
-        `INSERT INTO system_settings (key, value) 
-         VALUES ($1, $2)
-         ON CONFLICT (key) DO UPDATE SET value = $2`,
-        ['payment_details', JSON.stringify(req.body)]
+        `INSERT INTO system_settings (setting_type, setting_key, setting_value) 
+         VALUES ($1, $2, $3)
+         ON CONFLICT (setting_key) DO UPDATE SET setting_value = $3`,
+        ['payment', 'payment_details', JSON.stringify(req.body)]
       );
       
       res.json({ success: true });
