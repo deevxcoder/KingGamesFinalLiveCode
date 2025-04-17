@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DollarSign } from "lucide-react";
+import { IndianRupee } from "lucide-react";
 
 interface BalanceCardProps {
   balance: number;
@@ -12,11 +12,11 @@ export default function BalanceCard({ balance }: BalanceCardProps) {
       <CardContent className="p-4">
         <div className="flex items-center">
           <div className="p-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 mr-3">
-            <DollarSign className="w-6 h-6 text-white" />
+            <IndianRupee className="w-6 h-6 text-white" />
           </div>
           <div>
             <p className="text-sm text-slate-400">Your Balance</p>
-            <p className="text-xl font-bold text-fuchsia-300">${(balance / 100).toFixed(2)}</p>
+            <p className="text-xl font-bold text-fuchsia-300">₹{(balance / 100).toFixed(2)}</p>
           </div>
           <Button 
             variant="outline" 
