@@ -8,6 +8,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import {
   Table,
   TableBody,
@@ -49,7 +60,9 @@ import {
   ArrowUp,
   Coins,
   History,
-  FileText
+  FileText,
+  UserPlus,
+  Loader2
 } from "lucide-react";
 
 export default function UserManagementPage() {
@@ -63,7 +76,28 @@ export default function UserManagementPage() {
   const [isRemoveFundsDialogOpen, setIsRemoveFundsDialogOpen] = useState(false);
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [isUserDetailsDialogOpen, setIsUserDetailsDialogOpen] = useState(false);
+  const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState("transactions");
+  
+  // Define the schema for creating a new user
+  const createUserSchema = z.object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
+  }).refine(data => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+  
+  // Create user form
+  const createUserForm = useForm<z.infer<typeof createUserSchema>>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
   // Fetch users
   const { data: users = [], isLoading } = useQuery({
@@ -187,6 +221,33 @@ export default function UserManagementPage() {
     },
   });
 
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (data: Omit<z.infer<typeof createUserSchema>, "confirmPassword">) => {
+      return apiRequest("POST", "/api/register", {
+        username: data.username,
+        password: data.password,
+        role: UserRole.PLAYER
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "User Created",
+        description: "New user has been created and assigned to you successfully",
+      });
+      setIsCreateUserDialogOpen(false);
+      createUserForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Creating User",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   const handleBlockUser = (userId: number) => {
     blockUserMutation.mutate(userId);
   };
@@ -252,15 +313,36 @@ export default function UserManagementPage() {
     setDetailsTab("transactions");
     setIsUserDetailsDialogOpen(true);
   };
+  
+  // Handle create user form submission
+  const handleCreateUser = (data: z.infer<typeof createUserSchema>) => {
+    const { confirmPassword, ...userData } = data;
+    createUserMutation.mutate(userData);
+  };
 
   return (
     <DashboardLayout title="User Management">
       <Card className="mb-6">
         <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>
-            Manage player accounts, balances, and status
-          </CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                Manage player accounts, balances, and status
+              </CardDescription>
+            </div>
+            
+            {/* Add User Button - Only shown for Subadmins */}
+            {user?.role === UserRole.SUBADMIN && (
+              <Button
+                onClick={() => setIsCreateUserDialogOpen(true)}
+                className="bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -505,6 +587,74 @@ export default function UserManagementPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Create User Dialog */}
+      <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              Create a new player account that will be assigned to you.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...createUserForm}>
+            <form onSubmit={createUserForm.handleSubmit(handleCreateUser)} className="space-y-4">
+              <FormField
+                control={createUserForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createUserForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Enter password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createUserForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Confirm password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsCreateUserDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createUserMutation.isPending}>
+                  {createUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create User
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
       {/* User Details Dialog */}
       <Dialog 
         open={isUserDetailsDialogOpen} 
