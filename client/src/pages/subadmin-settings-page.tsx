@@ -42,9 +42,10 @@ export default function SubadminSettingsPage() {
   // User Discounts
   const [discountRates, setDiscountRates] = useState({
     coin_flip: "1.0",
-    satamatka_single: "2.0",
     satamatka_jodi: "1.5",
-    satamatka_patti: "1.0",
+    satamatka_harf: "2.0",
+    satamatka_crossing: "1.5",
+    satamatka_odd_even: "1.0",
     team_match: "1.5"
   });
 
@@ -638,20 +639,6 @@ export default function SubadminSettingsPage() {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="discount-satamatka-single">Satamatka Single Discount</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="discount-satamatka-single" 
-                            value={discountRates.satamatka_single} 
-                            onChange={(e) => setDiscountRates({...discountRates, satamatka_single: e.target.value})} 
-                            placeholder="2.0"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
                         <Label htmlFor="discount-satamatka-jodi">Satamatka Jodi Discount</Label>
                         <div className="flex items-center gap-2">
                           <Input 
@@ -666,12 +653,40 @@ export default function SubadminSettingsPage() {
                       </div>
                       
                       <div className="space-y-2">
-                        <Label htmlFor="discount-satamatka-patti">Satamatka Patti Discount</Label>
+                        <Label htmlFor="discount-satamatka-harf">Satamatka Harf Discount</Label>
                         <div className="flex items-center gap-2">
                           <Input 
-                            id="discount-satamatka-patti" 
-                            value={discountRates.satamatka_patti} 
-                            onChange={(e) => setDiscountRates({...discountRates, satamatka_patti: e.target.value})} 
+                            id="discount-satamatka-harf" 
+                            value={discountRates.satamatka_harf} 
+                            onChange={(e) => setDiscountRates({...discountRates, satamatka_harf: e.target.value})} 
+                            placeholder="2.0"
+                            className="max-w-[120px]"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="discount-satamatka-crossing">Satamatka Crossing Discount</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="discount-satamatka-crossing" 
+                            value={discountRates.satamatka_crossing} 
+                            onChange={(e) => setDiscountRates({...discountRates, satamatka_crossing: e.target.value})} 
+                            placeholder="1.5"
+                            className="max-w-[120px]"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="discount-satamatka-odd-even">Satamatka Odd/Even Discount</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="discount-satamatka-odd-even" 
+                            value={discountRates.satamatka_odd_even} 
+                            onChange={(e) => setDiscountRates({...discountRates, satamatka_odd_even: e.target.value})} 
                             placeholder="1.0"
                             className="max-w-[120px]"
                           />
