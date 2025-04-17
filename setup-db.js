@@ -1,5 +1,8 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+import pg from 'pg';
+import dotenv from 'dotenv';
+
+const { Pool } = pg;
+dotenv.config();
 
 // Ensure DATABASE_URL is available from environment variables
 const dbUrl = process.env.DATABASE_URL;
