@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Play, History, User, Wallet, BarChart2 } from "lucide-react";
+import { Home, Play, History, User, Wallet, BarChart2, Gamepad2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserRole } from "@shared/schema";
@@ -22,9 +22,16 @@ export default function MobileNav() {
       path: "/dashboard",
       visible: true,
     },
-    // Games only for players
+    // All Games (Browse) for players
     {
       name: "Games",
+      icon: <Gamepad2 className="w-5 h-5" />,
+      path: "/games",
+      visible: isPlayer,
+    },
+    // Quick Play for players
+    {
+      name: "Play",
       icon: <Play className="w-5 h-5" />,
       path: "/play",
       visible: isPlayer,
@@ -43,11 +50,11 @@ export default function MobileNav() {
       path: "/risk-management",
       visible: isAdmin || isSubadmin,
     },
-    // Balance for all users
+    // Wallet for all users
     {
-      name: "Balance",
+      name: "Wallet",
       icon: <Wallet className="w-5 h-5" />,
-      path: "/balance",
+      path: "/wallet",
       visible: true,
       component: (
         <div className="flex flex-col items-center justify-center">

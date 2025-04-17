@@ -20,7 +20,9 @@ import {
   Settings,
   Sliders,
   BadgeDollarSign,
-  Landmark
+  Landmark,
+  Gamepad2,
+  User
 } from "lucide-react";
 import { GiCricketBat } from "react-icons/gi";
 import { Button } from "@/components/ui/button";

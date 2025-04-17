@@ -11,6 +11,8 @@ import AuthPage from "@/pages/auth-page";
 import HomePage from "@/pages/home-page";
 import PublicHomePage from "@/pages/public-home-page";
 import GamePage from "@/pages/game-page";
+import GamesPage from "@/pages/games-page";
+import ProfilePage from "@/pages/profile-page";
 import UserManagementPage from "@/pages/user-management-page";
 import SubadminManagementPage from "@/pages/subadmin-management-page";
 import GameHistoryPage from "@/pages/game-history-page";
@@ -126,6 +128,17 @@ function Router() {
         path="/cricket-toss" 
         component={CricketTossPage}
         allowedRoles={[UserRole.PLAYER]} 
+      />
+      
+      {/* New player pages - games and profile */}
+      <ProtectedRoute
+        path="/games"
+        component={GamesPage}
+        allowedRoles={[UserRole.PLAYER]}
+      />
+      <ProtectedRoute
+        path="/profile"
+        component={ProfilePage}
       />
       
       {/* Wallet route - accessible to all authenticated users */}
