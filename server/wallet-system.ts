@@ -99,52 +99,69 @@ export async function createWalletRequest(walletRequest: Omit<WalletRequest, 'id
 
 export async function getWalletRequests(userId?: number, status?: string, requestType?: string, adminId?: number) {
   try {
-    // Start with a base query
-    let query = db.select().from(walletRequests);
-
-    // Apply filters
+    // For subadmin filtering, we need to use a raw SQL query for proper joining
+    if (adminId) {
+      const filters = [];
+      const params = [];
+      
+      // Add base condition for assigned users
+      filters.push(`u.assigned_to = $${params.length + 1}`);
+      params.push(adminId);
+      
+      if (userId) {
+        filters.push(`wr.user_id = $${params.length + 1}`);
+        params.push(userId);
+      }
+      
+      if (status) {
+        filters.push(`wr.status = $${params.length + 1}`);
+        params.push(status);
+      }
+      
+      if (requestType) {
+        filters.push(`wr.request_type = $${params.length + 1}`);
+        params.push(requestType);
+      }
+      
+      const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
+      
+      const result = await db.execute(
+        `SELECT wr.* FROM wallet_requests wr
+         JOIN users u ON wr.user_id = u.id
+         ${whereClause}
+         ORDER BY wr.created_at DESC`,
+        params
+      );
+      
+      return result.rows;
+    }
+    
+    // For simple queries without admin filtering, use Drizzle ORM's SQL builder
+    let query = db
+      .select()
+      .from(walletRequests);
+    
+    // Build the WHERE conditions
+    const whereConditions = [];
+    
     if (userId) {
-      query = query.where(eq(walletRequests.userId, userId));
+      whereConditions.push(eq(walletRequests.userId, userId));
     }
     
     if (status) {
-      query = query.where(eq(walletRequests.status, status));
+      whereConditions.push(eq(walletRequests.status, status));
     }
     
     if (requestType) {
-      query = query.where(eq(walletRequests.requestType, requestType));
+      whereConditions.push(eq(walletRequests.requestType, requestType));
     }
     
-    // Handle admin filtering
-    if (adminId) {
-      // This is a bit more complex as we need to join with users
-      // For simplicity, we'll use a more direct approach for now
-      const requests = await db.query.walletRequests.findMany({
-        where: (walletRequest, { eq, and }) => {
-          const conditions = [];
-          
-          if (userId) conditions.push(eq(walletRequest.userId, userId));
-          if (status) conditions.push(eq(walletRequest.status, status));
-          if (requestType) conditions.push(eq(walletRequest.requestType, requestType));
-          
-          return and(...conditions);
-        },
-        with: {
-          user: true,
-          reviewer: true,
-        },
-        orderBy: (walletRequest, { desc }) => [desc(walletRequest.createdAt)]
-      });
-      
-      // Filter for assigned users
-      if (adminId) {
-        return requests.filter(request => request.user?.assignedTo === adminId);
-      }
-      
-      return requests;
+    // Apply WHERE conditions if any
+    if (whereConditions.length > 0) {
+      query = query.where(and(...whereConditions));
     }
     
-    // Order by most recent first
+    // Apply ORDER BY
     query = query.orderBy(desc(walletRequests.createdAt));
     
     return await query;
@@ -161,55 +178,68 @@ export async function reviewWalletRequest(
   notes?: string
 ) {
   try {
-    // Start a transaction to update the request and update the user balance if approved
-    await db.execute('BEGIN');
+    // Import the connection pool for raw SQL transactions
+    const { pool } = await import('./db');
+    // For transactions, we need to use the raw pool to start/commit/rollback the transaction
+    const client = await pool.connect();
     
-    // Update the request status
-    const updateResult = await db.execute(
-      `UPDATE wallet_requests 
-       SET status = $1, notes = $2, reviewed_by = $3, updated_at = NOW() 
-       WHERE id = $4 
-       RETURNING *`,
-      [status, notes || null, adminId, requestId]
-    );
-    
-    if (updateResult.rows.length === 0) {
-      await db.execute('ROLLBACK');
-      throw new Error('Wallet request not found');
-    }
-    
-    const request = updateResult.rows[0];
-    
-    // If request is approved, update the user's balance and create a transaction record
-    if (status === RequestStatus.APPROVED) {
-      const balanceChange = request.request_type === RequestType.DEPOSIT 
-        ? request.amount 
-        : -request.amount;
+    try {
+      await client.query('BEGIN');
       
-      // Update user balance
-      const userResult = await db.execute(
-        'UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING *',
-        [balanceChange, request.user_id]
-      );
+      // Update the request status
+      const updatedRequests = await db
+        .update(walletRequests)
+        .set({
+          status: status,
+          notes: notes || null,
+          reviewedBy: adminId,
+          updatedAt: new Date()
+        })
+        .where(eq(walletRequests.id, requestId))
+        .returning();
       
-      if (userResult.rows.length === 0) {
-        await db.execute('ROLLBACK');
-        throw new Error('User not found');
+      if (updatedRequests.length === 0) {
+        await client.query('ROLLBACK');
+        throw new Error('Wallet request not found');
       }
       
-      // Create transaction record
-      await db.execute(
-        `INSERT INTO transactions 
-         (user_id, amount, performed_by, request_id, created_at) 
-         VALUES ($1, $2, $3, $4, NOW())`,
-        [request.user_id, balanceChange, adminId, requestId]
-      );
+      const request = updatedRequests[0];
+      
+      // If request is approved, update the user's balance and create a transaction record
+      if (status === RequestStatus.APPROVED) {
+        const balanceChange = request.requestType === RequestType.DEPOSIT 
+          ? request.amount 
+          : -request.amount;
+        
+        // Update user balance with SQL function to add
+        const updatedUsersResult = await client.query(
+          'UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING *',
+          [balanceChange, request.userId]
+        );
+        
+        if (updatedUsersResult.rowCount === 0) {
+          await client.query('ROLLBACK');
+          throw new Error('User not found');
+        }
+        
+        // Create transaction record
+        await db.insert(transactions).values({
+          userId: request.userId,
+          amount: balanceChange,
+          performedBy: adminId,
+          requestId: requestId,
+        });
+      }
+      
+      await client.query('COMMIT');
+      return request;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
     }
-    
-    await db.execute('COMMIT');
-    return updateResult.rows[0];
   } catch (error) {
-    await db.execute('ROLLBACK');
     console.error('Error reviewing wallet request:', error);
     throw new Error('Failed to review wallet request');
   }
@@ -298,14 +328,17 @@ export function setupWalletRoutes(app: express.Express) {
       
       // For subadmins, verify they can only approve requests from their assigned users
       if (req.user.role === UserRole.SUBADMIN) {
-        const requestInfo = await db.execute(
+        // Import the connection pool for raw SQL transactions
+        const { pool } = await import('./db');
+        // Use a direct SQL query for this specific check
+        const result = await pool.query(
           `SELECT wr.* FROM wallet_requests wr
            JOIN users u ON wr.user_id = u.id
            WHERE wr.id = $1 AND u.assigned_to = $2`,
           [requestId, req.user.id]
         );
         
-        if (requestInfo.rows.length === 0) {
+        if (result.rowCount === 0) {
           return res.status(403).json({ message: 'You can only review requests from your assigned users' });
         }
       }
@@ -331,12 +364,12 @@ export function setupWalletRoutes(app: express.Express) {
       }
       
       // Get payment details from settings
-      const paymentSettings = await db.execute(
-        'SELECT setting_value FROM system_settings WHERE setting_key = $1',
-        ['payment_details']
-      );
+      const paymentSettings = await db.query.systemSettings.findFirst({
+        where: eq(systemSettings.settingKey, 'payment_details')
+      });
       
-      if (paymentSettings.rows.length === 0) {
+      // Default payment details if none found
+      if (!paymentSettings) {
         return res.json({
           upi: {
             id: 'example@upi',
@@ -354,7 +387,16 @@ export function setupWalletRoutes(app: express.Express) {
         });
       }
       
-      res.json(JSON.parse(paymentSettings.rows[0].setting_value));
+      // Parse the setting value safely
+      let parsedValue;
+      try {
+        parsedValue = JSON.parse(paymentSettings.settingValue);
+      } catch (e) {
+        console.error('Error parsing payment details:', e);
+        parsedValue = {};
+      }
+      
+      res.json(parsedValue);
     } catch (err) {
       next(err);
     }
@@ -372,13 +414,29 @@ export function setupWalletRoutes(app: express.Express) {
         return res.status(403).json({ message: 'Forbidden' });
       }
       
-      // Update or insert payment details
-      await db.execute(
-        `INSERT INTO system_settings (setting_type, setting_key, setting_value) 
-         VALUES ($1, $2, $3)
-         ON CONFLICT (setting_key) DO UPDATE SET setting_value = $3`,
-        ['payment', 'payment_details', JSON.stringify(req.body)]
-      );
+      // Convert request body to JSON string
+      const settingValueJson = JSON.stringify(req.body);
+      
+      // Check if the setting already exists
+      const existingSetting = await db.query.systemSettings.findFirst({
+        where: eq(systemSettings.settingKey, 'payment_details')
+      });
+      
+      if (existingSetting) {
+        // Update existing setting
+        await db.update(systemSettings)
+          .set({
+            settingValue: settingValueJson
+          })
+          .where(eq(systemSettings.settingKey, 'payment_details'));
+      } else {
+        // Insert new setting
+        await db.insert(systemSettings).values({
+          settingType: 'payment',
+          settingKey: 'payment_details',
+          settingValue: settingValueJson
+        });
+      }
       
       res.json({ success: true });
     } catch (err) {
