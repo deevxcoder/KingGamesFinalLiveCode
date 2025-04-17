@@ -75,16 +75,34 @@ export default function ResponsiveHeader() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="icon" className="rounded-full">
-                <div className="w-7 h-7 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center text-white font-bold text-sm">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center text-white font-bold text-sm overflow-hidden">
                   <span>{user.username.charAt(0).toUpperCase()}</span>
                 </div>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setLocation("/profile")}>
+            <DropdownMenuContent align="end" className="w-56">
+              <div className="flex items-center gap-3 p-3 border-b border-border">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-blue-400 flex items-center justify-center text-white font-bold text-lg overflow-hidden">
+                  <span>{user.username.charAt(0).toUpperCase()}</span>
+                </div>
+                <div>
+                  <p className="font-medium">{user.username}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{user.role}</p>
+                </div>
+              </div>
+              <div className="p-2 border-b border-border">
+                <div className="p-2 bg-muted/50 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Wallet className="h-4 w-4 mr-2 text-primary" />
+                    <span className="text-sm">Balance</span>
+                  </div>
+                  <span className="font-medium text-sm">₹{(user.balance / 100).toFixed(2)}</span>
+                </div>
+              </div>
+              <DropdownMenuItem onClick={() => setLocation("/profile")} className="mt-1">
                 Profile
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleLogout}>
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
                 Logout
               </DropdownMenuItem>
             </DropdownMenuContent>

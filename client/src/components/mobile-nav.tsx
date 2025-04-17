@@ -52,7 +52,7 @@ export default function MobileNav() {
       component: (
         <div className="flex flex-col items-center justify-center">
           <Wallet className="w-5 h-5" />
-          <span className="text-xs mt-1 text-blue-300">₹{(user.balance / 100).toFixed(2)}</span>
+          <span className="text-xs mt-1 text-blue-300 font-semibold">₹{(user.balance / 100).toFixed(2)}</span>
         </div>
       ),
     },

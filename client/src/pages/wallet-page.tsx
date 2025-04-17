@@ -70,18 +70,15 @@ export default function WalletPage() {
         throw new Error("Failed to fetch payment details");
       }
       return res.json();
-    },
-    onSuccess: (data) => {
-      setPaymentModeDetails(data);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
     }
   });
+  
+  // Set payment details when they are fetched
+  useEffect(() => {
+    if (systemPaymentDetails) {
+      setPaymentModeDetails(systemPaymentDetails);
+    }
+  }, [systemPaymentDetails]);
 
   // Fetch user's wallet requests
   const { 
@@ -564,7 +561,7 @@ export default function WalletPage() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-col items-center justify-center py-6">
-                <div className="text-4xl font-bold text-primary">₹{user?.balance.toFixed(2)}</div>
+                <div className="text-4xl font-bold text-primary">₹{(user?.balance / 100).toFixed(2)}</div>
                 <p className="text-sm text-muted-foreground mt-2">
                   Last updated: {new Date().toLocaleDateString('en-IN')}
                 </p>
@@ -677,20 +674,61 @@ export default function WalletPage() {
                           <RadioGroup
                             defaultValue={field.value}
                             onValueChange={field.onChange}
-                            className="flex flex-col space-y-1"
+                            className="flex flex-wrap gap-3"
                           >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="upi" id="upi" />
-                              <Label htmlFor="upi">UPI</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="bank" id="bank" />
-                              <Label htmlFor="bank">Bank Transfer</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="cash" id="cash" />
-                              <Label htmlFor="cash">Cash</Label>
-                            </div>
+                            <Label
+                              htmlFor="upi"
+                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
+                               ${field.value === "upi" 
+                                 ? "border-primary bg-primary/10" 
+                                 : "border-border hover:border-muted-foreground"}`}
+                            >
+                              <RadioGroupItem value="upi" id="upi" className="sr-only" />
+                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                                <img src="/images/upi-icon.svg" alt="UPI" className="h-6 w-6" onError={(e) => {
+                                  // Fallback if image doesn't exist
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233498db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cline x1='12' y1='1' x2='12' y2='23'%3e%3c/line%3e%3cpath d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'%3e%3c/path%3e%3c/svg%3e";
+                                }} />
+                              </div>
+                              <span className="font-medium">UPI</span>
+                            </Label>
+                            
+                            <Label
+                              htmlFor="bank"
+                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
+                               ${field.value === "bank" 
+                                 ? "border-primary bg-primary/10" 
+                                 : "border-border hover:border-muted-foreground"}`}
+                            >
+                              <RadioGroupItem value="bank" id="bank" className="sr-only" />
+                              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                                <img src="/images/bank-icon.svg" alt="Bank" className="h-6 w-6" onError={(e) => {
+                                  // Fallback if image doesn't exist
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232ecc71' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='8' width='18' height='12' rx='2' ry='2'%3e%3c/rect%3e%3cline x1='3' y1='12' x2='21' y2='12'%3e%3c/line%3e%3c/svg%3e";
+                                }} />
+                              </div>
+                              <span className="font-medium">Bank Transfer</span>
+                            </Label>
+                            
+                            <Label
+                              htmlFor="cash"
+                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
+                               ${field.value === "cash" 
+                                 ? "border-primary bg-primary/10" 
+                                 : "border-border hover:border-muted-foreground"}`}
+                            >
+                              <RadioGroupItem value="cash" id="cash" className="sr-only" />
+                              <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
+                                <img src="/images/cash-icon.svg" alt="Cash" className="h-6 w-6" onError={(e) => {
+                                  // Fallback if image doesn't exist
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f39c12' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='2' y='6' width='20' height='12' rx='2' ry='2'%3e%3c/rect%3e%3ccircle cx='12' cy='12' r='2'%3e%3c/circle%3e%3cpath d='M6 12h.01M18 12h.01'%3e%3c/path%3e%3c/svg%3e";
+                                }} />
+                              </div>
+                              <span className="font-medium">Cash</span>
+                            </Label>
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
@@ -763,7 +801,7 @@ export default function WalletPage() {
             <CardContent>
               <Alert className="mb-6 bg-blue-50">
                 <FileCheck className="h-4 w-4" />
-                <AlertTitle>Your balance: ₹{user?.balance.toFixed(2)}</AlertTitle>
+                <AlertTitle>Your balance: ₹{(user?.balance / 100).toFixed(2)}</AlertTitle>
                 <AlertDescription>
                   Minimum withdrawal amount is ₹500. Maximum is ₹50,000.
                 </AlertDescription>
@@ -799,16 +837,43 @@ export default function WalletPage() {
                           <RadioGroup
                             defaultValue={field.value}
                             onValueChange={field.onChange}
-                            className="flex flex-col space-y-1"
+                            className="flex flex-wrap gap-3"
                           >
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="upi" id="w-upi" />
-                              <Label htmlFor="w-upi">UPI</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <RadioGroupItem value="bank" id="w-bank" />
-                              <Label htmlFor="w-bank">Bank Transfer</Label>
-                            </div>
+                            <Label
+                              htmlFor="w-upi"
+                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
+                               ${field.value === "upi" 
+                                 ? "border-primary bg-primary/10" 
+                                 : "border-border hover:border-muted-foreground"}`}
+                            >
+                              <RadioGroupItem value="upi" id="w-upi" className="sr-only" />
+                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                                <img src="/images/upi-icon.svg" alt="UPI" className="h-6 w-6" onError={(e) => {
+                                  // Fallback if image doesn't exist
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233498db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cline x1='12' y1='1' x2='12' y2='23'%3e%3c/line%3e%3cpath d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'%3e%3c/path%3e%3c/svg%3e";
+                                }} />
+                              </div>
+                              <span className="font-medium">UPI</span>
+                            </Label>
+                            
+                            <Label
+                              htmlFor="w-bank"
+                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
+                               ${field.value === "bank" 
+                                 ? "border-primary bg-primary/10" 
+                                 : "border-border hover:border-muted-foreground"}`}
+                            >
+                              <RadioGroupItem value="bank" id="w-bank" className="sr-only" />
+                              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
+                                <img src="/images/bank-icon.svg" alt="Bank" className="h-6 w-6" onError={(e) => {
+                                  // Fallback if image doesn't exist
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232ecc71' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='8' width='18' height='12' rx='2' ry='2'%3e%3c/rect%3e%3cline x1='3' y1='12' x2='21' y2='12'%3e%3c/line%3e%3c/svg%3e";
+                                }} />
+                              </div>
+                              <span className="font-medium">Bank Transfer</span>
+                            </Label>
                           </RadioGroup>
                         </FormControl>
                         <FormMessage />
