@@ -347,23 +347,27 @@ export default function WalletPage() {
 
             {/* Display system UPI details */}
             {paymentModeDetails?.upiDetails && (
-              <Alert className="mt-4 bg-blue-50">
-                <FileCheck className="h-4 w-4" />
-                <AlertTitle>UPI Payment Details</AlertTitle>
-                <AlertDescription>
-                  <p className="mt-2"><strong>UPI ID:</strong> {paymentModeDetails.upiDetails.upiId}</p>
+              <div className="mt-4 p-4 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600">
+                    <FileCheck className="h-4 w-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-fuchsia-300">UPI Payment Details</h3>
+                </div>
+                <div className="pl-9">
+                  <p className="mt-2 text-slate-300"><strong className="text-slate-200">UPI ID:</strong> {paymentModeDetails.upiDetails.upiId}</p>
                   {paymentModeDetails.upiDetails.qrImageUrl && (
-                    <div className="mt-2">
-                      <p><strong>Scan QR Code:</strong></p>
+                    <div className="mt-3">
+                      <p className="text-slate-200 font-medium">Scan QR Code:</p>
                       <img 
                         src={paymentModeDetails.upiDetails.qrImageUrl} 
                         alt="UPI QR Code" 
-                        className="w-48 h-48 mt-2 border border-gray-300"
+                        className="w-48 h-48 mt-2 border border-slate-700 rounded-md"
                       />
                     </div>
                   )}
-                </AlertDescription>
-              </Alert>
+                </div>
+              </div>
             )}
           </>
         );
@@ -403,16 +407,20 @@ export default function WalletPage() {
 
             {/* Display system bank details */}
             {paymentModeDetails?.bankDetails && (
-              <Alert className="mt-4 bg-blue-50">
-                <FileCheck className="h-4 w-4" />
-                <AlertTitle>Bank Transfer Details</AlertTitle>
-                <AlertDescription>
-                  <p className="mt-2"><strong>Account Name:</strong> {paymentModeDetails.bankDetails.accountName}</p>
-                  <p><strong>Account Number:</strong> {paymentModeDetails.bankDetails.accountNumber}</p>
-                  <p><strong>IFSC Code:</strong> {paymentModeDetails.bankDetails.ifscCode}</p>
-                  <p><strong>Bank Name:</strong> {paymentModeDetails.bankDetails.bankName}</p>
-                </AlertDescription>
-              </Alert>
+              <div className="mt-4 p-4 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600">
+                    <FileCheck className="h-4 w-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-fuchsia-300">Bank Transfer Details</h3>
+                </div>
+                <div className="pl-9">
+                  <p className="mt-2 text-slate-300"><strong className="text-slate-200">Account Name:</strong> {paymentModeDetails.bankDetails.accountName}</p>
+                  <p className="text-slate-300"><strong className="text-slate-200">Account Number:</strong> {paymentModeDetails.bankDetails.accountNumber}</p>
+                  <p className="text-slate-300"><strong className="text-slate-200">IFSC Code:</strong> {paymentModeDetails.bankDetails.ifscCode}</p>
+                  <p className="text-slate-300"><strong className="text-slate-200">Bank Name:</strong> {paymentModeDetails.bankDetails.bankName}</p>
+                </div>
+              </div>
             )}
           </>
         );
@@ -450,16 +458,20 @@ export default function WalletPage() {
 
             {/* Display system cash handler details */}
             {paymentModeDetails?.cashDetails && (
-              <Alert className="mt-4 bg-blue-50">
-                <FileCheck className="h-4 w-4" />
-                <AlertTitle>Cash Handler Details</AlertTitle>
-                <AlertDescription>
-                  <p className="mt-2"><strong>Handler Name:</strong> {paymentModeDetails.cashDetails.handlerName}</p>
+              <div className="mt-4 p-4 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600">
+                    <FileCheck className="h-4 w-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-fuchsia-300">Cash Handler Details</h3>
+                </div>
+                <div className="pl-9">
+                  <p className="mt-2 text-slate-300"><strong className="text-slate-200">Handler Name:</strong> {paymentModeDetails.cashDetails.handlerName}</p>
                   {paymentModeDetails.cashDetails.contactNumber && (
-                    <p><strong>Contact:</strong> {paymentModeDetails.cashDetails.contactNumber}</p>
+                    <p className="text-slate-300"><strong className="text-slate-200">Contact:</strong> {paymentModeDetails.cashDetails.contactNumber}</p>
                   )}
-                </AlertDescription>
-              </Alert>
+                </div>
+              </div>
             )}
           </>
         );
@@ -810,13 +822,17 @@ export default function WalletPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Alert className="mb-6 bg-blue-50">
-                <FileCheck className="h-4 w-4" />
-                <AlertTitle>Your balance: ₹{(user?.balance / 100).toFixed(2)}</AlertTitle>
-                <AlertDescription>
+              <div className="mb-6 p-4 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="p-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600">
+                    <IndianRupee className="h-4 w-4 text-white" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-fuchsia-300">Your balance: ₹{(user?.balance / 100).toFixed(2)}</h3>
+                </div>
+                <p className="pl-9 text-sm text-slate-400">
                   Minimum withdrawal amount is ₹500. Maximum is ₹50,000.
-                </AlertDescription>
-              </Alert>
+                </p>
+              </div>
 
               <Form {...withdrawalForm}>
                 <form onSubmit={withdrawalForm.handleSubmit(handleWithdrawalSubmit)} className="space-y-6">
