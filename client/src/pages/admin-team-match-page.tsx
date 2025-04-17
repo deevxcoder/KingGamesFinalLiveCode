@@ -6,6 +6,15 @@ import { format, parseISO } from "date-fns";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GiCricketBat } from "react-icons/gi";
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import { 
   Table, 
   TableBody, 
@@ -61,7 +70,6 @@ import {
   Filter
 } from "lucide-react";
 import { IoFootball, IoBasketball } from "react-icons/io5";
-import { GiCricketBat } from "react-icons/gi";
 import { 
   Select,
   SelectContent,
@@ -313,6 +321,7 @@ export default function AdminTeamMatchPage() {
     // Create the data object with combined date/time
     const data = {
       ...restData,
+      matchDate, // Include matchDate in the data object
       matchTime: combinedDateTime,
     };
     
@@ -573,6 +582,106 @@ export default function AdminTeamMatchPage() {
             CategoryBadge={CategoryBadge}
             getResultDisplay={getResultDisplay}
           />
+        </TabsContent>
+        
+        <TabsContent value="cricket-toss" className="space-y-6">
+          <div className="bg-primary-50 dark:bg-gray-800 p-4 rounded-lg mb-6">
+            <h3 className="text-lg font-medium mb-2 flex items-center">
+              <GiCricketBat className="h-5 w-5 mr-2 text-indigo-500" />
+              Cricket Toss Game Management
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Create and manage Cricket Toss games. Cricket Toss is a simplified version of team matches where users bet on which team will win the toss.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Create Cricket Toss</CardTitle>
+                <CardDescription>Set up a new Cricket Toss game from existing cricket matches</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Select Cricket Match</Label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a cricket match" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allMatches
+                          .filter(match => match.category === "cricket" && match.status === "open")
+                          .map(match => (
+                            <SelectItem key={match.id} value={match.id.toString()}>
+                              {match.teamA} vs {match.teamB} ({formatDate(match.matchTime)})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Team A Odds</Label>
+                      <Input type="number" min="100" max="500" defaultValue="200" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Team B Odds</Label>
+                      <Input type="number" min="100" max="500" defaultValue="200" />
+                    </div>
+                  </div>
+                  
+                  <Button className="w-full">Create Cricket Toss Game</Button>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Active Cricket Toss Games</CardTitle>
+                <CardDescription>Currently active Cricket Toss games</CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Teams</TableHead>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {allMatches
+                      .filter(match => match.category === "cricket" && match.status === "open")
+                      .slice(0, 3)
+                      .map(match => (
+                        <TableRow key={match.id}>
+                          <TableCell>
+                            <div className="font-medium">{match.teamA} vs {match.teamB}</div>
+                            <div className="text-sm text-muted-foreground">Cricket Toss</div>
+                          </TableCell>
+                          <TableCell>{formatDate(match.matchTime)}</TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                              Declare
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {allMatches.filter(match => match.category === "cricket" && match.status === "open").length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center py-6 text-muted-foreground">
+                          No active Cricket Toss games found
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
       </Tabs>
 
