@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee, Wallet, History, Ban, CheckCircle2, CircleDollarSign } from "lucide-react";
+import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee, Wallet, History, Ban, CheckCircle2, CircleDollarSign, Landmark, Banknote } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -739,65 +739,76 @@ export default function WalletPage() {
                       <FormItem>
                         <FormLabel>Payment Method</FormLabel>
                         <FormControl>
-                          <RadioGroup
-                            defaultValue={field.value}
-                            onValueChange={field.onChange}
-                            className="flex flex-nowrap gap-3 overflow-x-auto pb-2"
-                          >
-                            <Label
-                              htmlFor="upi"
-                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
-                               ${field.value === "upi" 
-                                 ? "border-primary bg-primary/10" 
-                                 : "border-border hover:border-muted-foreground"}`}
+                          <div className="grid grid-cols-3 gap-3">
+                            <div 
+                              className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                                field.value === "upi" 
+                                  ? "bg-slate-900/90 border-primary shadow-md" 
+                                  : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+                              }`}
+                              onClick={() => depositForm.setValue("paymentMode", "upi")}
                             >
-                              <RadioGroupItem value="upi" id="upi" className="sr-only" />
-                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                                <img src="/images/upi-icon.svg" alt="UPI" className="h-6 w-6" onError={(e) => {
-                                  // Fallback if image doesn't exist
-                                  e.currentTarget.onerror = null;
-                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233498db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cline x1='12' y1='1' x2='12' y2='23'%3e%3c/line%3e%3cpath d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'%3e%3c/path%3e%3c/svg%3e";
-                                }} />
+
+                              <div className="flex flex-col items-center justify-center text-center">
+                                <div className={`p-3 rounded-full mb-2 ${
+                                  field.value === "upi" 
+                                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                                    : "bg-slate-800"
+                                }`}>
+                                  <IndianRupee className="w-5 h-5 text-white" />
+                                </div>
+                                <span className={`font-medium ${
+                                  field.value === "upi" ? "text-primary" : "text-slate-300"
+                                }`}>UPI</span>
                               </div>
-                              <span className="font-medium">UPI</span>
-                            </Label>
+                            </div>
                             
-                            <Label
-                              htmlFor="bank"
-                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
-                               ${field.value === "bank" 
-                                 ? "border-primary bg-primary/10" 
-                                 : "border-border hover:border-muted-foreground"}`}
+                            <div 
+                              className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                                field.value === "bank" 
+                                  ? "bg-slate-900/90 border-primary shadow-md" 
+                                  : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+                              }`}
+                              onClick={() => depositForm.setValue("paymentMode", "bank")}
                             >
-                              <RadioGroupItem value="bank" id="bank" className="sr-only" />
-                              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
-                                <img src="/images/bank-icon.svg" alt="Bank" className="h-6 w-6" onError={(e) => {
-                                  // Fallback if image doesn't exist
-                                  e.currentTarget.onerror = null;
-                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232ecc71' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='8' width='18' height='12' rx='2' ry='2'%3e%3c/rect%3e%3cline x1='3' y1='12' x2='21' y2='12'%3e%3c/line%3e%3c/svg%3e";
-                                }} />
+
+                              <div className="flex flex-col items-center justify-center text-center">
+                                <div className={`p-3 rounded-full mb-2 ${
+                                  field.value === "bank" 
+                                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                                    : "bg-slate-800"
+                                }`}>
+                                  <Landmark className="w-5 h-5 text-white" />
+                                </div>
+                                <span className={`font-medium ${
+                                  field.value === "bank" ? "text-primary" : "text-slate-300"
+                                }`}>Bank</span>
                               </div>
-                              <span className="font-medium">Bank Transfer</span>
-                            </Label>
+                            </div>
                             
-                            <Label
-                              htmlFor="cash"
-                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
-                               ${field.value === "cash" 
-                                 ? "border-primary bg-primary/10" 
-                                 : "border-border hover:border-muted-foreground"}`}
+                            <div 
+                              className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                                field.value === "cash" 
+                                  ? "bg-slate-900/90 border-primary shadow-md" 
+                                  : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+                              }`}
+                              onClick={() => depositForm.setValue("paymentMode", "cash")}
                             >
-                              <RadioGroupItem value="cash" id="cash" className="sr-only" />
-                              <div className="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center mb-2">
-                                <img src="/images/cash-icon.svg" alt="Cash" className="h-6 w-6" onError={(e) => {
-                                  // Fallback if image doesn't exist
-                                  e.currentTarget.onerror = null;
-                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23f39c12' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='2' y='6' width='20' height='12' rx='2' ry='2'%3e%3c/rect%3e%3ccircle cx='12' cy='12' r='2'%3e%3c/circle%3e%3cpath d='M6 12h.01M18 12h.01'%3e%3c/path%3e%3c/svg%3e";
-                                }} />
+
+                              <div className="flex flex-col items-center justify-center text-center">
+                                <div className={`p-3 rounded-full mb-2 ${
+                                  field.value === "cash" 
+                                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                                    : "bg-slate-800"
+                                }`}>
+                                  <Banknote className="w-5 h-5 text-white" />
+                                </div>
+                                <span className={`font-medium ${
+                                  field.value === "cash" ? "text-primary" : "text-slate-300"
+                                }`}>Cash</span>
                               </div>
-                              <span className="font-medium">Cash</span>
-                            </Label>
-                          </RadioGroup>
+                            </div>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -908,47 +919,53 @@ export default function WalletPage() {
                       <FormItem>
                         <FormLabel>Withdrawal Method</FormLabel>
                         <FormControl>
-                          <RadioGroup
-                            defaultValue={field.value}
-                            onValueChange={field.onChange}
-                            className="flex flex-nowrap gap-3 overflow-x-auto pb-2"
-                          >
-                            <Label
-                              htmlFor="w-upi"
-                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
-                               ${field.value === "upi" 
-                                 ? "border-primary bg-primary/10" 
-                                 : "border-border hover:border-muted-foreground"}`}
+                          <div className="grid grid-cols-2 gap-3">
+                            <div 
+                              className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                                field.value === "upi" 
+                                  ? "bg-slate-900/90 border-primary shadow-md" 
+                                  : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+                              }`}
+                              onClick={() => withdrawalForm.setValue("paymentMode", "upi")}
                             >
-                              <RadioGroupItem value="upi" id="w-upi" className="sr-only" />
-                              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                                <img src="/images/upi-icon.svg" alt="UPI" className="h-6 w-6" onError={(e) => {
-                                  // Fallback if image doesn't exist
-                                  e.currentTarget.onerror = null;
-                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%233498db' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cline x1='12' y1='1' x2='12' y2='23'%3e%3c/line%3e%3cpath d='M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6'%3e%3c/path%3e%3c/svg%3e";
-                                }} />
+
+                              <div className="flex flex-col items-center justify-center text-center">
+                                <div className={`p-3 rounded-full mb-2 ${
+                                  field.value === "upi" 
+                                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                                    : "bg-slate-800"
+                                }`}>
+                                  <IndianRupee className="w-5 h-5 text-white" />
+                                </div>
+                                <span className={`font-medium ${
+                                  field.value === "upi" ? "text-primary" : "text-slate-300"
+                                }`}>UPI</span>
                               </div>
-                              <span className="font-medium">UPI</span>
-                            </Label>
+                            </div>
                             
-                            <Label
-                              htmlFor="w-bank"
-                              className={`flex flex-col items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all w-full sm:w-auto
-                               ${field.value === "bank" 
-                                 ? "border-primary bg-primary/10" 
-                                 : "border-border hover:border-muted-foreground"}`}
+                            <div 
+                              className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                                field.value === "bank" 
+                                  ? "bg-slate-900/90 border-primary shadow-md" 
+                                  : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+                              }`}
+                              onClick={() => withdrawalForm.setValue("paymentMode", "bank")}
                             >
-                              <RadioGroupItem value="bank" id="w-bank" className="sr-only" />
-                              <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center mb-2">
-                                <img src="/images/bank-icon.svg" alt="Bank" className="h-6 w-6" onError={(e) => {
-                                  // Fallback if image doesn't exist
-                                  e.currentTarget.onerror = null;
-                                  e.currentTarget.src = "data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%232ecc71' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3crect x='3' y='8' width='18' height='12' rx='2' ry='2'%3e%3c/rect%3e%3cline x1='3' y1='12' x2='21' y2='12'%3e%3c/line%3e%3c/svg%3e";
-                                }} />
+
+                              <div className="flex flex-col items-center justify-center text-center">
+                                <div className={`p-3 rounded-full mb-2 ${
+                                  field.value === "bank" 
+                                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                                    : "bg-slate-800"
+                                }`}>
+                                  <Landmark className="w-5 h-5 text-white" />
+                                </div>
+                                <span className={`font-medium ${
+                                  field.value === "bank" ? "text-primary" : "text-slate-300"
+                                }`}>Bank</span>
                               </div>
-                              <span className="font-medium">Bank Transfer</span>
-                            </Label>
-                          </RadioGroup>
+                            </div>
+                          </div>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
