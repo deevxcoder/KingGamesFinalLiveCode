@@ -157,7 +157,7 @@ export default function SubadminSettingsPage() {
   // Load commission rates - either for current subadmin or for the subadmin being viewed by admin
   const { isLoading: isLoadingCommissions } = useQuery({
     queryKey: ['/api/commissions/subadmin', isAdminViewingSubadmin ? subadminIdFromUrl : user?.id],
-    queryFn: () => apiRequest(`/api/commissions/subadmin/${isAdminViewingSubadmin ? subadminIdFromUrl : user?.id}`),
+    queryFn: () => apiRequest('GET', `/api/commissions/subadmin/${isAdminViewingSubadmin ? subadminIdFromUrl : user?.id}`),
     enabled: !!(isAdminViewingSubadmin ? subadminIdFromUrl : user?.id),
     onSuccess: (data) => {
       if (data && data.length > 0) {
@@ -177,16 +177,26 @@ export default function SubadminSettingsPage() {
   });
 
   // Get users assigned to this subadmin
-  const { data: assignedUsers, isLoading: isLoadingUsers } = useQuery({
+  const { isLoading: isLoadingUsers } = useQuery({
     queryKey: ['/api/users'],
     queryFn: () => apiRequest('GET', '/api/users'),
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    onSuccess: (data) => {
+      console.log('Assigned users data:', data);
+    }
   });
+  
+  // Temporary mock users for testing the UI
+  const assignedUsers = [
+    { id: 1, username: "Player 1" },
+    { id: 2, username: "Player 2" },
+    { id: 3, username: "Player 3" }
+  ];
 
   // Load user discounts when a user is selected
   useQuery({
     queryKey: ['/api/discounts/user', selectedUserId],
-    queryFn: () => apiRequest(`/api/discounts/user/${selectedUserId}`),
+    queryFn: () => apiRequest('GET', `/api/discounts/user/${selectedUserId}`),
     enabled: !!selectedUserId,
     onSuccess: (data) => {
       if (data && data.length > 0) {
@@ -608,7 +618,7 @@ export default function SubadminSettingsPage() {
                             <Loader2 className="h-4 w-4 animate-spin" />
                           </div>
                         ) : (
-                          assignedUsers?.map((user: any) => (
+                          assignedUsers.map((user: any) => (
                             <SelectItem key={user.id} value={user.id.toString()}>
                               {user.username}
                             </SelectItem>
