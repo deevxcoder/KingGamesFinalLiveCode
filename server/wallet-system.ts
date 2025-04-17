@@ -101,6 +101,9 @@ export async function getWalletRequests(userId?: number, status?: string, reques
   try {
     // For subadmin filtering, we need to use a raw SQL query for proper joining
     if (adminId) {
+      // Import the connection pool for raw SQL queries
+      const { pool } = await import('./db');
+      
       const filters = [];
       const params = [];
       
@@ -125,7 +128,7 @@ export async function getWalletRequests(userId?: number, status?: string, reques
       
       const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
       
-      const result = await db.execute(
+      const result = await pool.query(
         `SELECT wr.* FROM wallet_requests wr
          JOIN users u ON wr.user_id = u.id
          ${whereClause}
@@ -136,12 +139,7 @@ export async function getWalletRequests(userId?: number, status?: string, reques
       return result.rows;
     }
     
-    // For simple queries without admin filtering, use Drizzle ORM's SQL builder
-    let query = db
-      .select()
-      .from(walletRequests);
-    
-    // Build the WHERE conditions
+    // For simple queries without admin filtering, use Drizzle's prepared statements
     const whereConditions = [];
     
     if (userId) {
@@ -156,15 +154,15 @@ export async function getWalletRequests(userId?: number, status?: string, reques
       whereConditions.push(eq(walletRequests.requestType, requestType));
     }
     
-    // Apply WHERE conditions if any
+    // Use the query builder with proper type handling
     if (whereConditions.length > 0) {
-      query = query.where(and(...whereConditions));
+      return await db.select().from(walletRequests)
+        .where(and(...whereConditions))
+        .orderBy(desc(walletRequests.createdAt));
+    } else {
+      return await db.select().from(walletRequests)
+        .orderBy(desc(walletRequests.createdAt));
     }
-    
-    // Apply ORDER BY
-    query = query.orderBy(desc(walletRequests.createdAt));
-    
-    return await query;
   } catch (error) {
     console.error('Error getting wallet requests:', error);
     throw new Error('Failed to get wallet requests');
