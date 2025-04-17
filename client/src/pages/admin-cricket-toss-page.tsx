@@ -258,21 +258,66 @@ export default function AdminCricketTossPage() {
     resultForm.reset({ result: game.result || "" });
   };
 
-  // Handle submit for declaring result
-  const onSubmitResult = (data: z.infer<typeof resultFormSchema>) => {
-    if (declareResultGame) {
-      // This will be replaced with an API call:
-      // updateTossResult.mutate({ id: declareResultGame.id, result: data.result });
-      
-      // For now, show a success toast
+  // Mutation for declaring toss result
+  const updateTossResult = useMutation({
+    mutationFn: ({ id, result }: { id: number, result: string }) => {
+      return apiRequest(
+        'PATCH',
+        `/api/cricket-toss/${id}/result`,
+        { result }
+      );
+    },
+    onSuccess: () => {
       setDeclareResultGame(null);
       resultForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss"] });
       toast({
         title: "Result declared",
         description: "Toss result has been declared successfully",
       });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to declare result. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle submit for declaring result
+  const onSubmitResult = (data: z.infer<typeof resultFormSchema>) => {
+    if (declareResultGame) {
+      updateTossResult.mutate({ id: declareResultGame.id, result: data.result });
     }
   };
+
+  // Mutation for creating a cricket toss game
+  const createTossGame = useMutation({
+    mutationFn: (data: any) => {
+      return apiRequest(
+        'POST',
+        '/api/cricket-toss',
+        data
+      );
+    },
+    onSuccess: () => {
+      setIsAddGameOpen(false);
+      gameForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss"] });
+      toast({
+        title: "Game created",
+        description: "New Cricket Toss game has been created successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create game. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   // Handle submit for adding/editing game
   const onSubmitGame = (formData: z.infer<typeof tossGameFormSchema>) => {
@@ -283,33 +328,20 @@ export default function AdminCricketTossPage() {
     // Create the data object with combined date/time
     const data = {
       ...restData,
-      tossDate,
       tossTime: combinedDateTime,
-      gameType: GameType.CRICKET_TOSS,
     };
     
     if (editingGame) {
-      // This will be replaced with an API call:
-      // updateTossGame.mutate({ id: editingGame.id, data });
-      
-      // For now, show a success toast
+      // Not implemented - need to update the API for this
+      toast({
+        title: "Editing not implemented",
+        description: "Editing cricket toss games is not yet implemented. Please create a new game instead.",
+        variant: "destructive"
+      });
       setEditingGame(null);
-      gameForm.reset();
-      toast({
-        title: "Game updated",
-        description: "Cricket Toss game has been updated successfully",
-      });
     } else {
-      // This will be replaced with an API call:
-      // createTossGame.mutate(data);
-      
-      // For now, show a success toast
-      setIsAddGameOpen(false);
-      gameForm.reset();
-      toast({
-        title: "Game created",
-        description: "New Cricket Toss game has been created successfully",
-      });
+      // Create a new cricket toss game
+      createTossGame.mutate(data);
     }
   };
 
@@ -473,9 +505,13 @@ export default function AdminCricketTossPage() {
           <DialogHeader>
             <DialogTitle>Declare Toss Result</DialogTitle>
             <DialogDescription>
-              {declareResultGame && declareResultGame.gameData && (
+              {declareResultGame && declareResultGame.gameData ? (
                 <span>
                   Select which team won the toss: {declareResultGame.gameData.teamA} vs {declareResultGame.gameData.teamB}.
+                </span>
+              ) : (
+                <span>
+                  Select which team won the toss for Game #{declareResultGame?.id}.
                 </span>
               )}
             </DialogDescription>
@@ -500,10 +536,10 @@ export default function AdminCricketTossPage() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value={TeamMatchResult.TEAM_A}>
-                          {declareResultGame?.gameData?.teamA} Won the Toss
+                          {declareResultGame?.gameData ? declareResultGame.gameData.teamA : "Team A"} Won the Toss
                         </SelectItem>
                         <SelectItem value={TeamMatchResult.TEAM_B}>
-                          {declareResultGame?.gameData?.teamB} Won the Toss
+                          {declareResultGame?.gameData ? declareResultGame.gameData.teamB : "Team B"} Won the Toss
                         </SelectItem>
                       </SelectContent>
                     </Select>
