@@ -70,15 +70,23 @@ import { GameType, TeamMatchResult } from "@shared/schema";
 // Type for Cricket Toss Game
 type CricketTossGame = {
   id: number;
-  teamA: string;
-  teamB: string;
-  tossTime: string;
-  description: string | null;
-  oddTeamA: number;
-  oddTeamB: number;
+  userId: number;
+  gameType: string;
+  betAmount: number;
+  prediction: string;
   status: string;
   result: string | null;
+  payout: number;
   createdAt: string;
+  gameData: {
+    teamA: string;
+    teamB: string;
+    tossTime: string;
+    description: string;
+    oddTeamA: number;
+    oddTeamB: number;
+    imageUrl?: string;
+  };
 };
 
 // Form schema for declaring toss results
@@ -132,39 +140,63 @@ export default function AdminCricketTossPage() {
   const mockGames: CricketTossGame[] = [
     {
       id: 1,
-      teamA: "India",
-      teamB: "Australia",
-      tossTime: "2025-04-20T14:00:00",
-      description: "T20 World Cup 2025",
-      oddTeamA: 180,
-      oddTeamB: 220,
+      userId: 1,
+      gameType: GameType.CRICKET_TOSS,
+      betAmount: 0,
+      prediction: "",
       status: "open",
       result: null,
+      payout: 0,
       createdAt: "2025-04-17T10:30:00",
+      gameData: {
+        teamA: "India",
+        teamB: "Australia",
+        tossTime: "2025-04-20T14:00:00",
+        description: "T20 World Cup 2025",
+        oddTeamA: 180,
+        oddTeamB: 220,
+        imageUrl: "/images/india-vs-australia.svg"
+      }
     },
     {
       id: 2,
-      teamA: "England",
-      teamB: "New Zealand",
-      tossTime: "2025-04-18T15:30:00",
-      description: "Test Match Day 1",
-      oddTeamA: 200,
-      oddTeamB: 200,
+      userId: 1,
+      gameType: GameType.CRICKET_TOSS,
+      betAmount: 0,
+      prediction: "",
       status: "open",
       result: null,
+      payout: 0,
       createdAt: "2025-04-16T09:15:00",
+      gameData: {
+        teamA: "England",
+        teamB: "New Zealand",
+        tossTime: "2025-04-18T15:30:00",
+        description: "Test Match Day 1",
+        oddTeamA: 200,
+        oddTeamB: 200,
+        imageUrl: "/images/england-vs-nz.svg"
+      }
     },
     {
-      id: 3, 
-      teamA: "Pakistan",
-      teamB: "South Africa",
-      tossTime: "2025-04-15T13:00:00",
-      description: "ODI Series Match 2",
-      oddTeamA: 210,
-      oddTeamB: 190,
+      id: 3,
+      userId: 1,
+      gameType: GameType.CRICKET_TOSS,
+      betAmount: 0,
+      prediction: "",
       status: "resulted",
       result: "team_a",
+      payout: 0,
       createdAt: "2025-04-14T11:20:00",
+      gameData: {
+        teamA: "Pakistan",
+        teamB: "South Africa",
+        tossTime: "2025-04-15T13:00:00",
+        description: "ODI Series Match 2",
+        oddTeamA: 210,
+        oddTeamB: 190,
+        imageUrl: "/images/pakistan-vs-sa.svg"
+      }
     }
   ];
 
@@ -192,11 +224,12 @@ export default function AdminCricketTossPage() {
   };
 
   // Filter games by search query
-  const filteredGames = getGamesForTab().filter(game => 
-    game.teamA.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    game.teamB.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    game.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredGames = getGamesForTab().filter(game => {
+    if (!game.gameData) return false;
+    return game.gameData.teamA.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    game.gameData.teamB.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    game.gameData.description?.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -205,16 +238,18 @@ export default function AdminCricketTossPage() {
 
   // Handle opening edit game dialog
   const handleEditGame = (game: CricketTossGame) => {
+    if (!game.gameData) return;
+    
     setEditingGame(game);
-    const tossDate = parseISO(game.tossTime);
+    const tossDate = parseISO(game.gameData.tossTime);
     gameForm.reset({
-      teamA: game.teamA,
-      teamB: game.teamB,
-      description: game.description || "",
+      teamA: game.gameData.teamA,
+      teamB: game.gameData.teamB,
+      description: game.gameData.description || "",
       tossDate: format(tossDate, "yyyy-MM-dd"),
       tossTime: format(tossDate, "HH:mm"),
-      oddTeamA: game.oddTeamA,
-      oddTeamB: game.oddTeamB,
+      oddTeamA: game.gameData.oddTeamA,
+      oddTeamB: game.gameData.oddTeamB,
     });
   };
 
@@ -318,9 +353,10 @@ export default function AdminCricketTossPage() {
 
   // Get result display
   const getResultDisplay = (result: string | null, game: CricketTossGame) => {
+    if (!game.gameData) return "Pending";
     if (result === null || result === "pending") return "Pending";
-    if (result === "team_a") return game.teamA;
-    if (result === "team_b") return game.teamB;
+    if (result === "team_a") return game.gameData.teamA;
+    if (result === "team_b") return game.gameData.teamB;
     return result;
   };
 
@@ -435,9 +471,9 @@ export default function AdminCricketTossPage() {
           <DialogHeader>
             <DialogTitle>Declare Toss Result</DialogTitle>
             <DialogDescription>
-              {declareResultGame && (
+              {declareResultGame && declareResultGame.gameData && (
                 <span>
-                  Select which team won the toss: {declareResultGame.teamA} vs {declareResultGame.teamB}.
+                  Select which team won the toss: {declareResultGame.gameData.teamA} vs {declareResultGame.gameData.teamB}.
                 </span>
               )}
             </DialogDescription>
