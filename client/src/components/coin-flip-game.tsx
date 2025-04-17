@@ -213,13 +213,13 @@ export default function CoinFlipGame() {
                   onClick={() => selectPrediction(GameOutcome.HEADS)}
                   className={`px-4 py-3 relative ${
                     selectedPrediction === GameOutcome.HEADS
-                      ? "bg-amber-600 hover:bg-amber-700 ring-2 ring-amber-400 ring-offset-2 ring-offset-background"
-                      : "bg-amber-600/70 hover:bg-amber-600"
+                      ? "bg-primary hover:bg-primary/90 ring-2 ring-primary/30 ring-offset-2 ring-offset-background"
+                      : "bg-primary/70 hover:bg-primary/80"
                   } text-white font-bold rounded-lg transition-all`}
                   disabled={isFlipping}
                 >
                   {selectedPrediction === GameOutcome.HEADS && (
-                    <div className="absolute -top-1 -right-1 bg-amber-400 text-amber-800 text-xs font-bold rounded-full p-1 w-5 h-5 flex items-center justify-center">
+                    <div className="absolute -top-1 -right-1 bg-white text-primary text-xs font-bold rounded-full p-1 w-5 h-5 flex items-center justify-center">
                       ✓
                     </div>
                   )}
@@ -229,13 +229,13 @@ export default function CoinFlipGame() {
                   onClick={() => selectPrediction(GameOutcome.TAILS)}
                   className={`px-4 py-3 relative ${
                     selectedPrediction === GameOutcome.TAILS
-                      ? "bg-red-600 hover:bg-red-700 ring-2 ring-red-400 ring-offset-2 ring-offset-background"
-                      : "bg-red-600/70 hover:bg-red-600"
+                      ? "bg-purple-600 hover:bg-purple-700 ring-2 ring-purple-400 ring-offset-2 ring-offset-background"
+                      : "bg-purple-600/70 hover:bg-purple-600"
                   } text-white font-bold rounded-lg transition-all`}
                   disabled={isFlipping}
                 >
                   {selectedPrediction === GameOutcome.TAILS && (
-                    <div className="absolute -top-1 -right-1 bg-red-400 text-red-800 text-xs font-bold rounded-full p-1 w-5 h-5 flex items-center justify-center">
+                    <div className="absolute -top-1 -right-1 bg-white text-purple-600 text-xs font-bold rounded-full p-1 w-5 h-5 flex items-center justify-center">
                       ✓
                     </div>
                   )}
@@ -342,7 +342,7 @@ export default function CoinFlipGame() {
             
             <Button
               onClick={handlePlaceBet}
-              className="w-full px-4 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-center transition-colors"
+              className="w-full px-4 py-4 bg-gradient-to-r from-primary/90 to-purple-600 hover:from-primary hover:to-purple-700 text-white font-bold text-center transition-colors"
               disabled={isFlipping || !selectedPrediction || betAmount <= 0 || betAmount * 100 > (user?.balance || 0)}
             >
               {isFlipping ? "Flipping..." : "PLACE BET"}
@@ -361,7 +361,7 @@ export default function CoinFlipGame() {
             exit={{ opacity: 0 }}
           >
             <motion.div 
-              className="bg-card p-6 rounded-lg border border-green-500 shadow-xl max-w-md w-full mx-4"
+              className="bg-card p-6 rounded-lg border border-primary shadow-xl max-w-md w-full mx-4"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
@@ -381,20 +381,20 @@ export default function CoinFlipGame() {
               
               <div className="my-5 text-center">
                 <div className="flex items-center justify-center mb-3">
-                  <Trophy className="h-12 w-12 text-yellow-500 mr-2" />
-                  <div className="flex items-center text-3xl font-bold text-green-500">
+                  <Trophy className="h-12 w-12 text-amber-500 mr-2" />
+                  <div className="flex items-center text-3xl font-bold text-primary">
                     <IndianRupee className="h-8 w-8 mr-1" /> 
                     <span>{lastResult.amount.toFixed(2)}</span>
                   </div>
                 </div>
                 
                 <p className="text-slate-300 mb-4">
-                  Your prediction was <strong className="text-green-400">{lastResult.prediction}</strong> and the result was <strong className="text-green-400">{lastResult.result}</strong>
+                  Your prediction was <strong className="text-primary">{lastResult.prediction}</strong> and the result was <strong className="text-primary">{lastResult.result}</strong>
                 </p>
               </div>
               
               <Button 
-                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 mt-2 py-6 text-lg"
+                className="w-full bg-gradient-to-r from-primary/90 to-purple-600 hover:from-primary hover:to-purple-700 mt-2 py-6 text-lg"
                 onClick={handlePlayAgain}
               >
                 Play Again
@@ -414,7 +414,7 @@ export default function CoinFlipGame() {
             exit={{ opacity: 0 }}
           >
             <motion.div 
-              className="bg-card p-6 rounded-lg border border-red-500 shadow-xl max-w-md w-full mx-4"
+              className="bg-card p-6 rounded-lg border border-purple-600 shadow-xl max-w-md w-full mx-4"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
@@ -434,13 +434,13 @@ export default function CoinFlipGame() {
               
               <div className="my-5 text-center">
                 <p className="text-slate-300 mb-4">
-                  Your prediction was <strong className="text-red-400">{lastResult.prediction}</strong> but the result was <strong className="text-red-400">{lastResult.result}</strong>
+                  Your prediction was <strong className="text-purple-400">{lastResult.prediction}</strong> but the result was <strong className="text-purple-400">{lastResult.result}</strong>
                 </p>
                 <p className="text-slate-400">Better luck next time!</p>
               </div>
               
               <Button 
-                className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 mt-2 py-6 text-lg"
+                className="w-full bg-gradient-to-r from-primary/90 to-purple-600 hover:from-primary hover:to-purple-700 mt-2 py-6 text-lg"
                 onClick={handlePlayAgain}
               >
                 Try Again
