@@ -119,6 +119,105 @@ export class DatabaseStorage implements IStorage {
     
     // Check if Satamatka markets exist and seed them if not
     this.checkAndSeedSatamatkaMarkets();
+    
+    // Seed Cricket Toss games
+    this.seedCricketTossGames();
+  }
+  
+  /**
+   * Seed Cricket Toss games for demonstration
+   */
+  private async seedCricketTossGames() {
+    try {
+      // Check if there are any Cricket Toss games in the database
+      const existingGames = await db
+        .select()
+        .from(games)
+        .where(eq(games.gameType, 'cricket_toss'));
+      
+      if (existingGames.length === 0) {
+        console.log("Seeding Cricket Toss games...");
+        
+        // Get admin user for creating games
+        const [admin] = await db
+          .select()
+          .from(users)
+          .where(eq(users.role, 'admin'))
+          .limit(1);
+        
+        if (!admin) {
+          console.log("No admin user found for seeding Cricket Toss games");
+          return;
+        }
+        
+        // Cricket Toss games data
+        const tossGames = [
+          {
+            teamA: "India",
+            teamB: "Australia",
+            description: "T20 World Cup 2025",
+            tossTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days in future
+            oddTeamA: 190,
+            oddTeamB: 210,
+            imageUrl: "/images/india-vs-australia.svg"
+          },
+          {
+            teamA: "England",
+            teamB: "New Zealand", 
+            description: "Test Match Series - Game 1",
+            tossTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days in future
+            oddTeamA: 200,
+            oddTeamB: 200,
+            imageUrl: "/images/england-vs-nz.svg"
+          },
+          {
+            teamA: "Pakistan",
+            teamB: "South Africa",
+            description: "ODI Series 2025",
+            tossTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day in future
+            oddTeamA: 180,
+            oddTeamB: 220,
+            imageUrl: "/images/pakistan-vs-sa.svg"
+          },
+          {
+            teamA: "West Indies",
+            teamB: "Sri Lanka",
+            description: "Caribbean Premier League",
+            tossTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), // 4 days in future
+            oddTeamA: 210,
+            oddTeamB: 190,
+            imageUrl: "/images/wi-vs-sl.svg"
+          },
+          {
+            teamA: "Mumbai Indians",
+            teamB: "Chennai Super Kings",
+            description: "IPL 2025 Final",
+            tossTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days in future
+            oddTeamA: 195,
+            oddTeamB: 205,
+            imageUrl: "/images/mi-vs-csk.svg"
+          }
+        ];
+        
+        // Create Cricket Toss games
+        for (const game of tossGames) {
+          await db.insert(games).values({
+            userId: admin.id,
+            gameType: 'cricket_toss',
+            betAmount: 0,
+            prediction: '',
+            gameData: game,
+            status: 'open',
+            result: '',
+            payout: 0
+          });
+        }
+        
+        console.log("Cricket Toss games seeded successfully!");
+      }
+    } catch (error) {
+      console.error("Error seeding Cricket Toss games:", error);
+    }
   }
   
   /**
