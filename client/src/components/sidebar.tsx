@@ -83,7 +83,13 @@ export default function Sidebar() {
     },
     // Regular Users Only (Game Related)
     {
-      name: "Play Game",
+      name: "All Games",
+      path: "/games",
+      icon: <Gamepad2 className="w-5 h-5 mr-3" />,
+      visible: isRegularUser,
+    },
+    {
+      name: "Quick Play",
       path: "/play",
       icon: <Play className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
@@ -111,6 +117,12 @@ export default function Sidebar() {
       path: "/history",
       icon: <Clock className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
+    },
+    {
+      name: "Profile",
+      path: "/profile",
+      icon: <User className="w-5 h-5 mr-3" />,
+      visible: true,
     },
     // Wallet - accessible by all users
     {
