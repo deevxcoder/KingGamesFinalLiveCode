@@ -58,7 +58,7 @@ const gameCards = [
     title: "Coin Flip",
     description: "Classic heads or tails betting with 50/50 odds for instant wins.",
     imageBg: "linear-gradient(to right, #1e293b, #3b5cb8)",
-    path: "/play",
+    path: "/coinflip",
     popularity: "high" as const,
     winRate: 50
   }
@@ -291,10 +291,10 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Button 
               className="py-8 text-lg bg-gradient-to-r from-purple-700 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500"
-              onClick={() => setLocation("/play")}
+              onClick={() => setLocation("/coinflip")}
             >
               <Dice1 className="h-5 w-5 mr-2" />
-              Play Games
+              Coin Flip
             </Button>
             
             <Button 

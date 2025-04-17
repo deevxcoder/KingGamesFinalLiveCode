@@ -42,7 +42,7 @@ function Router() {
       
       {/* Player routes - only for normal players (not admin/subadmin) */}
       <ProtectedRoute 
-        path="/play" 
+        path="/coinflip" 
         component={GamePage} 
         allowedRoles={[UserRole.PLAYER]}
       />

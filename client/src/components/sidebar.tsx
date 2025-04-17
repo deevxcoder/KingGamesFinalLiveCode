@@ -89,8 +89,8 @@ export default function Sidebar() {
       visible: isRegularUser,
     },
     {
-      name: "Quick Play",
-      path: "/play",
+      name: "Coin Flip",
+      path: "/coinflip",
       icon: <Play className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
     },
