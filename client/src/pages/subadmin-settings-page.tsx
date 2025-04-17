@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,14 +10,23 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Loader2 } from "lucide-react";
+import { Loader2, ChevronLeft } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
+import { UserRole } from "@shared/schema";
 
 export default function SubadminSettingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("odds");
+  const [location] = useLocation();
+  
+  // Get subadmin ID from URL if provided
+  const urlParams = new URLSearchParams(window.location.search);
+  const subadminIdFromUrl = urlParams.get('id') ? parseInt(urlParams.get('id')!) : null;
+  
+  // Determine if this page is being viewed by an admin for a specific subadmin
+  const isAdminViewingSubadmin = user?.role === UserRole.ADMIN && subadminIdFromUrl !== null;
 
   // User selectors
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
