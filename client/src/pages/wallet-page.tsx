@@ -376,20 +376,6 @@ export default function WalletPage() {
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={depositForm.control}
-                name="paymentDetails.utrNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>UTR Number</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter UTR number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </div>
 
             {/* Display system bank details */}
@@ -734,23 +720,25 @@ export default function WalletPage() {
 
                   {renderDepositPaymentFields()}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="proofImage">Payment Proof Image</Label>
-                    <Input
-                      id="proofImage"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleProofImageChange}
-                      className="cursor-pointer"
-                    />
-                    {proofImage && (
-                      <div className="mt-2">
-                        <p className="text-sm text-green-600">
-                          Image selected: {proofImage.name}
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  {depositForm.watch("paymentMode") !== "cash" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="proofImage">Payment Proof Image</Label>
+                      <Input
+                        id="proofImage"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProofImageChange}
+                        className="cursor-pointer"
+                      />
+                      {proofImage && (
+                        <div className="mt-2">
+                          <p className="text-sm text-green-600">
+                            Image selected: {proofImage.name}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
 
                   <FormField
                     control={depositForm.control}

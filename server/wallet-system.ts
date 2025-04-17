@@ -324,7 +324,7 @@ export function setupWalletRoutes(app: express.Express) {
       
       // Get payment details from settings
       const paymentSettings = await db.execute(
-        'SELECT value FROM system_settings WHERE key = $1',
+        'SELECT setting_value FROM system_settings WHERE setting_key = $1',
         ['payment_details']
       );
       
@@ -346,7 +346,7 @@ export function setupWalletRoutes(app: express.Express) {
         });
       }
       
-      res.json(JSON.parse(paymentSettings.rows[0].value));
+      res.json(JSON.parse(paymentSettings.rows[0].setting_value));
     } catch (err) {
       next(err);
     }
