@@ -18,10 +18,14 @@ import {
   games
 } from "@shared/schema";
 import { eq, and, gte, desc } from "drizzle-orm";
+import { setupCricketTossRoutes } from "./cricket-toss";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
+  
+  // Setup Cricket Toss game routes
+  setupCricketTossRoutes(app);
 
   // Game routes
   app.post("/api/games", async (req, res, next) => {

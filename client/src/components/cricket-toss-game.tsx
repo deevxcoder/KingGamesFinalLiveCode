@@ -54,6 +54,9 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
         },
       });
     },
+    meta: {
+      successMessage: "Bet placed successfully!"
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/games/my-history'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
