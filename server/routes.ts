@@ -27,6 +27,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup Cricket Toss game routes
   setupCricketTossRoutes(app);
+  
+  // Setup Cricket Toss API for admin management
+  setupCricketTossApiRoutes(app);
 
   // Game routes
   app.post("/api/games", async (req, res, next) => {

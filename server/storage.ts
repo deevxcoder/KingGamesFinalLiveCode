@@ -53,8 +53,11 @@ export interface IStorage {
   
   // Game methods
   createGame(game: InsertGame): Promise<Game>;
+  getGame(id: number): Promise<Game | undefined>;
   getGamesByUserId(userId: number): Promise<Game[]>;
   getAllGames(limit?: number): Promise<Game[]>;
+  updateGameStatus(gameId: number, status: string): Promise<Game | undefined>;
+  updateGameResult(gameId: number, result: string): Promise<Game | undefined>;
 
   // Satamatka Market methods
   createSatamatkaMarket(market: InsertSatamatkaMarket): Promise<SatamatkaMarket>;
@@ -363,12 +366,37 @@ export class DatabaseStorage implements IStorage {
     return game;
   }
 
+  async getGame(id: number): Promise<Game | undefined> {
+    const [game] = await db.select().from(games).where(eq(games.id, id));
+    return game;
+  }
+
   async getGamesByUserId(userId: number): Promise<Game[]> {
     return await db
       .select()
       .from(games)
       .where(eq(games.userId, userId))
       .orderBy(desc(games.createdAt));
+  }
+
+  async updateGameStatus(gameId: number, status: string): Promise<Game | undefined> {
+    const [game] = await db
+      .update(games)
+      .set({ status })
+      .where(eq(games.id, gameId))
+      .returning();
+    
+    return game;
+  }
+
+  async updateGameResult(gameId: number, result: string): Promise<Game | undefined> {
+    const [game] = await db
+      .update(games)
+      .set({ result })
+      .where(eq(games.id, gameId))
+      .returning();
+    
+    return game;
   }
 
   async getAllGames(limit?: number): Promise<Game[]> {

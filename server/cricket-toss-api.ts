@@ -115,7 +115,7 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         userId: req.user!.id,
         gameType: GameType.CRICKET_TOSS,
         betAmount: 0, // This will be set when user places a bet
-        betOn: "", // This will be set when user places a bet
+        prediction: "", // Required by schema, will be set when user places a bet
         gameData: {
           teamA,
           teamB,
