@@ -129,17 +129,26 @@ export async function getWalletRequests(userId?: number, status?: string, reques
       const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
       
       const result = await pool.query(
-        `SELECT wr.* FROM wallet_requests wr
+        `SELECT wr.*, u.username, u.role 
+         FROM wallet_requests wr
          JOIN users u ON wr.user_id = u.id
          ${whereClause}
          ORDER BY wr.created_at DESC`,
         params
       );
       
-      return result.rows;
+      // Transform to match the expected format with nested user object
+      return result.rows.map(row => ({
+        ...row,
+        user: {
+          id: row.user_id,
+          username: row.username,
+          role: row.role
+        }
+      }));
     }
     
-    // For simple queries without admin filtering, use Drizzle's prepared statements
+    // For queries without admin filtering, use a join to include user information
     const whereConditions = [];
     
     if (userId) {
@@ -154,15 +163,37 @@ export async function getWalletRequests(userId?: number, status?: string, reques
       whereConditions.push(eq(walletRequests.requestType, requestType));
     }
     
-    // Use the query builder with proper type handling
-    if (whereConditions.length > 0) {
-      return await db.select().from(walletRequests)
+    // Get wallet requests with joined user data
+    const results = whereConditions.length > 0 
+      ? await db.select({
+          request: walletRequests,
+          user: {
+            id: users.id,
+            username: users.username,
+            role: users.role
+          }
+        })
+        .from(walletRequests)
+        .innerJoin(users, eq(walletRequests.userId, users.id))
         .where(and(...whereConditions))
+        .orderBy(desc(walletRequests.createdAt))
+      : await db.select({
+          request: walletRequests,
+          user: {
+            id: users.id,
+            username: users.username,
+            role: users.role
+          }
+        })
+        .from(walletRequests)
+        .innerJoin(users, eq(walletRequests.userId, users.id))
         .orderBy(desc(walletRequests.createdAt));
-    } else {
-      return await db.select().from(walletRequests)
-        .orderBy(desc(walletRequests.createdAt));
-    }
+    
+    // Transform results to the expected format
+    return results.map(({ request, user }) => ({
+      ...request,
+      user
+    }));
   } catch (error) {
     console.error('Error getting wallet requests:', error);
     throw new Error('Failed to get wallet requests');
