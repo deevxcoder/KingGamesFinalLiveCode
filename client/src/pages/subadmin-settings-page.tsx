@@ -34,9 +34,10 @@ export default function SubadminSettingsPage() {
   // Game Odds
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.90");
   const [satamatkaOdds, setSatamatkaOdds] = useState({
-    single: "8.50",
     jodi: "85.00",
-    patti: "135.00",
+    harf: "50.00",
+    crossing: "95.00",
+    odd_even: "1.90",
   });
 
   // User Discounts
@@ -66,7 +67,13 @@ export default function SubadminSettingsPage() {
   const { isLoading: isLoadingAdminOdds } = useQuery({
     queryKey: ['/api/game-odds', 'admin'],
     queryFn: async () => {
-      const gameTypes = ['coin_flip', 'satamatka_single', 'satamatka_jodi', 'satamatka_patti'];
+      const gameTypes = [
+        'coin_flip', 
+        'satamatka_jodi', 
+        'satamatka_harf', 
+        'satamatka_crossing', 
+        'satamatka_odd_even'
+      ];
       const results = await Promise.all(
         gameTypes.map(type => apiRequest('GET', `/api/game-odds?gameType=${type}`))
       );
@@ -74,13 +81,14 @@ export default function SubadminSettingsPage() {
       return {
         coinFlip: results[0],
         satamatka: {
-          single: results[1],
-          jodi: results[2],
-          patti: results[3]
+          jodi: results[1],
+          harf: results[2],
+          crossing: results[3],
+          odd_even: results[4]
         }
       };
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.coinFlip && data.coinFlip.length > 0) {
         // Find the admin-set odds (setByAdmin = true)
         const adminOdds = data.coinFlip.find((odd: any) => odd.setByAdmin);
@@ -93,13 +101,6 @@ export default function SubadminSettingsPage() {
       
       const updatedSatamatkaOdds = { ...satamatkaOdds };
       
-      if (data.satamatka.single && data.satamatka.single.length > 0) {
-        const adminOdds = data.satamatka.single.find((odd: any) => odd.setByAdmin);
-        if (adminOdds) {
-          updatedSatamatkaOdds.single = (adminOdds.oddValue / 100).toFixed(2);
-        }
-      }
-      
       if (data.satamatka.jodi && data.satamatka.jodi.length > 0) {
         const adminOdds = data.satamatka.jodi.find((odd: any) => odd.setByAdmin);
         if (adminOdds) {
@@ -107,10 +108,24 @@ export default function SubadminSettingsPage() {
         }
       }
       
-      if (data.satamatka.patti && data.satamatka.patti.length > 0) {
-        const adminOdds = data.satamatka.patti.find((odd: any) => odd.setByAdmin);
+      if (data.satamatka.harf && data.satamatka.harf.length > 0) {
+        const adminOdds = data.satamatka.harf.find((odd: any) => odd.setByAdmin);
         if (adminOdds) {
-          updatedSatamatkaOdds.patti = (adminOdds.oddValue / 100).toFixed(2);
+          updatedSatamatkaOdds.harf = (adminOdds.oddValue / 100).toFixed(2);
+        }
+      }
+      
+      if (data.satamatka.crossing && data.satamatka.crossing.length > 0) {
+        const adminOdds = data.satamatka.crossing.find((odd: any) => odd.setByAdmin);
+        if (adminOdds) {
+          updatedSatamatkaOdds.crossing = (adminOdds.oddValue / 100).toFixed(2);
+        }
+      }
+      
+      if (data.satamatka.odd_even && data.satamatka.odd_even.length > 0) {
+        const adminOdds = data.satamatka.odd_even.find((odd: any) => odd.setByAdmin);
+        if (adminOdds) {
+          updatedSatamatkaOdds.odd_even = (adminOdds.oddValue / 100).toFixed(2);
         }
       }
       
@@ -123,7 +138,7 @@ export default function SubadminSettingsPage() {
     queryKey: ['/api/game-odds/subadmin', user?.id],
     queryFn: () => apiRequest('GET', `/api/game-odds/subadmin/${user?.id}`),
     enabled: !!user?.id,
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data && data.length > 0) {
         // Process each game type
         const coinFlipOdd = data.find((odd: any) => odd.gameType === 'coin_flip');
@@ -131,22 +146,27 @@ export default function SubadminSettingsPage() {
           setCoinFlipOdds((coinFlipOdd.oddValue / 100).toFixed(2));
         }
         
-        const singleOdd = data.find((odd: any) => odd.gameType === 'satamatka_single');
         const jodiOdd = data.find((odd: any) => odd.gameType === 'satamatka_jodi');
-        const pattiOdd = data.find((odd: any) => odd.gameType === 'satamatka_patti');
+        const harfOdd = data.find((odd: any) => odd.gameType === 'satamatka_harf');
+        const crossingOdd = data.find((odd: any) => odd.gameType === 'satamatka_crossing');
+        const oddEvenOdd = data.find((odd: any) => odd.gameType === 'satamatka_odd_even');
         
         const updatedOdds = { ...satamatkaOdds };
-        
-        if (singleOdd) {
-          updatedOdds.single = (singleOdd.oddValue / 100).toFixed(2);
-        }
         
         if (jodiOdd) {
           updatedOdds.jodi = (jodiOdd.oddValue / 100).toFixed(2);
         }
         
-        if (pattiOdd) {
-          updatedOdds.patti = (pattiOdd.oddValue / 100).toFixed(2);
+        if (harfOdd) {
+          updatedOdds.harf = (harfOdd.oddValue / 100).toFixed(2);
+        }
+        
+        if (crossingOdd) {
+          updatedOdds.crossing = (crossingOdd.oddValue / 100).toFixed(2);
+        }
+        
+        if (oddEvenOdd) {
+          updatedOdds.odd_even = (oddEvenOdd.oddValue / 100).toFixed(2);
         }
         
         setSatamatkaOdds(updatedOdds);
@@ -286,15 +306,7 @@ export default function SubadminSettingsPage() {
       subadminId: user.id
     });
     
-    // Save Satamatka odds
-    const singleOddValue = Math.round(parseFloat(satamatkaOdds.single) * 100);
-    saveOddsMutation.mutate({
-      gameType: "satamatka_single",
-      oddValue: singleOddValue,
-      setByAdmin: false,
-      subadminId: user.id
-    });
-    
+    // Save Satamatka odds - Jodi
     const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 100);
     saveOddsMutation.mutate({
       gameType: "satamatka_jodi",
@@ -303,10 +315,29 @@ export default function SubadminSettingsPage() {
       subadminId: user.id
     });
     
-    const pattiOddValue = Math.round(parseFloat(satamatkaOdds.patti) * 100);
+    // Save Satamatka odds - Harf
+    const harfOddValue = Math.round(parseFloat(satamatkaOdds.harf) * 100);
     saveOddsMutation.mutate({
-      gameType: "satamatka_patti",
-      oddValue: pattiOddValue,
+      gameType: "satamatka_harf",
+      oddValue: harfOddValue,
+      setByAdmin: false,
+      subadminId: user.id
+    });
+    
+    // Save Satamatka odds - Crossing
+    const crossingOddValue = Math.round(parseFloat(satamatkaOdds.crossing) * 100);
+    saveOddsMutation.mutate({
+      gameType: "satamatka_crossing",
+      oddValue: crossingOddValue,
+      setByAdmin: false,
+      subadminId: user.id
+    });
+    
+    // Save Satamatka odds - Odd/Even
+    const oddEvenOddValue = Math.round(parseFloat(satamatkaOdds.odd_even) * 100);
+    saveOddsMutation.mutate({
+      gameType: "satamatka_odd_even",
+      oddValue: oddEvenOddValue,
       setByAdmin: false,
       subadminId: user.id
     });
@@ -527,20 +558,7 @@ export default function SubadminSettingsPage() {
                     <div>
                       <h3 className="text-lg font-medium">Satamatka</h3>
                       <Separator className="my-2" />
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <div className="space-y-2">
-                          <Label htmlFor="satamatka-single">Single Digit (0-9)</Label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              id="satamatka-single" 
-                              value={satamatkaOdds.single} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, single: e.target.value})} 
-                              placeholder="8.50"
-                              className="max-w-[120px]"
-                            />
-                            <span>×</span>
-                          </div>
-                        </div>
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                         <div className="space-y-2">
                           <Label htmlFor="satamatka-jodi">Jodi (00-99)</Label>
                           <div className="flex items-center gap-2">
@@ -555,13 +573,39 @@ export default function SubadminSettingsPage() {
                           </div>
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="satamatka-patti">Patti (000-999)</Label>
+                          <Label htmlFor="satamatka-harf">Harf</Label>
                           <div className="flex items-center gap-2">
                             <Input 
-                              id="satamatka-patti" 
-                              value={satamatkaOdds.patti} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, patti: e.target.value})} 
-                              placeholder="135.00"
+                              id="satamatka-harf" 
+                              value={satamatkaOdds.harf} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, harf: e.target.value})} 
+                              placeholder="50.00"
+                              className="max-w-[120px]"
+                            />
+                            <span>×</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="satamatka-crossing">Crossing</Label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              id="satamatka-crossing" 
+                              value={satamatkaOdds.crossing} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, crossing: e.target.value})} 
+                              placeholder="95.00"
+                              className="max-w-[120px]"
+                            />
+                            <span>×</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="satamatka-odd-even">Odd/Even</Label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              id="satamatka-odd-even" 
+                              value={satamatkaOdds.odd_even} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, odd_even: e.target.value})} 
+                              placeholder="1.90"
                               className="max-w-[120px]"
                             />
                             <span>×</span>
