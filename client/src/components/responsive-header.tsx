@@ -65,10 +65,10 @@ export default function ResponsiveHeader() {
         </div>
         
         <div className="flex items-center">
-          {/* Balance display */}
+          {/* Balance display - Always visible, even on mobile */}
           <div className="mr-4 flex items-center bg-muted/50 px-3 py-1.5 rounded-full">
             <Wallet className="h-4 w-4 mr-2 text-primary" />
-            <span className="font-medium">${(user.balance / 100).toFixed(2)}</span>
+            <span className="font-medium">₹{(user.balance / 100).toFixed(2)}</span>
           </div>
           
           {/* User dropdown menu */}
@@ -127,7 +127,7 @@ export default function ResponsiveHeader() {
                     <Wallet className="h-5 w-5 mr-2 text-primary" />
                     <span className="font-medium">Balance</span>
                   </div>
-                  <span className="font-bold">${(user.balance / 100).toFixed(2)}</span>
+                  <span className="font-bold">₹{(user.balance / 100).toFixed(2)}</span>
                 </div>
                 
                 <div className="mt-auto">

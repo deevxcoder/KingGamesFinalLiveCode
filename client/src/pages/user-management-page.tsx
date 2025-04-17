@@ -388,7 +388,7 @@ export default function UserManagementPage() {
                             {user.role}
                           </Badge>
                         </TableCell>
-                        <TableCell>${(user.balance / 100).toFixed(2)}</TableCell>
+                        <TableCell>₹{(user.balance / 100).toFixed(2)}</TableCell>
                         <TableCell>
                           {user.isBlocked ? (
                             <Badge variant="destructive">Blocked</Badge>
@@ -737,7 +737,7 @@ export default function UserManagementPage() {
                               </Badge>
                             </TableCell>
                             <TableCell className={transaction.amount > 0 ? "text-green-500" : "text-red-500"}>
-                              {transaction.amount > 0 ? "+" : ""}{(transaction.amount / 100).toFixed(2)}
+                              {transaction.amount > 0 ? "+" : ""}₹{(transaction.amount / 100).toFixed(2)}
                             </TableCell>
                             <TableCell>{transaction.description || "Balance update"}</TableCell>
                           </TableRow>
@@ -780,11 +780,11 @@ export default function UserManagementPage() {
                               {new Date(game.createdAt).toLocaleString()}
                             </TableCell>
                             <TableCell>{game.gameType || "Coin Flip"}</TableCell>
-                            <TableCell>${(game.betAmount / 100).toFixed(2)}</TableCell>
+                            <TableCell>₹{(game.betAmount / 100).toFixed(2)}</TableCell>
                             <TableCell>{game.prediction}</TableCell>
                             <TableCell>{game.result || "Pending"}</TableCell>
                             <TableCell className={(game.payout || 0) > 0 ? "text-green-500" : "text-red-500"}>
-                              {(game.payout || 0) > 0 ? `+$${(game.payout / 100).toFixed(2)}` : "$0.00"}
+                              {(game.payout || 0) > 0 ? `+₹${(game.payout / 100).toFixed(2)}` : "₹0.00"}
                             </TableCell>
                           </TableRow>
                         ))}

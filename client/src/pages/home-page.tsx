@@ -26,6 +26,33 @@ import { useLocation } from "wouter";
 // Sample game cards data - in real app this would come from API
 const gameCards = [
   {
+    id: "marketgame",
+    title: "Market Game",
+    description: "Strategic market betting game with multiple betting options.",
+    imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
+    path: "/satamatka",
+    popularity: "high" as const,
+    winRate: 40
+  },
+  {
+    id: "crickettoss",
+    title: "Cricket Toss",
+    description: "Predict the cricket match toss outcome for quick wins.",
+    imageBg: "linear-gradient(to right, #1e3a30, #2a8062)",
+    path: "/cricket-toss",
+    popularity: "high" as const,
+    winRate: 50
+  },
+  {
+    id: "sportsbetting",
+    title: "Sports Betting",
+    description: "Bet on your favorite cricket teams and matches.",
+    imageBg: "linear-gradient(to right, #2d2339, #784cb3)",
+    path: "/team-match",
+    popularity: "medium" as const,
+    winRate: 36
+  },
+  {
     id: "coinflip",
     title: "Coin Flip",
     description: "Classic heads or tails betting with 50/50 odds for instant wins.",
@@ -33,15 +60,6 @@ const gameCards = [
     path: "/play",
     popularity: "high" as const,
     winRate: 50
-  },
-  {
-    id: "marketgame",
-    title: "Market Game",
-    description: "Strategic market betting game with multiple betting options.",
-    imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
-    path: "/markets",
-    popularity: "medium" as const,
-    winRate: 36
   }
 ];
 
@@ -228,21 +246,14 @@ export default function HomePage() {
         <>
           {/* Featured Games Section */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+            <div className="mb-4">
               <h2 className="text-xl font-bold flex items-center text-slate-200">
                 <Play className="h-5 w-5 mr-2 text-blue-500" />
                 Featured Games
               </h2>
-              <Button 
-                variant="ghost" 
-                className="text-blue-400 hover:text-blue-300 text-sm hover:bg-slate-800/60"
-                onClick={() => setLocation("/games")}
-              >
-                View All
-              </Button>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               {gameCards.map((game) => (
                 <GameCard 
                   key={game.id}
