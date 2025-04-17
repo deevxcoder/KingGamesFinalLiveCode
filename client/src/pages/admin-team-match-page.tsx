@@ -496,7 +496,7 @@ export default function AdminTeamMatchPage() {
       </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6 grid w-full grid-cols-4">
+        <TabsList className="mb-6 grid w-full grid-cols-5">
           <TabsTrigger value="all" className="flex items-center justify-center">
             <AlertCircle className="h-4 w-4 mr-2" />
             <span>All ({allMatches.length})</span>
@@ -512,6 +512,10 @@ export default function AdminTeamMatchPage() {
           <TabsTrigger value="resulted" className="flex items-center justify-center">
             <CheckCircle2 className="h-4 w-4 mr-2" />
             <span>Resulted ({resultedMatches.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="cricket-toss" className="flex items-center justify-center">
+            <GiCricketBat className="h-4 w-4 mr-2" />
+            <span>Cricket Toss</span>
           </TabsTrigger>
         </TabsList>
 

@@ -67,7 +67,7 @@ export default function Sidebar() {
     },
     // Team Match Management - Admin Only
     {
-      name: "Manage Teams",
+      name: "Manage Sports & Toss",
       path: "/manage-teams",
       icon: <Trophy className="w-5 h-5 mr-3" />,
       visible: isAdmin,
