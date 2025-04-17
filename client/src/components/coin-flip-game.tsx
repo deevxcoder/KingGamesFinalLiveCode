@@ -178,9 +178,13 @@ export default function CoinFlipGame() {
                   animate={{
                     rotateY: isFlipping 
                       ? result === GameOutcome.HEADS 
-                        ? 1440 
-                        : 1530 
-                      : 0,
+                        ? 1440  // 4 full rotations + 0 degrees (heads)
+                        : 1530  // 4 full rotations + 180 degrees (tails)
+                      : result === GameOutcome.HEADS
+                        ? 0     // Keep showing heads after animation
+                        : result === GameOutcome.TAILS
+                          ? 180 // Keep showing tails after animation
+                          : 0,  // Default position
                   }}
                   transition={{
                     duration: 2,
@@ -190,17 +194,25 @@ export default function CoinFlipGame() {
                 >
                   {/* Heads Side */}
                   <div 
-                    className="absolute w-full h-full rounded-full flex items-center justify-center text-white text-xl font-bold bg-gradient-to-r from-amber-500 to-amber-600 backface-hidden"
+                    className="absolute w-full h-full rounded-full flex items-center justify-center backface-hidden"
                     style={{ backfaceVisibility: "hidden" }}
                   >
-                    HEADS
+                    <img 
+                      src="/images/heads.png" 
+                      alt="Heads" 
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                   {/* Tails Side */}
                   <div 
-                    className="absolute w-full h-full rounded-full flex items-center justify-center text-white text-xl font-bold bg-gradient-to-r from-red-500 to-red-600 backface-hidden"
+                    className="absolute w-full h-full rounded-full flex items-center justify-center backface-hidden"
                     style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
                   >
-                    TAILS
+                    <img 
+                      src="/images/tails.png" 
+                      alt="Tails" 
+                      className="w-full h-full object-contain"
+                    />
                   </div>
                 </motion.div>
               </motion.div>
@@ -208,7 +220,7 @@ export default function CoinFlipGame() {
             
             <div className="text-center">
               <p className="text-muted-foreground mb-2 text-sm">Select your prediction:</p>
-              <div className="flex justify-center space-x-3">
+              <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-3">
                 <Button
                   onClick={() => selectPrediction(GameOutcome.HEADS)}
                   className={`px-4 py-3 relative ${
@@ -223,7 +235,7 @@ export default function CoinFlipGame() {
                       ✓
                     </div>
                   )}
-                  HEADS
+                  <span className="text-sm sm:text-base">ASHOKA PILLAR (HEADS)</span>
                 </Button>
                 <Button
                   onClick={() => selectPrediction(GameOutcome.TAILS)}
@@ -239,7 +251,7 @@ export default function CoinFlipGame() {
                       ✓
                     </div>
                   )}
-                  TAILS
+                  <span className="text-sm sm:text-base">RUPEE (TAILS)</span>
                 </Button>
               </div>
             </div>
