@@ -49,11 +49,14 @@ export default function CoinFlipGame() {
       // Set the result to trigger animation
       setResult(data.game.result);
       
-      // Show result after animation finishes
+      // Wait for the coin flip animation to complete (2 seconds)
+      // then wait for 0.5 seconds after that to show the popup
       setTimeout(() => {
-        const isWin = data.game.payout > 0;
+        // Set flipping to false (stop spinning)
+        setIsFlipping(false);
         
-        // Set last result data
+        // Prepare result data
+        const isWin = data.game.payout > 0;
         setLastResult({
           isWin,
           amount: data.game.payout / 100, // Convert to rupees from paise
@@ -61,16 +64,16 @@ export default function CoinFlipGame() {
           result: data.game.result
         });
         
-        // Show appropriate popup
-        if (isWin) {
-          setShowWinPopup(true);
-        } else {
-          setShowLosePopup(true);
-        }
-        
-        // Set flipping to false
-        setIsFlipping(false);
-      }, 2000);
+        // Short delay before showing popup (let user see final coin state)
+        setTimeout(() => {
+          // Show appropriate popup
+          if (isWin) {
+            setShowWinPopup(true);
+          } else {
+            setShowLosePopup(true);
+          }
+        }, 500); // 500ms delay after coin stops
+      }, 2000); // 2 seconds for coin flip animation
     },
     onError: (error: Error) => {
       setIsFlipping(false);
@@ -208,24 +211,34 @@ export default function CoinFlipGame() {
               <div className="flex justify-center space-x-3">
                 <Button
                   onClick={() => selectPrediction(GameOutcome.HEADS)}
-                  className={`px-4 py-3 ${
+                  className={`px-4 py-3 relative ${
                     selectedPrediction === GameOutcome.HEADS
-                      ? "bg-amber-600 hover:bg-amber-700"
+                      ? "bg-amber-600 hover:bg-amber-700 ring-2 ring-amber-400 ring-offset-2 ring-offset-background"
                       : "bg-amber-600/70 hover:bg-amber-600"
-                  } text-white font-bold rounded-lg transition-colors`}
+                  } text-white font-bold rounded-lg transition-all`}
                   disabled={isFlipping}
                 >
+                  {selectedPrediction === GameOutcome.HEADS && (
+                    <div className="absolute -top-1 -right-1 bg-amber-400 text-amber-800 text-xs font-bold rounded-full p-1 w-5 h-5 flex items-center justify-center">
+                      ✓
+                    </div>
+                  )}
                   HEADS
                 </Button>
                 <Button
                   onClick={() => selectPrediction(GameOutcome.TAILS)}
-                  className={`px-4 py-3 ${
+                  className={`px-4 py-3 relative ${
                     selectedPrediction === GameOutcome.TAILS
-                      ? "bg-red-600 hover:bg-red-700"
+                      ? "bg-red-600 hover:bg-red-700 ring-2 ring-red-400 ring-offset-2 ring-offset-background"
                       : "bg-red-600/70 hover:bg-red-600"
-                  } text-white font-bold rounded-lg transition-colors`}
+                  } text-white font-bold rounded-lg transition-all`}
                   disabled={isFlipping}
                 >
+                  {selectedPrediction === GameOutcome.TAILS && (
+                    <div className="absolute -top-1 -right-1 bg-red-400 text-red-800 text-xs font-bold rounded-full p-1 w-5 h-5 flex items-center justify-center">
+                      ✓
+                    </div>
+                  )}
                   TAILS
                 </Button>
               </div>
