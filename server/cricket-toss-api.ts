@@ -291,7 +291,7 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         userId: user.id,
         gameType: GameType.CRICKET_TOSS,
         betAmount,
-        betOn,
+        prediction: betOn, // Use betOn as prediction to match the schema
         gameData: {
           ...gameData,
           originalGameId: gameId // Reference to the original game
