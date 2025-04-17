@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, Fragment } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getQueryFn, apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
@@ -250,6 +250,7 @@ export default function AdminCricketTossPage() {
       tossTime: format(tossDate, "HH:mm"),
       oddTeamA: game.gameData.oddTeamA,
       oddTeamB: game.gameData.oddTeamB,
+      imageUrl: game.gameData.imageUrl || "",
     });
   };
 
@@ -671,10 +672,10 @@ export default function AdminCricketTossPage() {
                         </FormControl>
                         <SelectContent>
                           {Array.from({ length: 24 }).map((_, hour) => (
-                            <React.Fragment key={hour}>
+                            <div key={hour}>
                               <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</SelectItem>
                               <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>{hour.toString().padStart(2, '0')}:30</SelectItem>
-                            </React.Fragment>
+                            </div>
                           ))}
                         </SelectContent>
                       </Select>
