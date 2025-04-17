@@ -51,9 +51,10 @@ export default function SubadminSettingsPage() {
   // Commission rates - viewed from admin or edited by admin for subadmin
   const [adminCommissionRates, setAdminCommissionRates] = useState({
     coin_flip: "0.0",
-    satamatka_single: "0.0",
     satamatka_jodi: "0.0",
-    satamatka_patti: "0.0",
+    satamatka_harf: "0.0",
+    satamatka_crossing: "0.0",
+    satamatka_odd_even: "0.0",
     team_match: "0.0"
   });
   
@@ -455,8 +456,8 @@ export default function SubadminSettingsPage() {
             <TabsTrigger value="odds">Game Odds</TabsTrigger>
             <TabsTrigger value="discounts">User Discounts</TabsTrigger>
           </TabsList>
-        
-        {/* Game Odds Tab */}
+          
+          {/* Game Odds Tab */}
         <TabsContent value="odds">
           <Card>
             <CardHeader>
@@ -718,6 +719,7 @@ export default function SubadminSettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+      )}
     </DashboardLayout>
   );
 }

@@ -49,9 +49,10 @@ const createSubadminSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   commissions: z.object({
-    satamatka_single: z.string(),
     satamatka_jodi: z.string(),
-    satamatka_patti: z.string(),
+    satamatka_harf: z.string(),
+    satamatka_crossing: z.string(),
+    satamatka_odd_even: z.string(),
   }).optional(),
 });
 
@@ -67,9 +68,10 @@ export default function SubadminManagementPage() {
       username: "",
       password: "",
       commissions: {
-        satamatka_single: "2.0",
         satamatka_jodi: "2.0",
-        satamatka_patti: "2.0",
+        satamatka_harf: "2.0",
+        satamatka_crossing: "2.0",
+        satamatka_odd_even: "2.0",
       },
     },
   });
@@ -101,18 +103,23 @@ export default function SubadminManagementPage() {
         const commissionPromises = [
           apiRequest("POST", "/api/commissions/subadmin", {
             subadminId,
-            gameType: "satamatka_single",
-            commissionRate: parseFloat(data.commissions.satamatka_single) * 100 // Store as integer percentage
-          }),
-          apiRequest("POST", "/api/commissions/subadmin", {
-            subadminId,
             gameType: "satamatka_jodi",
             commissionRate: parseFloat(data.commissions.satamatka_jodi) * 100
           }),
           apiRequest("POST", "/api/commissions/subadmin", {
             subadminId,
-            gameType: "satamatka_patti",
-            commissionRate: parseFloat(data.commissions.satamatka_patti) * 100
+            gameType: "satamatka_harf",
+            commissionRate: parseFloat(data.commissions.satamatka_harf) * 100
+          }),
+          apiRequest("POST", "/api/commissions/subadmin", {
+            subadminId,
+            gameType: "satamatka_crossing",
+            commissionRate: parseFloat(data.commissions.satamatka_crossing) * 100
+          }),
+          apiRequest("POST", "/api/commissions/subadmin", {
+            subadminId,
+            gameType: "satamatka_odd_even",
+            commissionRate: parseFloat(data.commissions.satamatka_odd_even) * 100
           })
         ];
         
@@ -363,24 +370,7 @@ export default function SubadminManagementPage() {
                   <h3 className="text-sm font-medium">Market Game Commission Rates</h3>
                   <p className="text-xs text-muted-foreground">Set commission percentages for Satamatka games</p>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="commissions.satamatka_single"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Single Digit</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input placeholder="2.0" {...field} className="max-w-[100px]" />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={form.control}
                       name="commissions.satamatka_jodi"
@@ -400,10 +390,44 @@ export default function SubadminManagementPage() {
                     
                     <FormField
                       control={form.control}
-                      name="commissions.satamatka_patti"
+                      name="commissions.satamatka_harf"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Patti (Panel)</FormLabel>
+                          <FormLabel>Harf</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input placeholder="2.0" {...field} className="max-w-[100px]" />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="commissions.satamatka_crossing"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Crossing</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input placeholder="2.0" {...field} className="max-w-[100px]" />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="commissions.satamatka_odd_even"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Odd/Even</FormLabel>
                           <div className="flex items-center gap-2">
                             <FormControl>
                               <Input placeholder="2.0" {...field} className="max-w-[100px]" />
