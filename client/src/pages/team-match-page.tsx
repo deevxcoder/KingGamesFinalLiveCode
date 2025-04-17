@@ -10,8 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Clock, Trophy } from "lucide-react";
 import { IoFootball, IoBasketball } from "react-icons/io5";
 import { GiCricketBat } from "react-icons/gi";
-import ResponsiveHeader from '@/components/responsive-header';
 import Sidebar from '@/components/sidebar';
+import MobileNav from '@/components/mobile-nav';
 import { useAuth } from '@/hooks/use-auth';
 import { format } from 'date-fns';
 
@@ -33,17 +33,29 @@ type TeamMatch = {
 
 export default function TeamMatchPage() {
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex">
-      <Sidebar />
-      <div className="flex-1 lg:ml-64">
-        <ResponsiveHeader />
-        <div className="container mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
-            Sports Betting
-          </h1>
-          <TeamMatchTabs />
-        </div>
+    <div className="flex h-screen bg-slate-950 text-slate-200">
+      {/* Sidebar - Hidden on mobile */}
+      <div className="hidden lg:block h-screen">
+        <Sidebar />
       </div>
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <main className="flex-1 overflow-y-auto pb-16 lg:pb-0">
+          <div className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/95 backdrop-blur-sm">
+            <div className="px-4 py-3 flex justify-between items-center">
+              <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-blue-500">
+                Sports Betting
+              </h1>
+            </div>
+          </div>
+          
+          <div className="container mx-auto px-4 py-4">
+            <TeamMatchTabs />
+          </div>
+        </main>
+      </div>
+      
+      {/* Mobile Bottom Navigation */}
+      <MobileNav />
     </div>
   );
 }

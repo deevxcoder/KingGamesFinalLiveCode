@@ -29,13 +29,6 @@ export default function MobileNav() {
       path: "/games",
       visible: isPlayer,
     },
-    // Quick Play for players
-    {
-      name: "Play",
-      icon: <Play className="w-5 h-5" />,
-      path: "/play",
-      visible: isPlayer,
-    },
     // History only for players
     {
       name: "History",
