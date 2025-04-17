@@ -10,16 +10,34 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Loader2, ChevronLeft } from "lucide-react";
+import { Loader2, ChevronLeft, UserPlus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/hooks/use-auth";
 import { UserRole } from "@shared/schema";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+
+// Schema for creating a new user
+const createUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
 
 export default function SubadminSettingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("odds");
   const [location] = useLocation();
+  
+  // Create user dialog state
+  const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   
   // Get subadmin ID from URL if provided
   const urlParams = new URLSearchParams(window.location.search);
@@ -196,22 +214,56 @@ export default function SubadminSettingsPage() {
     }
   });
 
-  // Get users assigned to this subadmin
-  const { isLoading: isLoadingUsers } = useQuery({
-    queryKey: ['/api/users'],
-    queryFn: () => apiRequest('GET', '/api/users'),
-    enabled: !!user?.id,
-    onSuccess: (data) => {
-      console.log('Assigned users data:', data);
+  // Create user form
+  const createUserForm = useForm<z.infer<typeof createUserSchema>>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+  
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (data: Omit<z.infer<typeof createUserSchema>, "confirmPassword">) => {
+      return apiRequest('POST', '/api/register', {
+        username: data.username,
+        password: data.password,
+        role: UserRole.PLAYER
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "User Created",
+        description: "New user has been created and assigned to you successfully",
+      });
+      setIsCreateUserDialogOpen(false);
+      createUserForm.reset();
+      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Creating User",
+        description: error.message,
+        variant: "destructive",
+      });
     }
   });
   
-  // Temporary mock users for testing the UI
-  const assignedUsers = [
-    { id: 1, username: "Player 1" },
-    { id: 2, username: "Player 2" },
-    { id: 3, username: "Player 3" }
-  ];
+  // Handle create user form submission
+  const handleCreateUser = (data: z.infer<typeof createUserSchema>) => {
+    const { confirmPassword, ...userData } = data;
+    createUserMutation.mutate(userData);
+  };
+  
+  // Get users assigned to this subadmin
+  const { isLoading: isLoadingUsers, data: assignedUsers = [] } = useQuery({
+    queryKey: ['/api/users/assigned'],
+    queryFn: () => apiRequest('GET', '/api/users/assigned'),
+    enabled: !!user?.id && user?.role === UserRole.SUBADMIN,
+    select: (data: any) => data.filter((u: any) => u.role === UserRole.PLAYER),
+  });
 
   // Load user discounts when a user is selected
   useQuery({
