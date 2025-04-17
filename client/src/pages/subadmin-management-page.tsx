@@ -42,8 +42,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
-import { Ban, CheckCircle, UserPlus, Settings } from "lucide-react";
+import { Ban, CheckCircle, UserPlus, Settings, Users, Loader2 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const createSubadminSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -56,11 +57,23 @@ const createSubadminSchema = z.object({
   }).optional(),
 });
 
+// Schema for creating a new user (player)
+const createUserSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
 export default function SubadminManagementPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [showCommissionSettings, setShowCommissionSettings] = useState(false);
+  const [activeTab, setActiveTab] = useState("subadmins");
 
   const form = useForm<z.infer<typeof createSubadminSchema>>({
     resolver: zodResolver(createSubadminSchema),
@@ -73,6 +86,16 @@ export default function SubadminManagementPage() {
         satamatka_crossing: "2.0",
         satamatka_odd_even: "2.0",
       },
+    },
+  });
+  
+  // Create user form
+  const createUserForm = useForm<z.infer<typeof createUserSchema>>({
+    resolver: zodResolver(createUserSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      confirmPassword: "",
     },
   });
 
@@ -181,108 +204,258 @@ export default function SubadminManagementPage() {
   const handleUnblockSubadmin = (userId: number) => {
     unblockSubadminMutation.mutate(userId);
   };
+  
+  // Fetch users that are players assigned to this subadmin
+  const { data: assignedUsers = [], isLoading: isLoadingUsers } = useQuery({
+    queryKey: ["/api/users"],
+    queryFn: () => apiRequest("GET", "/api/users"),
+    enabled: !!user?.id && user?.role === UserRole.SUBADMIN,
+    select: (data: any) => data.filter((u: any) => u.role === UserRole.PLAYER),
+  });
+  
+  // Create user mutation
+  const createUserMutation = useMutation({
+    mutationFn: async (data: Omit<z.infer<typeof createUserSchema>, "confirmPassword">) => {
+      return apiRequest("POST", "/api/register", {
+        username: data.username,
+        password: data.password,
+        role: UserRole.PLAYER
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "User Created",
+        description: "New user has been created and assigned to you successfully",
+      });
+      setIsCreateUserDialogOpen(false);
+      createUserForm.reset();
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Creating User",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handle create user form submission
+  const handleCreateUser = (data: z.infer<typeof createUserSchema>) => {
+    const { confirmPassword, ...userData } = data;
+    createUserMutation.mutate(userData);
+  };
 
   return (
-    <DashboardLayout title="Subadmin Management">
-      <Card className="mb-6">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle>Subadmin Management</CardTitle>
-              <CardDescription>
-                Create and manage subadmin accounts
-              </CardDescription>
+    <DashboardLayout title="Management">
+      {user?.role === UserRole.ADMIN && (
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Subadmin Management</CardTitle>
+                <CardDescription>
+                  Create and manage subadmin accounts
+                </CardDescription>
+              </div>
+              <Button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="bg-gradient-to-r from-primary to-blue-500"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Create Subadmin
+              </Button>
             </div>
-            <Button
-              onClick={() => setIsCreateDialogOpen(true)}
-              className="bg-gradient-to-r from-primary to-blue-500"
-            >
-              <UserPlus className="h-4 w-4 mr-2" />
-              Create Subadmin
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {subadmins.length === 0 ? (
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={3} className="text-center py-4">
-                        No subadmins found
-                      </TableCell>
+                      <TableHead>Username</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    subadmins.map((subadmin: any) => (
-                      <TableRow key={subadmin.id}>
-                        <TableCell className="font-medium">
-                          {subadmin.username}
-                        </TableCell>
-                        <TableCell>
-                          {subadmin.isBlocked ? (
-                            <Badge variant="destructive">Blocked</Badge>
-                          ) : (
-                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                              Active
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => window.location.href = `/subadmin-settings?id=${subadmin.id}`}
-                              className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
-                            >
-                              <Settings className="h-4 w-4 mr-2" />
-                              Commission
-                            </Button>
-                            
-                            {subadmin.isBlocked ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleUnblockSubadmin(subadmin.id)}
-                                className="text-green-500 border-green-500/20 hover:bg-green-500/10"
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Unblock
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleBlockSubadmin(subadmin.id)}
-                                className="text-red-500 border-red-500/20 hover:bg-red-500/10"
-                              >
-                                <Ban className="h-4 w-4 mr-2" />
-                                Block
-                              </Button>
-                            )}
-                          </div>
+                  </TableHeader>
+                  <TableBody>
+                    {subadmins.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center py-4">
+                          No subadmins found
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      subadmins.map((subadmin: any) => (
+                        <TableRow key={subadmin.id}>
+                          <TableCell className="font-medium">
+                            {subadmin.username}
+                          </TableCell>
+                          <TableCell>
+                            {subadmin.isBlocked ? (
+                              <Badge variant="destructive">Blocked</Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                                Active
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.location.href = `/subadmin-settings?id=${subadmin.id}`}
+                                className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
+                              >
+                                <Settings className="h-4 w-4 mr-2" />
+                                Commission
+                              </Button>
+                              
+                              {subadmin.isBlocked ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleUnblockSubadmin(subadmin.id)}
+                                  className="text-green-500 border-green-500/20 hover:bg-green-500/10"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Unblock
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleBlockSubadmin(subadmin.id)}
+                                  className="text-red-500 border-red-500/20 hover:bg-red-500/10"
+                                >
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  Block
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* User Management for Subadmins */}
+      {user?.role === UserRole.SUBADMIN && (
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>User Management</CardTitle>
+                <CardDescription>
+                  Add and manage your players
+                </CardDescription>
+              </div>
+              <Button
+                onClick={() => setIsCreateUserDialogOpen(true)}
+                className="bg-gradient-to-r from-primary to-blue-500"
+              >
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add User
+              </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardHeader>
+          <CardContent>
+            {isLoadingUsers ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Username</TableHead>
+                      <TableHead>Balance</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {assignedUsers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} className="text-center py-4">
+                          No users assigned to you. Add a user using the "Add User" button.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      assignedUsers.map((player: any) => (
+                        <TableRow key={player.id}>
+                          <TableCell className="font-medium">
+                            {player.username}
+                          </TableCell>
+                          <TableCell>
+                            ₹{player.balance?.toFixed(2) || '0.00'}
+                          </TableCell>
+                          <TableCell>
+                            {player.isBlocked ? (
+                              <Badge variant="destructive">Blocked</Badge>
+                            ) : (
+                              <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                                Active
+                              </Badge>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => window.location.href = `/subadmin-settings?userId=${player.id}`}
+                                className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
+                              >
+                                <Settings className="h-4 w-4 mr-2" />
+                                Discount
+                              </Button>
+                              
+                              {player.isBlocked ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleUnblockSubadmin(player.id)}
+                                  className="text-green-500 border-green-500/20 hover:bg-green-500/10"
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Unblock
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleBlockSubadmin(player.id)}
+                                  className="text-red-500 border-red-500/20 hover:bg-red-500/10"
+                                >
+                                  <Ban className="h-4 w-4 mr-2" />
+                                  Block
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
       
       {/* Create Subadmin Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -430,6 +603,74 @@ export default function SubadminManagementPage() {
                 </Button>
                 <Button type="submit" disabled={createSubadminMutation.isPending}>
                   {createSubadminMutation.isPending ? "Creating..." : "Create Subadmin"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Create User Dialog */}
+      <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+            <DialogDescription>
+              Create a new player account that will be assigned to you.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...createUserForm}>
+            <form onSubmit={createUserForm.handleSubmit(handleCreateUser)} className="space-y-4">
+              <FormField
+                control={createUserForm.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createUserForm.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Enter password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createUserForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Confirm password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setIsCreateUserDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={createUserMutation.isPending}>
+                  {createUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Create User
                 </Button>
               </DialogFooter>
             </form>
