@@ -47,7 +47,8 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Ban, 
   CheckCircle, 
-  User, 
+  User,
+  IndianRupee, 
   DollarSign, 
   PlusCircle, 
   MinusCircle,
@@ -477,12 +478,12 @@ export default function UserManagementPage() {
           </DialogHeader>
           <div className="py-4">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-muted-foreground" />
+              <IndianRupee className="h-5 w-5 text-muted-foreground" />
               <Input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                placeholder="Amount in dollars"
+                placeholder="Amount in rupees"
                 min="0"
                 step="1"
               />
@@ -510,12 +511,12 @@ export default function UserManagementPage() {
           </DialogHeader>
           <div className="py-4">
             <div className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-muted-foreground" />
+              <IndianRupee className="h-5 w-5 text-muted-foreground" />
               <Input
                 type="number"
                 value={amount}
                 onChange={(e) => setAmount(Number(e.target.value))}
-                placeholder="Amount in dollars"
+                placeholder="Amount in rupees"
                 min="0"
                 max={selectedUser ? selectedUser.balance / 100 : 0}
                 step="1"
