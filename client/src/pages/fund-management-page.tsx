@@ -306,7 +306,8 @@ export default function FundManagementPage() {
 
   // Format amount
   const formatAmount = (amount: number) => {
-    return (amount / 100).toFixed(2);
+    // No need to divide by 100 as amounts are stored as actual rupees
+    return amount.toFixed(2);
   };
 
   // Get status badge variant
