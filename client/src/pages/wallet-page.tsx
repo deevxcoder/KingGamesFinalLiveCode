@@ -316,19 +316,6 @@ export default function WalletPage() {
         return (
           <>
             <div className="space-y-2">
-              <FormField
-                control={depositForm.control}
-                name="paymentDetails.transactionId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Transaction ID</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Enter UPI transaction ID" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
 
               <FormField
                 control={depositForm.control}
@@ -697,7 +684,7 @@ export default function WalletPage() {
                           <RadioGroup
                             defaultValue={field.value}
                             onValueChange={field.onChange}
-                            className="flex flex-wrap gap-3"
+                            className="flex flex-nowrap gap-3 overflow-x-auto pb-2"
                           >
                             <Label
                               htmlFor="upi"
@@ -864,7 +851,7 @@ export default function WalletPage() {
                           <RadioGroup
                             defaultValue={field.value}
                             onValueChange={field.onChange}
-                            className="flex flex-wrap gap-3"
+                            className="flex flex-nowrap gap-3 overflow-x-auto pb-2"
                           >
                             <Label
                               htmlFor="w-upi"
