@@ -48,7 +48,7 @@ export default function SubadminSettingsPage() {
     team_match: "1.5"
   });
 
-  // View commission rates from admin
+  // Commission rates - viewed from admin or edited by admin for subadmin
   const [adminCommissionRates, setAdminCommissionRates] = useState({
     coin_flip: "0.0",
     satamatka_single: "0.0",
@@ -56,6 +56,9 @@ export default function SubadminSettingsPage() {
     satamatka_patti: "0.0",
     team_match: "0.0"
   });
+  
+  // Used to track if admin is editing commission rates
+  const [isEditingCommissions, setIsEditingCommissions] = useState(false);
 
   // Load admin odds as reference
   const { isLoading: isLoadingAdminOdds } = useQuery({
@@ -149,11 +152,11 @@ export default function SubadminSettingsPage() {
     }
   });
 
-  // Load commission rates (from admin to this subadmin)
+  // Load commission rates - either for current subadmin or for the subadmin being viewed by admin
   const { isLoading: isLoadingCommissions } = useQuery({
-    queryKey: ['/api/commissions/subadmin', user?.id],
-    queryFn: () => apiRequest(`/api/commissions/subadmin/${user?.id}`),
-    enabled: !!user?.id,
+    queryKey: ['/api/commissions/subadmin', isAdminViewingSubadmin ? subadminIdFromUrl : user?.id],
+    queryFn: () => apiRequest(`/api/commissions/subadmin/${isAdminViewingSubadmin ? subadminIdFromUrl : user?.id}`),
+    enabled: !!(isAdminViewingSubadmin ? subadminIdFromUrl : user?.id),
     onSuccess: (data) => {
       if (data && data.length > 0) {
         const updatedCommissions = { ...adminCommissionRates };
@@ -237,6 +240,26 @@ export default function SubadminSettingsPage() {
       });
     }
   });
+  
+  // Save commission rate mutation (used by admin to set subadmin commissions)
+  const saveCommissionMutation = useMutation({
+    mutationFn: (commission: { subadminId: number, gameType: string, commissionRate: number }) => 
+      apiRequest('/api/commissions/subadmin', 'POST', commission),
+    onSuccess: () => {
+      toast({
+        title: "Commission Rate Saved",
+        description: "The commission rate has been saved successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/subadmin'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Saving Commission Rate",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   // Handle game odds save
   const handleSaveGameOdds = () => {
@@ -298,18 +321,140 @@ export default function SubadminSettingsPage() {
       });
     });
   };
+  
+  // Handle admin saving commission rates for a subadmin
+  const handleSaveCommissionRates = () => {
+    if (!subadminIdFromUrl || !isAdminViewingSubadmin) {
+      toast({
+        title: "Error",
+        description: "Cannot save commission rates without a valid subadmin",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Save commission rates for each game type
+    Object.entries(adminCommissionRates).forEach(([gameType, rateStr]) => {
+      const commissionRate = Math.round(parseFloat(rateStr) * 100);
+      saveCommissionMutation.mutate({
+        subadminId: subadminIdFromUrl,
+        gameType,
+        commissionRate
+      });
+    });
+    
+    // After saving, exit edit mode
+    setIsEditingCommissions(false);
+  };
 
   return (
-    <DashboardLayout title="Subadmin Settings">
-      <Tabs 
-        value={activeTab} 
-        onValueChange={setActiveTab}
-        className="w-full"
-      >
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="odds">Game Odds</TabsTrigger>
-          <TabsTrigger value="discounts">User Discounts</TabsTrigger>
-        </TabsList>
+    <DashboardLayout title={isAdminViewingSubadmin ? "Subadmin Commission Settings" : "Subadmin Settings"}>
+      {isAdminViewingSubadmin && (
+        <div className="flex items-center mb-4">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => window.location.href = "/subadmin-management"}
+            className="gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back to Subadmin Management
+          </Button>
+        </div>
+      )}
+      
+      {isAdminViewingSubadmin ? (
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Subadmin Commission Settings</CardTitle>
+                <CardDescription>
+                  Set commission percentages for this subadmin
+                </CardDescription>
+              </div>
+              {!isEditingCommissions ? (
+                <Button
+                  onClick={() => setIsEditingCommissions(true)}
+                  variant="outline"
+                >
+                  Edit Commission Rates
+                </Button>
+              ) : (
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => setIsEditingCommissions(false)}
+                    variant="outline"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveCommissionRates}
+                    disabled={saveCommissionMutation.isPending}
+                  >
+                    {saveCommissionMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Save Commission Rates
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {isLoadingCommissions ? (
+              <div className="flex justify-center py-6">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {Object.entries(adminCommissionRates).map(([gameType, rate]) => (
+                    <div key={gameType} className="space-y-2">
+                      <Label htmlFor={`commission-${gameType}`}>
+                        {gameType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        {isEditingCommissions ? (
+                          <Input 
+                            id={`commission-${gameType}`}
+                            value={rate}
+                            onChange={(e) => {
+                              const newRates = {...adminCommissionRates};
+                              newRates[gameType as keyof typeof adminCommissionRates] = e.target.value;
+                              setAdminCommissionRates(newRates);
+                            }}
+                            placeholder="2.0"
+                            className="max-w-[100px]"
+                          />
+                        ) : (
+                          <div className="bg-secondary/50 px-3 py-2 rounded-md max-w-[100px] text-center">
+                            {rate}
+                          </div>
+                        )}
+                        <span>%</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-6">
+                  <p className="text-sm text-muted-foreground">
+                    <strong>Note:</strong> These commission rates determine how much the subadmin earns from player bets on different game types.
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="odds">Game Odds</TabsTrigger>
+            <TabsTrigger value="discounts">User Discounts</TabsTrigger>
+          </TabsList>
         
         {/* Game Odds Tab */}
         <TabsContent value="odds">
