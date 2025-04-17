@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee } from "lucide-react";
+import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee, Wallet, History, Ban, CheckCircle2, CircleDollarSign } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -515,13 +515,99 @@ export default function WalletPage() {
 
   return (
     <DashboardLayout title="Wallet">
+      <div className="mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div 
+            className={`p-4 rounded-lg border cursor-pointer transition-all ${
+              activeTab === "balance" 
+                ? "bg-slate-900/90 border-primary shadow-md" 
+                : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+            }`}
+            onClick={() => setActiveTab("balance")}
+          >
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className={`p-3 rounded-full mb-2 ${
+                activeTab === "balance" 
+                  ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                  : "bg-slate-800"
+              }`}>
+                <Wallet className="w-5 h-5 text-white" />
+              </div>
+              <span className={`font-medium ${
+                activeTab === "balance" ? "text-primary" : "text-slate-300"
+              }`}>Balance</span>
+            </div>
+          </div>
+          
+          <div 
+            className={`p-4 rounded-lg border cursor-pointer transition-all ${
+              activeTab === "deposit" 
+                ? "bg-slate-900/90 border-primary shadow-md" 
+                : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+            }`}
+            onClick={() => setActiveTab("deposit")}
+          >
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className={`p-3 rounded-full mb-2 ${
+                activeTab === "deposit" 
+                  ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                  : "bg-slate-800"
+              }`}>
+                <ArrowDown className="w-5 h-5 text-white" />
+              </div>
+              <span className={`font-medium ${
+                activeTab === "deposit" ? "text-primary" : "text-slate-300"
+              }`}>Deposit</span>
+            </div>
+          </div>
+          
+          <div 
+            className={`p-4 rounded-lg border cursor-pointer transition-all ${
+              activeTab === "withdraw" 
+                ? "bg-slate-900/90 border-primary shadow-md" 
+                : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+            }`}
+            onClick={() => setActiveTab("withdraw")}
+          >
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className={`p-3 rounded-full mb-2 ${
+                activeTab === "withdraw" 
+                  ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                  : "bg-slate-800"
+              }`}>
+                <ArrowUp className="w-5 h-5 text-white" />
+              </div>
+              <span className={`font-medium ${
+                activeTab === "withdraw" ? "text-primary" : "text-slate-300"
+              }`}>Withdraw</span>
+            </div>
+          </div>
+          
+          <div 
+            className={`p-4 rounded-lg border cursor-pointer transition-all ${
+              activeTab === "history" 
+                ? "bg-slate-900/90 border-primary shadow-md" 
+                : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+            }`}
+            onClick={() => setActiveTab("history")}
+          >
+            <div className="flex flex-col items-center justify-center text-center">
+              <div className={`p-3 rounded-full mb-2 ${
+                activeTab === "history" 
+                  ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                  : "bg-slate-800"
+              }`}>
+                <History className="w-5 h-5 text-white" />
+              </div>
+              <span className={`font-medium ${
+                activeTab === "history" ? "text-primary" : "text-slate-300"
+              }`}>History</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <Tabs defaultValue="balance" value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="balance">Balance</TabsTrigger>
-          <TabsTrigger value="deposit">Deposit</TabsTrigger>
-          <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
-          <TabsTrigger value="history" className="col-span-3 mt-2">Transaction History</TabsTrigger>
-        </TabsList>
 
         {/* Balance Tab */}
         <TabsContent value="balance" className="space-y-4">
