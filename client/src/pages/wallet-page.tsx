@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -554,29 +554,40 @@ export default function WalletPage() {
 
         {/* Balance Tab */}
         <TabsContent value="balance" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Current Balance</CardTitle>
-              <CardDescription>Your current account balance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center py-6">
-                <div className="text-4xl font-bold text-primary">₹{(user?.balance / 100).toFixed(2)}</div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Last updated: {new Date().toLocaleDateString('en-IN')}
-                </p>
+          <Card className="bg-slate-900/70 shadow-lg border border-slate-800">
+            <CardContent className="p-6 md:p-8">
+              <div className="flex flex-col items-center md:flex-row md:justify-between">
+                <div className="flex items-center mb-4 md:mb-0">
+                  <div className="p-3 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600 mr-4">
+                    <IndianRupee className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-slate-400">Current Balance</p>
+                    <p className="text-3xl font-bold text-fuchsia-300">₹{(user?.balance / 100).toFixed(2)}</p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Last updated: {new Date().toLocaleDateString('en-IN')}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <Button 
+                    onClick={() => setActiveTab("deposit")}
+                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white"
+                  >
+                    <ArrowDown className="mr-2 h-4 w-4" />
+                    Deposit
+                  </Button>
+                  <Button 
+                    onClick={() => setActiveTab("withdraw")} 
+                    variant="outline"
+                    className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+                  >
+                    <ArrowUp className="mr-2 h-4 w-4" />
+                    Withdraw
+                  </Button>
+                </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center gap-4">
-              <Button onClick={() => setActiveTab("deposit")}>
-                <ArrowDown className="mr-2 h-4 w-4" />
-                Deposit
-              </Button>
-              <Button onClick={() => setActiveTab("withdraw")} variant="outline">
-                <ArrowUp className="mr-2 h-4 w-4" />
-                Withdraw
-              </Button>
-            </CardFooter>
           </Card>
 
           <Card>
