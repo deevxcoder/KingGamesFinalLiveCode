@@ -6,21 +6,26 @@ import { UserRole } from "@shared/schema";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function MobileNav() {
-  const [location, setLocation] = useLocation();
-  const { user, logoutMutation } = useAuth();
+  const [location] = useLocation();
+  const { user } = useAuth();
 
   if (!user) return null;
 
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
   const isPlayer = user?.role === UserRole.PLAYER;
-  
-  const handleLogout = () => {
-    logoutMutation.mutate();
-  };
 
+  // Define the type for nav items
+  type NavItem = {
+    name: string;
+    icon: React.ReactNode;
+    path: string;
+    visible: boolean;
+    component?: React.ReactNode;
+  };
+  
   // Base menu items for all users
-  const navItems = [
+  const navItems: NavItem[] = [
     {
       name: "Home",
       icon: <Home className="w-5 h-5" />,
@@ -64,72 +69,35 @@ export default function MobileNav() {
     // Profile for all users
     {
       name: "Profile",
-      icon: (
-        <Avatar className="h-6 w-6 bg-gradient-to-r from-primary to-blue-400">
-          <AvatarFallback className="text-white font-bold text-[10px]">
-            {user.username.charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-      ),
+      icon: <User className="w-5 h-5" />,
       path: "/profile",
       visible: true,
     },
-    // Logout for all users
-    {
-      name: "Logout",
-      icon: <LogOut className="w-5 h-5" />,
-      path: "#",
-      visible: true,
-      onClick: handleLogout,
-    },
+
   ].filter(item => item.visible);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-50 lg:hidden">
       <div className="flex justify-around items-center h-16">
-        {navItems.map((item) => {
-          // For items with onClick handlers (like logout)
-          if (item.onClick) {
-            return (
-              <button
-                key={item.path}
-                onClick={item.onClick}
-                className={cn(
-                  "flex flex-col items-center justify-center w-full h-full text-xs",
-                  "text-red-400 hover:text-red-300"
-                )}
-              >
-                {item.component || (
-                  <>
-                    {item.icon}
-                    <span className="mt-1">{item.name}</span>
-                  </>
-                )}
-              </button>
-            );
-          }
-          
-          // Regular navigation items
-          return (
-            <Link
-              key={item.path}
-              href={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center w-full h-full text-xs",
-                location === item.path
-                  ? "text-blue-400"
-                  : "text-slate-400 hover:text-slate-200"
-              )}
-            >
-              {item.component || (
-                <>
-                  {item.icon}
-                  <span className="mt-1">{item.name}</span>
-                </>
-              )}
-            </Link>
-          );
-        })}
+        {navItems.map((item) => (
+          <Link
+            key={item.path}
+            href={item.path}
+            className={cn(
+              "flex flex-col items-center justify-center w-full h-full text-xs",
+              location === item.path
+                ? "text-blue-400"
+                : "text-slate-400 hover:text-slate-200"
+            )}
+          >
+            {item.component || (
+              <>
+                {item.icon}
+                <span className="mt-1">{item.name}</span>
+              </>
+            )}
+          </Link>
+        ))}
       </div>
     </div>
   );
