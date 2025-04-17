@@ -300,7 +300,11 @@ export default function AdminCricketTossPage() {
   // Handle submit for declaring result
   const onSubmitResult = (data: z.infer<typeof resultFormSchema>) => {
     if (declareResultGame) {
-      updateTossResult.mutate({ id: declareResultGame.id, result: data.result });
+      // Store the team data with the result for proper display later
+      updateTossResult.mutate({ 
+        id: declareResultGame.id, 
+        result: data.result,
+      });
     }
   };
 
