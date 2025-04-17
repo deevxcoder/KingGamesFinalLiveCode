@@ -86,47 +86,25 @@ export default function SubadminManagementPage() {
   // Create subadmin mutation
   const createSubadminMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createSubadminSchema>) => {
-      // First create the subadmin account
-      const res = await apiRequest("POST", "/api/register", {
-        username: data.username,
-        password: data.password,
-        role: UserRole.SUBADMIN,
-      });
-      
-      const newSubadmin = await res.json();
-      
-      // If commission settings are provided, set them up for the newly created subadmin
-      if (data.commissions && showCommissionSettings) {
-        const subadminId = newSubadmin.id;
+      // Use the new endpoint that creates a subadmin with commissions in one operation
+      if (showCommissionSettings) {
+        const res = await apiRequest("POST", "/api/subadmin/create-with-commissions", {
+          username: data.username,
+          password: data.password,
+          commissions: data.commissions
+        });
         
-        // Set up commission rates for different game types
-        const commissionPromises = [
-          apiRequest("POST", "/api/commissions/subadmin", {
-            subadminId,
-            gameType: "satamatka_jodi",
-            commissionRate: parseFloat(data.commissions.satamatka_jodi) * 100
-          }),
-          apiRequest("POST", "/api/commissions/subadmin", {
-            subadminId,
-            gameType: "satamatka_harf",
-            commissionRate: parseFloat(data.commissions.satamatka_harf) * 100
-          }),
-          apiRequest("POST", "/api/commissions/subadmin", {
-            subadminId,
-            gameType: "satamatka_crossing",
-            commissionRate: parseFloat(data.commissions.satamatka_crossing) * 100
-          }),
-          apiRequest("POST", "/api/commissions/subadmin", {
-            subadminId,
-            gameType: "satamatka_odd_even",
-            commissionRate: parseFloat(data.commissions.satamatka_odd_even) * 100
-          })
-        ];
+        return await res.json();
+      } else {
+        // If not showing commission settings, just create the subadmin without commissions
+        const res = await apiRequest("POST", "/api/register", {
+          username: data.username,
+          password: data.password,
+          role: UserRole.SUBADMIN,
+        });
         
-        await Promise.all(commissionPromises);
+        return await res.json();
       }
-      
-      return newSubadmin;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });

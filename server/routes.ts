@@ -1160,6 +1160,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Create a subadmin with commission settings in one operation
+  app.post("/api/subadmin/create-with-commissions", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const { username, password, commissions } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+      
+      // First create the subadmin
+      const hashPassword = require('./auth').hashPassword;
+      const hashedPassword = await hashPassword(password);
+      
+      const newSubadmin = await storage.createUser({
+        username,
+        password: hashedPassword,
+        role: UserRole.SUBADMIN,
+      });
+      
+      // If commission settings are provided, set them up for the newly created subadmin
+      if (commissions) {
+        const subadminId = newSubadmin.id;
+        
+        // Set up commission rates for different game types
+        const commissionPromises = [];
+        
+        if (commissions.satamatka_jodi) {
+          commissionPromises.push(
+            storage.upsertSubadminCommission(
+              subadminId, 
+              "satamatka_jodi", 
+              Math.round(parseFloat(commissions.satamatka_jodi) * 100)
+            )
+          );
+        }
+        
+        if (commissions.satamatka_harf) {
+          commissionPromises.push(
+            storage.upsertSubadminCommission(
+              subadminId, 
+              "satamatka_harf", 
+              Math.round(parseFloat(commissions.satamatka_harf) * 100)
+            )
+          );
+        }
+        
+        if (commissions.satamatka_crossing) {
+          commissionPromises.push(
+            storage.upsertSubadminCommission(
+              subadminId, 
+              "satamatka_crossing", 
+              Math.round(parseFloat(commissions.satamatka_crossing) * 100)
+            )
+          );
+        }
+        
+        if (commissions.satamatka_odd_even) {
+          commissionPromises.push(
+            storage.upsertSubadminCommission(
+              subadminId, 
+              "satamatka_odd_even", 
+              Math.round(parseFloat(commissions.satamatka_odd_even) * 100)
+            )
+          );
+        }
+        
+        await Promise.all(commissionPromises);
+      }
+      
+      // Remove password from response
+      const { password: _, ...subadminWithoutPassword } = newSubadmin;
+      
+      res.status(201).json({
+        ...subadminWithoutPassword,
+        message: "Subadmin created successfully with commission settings"
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+  
   app.post("/api/commissions/subadmin", requireRole([UserRole.ADMIN]), async (req, res, next) => {
     try {
       const { subadminId, gameType, commissionRate } = req.body;
