@@ -45,7 +45,6 @@ export const walletRequestSchema = z.object({
 });
 
 export const adminRequestReviewSchema = z.object({
-  requestId: z.number(),
   status: z.enum([RequestStatus.APPROVED, RequestStatus.REJECTED]),
   notes: z.string().optional(),
 });
