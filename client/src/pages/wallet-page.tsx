@@ -429,20 +429,6 @@ export default function WalletPage() {
               )}
             />
 
-            <FormField
-              control={depositForm.control}
-              name="paymentDetails.handlerId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Handler ID/Reference</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter handler's ID or reference" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {/* Display system cash handler details */}
             {paymentModeDetails?.cashDetails && (
               <div className="mt-4 p-4 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300">
