@@ -549,10 +549,10 @@ export default function AdminCricketTossPage() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value={TeamMatchResult.TEAM_A}>
-                          {declareResultGame?.gameData ? declareResultGame.gameData.teamA : "Team A"} Won the Toss
+                          {declareResultGame?.gameData ? `${declareResultGame.gameData.teamA} Won the Toss` : "Team A Won the Toss"}
                         </SelectItem>
                         <SelectItem value={TeamMatchResult.TEAM_B}>
-                          {declareResultGame?.gameData ? declareResultGame.gameData.teamB : "Team B"} Won the Toss
+                          {declareResultGame?.gameData ? `${declareResultGame.gameData.teamB} Won the Toss` : "Team B Won the Toss"}
                         </SelectItem>
                       </SelectContent>
                     </Select>
@@ -896,7 +896,7 @@ function CricketTossTable({
                     disabled={!(game.result === null || game.result === "" || game.result === "pending")}
                   >
                     <CheckCircle2 className="h-4 w-4 mr-1" />
-                    {game.status === "resulted" ? "Update Result" : "Declare Result"}
+                    {(game.result === "team_a" || game.result === "team_b") ? "Update Result" : "Declare Result"}
                   </Button>
                 </div>
               </TableCell>
