@@ -211,9 +211,9 @@ export function setupCricketTossApiRoutes(app: express.Express) {
       // Note: In a real implementation, this would also update user balances for winners
       
       try {
-        // Update both the result and status in a single direct SQL query
+        // Update only the result column - the games table doesn't have a status column
         const updateResult = await pool.query(
-          `UPDATE games SET result = $1, status = 'resulted' WHERE id = $2 RETURNING *`,
+          `UPDATE games SET result = $1 WHERE id = $2 RETURNING *`,
           [result, gameId]
         );
         
