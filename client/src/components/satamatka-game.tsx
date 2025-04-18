@@ -4,7 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ChevronRight, ChevronLeft, RefreshCw, AlertCircle } from "lucide-react";
+import { ChevronRight, ChevronLeft, RefreshCw, AlertCircle, Hash, Type, ArrowLeftRight, Divide, Clock } from "lucide-react";
 import { queryClient, apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -150,7 +150,8 @@ export default function SatamatkaGame() {
   // Mutation for placing a bet
   const placeBetMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      return apiRequest("/api/satamatka/play", "POST", {
+      // Fix: Use correct method parameter ordering in apiRequest
+      return apiRequest("POST", "/api/satamatka/play", {
         marketId: marketId,
         gameMode: data.gameMode,
         prediction: data.prediction,
@@ -382,22 +383,24 @@ export default function SatamatkaGame() {
             <CardDescription>Choose how you want to play</CardDescription>
           </CardHeader>
           <CardContent>
-            <Select
-              value={selectedGameMode}
-              onValueChange={handleGameModeChange}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a game mode" />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(GAME_MODES).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="mt-2 text-sm text-muted-foreground">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {Object.entries(GAME_MODES).map(([value, label]) => (
+                <Card 
+                  key={value} 
+                  className={`cursor-pointer transition-all hover:scale-105 ${selectedGameMode === value ? 'border-primary shadow-md' : 'border'}`}
+                  onClick={() => handleGameModeChange(value)}
+                >
+                  <CardContent className="p-4 flex flex-col items-center justify-center">
+                    {value === "jodi" && <Hash className="h-10 w-10 text-primary mb-2" />}
+                    {value === "harf" && <Type className="h-10 w-10 text-primary mb-2" />}
+                    {value === "crossing" && <ArrowLeftRight className="h-10 w-10 text-primary mb-2" />}
+                    {value === "odd_even" && <Divide className="h-10 w-10 text-primary mb-2" />}
+                    <p className="font-medium text-center">{label}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground p-2 bg-muted/50 rounded-md">
               {getGameModeDescription()}
             </p>
           </CardContent>
