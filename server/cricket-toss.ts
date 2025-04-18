@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import { storage } from './storage';
 import { GameType, TeamMatchResult, games } from '@shared/schema';
 import { z } from 'zod';
-import { db } from './db';
+import { db, pool } from './db';
 import { eq } from 'drizzle-orm';
 
 // Schema for creating a cricket toss game
@@ -59,8 +59,17 @@ export function setupCricketTossRoutes(app: express.Express) {
       // Update the game result
       const updatedGame = await storage.updateGameResult(gameId, result);
       
-      // Also update game status to "resulted"
-      await storage.updateGameStatus(gameId, "resulted");
+      // Also update the database directly to set the status
+      try {
+        await pool.query(`
+          UPDATE games 
+          SET status = 'resulted'
+          WHERE id = $1
+        `, [gameId]);
+      } catch (error) {
+        console.error("Error updating game status:", error);
+        // Continue with the response even if this fails
+      }
       
       res.json(updatedGame);
     } catch (err) {
@@ -113,20 +122,34 @@ export function setupCricketTossRoutes(app: express.Express) {
         imageUrl: imageUrl || "",
       };
       
-      // Create a modified game with the updated gameData
-      // We'll use a custom solution since we don't have a direct method to update gameData
+      // Create a new object with the updated gameData that we'll send back to the client
+      // We need a safer approach that doesn't rely on the database update
       
-      // First, update the status (this is just to update the game record)
-      const updatedGame = await storage.updateGameStatus(gameId, existingGame.status || "open");
-      
-      if (!updatedGame) {
-        return res.status(404).json({ message: "Failed to update game" });
+      // First, manually update the database using a direct SQL query
+      try {
+        // Use the database pool directly to run a custom SQL query
+        await pool.query(`
+          UPDATE games 
+          SET game_data = $1 
+          WHERE id = $2
+        `, [JSON.stringify(updatedGameData), gameId]);
+        
+        // Get the updated game
+        const updatedGame = await storage.getGame(gameId);
+        
+        if (!updatedGame) {
+          return res.status(404).json({ message: "Failed to update game" });
+        }
+        
+        // Return the updated game
+        res.json(updatedGame);
+      } catch (error) {
+        console.error("Error updating game:", error);
+        return res.status(500).json({ message: "Failed to update game data" });
       }
       
-      // Then manually modify the game object for the response
-      updatedGame.gameData = updatedGameData;
-      
-      res.json(updatedGame);
+      // Exit early since we've already sent the response
+      return;
     } catch (err) {
       next(err);
     }
