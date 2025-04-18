@@ -104,6 +104,12 @@ export default function SatamatkaGame() {
     queryKey: ["/api/satamatka/markets", marketId],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user && !isNaN(marketId),
+    onSuccess: (data) => {
+      console.log("Market data received:", data);
+    },
+    onError: (error) => {
+      console.error("Error fetching market:", error);
+    }
   });
 
   // Mutation for placing a bet
