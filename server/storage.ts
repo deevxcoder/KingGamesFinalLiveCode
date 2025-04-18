@@ -101,6 +101,9 @@ export interface IStorage {
   getGameOddsBySubadmin(subadminId: number, gameType?: string): Promise<GameOdd[]>;
   upsertGameOdd(gameType: string, oddValue: number, setByAdmin: boolean, subadminId?: number): Promise<GameOdd>;
 
+  // Admin seeding methods
+  seedCricketTossGames(): Promise<void>;
+
   // Session store
   sessionStore: session.Store;
 }
@@ -126,8 +129,9 @@ export class DatabaseStorage implements IStorage {
   
   /**
    * Seed Cricket Toss games for demonstration
+   * Made public so it can be called via API
    */
-  private async seedCricketTossGames() {
+  async seedCricketTossGames() {
     try {
       console.log("Checking and seeding Cricket Toss games...");
       

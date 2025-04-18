@@ -1321,6 +1321,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Admin endpoint to manually seed cricket toss games
+  app.post("/api/admin/seed-cricket-toss", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      // Call seedCricketTossGames directly from storage
+      await storage.seedCricketTossGames();
+      res.json({ message: "Cricket toss games seeded successfully" });
+    } catch (err) {
+      next(err);
+    }
+  });
+
   // Register wallet system routes
   await import('./wallet-system').then(({ setupWalletRoutes }) => {
     setupWalletRoutes(app);
