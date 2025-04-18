@@ -51,6 +51,23 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { format } from "date-fns";
 
 // Game modes in the Satamatka game
@@ -73,6 +90,21 @@ const formSchema = z.object({
     .max(10000, "Maximum bet amount is 10,000"),
 });
 
+// Game interface for recent bets
+interface Game {
+  id: number;
+  userId: number;
+  gameType: string;
+  prediction: string;
+  betAmount: number;
+  result: string | null;
+  status: string;
+  payout: number | null;
+  marketId?: number;
+  marketName?: string;
+  createdAt: string;
+}
+
 export default function SatamatkaGame() {
   const { id } = useParams<{ id: string }>();
   const marketId = parseInt(id);
@@ -81,6 +113,8 @@ export default function SatamatkaGame() {
   const { toast } = useToast();
   const [selectedNumber, setSelectedNumber] = useState<string>("");
   const [selectedGameMode, setSelectedGameMode] = useState<string>("jodi");
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [betDetails, setBetDetails] = useState<{prediction: string; betAmount: number} | null>(null);
 
   // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
@@ -147,6 +181,13 @@ export default function SatamatkaGame() {
     }
   }, [market, marketError, toast]);
 
+  // Query for user's recent bets
+  const { data: recentBets = [], refetch: refetchRecentBets } = useQuery({
+    queryKey: ["/api/games/my-history"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!user,
+  });
+
   // Mutation for placing a bet
   const placeBetMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
@@ -165,12 +206,20 @@ export default function SatamatkaGame() {
         description: "Your bet has been placed on the selected market.",
       });
 
-      // Invalidate relevant queries
+      // Invalidate relevant queries and refetch data
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       queryClient.invalidateQueries({ queryKey: ["/api/games/my-history"] });
-
-      // Redirect to the game history page
-      setLocation("/game-history");
+      
+      // Reset form
+      form.reset({
+        gameMode: selectedGameMode,
+        prediction: "",
+        betAmount: 100,
+      });
+      setSelectedNumber("");
+      
+      // Refetch recent bets to show updated list
+      refetchRecentBets();
     },
     onError: (error: Error) => {
       toast({
@@ -192,9 +241,20 @@ export default function SatamatkaGame() {
       return;
     }
 
-    // Confirm bet placement
-    if (window.confirm(`Confirm your bet of ${data.betAmount} on ${data.prediction}?`)) {
-      placeBetMutation.mutate(data);
+    // Set bet details and open confirmation dialog
+    setBetDetails({
+      prediction: data.prediction,
+      betAmount: data.betAmount
+    });
+    setConfirmDialogOpen(true);
+  };
+  
+  // Handle bet confirmation from dialog
+  const handleConfirmBet = () => {
+    if (betDetails && form.getValues()) {
+      const formData = form.getValues();
+      placeBetMutation.mutate(formData as any);
+      setConfirmDialogOpen(false);
     }
   };
 
@@ -500,6 +560,111 @@ export default function SatamatkaGame() {
           </CardFooter>
         </Card>
       </div>
+
+      {/* Recent Bets Table */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Recent Bets</CardTitle>
+            <CardDescription>Latest bets you've placed</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Market</TableHead>
+                  <TableHead>Prediction</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(recentBets as Game[]).slice(0, 5).map((bet) => (
+                  <TableRow key={bet.id}>
+                    <TableCell>{bet.marketName || 'Unknown'}</TableCell>
+                    <TableCell>{bet.prediction}</TableCell>
+                    <TableCell>₹{bet.betAmount}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          bet.status === "win" ? "success" : 
+                          bet.status === "loss" ? "destructive" : "outline"
+                        }
+                      >
+                        {bet.status === "pending" ? "Pending" : 
+                         bet.status === "win" ? "Won" : 
+                         bet.status === "loss" ? "Lost" : bet.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{format(new Date(bet.createdAt), "MMM d, h:mm a")}</TableCell>
+                  </TableRow>
+                ))}
+                {(recentBets as Game[]).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                      No recent bets found. Place your first bet!
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bet Confirmation Dialog */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Your Bet</DialogTitle>
+            <DialogDescription>
+              Please review your bet details before confirming.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium">Market</h4>
+                <p className="text-sm text-muted-foreground">{typedMarket.name}</p>
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium">Game Mode</h4>
+                <p className="text-sm text-muted-foreground">{GAME_MODES[selectedGameMode as keyof typeof GAME_MODES]}</p>
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium">Prediction</h4>
+                <p className="text-sm text-muted-foreground">{betDetails?.prediction}</p>
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium">Bet Amount</h4>
+                <p className="text-sm text-muted-foreground">₹{betDetails?.betAmount}</p>
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-medium">Potential Win</h4>
+                <p className="text-sm text-muted-foreground">
+                  ₹{betDetails ? calculatePotentialWin(selectedGameMode, betDetails.betAmount) : 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmBet} disabled={placeBetMutation.isPending}>
+              {placeBetMutation.isPending ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Placing Bet...
+                </>
+              ) : (
+                "Confirm Bet"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
