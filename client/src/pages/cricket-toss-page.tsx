@@ -118,11 +118,13 @@ function CricketTossMatches() {
   // Combine both data sources for the UI
   const allGames = [
     ...cricketTossGames.map(game => ({
-      type: 'cricket_toss_game',
+      id: game.id,
+      type: 'cricket_toss_game' as const,
       data: game
     })),
     ...teamMatches.map(match => ({
-      type: 'team_match',
+      id: match.id,
+      type: 'team_match' as const,
       data: match
     }))
   ];
@@ -151,12 +153,12 @@ function CricketTossMatches() {
     return [
       ...openTossGames.map(game => ({
         id: game.id,
-        type: 'cricket_toss_game',
+        type: 'cricket_toss_game' as const,
         data: game
       })),
       ...openTeamMatches.map(match => ({
         id: match.id,
-        type: 'team_match',
+        type: 'team_match' as const,
         data: match
       }))
     ];
@@ -179,12 +181,12 @@ function CricketTossMatches() {
     return [
       ...liveTossGames.map(game => ({
         id: game.id,
-        type: 'cricket_toss_game',
+        type: 'cricket_toss_game' as const,
         data: game
       })),
       ...liveTeamMatches.map(match => ({
         id: match.id,
-        type: 'team_match',
+        type: 'team_match' as const,
         data: match
       }))
     ];
