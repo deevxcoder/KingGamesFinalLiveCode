@@ -243,6 +243,16 @@ const gameCards = [
     path: "/sports", // Updated to point to sports betting page
     popularity: "high" as const,
     winRate: 42
+  },
+  {
+    id: "kingsoriginal",
+    title: "Kings Original",
+    description: "Coming soon! Our collection of premium games including Big-Small, Color, Lottery, Roulette and more.",
+    imageBg: "linear-gradient(to right, #4a4a4a, #6a6a6a)",
+    path: "#",
+    popularity: "low" as const,
+    winRate: 0,
+    comingSoon: true
   }
 ];
 
@@ -318,6 +328,7 @@ export default function PublicHomePage() {
                 path={game.path}
                 popularity={game.popularity}
                 winRate={game.winRate}
+                comingSoon={game.comingSoon}
               />
             ))}
           </div>

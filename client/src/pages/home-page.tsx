@@ -31,7 +31,7 @@ const gameCards = [
     title: "Market Game",
     description: "Strategic market betting game with multiple betting options.",
     imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
-    path: "/markets", // Updated to point to markets page for consistency
+    path: "/markets",
     popularity: "high" as const,
     winRate: 40
   },
@@ -49,7 +49,7 @@ const gameCards = [
     title: "Sports Betting",
     description: "Bet on your favorite cricket teams and matches.",
     imageBg: "linear-gradient(to right, #2d2339, #784cb3)",
-    path: "/sports", // Updated to point to sports betting page
+    path: "/sports",
     popularity: "medium" as const,
     winRate: 36
   },
@@ -61,6 +61,16 @@ const gameCards = [
     path: "/coinflip",
     popularity: "high" as const,
     winRate: 50
+  },
+  {
+    id: "kingsoriginal",
+    title: "Kings Original",
+    description: "Coming soon! Our collection of premium games including Big-Small, Color, Lottery, Roulette and more.",
+    imageBg: "linear-gradient(to right, #4a4a4a, #6a6a6a)",
+    path: "#",
+    popularity: "low" as const,
+    winRate: 0,
+    comingSoon: true
   }
 ];
 
@@ -121,7 +131,7 @@ export default function HomePage() {
   });
 
   // Fetch recent games for the user
-  const { data: recentGames = [] } = useQuery({
+  const { data: recentGames = [] as any[] } = useQuery({
     queryKey: ["/api/games/my-history"],
     enabled: !!user,
   });
@@ -270,6 +280,7 @@ export default function HomePage() {
                   path={game.path}
                   popularity={game.popularity}
                   winRate={game.winRate}
+                  comingSoon={game.comingSoon}
                 />
               ))}
             </div>
@@ -278,7 +289,7 @@ export default function HomePage() {
           {/* Recent Activity Section - Two column layout on desktop */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Recent Games */}
-            <GameHistoryTable games={recentGames} />
+            <GameHistoryTable games={recentGames as any[]} />
             
             {/* Right column - winners and results */}
             <div className="space-y-6">
