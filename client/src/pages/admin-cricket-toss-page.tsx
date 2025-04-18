@@ -215,8 +215,11 @@ export default function AdminCricketTossPage() {
     enabled: !!user,
   });
   
-  // Combine both data sources
-  const allGames = [...legacyGames, ...standaloneGames];
+  // Combine both data sources with unique keys by adding a source identifier
+  const allGames = [
+    ...legacyGames.map(game => ({ ...game, source: 'legacy' })),
+    ...standaloneGames.map(game => ({ ...game, source: 'standalone' }))
+  ];
   const isLoadingGames = isLoadingLegacyGames || isLoadingStandaloneGames;
 
   // Filter games by result status
@@ -404,6 +407,35 @@ export default function AdminCricketTossPage() {
     }
   });
 
+  // Mutation for updating a cricket toss game
+  const updateTossGame = useMutation({
+    mutationFn: ({ id, data }: { id: number, data: any }) => {
+      return apiRequest(
+        'PATCH',
+        `/api/cricket-toss-games/${id}`,
+        data
+      );
+    },
+    onSuccess: () => {
+      setEditingGame(null);
+      gameForm.reset();
+      // Invalidate both query keys to ensure all data is updated
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss-games"] });
+      toast({
+        title: "Game updated",
+        description: "Cricket Toss game has been updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update game. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Handle submit for adding/editing game
   const onSubmitGame = (formData: z.infer<typeof tossGameFormSchema>) => {
     // Combine date and time into a single ISO string for tossTime
@@ -417,13 +449,11 @@ export default function AdminCricketTossPage() {
     };
     
     if (editingGame) {
-      // Not implemented - need to update the API for this
-      toast({
-        title: "Editing not implemented",
-        description: "Editing cricket toss games is not yet implemented. Please create a new game instead.",
-        variant: "destructive"
+      // Update existing game
+      updateTossGame.mutate({ 
+        id: editingGame.id, 
+        data: data
       });
-      setEditingGame(null);
     } else {
       // Create a new cricket toss game
       createTossGame.mutate(data);
@@ -924,7 +954,7 @@ function CricketTossTable({
         </TableHeader>
         <TableBody>
           {games.map((game) => (
-            <TableRow key={game.id}>
+            <TableRow key={`${game.id}-${(game as any).source || 'default'}`}>
               <TableCell>
                 {game.gameData ? (
                   <>

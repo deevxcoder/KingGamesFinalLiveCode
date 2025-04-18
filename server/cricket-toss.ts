@@ -65,6 +65,65 @@ export function setupCricketTossRoutes(app: express.Express) {
       next(err);
     }
   });
+  
+  // Update cricket toss game details (admin only)
+  app.patch("/api/cricket-toss-games/:id", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated() || req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Only admin can edit cricket toss games" });
+      }
+      
+      const gameId = Number(req.params.id);
+      const validationResult = createCricketTossSchema.safeParse(req.body);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          error: "Invalid data", 
+          details: validationResult.error.format() 
+        });
+      }
+      
+      const { teamA, teamB, description, tossTime, oddTeamA, oddTeamB, imageUrl } = validationResult.data;
+      
+      // Get the existing game
+      const existingGame = await storage.getGame(gameId);
+      if (!existingGame) {
+        return res.status(404).json({ message: "Game not found" });
+      }
+      
+      if (existingGame.gameType !== GameType.CRICKET_TOSS) {
+        return res.status(400).json({ message: "Game is not a cricket toss game" });
+      }
+      
+      // Update only the game data field, preserving other fields
+      const updatedGameData = {
+        ...existingGame.gameData, // Keep existing data
+        teamA,
+        teamB,
+        description: description || "",
+        tossTime,
+        oddTeamA,
+        oddTeamB,
+        imageUrl: imageUrl || "",
+      };
+      
+      // We need to update the whole game object with the new gameData
+      // Since there's no direct update method for gameData, we'll create a
+      // game object and use raw SQL to update it
+      const [updatedGame] = await db
+        .update(games)
+        .set({ 
+          gameData: updatedGameData,
+          updatedAt: new Date() 
+        })
+        .where(eq(games.id, gameId))
+        .returning();
+      
+      res.json(updatedGame);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Get active cricket toss games
   app.get("/api/cricket-toss-games/active", async (req: Request, res: Response, next: NextFunction) => {
