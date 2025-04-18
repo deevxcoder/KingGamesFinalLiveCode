@@ -143,20 +143,15 @@ export class DatabaseStorage implements IStorage {
         return;
       }
       
-      // Get current active/open cricket toss games
-      const openGames = await db
+      // Get current cricket toss games - there's no status column, so we'll filter all cricket toss games
+      const existingCricketTossGames = await db
         .select()
         .from(games)
-        .where(
-          and(
-            eq(games.gameType, 'cricket_toss'),
-            eq(games.status, 'open')
-          )
-        );
+        .where(eq(games.gameType, 'cricket_toss'));
       
-      // If we already have 5 or more open cricket toss games, we don't need to add more
-      if (openGames.length >= 5) {
-        console.log(`Found ${openGames.length} active Cricket Toss games, skipping seeding.`);
+      // If we already have 5 or more cricket toss games, we don't need to add more
+      if (existingCricketTossGames.length >= 5) {
+        console.log(`Found ${existingCricketTossGames.length} Cricket Toss games, skipping seeding.`);
         return;
       }
       
@@ -228,10 +223,10 @@ export class DatabaseStorage implements IStorage {
       ];
       
       // Determine how many more games we need to add to reach 5
-      const gamesNeeded = 5 - openGames.length;
+      const gamesNeeded = 5 - existingCricketTossGames.length;
       const gamesToAdd = tossGames.slice(0, gamesNeeded);
       
-      console.log(`Adding ${gamesNeeded} new Cricket Toss games to reach the target of 5 active games.`);
+      console.log(`Adding ${gamesNeeded} new Cricket Toss games to reach the target of 5 games.`);
       
       // Create Cricket Toss games
       for (const game of gamesToAdd) {
@@ -240,8 +235,10 @@ export class DatabaseStorage implements IStorage {
           gameType: 'cricket_toss',
           betAmount: 0,
           prediction: '',
-          gameData: game,
-          status: 'open',
+          gameData: {
+            ...game,
+            status: 'open' // Include status inside gameData
+          },
           result: '',
           payout: 0
         });
