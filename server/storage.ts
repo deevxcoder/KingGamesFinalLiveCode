@@ -103,6 +103,7 @@ export interface IStorage {
 
   // Admin seeding methods
   seedCricketTossGames(): Promise<void>;
+  seedDemoSatamatkaMarkets(): Promise<void>;
 
   // Session store
   sessionStore: session.Store;
@@ -599,6 +600,80 @@ export class DatabaseStorage implements IStorage {
 
   async getAllSatamatkaMarkets(): Promise<SatamatkaMarket[]> {
     return await db.select().from(satamatkaMarkets).orderBy(desc(satamatkaMarkets.createdAt));
+  }
+
+  /**
+   * Seed demo Satamatka markets with future times
+   * Used for demonstration purposes to ensure there are always active markets
+   */
+  async seedDemoSatamatkaMarkets(): Promise<void> {
+    try {
+      console.log("Seeding demo Satamatka markets with future times...");
+      
+      // First, check if we have active satamatka markets
+      const activeMarkets = await this.getActiveSatamatkaMarkets();
+      
+      // If we already have 5 or more active markets, we don't need to add more
+      if (activeMarkets.length >= 5) {
+        console.log(`Found ${activeMarkets.length} active Satamatka markets, skipping demo seeding.`);
+        return;
+      }
+      
+      // Demo markets with future times to ensure they are active
+      const now = new Date();
+      const demoMarkets = [
+        {
+          name: "Demo Dishawar Morning",
+          type: "dishawar",
+          openTime: new Date(now.getTime() + 1 * 60 * 60 * 1000), // 1 hour from now
+          closeTime: new Date(now.getTime() + 3 * 60 * 60 * 1000), // 3 hours from now
+          status: "open",
+        },
+        {
+          name: "Demo Gali Day",
+          type: "gali",
+          openTime: new Date(now.getTime() + 2 * 60 * 60 * 1000), // 2 hours from now
+          closeTime: new Date(now.getTime() + 4 * 60 * 60 * 1000), // 4 hours from now
+          status: "open",
+        },
+        {
+          name: "Demo Mumbai Afternoon",
+          type: "mumbai",
+          openTime: new Date(now.getTime() + 3 * 60 * 60 * 1000), // 3 hours from now
+          closeTime: new Date(now.getTime() + 5 * 60 * 60 * 1000), // 5 hours from now
+          status: "open",
+        },
+        {
+          name: "Demo Kalyan Evening",
+          type: "kalyan",
+          openTime: new Date(now.getTime() + 4 * 60 * 60 * 1000), // 4 hours from now
+          closeTime: new Date(now.getTime() + 6 * 60 * 60 * 1000), // 6 hours from now
+          status: "open",
+        },
+        {
+          name: "Demo Dishawar Night",
+          type: "dishawar",
+          openTime: new Date(now.getTime() + 5 * 60 * 60 * 1000), // 5 hours from now
+          closeTime: new Date(now.getTime() + 7 * 60 * 60 * 1000), // 7 hours from now
+          status: "open",
+        },
+      ];
+      
+      // Determine how many more markets we need to add to reach 5
+      const marketsNeeded = 5 - activeMarkets.length;
+      const marketsToAdd = demoMarkets.slice(0, marketsNeeded);
+      
+      console.log(`Adding ${marketsNeeded} new Satamatka markets to reach the target of 5 active markets.`);
+      
+      // Create demo markets with future times
+      for (const market of marketsToAdd) {
+        await this.createSatamatkaMarket(market as InsertSatamatkaMarket);
+      }
+      
+      console.log("Demo Satamatka markets seeded successfully!");
+    } catch (error) {
+      console.error("Error seeding demo Satamatka markets:", error);
+    }
   }
 
   async getActiveSatamatkaMarkets(): Promise<SatamatkaMarket[]> {
