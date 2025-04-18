@@ -45,12 +45,20 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
         throw new Error("Please select a team and enter a valid bet amount");
       }
       
+      // Ensure betAmount is a number
+      const amount = typeof betAmount === 'string' ? parseInt(betAmount, 10) : betAmount;
+      
+      console.log('Submitting bet:', {
+        betOn: prediction,
+        betAmount: amount,
+      });
+      
       return apiRequest(
         'POST',
         `/api/cricket-toss/${match.id}/play`,
         {
           betOn: prediction,
-          betAmount,
+          betAmount: amount,
         }
       );
     },

@@ -240,53 +240,60 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         })
       });
       
-      const validationResult = playSchema.safeParse(req.body);
+      // Log the request body for debugging
+      console.log('Cricket toss betting request body:', req.body);
+      
+      // Handle potential parsing errors (client may send string instead of number)
+      const parsedBody = {
+        ...req.body,
+        betAmount: typeof req.body.betAmount === 'string' 
+          ? parseInt(req.body.betAmount, 10)
+          : req.body.betAmount
+      };
+      
+      const validationResult = playSchema.safeParse(parsedBody);
       
       if (!validationResult.success) {
+        console.log('Validation error:', validationResult.error.format());
         return res.status(400).json({ 
-          error: "Invalid data", 
-          details: validationResult.error.format() 
+          message: "Invalid bet amount or prediction" 
         });
       }
       
       const { betAmount, betOn } = validationResult.data;
       
-      // Get the game
-      const game = await storage.getGame(gameId);
+      // Get the team match instead of game
+      const match = await storage.getTeamMatch(gameId);
       
-      if (!game) {
-        return res.status(404).json({ error: "Cricket Toss game not found" });
+      if (!match) {
+        return res.status(404).json({ message: "Cricket Toss match not found" });
       }
       
-      if (game.gameType !== GameType.CRICKET_TOSS) {
-        return res.status(400).json({ error: "Game is not a Cricket Toss game" });
+      if (match.category !== 'cricket') {
+        return res.status(400).json({ message: "Match is not a Cricket Toss match" });
       }
       
-      if (game.status !== "open") {
-        return res.status(400).json({ error: "Game is not open for betting" });
+      if (match.status !== 'open') {
+        return res.status(400).json({ message: "Match is not open for betting" });
       }
       
       // Check if user has sufficient balance
       const user = await storage.getUser(req.user.id);
       
       if (!user) {
-        return res.status(404).json({ error: "User not found" });
+        return res.status(404).json({ message: "User not found" });
       }
       
       if (user.balance < betAmount) {
-        return res.status(400).json({ error: "Insufficient balance" });
+        return res.status(400).json({ message: "Insufficient balance" });
       }
-      
-      // Create the bet - in a real implementation, this would create a new game entry for the user
-      // For now, we'll just simulate the response
       
       // Deduct the bet amount from user's balance
       await storage.updateUserBalance(user.id, user.balance - betAmount);
       
-      // Calculate potential payout based on odds
-      const { gameData } = game;
-      const odds = betOn === TeamMatchResult.TEAM_A ? gameData.oddTeamA : gameData.oddTeamB;
-      const potentialPayout = (betAmount * odds) / 100;
+      // Calculate potential payout based on odds from the match
+      const odds = betOn === TeamMatchResult.TEAM_A ? match.oddTeamA : match.oddTeamB;
+      const potentialPayout = Math.floor((betAmount * odds) / 100);
       
       // Create a new game entry for this user's bet
       const userBet = {
@@ -294,11 +301,17 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         gameType: GameType.CRICKET_TOSS,
         betAmount,
         prediction: betOn, // Use betOn as prediction to match the schema
+        matchId: match.id, // Link to the team match
         gameData: {
-          ...gameData,
-          originalGameId: gameId // Reference to the original game
+          teamA: match.teamA,
+          teamB: match.teamB,
+          matchId: match.id,
+          oddTeamA: match.oddTeamA,
+          oddTeamB: match.oddTeamB,
+          description: match.description,
+          matchTime: match.matchTime,
+          status: 'pending'
         },
-        status: "pending",
         result: "pending", // Use pending instead of null
         payout: potentialPayout
       };
