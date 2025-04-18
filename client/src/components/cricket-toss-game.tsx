@@ -45,14 +45,14 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
         throw new Error("Please select a team and enter a valid bet amount");
       }
       
-      return apiRequest({
-        method: 'POST',
-        url: `/api/cricket-toss/${match.id}/play`,
-        body: {
-          prediction,
+      return apiRequest(
+        'POST',
+        `/api/cricket-toss/${match.id}/play`,
+        {
+          betOn: prediction,
           betAmount,
-        },
-      });
+        }
+      );
     },
     meta: {
       successMessage: "Bet placed successfully!"
