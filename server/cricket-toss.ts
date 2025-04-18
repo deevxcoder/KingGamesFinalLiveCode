@@ -1,7 +1,9 @@
 import express, { Request, Response, NextFunction } from 'express';
 import { storage } from './storage';
-import { GameType, TeamMatchResult } from '@shared/schema';
+import { GameType, TeamMatchResult, games } from '@shared/schema';
 import { z } from 'zod';
+import { db } from './db';
+import { eq } from 'drizzle-orm';
 
 // Schema for creating a cricket toss game
 const createCricketTossSchema = z.object({
@@ -95,9 +97,13 @@ export function setupCricketTossRoutes(app: express.Express) {
         return res.status(400).json({ message: "Game is not a cricket toss game" });
       }
       
-      // Update only the game data field, preserving other fields
+      // Update only the game data field, creating a new object
+      const existingGameData = typeof existingGame.gameData === 'object' && existingGame.gameData !== null 
+        ? existingGame.gameData as Record<string, any>
+        : {};
+        
       const updatedGameData = {
-        ...existingGame.gameData, // Keep existing data
+        ...existingGameData,
         teamA,
         teamB,
         description: description || "",
@@ -107,17 +113,18 @@ export function setupCricketTossRoutes(app: express.Express) {
         imageUrl: imageUrl || "",
       };
       
-      // We need to update the whole game object with the new gameData
-      // Since there's no direct update method for gameData, we'll create a
-      // game object and use raw SQL to update it
-      const [updatedGame] = await db
-        .update(games)
-        .set({ 
-          gameData: updatedGameData,
-          updatedAt: new Date() 
-        })
-        .where(eq(games.id, gameId))
-        .returning();
+      // Create a modified game with the updated gameData
+      // We'll use a custom solution since we don't have a direct method to update gameData
+      
+      // First, update the status (this is just to update the game record)
+      const updatedGame = await storage.updateGameStatus(gameId, existingGame.status || "open");
+      
+      if (!updatedGame) {
+        return res.status(404).json({ message: "Failed to update game" });
+      }
+      
+      // Then manually modify the game object for the response
+      updatedGame.gameData = updatedGameData;
       
       res.json(updatedGame);
     } catch (err) {
