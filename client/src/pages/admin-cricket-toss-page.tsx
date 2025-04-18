@@ -253,8 +253,14 @@ export default function AdminCricketTossPage() {
   });
 
   // Format date for display
-  const formatDate = (dateString: string) => {
-    return format(parseISO(dateString), "MMM d, yyyy h:mm a");
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "N/A";
+    try {
+      return format(parseISO(dateString), "MMM d, yyyy h:mm a");
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
 
   // Handle opening edit game dialog
@@ -474,8 +480,7 @@ export default function AdminCricketTossPage() {
                 .then(data => {
                   toast({
                     title: "Cricket toss games created",
-                    description: `Created ${data.createdGamesCount} new games for betting.`,
-                    variant: "success"
+                    description: `Created ${data.createdGamesCount} new games for betting.`
                   });
                   queryClient.invalidateQueries({ queryKey: ['/api/cricket-toss-games'] });
                 })
@@ -869,7 +874,7 @@ interface CricketTossTableProps {
   isLoading: boolean;
   handleEditGame: (game: CricketTossGame) => void;
   handleDeclareResult: (game: CricketTossGame) => void;
-  formatDate: (date: string) => string;
+  formatDate: (date: string | undefined) => string;
   StatusBadge: React.FC<{ result: string | null }>;
   getResultDisplay: (result: string | null, game: CricketTossGame) => string;
 }
