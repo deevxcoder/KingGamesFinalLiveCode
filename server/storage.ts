@@ -126,6 +126,9 @@ export class DatabaseStorage implements IStorage {
     
     // Seed Cricket Toss games
     this.seedCricketTossGames();
+    
+    // Seed demo Satamatka markets with future times to ensure active markets
+    this.seedDemoSatamatkaMarkets();
   }
   
   /**

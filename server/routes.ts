@@ -48,6 +48,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(error);
     }
   });
+  
+  // Endpoint to manually seed demo Satamatka markets
+  app.post("/api/admin/seed-satamatka-markets", requireRole(UserRole.ADMIN), async (req, res, next) => {
+    try {
+      await storage.seedDemoSatamatkaMarkets();
+      res.status(200).json({ message: "Demo Satamatka markets seeded successfully" });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   // Game routes
   app.post("/api/games", async (req, res, next) => {
