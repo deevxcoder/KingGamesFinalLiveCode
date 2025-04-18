@@ -38,6 +38,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup file upload routes
   setupUploadRoutes(app);
+  
+  // Endpoint to manually seed cricket toss games
+  app.post("/api/admin/seed-cricket-toss", requireRole(UserRole.ADMIN), async (req, res, next) => {
+    try {
+      await (storage as any).seedCricketTossGames();
+      res.status(200).json({ message: "Cricket toss games seeded successfully" });
+    } catch (error) {
+      next(error);
+    }
+  });
 
   // Game routes
   app.post("/api/games", async (req, res, next) => {
