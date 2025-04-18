@@ -49,6 +49,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Endpoint to manually seed open cricket toss games for immediate betting
+  app.post("/api/admin/seed-open-cricket-toss", requireRole(UserRole.ADMIN), async (req, res, next) => {
+    try {
+      // Current time
+      const currentTime = new Date();
+      const tossTime = new Date(currentTime.getTime() + 6 * 60 * 60 * 1000).toISOString(); // 6 hours in future
+      
+      const tossGames = [
+        {
+          userId: req.user!.id,
+          gameType: "cricket_toss",
+          prediction: "pending",
+          betAmount: 0,
+          result: null,
+          status: "open",
+          payout: null,
+          gameData: {
+            teamA: "England",
+            teamB: "New Zealand",
+            description: "T20 Series 2025 - Live Betting",
+            tossTime: tossTime,
+            oddTeamA: 160,
+            oddTeamB: 140,
+            imageUrl: "/images/england-vs-nz.svg",
+            status: "open"
+          },
+          createdAt: new Date()
+        },
+        {
+          userId: req.user!.id,
+          gameType: "cricket_toss",
+          prediction: "pending",
+          betAmount: 0,
+          result: null,
+          status: "open",
+          payout: null,
+          gameData: {
+            teamA: "Pakistan",
+            teamB: "South Africa",
+            description: "ODI Series 2025 - Live Betting",
+            tossTime: tossTime,
+            oddTeamA: 130,
+            oddTeamB: 190,
+            imageUrl: "/images/pakistan-vs-sa.svg",
+            status: "open"
+          },
+          createdAt: new Date()
+        }
+      ];
+      
+      let createdGamesCount = 0;
+      for (const game of tossGames) {
+        // Check if a similar game already exists
+        const existingGames = await storage.getAllGames();
+        const exists = existingGames.some(g => 
+          g.gameType === game.gameType && 
+          g.gameData && 
+          (g.gameData as any).teamA === (game.gameData as any).teamA &&
+          (g.gameData as any).teamB === (game.gameData as any).teamB
+        );
+        
+        if (!exists) {
+          await storage.createGame(game);
+          createdGamesCount++;
+        }
+      }
+      
+      res.status(200).json({ 
+        message: "Open cricket toss games seeded successfully", 
+        createdGamesCount 
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+  
   // Endpoint to manually seed demo Satamatka markets
   app.post("/api/admin/seed-satamatka-markets", requireRole(UserRole.ADMIN), async (req, res, next) => {
     try {
