@@ -138,13 +138,68 @@ function CricketTossMatches() {
     });
   }
 
+  // Helper function to get combined open games
+  const getOpenGames = () => {
+    const openTossGames = cricketTossGames.filter(game => 
+      (game.gameData?.status === 'open')
+    );
+    
+    const openTeamMatches = teamMatches.filter(match => 
+      match.status === 'open' && match.category === 'cricket'
+    );
+    
+    return [
+      ...openTossGames.map(game => ({
+        id: game.id,
+        type: 'cricket_toss_game',
+        data: game
+      })),
+      ...openTeamMatches.map(match => ({
+        id: match.id,
+        type: 'team_match',
+        data: match
+      }))
+    ];
+  };
+  
+  // Helper function to get combined live games
+  const getLiveGames = () => {
+    const now = new Date();
+    
+    const liveTossGames = cricketTossGames.filter(game => {
+      const tossTime = new Date(game.gameData.tossTime);
+      return game.gameData?.status === 'open' && tossTime <= now;
+    });
+    
+    const liveTeamMatches = teamMatches.filter(match => {
+      const matchTime = new Date(match.matchTime);
+      return match.status === 'open' && matchTime <= now && match.category === 'cricket';
+    });
+    
+    return [
+      ...liveTossGames.map(game => ({
+        id: game.id,
+        type: 'cricket_toss_game',
+        data: game
+      })),
+      ...liveTeamMatches.map(match => ({
+        id: match.id,
+        type: 'team_match',
+        data: match
+      }))
+    ];
+  };
+
+  const openGames = getOpenGames();
+  const liveGames = getLiveGames();
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="upcoming" className="w-full">
         <TabsList className="grid grid-cols-2 mb-8">
           <TabsTrigger value="upcoming" className="flex items-center justify-center">
             <Calendar className="h-4 w-4 mr-2" />
-            Upcoming Matches
+            Upcoming Games
           </TabsTrigger>
           <TabsTrigger value="live" className="flex items-center justify-center">
             <Clock className="h-4 w-4 mr-2" />
@@ -157,19 +212,20 @@ function CricketTossMatches() {
             <div className="flex justify-center p-10">
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
             </div>
-          ) : matches.filter(match => match.status === 'open').length > 0 ? (
+          ) : openGames.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {matches
-                .filter(match => match.status === 'open')
-                .map((match) => (
-                  <CricketTossCard key={match.id} match={match} />
-                ))}
+              {openGames.map((game) => (
+                <CricketTossCard 
+                  key={`${game.type}-${game.id}`}
+                  game={game}
+                />
+              ))}
             </div>
           ) : (
             <Card className="bg-gray-900 border-gray-800">
               <CardContent className="pt-6 text-center">
-                <p className="text-gray-400">No upcoming cricket matches available right now.</p>
-                <p className="text-sm text-gray-500 mt-2">Check back later for new matches.</p>
+                <p className="text-gray-400">No upcoming cricket games available right now.</p>
+                <p className="text-sm text-gray-500 mt-2">Check back later for new games.</p>
               </CardContent>
             </Card>
           )}
@@ -180,19 +236,20 @@ function CricketTossMatches() {
             <div className="flex justify-center p-10">
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
             </div>
-          ) : matches.filter(match => new Date(match.matchTime) <= new Date() && match.status === 'open').length > 0 ? (
+          ) : liveGames.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {matches
-                .filter(match => new Date(match.matchTime) <= new Date() && match.status === 'open')
-                .map((match) => (
-                  <CricketTossCard key={match.id} match={match} />
-                ))}
+              {liveGames.map((game) => (
+                <CricketTossCard 
+                  key={`${game.type}-${game.id}`}
+                  game={game}
+                />
+              ))}
             </div>
           ) : (
             <Card className="bg-gray-900 border-gray-800">
               <CardContent className="pt-6 text-center">
-                <p className="text-gray-400">No live cricket matches available right now.</p>
-                <p className="text-sm text-gray-500 mt-2">Check back later for live matches.</p>
+                <p className="text-gray-400">No live cricket games available right now.</p>
+                <p className="text-sm text-gray-500 mt-2">Check back later for live games.</p>
               </CardContent>
             </Card>
           )}
@@ -202,9 +259,57 @@ function CricketTossMatches() {
   );
 }
 
-function CricketTossCard({ match }: { match: TeamMatch }) {
+type GameItem = {
+  id: number;
+  type: 'cricket_toss_game' | 'team_match';
+  data: CricketTossGame | TeamMatch;
+};
+
+function CricketTossCard({ game }: { game: GameItem }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const matchTime = new Date(match.matchTime);
+  
+  // Helper function to get data based on game type
+  const getTeamA = () => {
+    if (game.type === 'cricket_toss_game') {
+      return (game.data as CricketTossGame).gameData.teamA;
+    } else {
+      return (game.data as TeamMatch).teamA;
+    }
+  };
+  
+  const getTeamB = () => {
+    if (game.type === 'cricket_toss_game') {
+      return (game.data as CricketTossGame).gameData.teamB;
+    } else {
+      return (game.data as TeamMatch).teamB;
+    }
+  };
+  
+  const getOddTeamA = () => {
+    if (game.type === 'cricket_toss_game') {
+      return (game.data as CricketTossGame).gameData.oddTeamA;
+    } else {
+      return (game.data as TeamMatch).oddTeamA;
+    }
+  };
+  
+  const getOddTeamB = () => {
+    if (game.type === 'cricket_toss_game') {
+      return (game.data as CricketTossGame).gameData.oddTeamB;
+    } else {
+      return (game.data as TeamMatch).oddTeamB;
+    }
+  };
+  
+  const getTime = () => {
+    if (game.type === 'cricket_toss_game') {
+      return new Date((game.data as CricketTossGame).gameData.tossTime);
+    } else {
+      return new Date((game.data as TeamMatch).matchTime);
+    }
+  };
+  
+  const matchTime = getTime();
   const formattedDate = format(matchTime, 'MMM dd, yyyy');
   const formattedTime = format(matchTime, 'h:mm a');
   
@@ -218,11 +323,13 @@ function CricketTossCard({ match }: { match: TeamMatch }) {
           <div className="bg-gradient-to-r from-indigo-800 to-violet-800 h-20 flex items-center justify-center">
             <GiCricketBat className="h-12 w-12 text-white/50" />
           </div>
-          <Badge className="absolute top-2 right-2 bg-indigo-600">Toss Game</Badge>
+          <Badge className="absolute top-2 right-2 bg-indigo-600">
+            {game.type === 'cricket_toss_game' ? 'Standalone Toss' : 'Team Toss'}
+          </Badge>
         </div>
         <CardContent className="p-4">
           <div className="flex flex-col space-y-2">
-            <h3 className="font-bold text-xl line-clamp-1">{match.teamA} vs {match.teamB}</h3>
+            <h3 className="font-bold text-xl line-clamp-1">{getTeamA()} vs {getTeamB()}</h3>
             
             <div className="text-gray-400 text-sm flex items-center">
               <Calendar className="h-4 w-4 mr-1" /> 
@@ -234,12 +341,12 @@ function CricketTossCard({ match }: { match: TeamMatch }) {
             
             <div className="flex justify-between mt-3">
               <div className="text-center flex-1 border-r border-gray-800">
-                <div className="text-gray-400 text-xs mb-1">{match.teamA}</div>
-                <div className="font-bold text-indigo-400">{(match.oddTeamA / 100).toFixed(2)}x</div>
+                <div className="text-gray-400 text-xs mb-1">{getTeamA()}</div>
+                <div className="font-bold text-indigo-400">{(getOddTeamA() / 100).toFixed(2)}x</div>
               </div>
               <div className="text-center flex-1">
-                <div className="text-gray-400 text-xs mb-1">{match.teamB}</div>
-                <div className="font-bold text-indigo-400">{(match.oddTeamB / 100).toFixed(2)}x</div>
+                <div className="text-gray-400 text-xs mb-1">{getTeamB()}</div>
+                <div className="font-bold text-indigo-400">{(getOddTeamB() / 100).toFixed(2)}x</div>
               </div>
             </div>
           </div>
@@ -249,7 +356,7 @@ function CricketTossCard({ match }: { match: TeamMatch }) {
       {isDialogOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
           <CricketTossGame 
-            match={match} 
+            match={game.data} 
             onClose={() => setIsDialogOpen(false)} 
           />
         </div>

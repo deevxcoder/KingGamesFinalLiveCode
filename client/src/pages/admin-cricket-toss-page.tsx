@@ -201,12 +201,23 @@ export default function AdminCricketTossPage() {
     }
   ];
 
-  // Query for all cricket toss games
-  const { data: allGames = [], isLoading: isLoadingGames } = useQuery<CricketTossGame[]>({
+  // Query for all cricket toss games (from both APIs for backward compatibility)
+  const { data: legacyGames = [], isLoading: isLoadingLegacyGames } = useQuery<CricketTossGame[]>({
     queryKey: ["/api/cricket-toss"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
   });
+  
+  // Query for standalone cricket toss games (new API)
+  const { data: standaloneGames = [], isLoading: isLoadingStandaloneGames } = useQuery<CricketTossGame[]>({
+    queryKey: ["/api/cricket-toss-games"],
+    queryFn: getQueryFn({ on401: "throw" }),
+    enabled: !!user,
+  });
+  
+  // Combine both data sources
+  const allGames = [...legacyGames, ...standaloneGames];
+  const isLoadingGames = isLoadingLegacyGames || isLoadingStandaloneGames;
 
   // Filter games by result status
   const openGames = allGames.filter(game => 
@@ -270,19 +281,37 @@ export default function AdminCricketTossPage() {
     resultForm.reset({ result: game.result || "" });
   };
 
+  // Helper to identify standalone cricket toss games vs legacy games
+  const isStandaloneTossGame = (game: CricketTossGame): boolean => {
+    // Games fetched from the new API are identifiable by source
+    // This is a heuristic - we'd need a more reliable way to identify in production
+    if ((game as any).matchId !== undefined) {
+      return !(game as any).matchId;
+    }
+    // Default to true for new games
+    return true;
+  };
+
   // Mutation for declaring toss result
   const updateTossResult = useMutation({
-    mutationFn: ({ id, result }: { id: number, result: string }) => {
+    mutationFn: ({ id, result, isStandalone }: { id: number, result: string, isStandalone: boolean }) => {
+      // Use the appropriate API endpoint based on game type
+      const endpoint = isStandalone 
+        ? `/api/cricket-toss-games/${id}/result` // New standalone endpoint
+        : `/api/cricket-toss/${id}/result`;      // Legacy endpoint
+        
       return apiRequest(
         'PATCH',
-        `/api/cricket-toss/${id}/result`,
+        endpoint,
         { result }
       );
     },
     onSuccess: () => {
       setDeclareResultGame(null);
       resultForm.reset();
+      // Invalidate both query keys to ensure all data is updated
       queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss-games"] });
       toast({
         title: "Result declared",
         description: "Toss result has been declared successfully",
@@ -300,27 +329,33 @@ export default function AdminCricketTossPage() {
   // Handle submit for declaring result
   const onSubmitResult = (data: z.infer<typeof resultFormSchema>) => {
     if (declareResultGame) {
-      // Store the team data with the result for proper display later
+      // Check if this is a standalone cricket toss game and use the appropriate API
+      const isStandalone = isStandaloneTossGame(declareResultGame);
+      
       updateTossResult.mutate({ 
         id: declareResultGame.id, 
         result: data.result,
+        isStandalone: isStandalone
       });
     }
   };
 
-  // Mutation for creating a cricket toss game
+  // Mutation for creating a standalone cricket toss game
   const createTossGame = useMutation({
     mutationFn: (data: any) => {
+      // Use the new standalone endpoint
       return apiRequest(
         'POST',
-        '/api/cricket-toss',
+        '/api/cricket-toss-games', // New standalone endpoint
         data
       );
     },
     onSuccess: () => {
       setIsAddGameOpen(false);
       gameForm.reset();
+      // Invalidate both query keys to ensure all data is updated
       queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss-games"] });
       toast({
         title: "Game created",
         description: "New Cricket Toss game has been created successfully",
