@@ -258,7 +258,7 @@ export async function reviewWalletRequest(
         // Create transaction record
         await db.insert(transactions).values({
           userId: request.userId,
-          amount: balanceChange,
+          amount: balanceChangePaisa, // Use the converted amount (paisa)
           performedBy: adminId,
           requestId: requestId,
         });
