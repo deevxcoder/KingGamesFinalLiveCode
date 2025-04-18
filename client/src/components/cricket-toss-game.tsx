@@ -11,7 +11,29 @@ import { ChevronRight, RefreshCw } from "lucide-react";
 import { GiCricketBat } from "react-icons/gi";
 import { Badge } from '@/components/ui/badge';
 
-// Type for Team Match
+// Type for CricketTossGame
+type CricketTossGame = {
+  id: number;
+  userId: number;
+  gameType: string;
+  betAmount: number;
+  prediction: string;
+  result: string | null;
+  payout: number;
+  createdAt: string | null;
+  gameData: {
+    teamA: string;
+    teamB: string;
+    description: string;
+    tossTime: string;
+    oddTeamA: number;
+    oddTeamB: number;
+    imageUrl?: string;
+    status: string;
+  };
+};
+
+// For backwards compatibility
 type TeamMatch = {
   id: number;
   teamA: string;
@@ -28,7 +50,7 @@ type TeamMatch = {
 };
 
 type CricketTossGameProps = {
-  match: TeamMatch;
+  match: TeamMatch | CricketTossGame;
   onClose: () => void;
 };
 
@@ -38,6 +60,29 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth() || {};
+
+  // Helper to check if the match is a cricket toss game (new API) or team match
+  const isCricketTossGame = (match: TeamMatch | CricketTossGame): match is CricketTossGame => {
+    return 'gameData' in match && match.gameType === 'cricket_toss';
+  };
+
+  // Get the proper API endpoint based on match type
+  const getApiEndpoint = () => {
+    if (isCricketTossGame(match)) {
+      return `/api/cricket-toss-games/${match.id}/play`;
+    } else {
+      return `/api/cricket-toss/${match.id}/play`;
+    }
+  };
+
+  // Get the match time based on match type
+  const getMatchTime = () => {
+    if (isCricketTossGame(match)) {
+      return new Date(match.gameData.tossTime);
+    } else {
+      return new Date(match.matchTime);
+    }
+  };
 
   const placeBetMutation = useMutation({
     mutationFn: async () => {
@@ -55,7 +100,7 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
       
       return apiRequest(
         'POST',
-        `/api/cricket-toss/${match.id}/play`,
+        getApiEndpoint(),
         {
           betOn: prediction,
           betAmount: amount,
@@ -86,12 +131,42 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
     },
   });
 
+  // Helper to get team names
+  const getTeamA = () => {
+    if (isCricketTossGame(match)) {
+      return match.gameData.teamA;
+    }
+    return match.teamA;
+  };
+
+  const getTeamB = () => {
+    if (isCricketTossGame(match)) {
+      return match.gameData.teamB;
+    }
+    return match.teamB;
+  };
+
+  // Helper to get odds
+  const getOddTeamA = () => {
+    if (isCricketTossGame(match)) {
+      return match.gameData.oddTeamA;
+    }
+    return match.oddTeamA;
+  };
+
+  const getOddTeamB = () => {
+    if (isCricketTossGame(match)) {
+      return match.gameData.oddTeamB;
+    }
+    return match.oddTeamB;
+  };
+
   const getPredictionLabel = (pred: string) => {
     switch (pred) {
       case 'team_a':
-        return match.teamA;
+        return getTeamA();
       case 'team_b':
-        return match.teamB;
+        return getTeamB();
       default:
         return pred;
     }
@@ -102,16 +177,16 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
     
     let odds = 0;
     if (prediction === 'team_a') {
-      odds = match.oddTeamA / 100;
+      odds = getOddTeamA() / 100;
     } else if (prediction === 'team_b') {
-      odds = match.oddTeamB / 100;
+      odds = getOddTeamB() / 100;
     }
     
     return Math.floor(betAmount * odds);
   };
 
   const potentialWin = calculatePotentialWin();
-  const matchTime = new Date(match.matchTime);
+  const matchTime = getMatchTime();
   
   const handleQuickAmount = (amount: number) => {
     setBetAmount(amount * 100);
@@ -128,7 +203,7 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
           <Badge className="bg-indigo-600">Toss Game</Badge>
         </div>
         <CardDescription className="text-gray-400">
-          {match.teamA} vs {match.teamB} | {format(matchTime, 'MMM dd, h:mm a')}
+          {getTeamA()} vs {getTeamB()} | {format(matchTime, 'MMM dd, h:mm a')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -146,11 +221,11 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
             onClick={() => setPrediction('team_a')}
           >
             <div className="absolute top-0 right-0 bg-indigo-600 px-2 py-1 text-xs rounded-bl-md">
-              {(match.oddTeamA / 100).toFixed(2)}x
+              {(getOddTeamA() / 100).toFixed(2)}x
             </div>
             <CardContent className="p-6 text-center">
               <div className="h-16 flex items-center justify-center">
-                <h3 className="text-lg font-bold">{match.teamA}</h3>
+                <h3 className="text-lg font-bold">{getTeamA()}</h3>
               </div>
               {prediction === 'team_a' && (
                 <Badge className="bg-indigo-600 mt-2">Selected</Badge>
@@ -167,11 +242,11 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
             onClick={() => setPrediction('team_b')}
           >
             <div className="absolute top-0 right-0 bg-indigo-600 px-2 py-1 text-xs rounded-bl-md">
-              {(match.oddTeamB / 100).toFixed(2)}x
+              {(getOddTeamB() / 100).toFixed(2)}x
             </div>
             <CardContent className="p-6 text-center">
               <div className="h-16 flex items-center justify-center">
-                <h3 className="text-lg font-bold">{match.teamB}</h3>
+                <h3 className="text-lg font-bold">{getTeamB()}</h3>
               </div>
               {prediction === 'team_b' && (
                 <Badge className="bg-indigo-600 mt-2">Selected</Badge>

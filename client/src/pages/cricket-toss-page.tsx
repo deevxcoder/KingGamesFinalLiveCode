@@ -11,7 +11,29 @@ import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import CricketTossGame from '@/components/cricket-toss-game';
 
-// Type for Team Match
+// Type for standalone Cricket Toss Game
+type CricketTossGame = {
+  id: number;
+  userId: number;
+  gameType: string;
+  betAmount: number;
+  prediction: string;
+  result: string | null;
+  payout: number;
+  createdAt: string | null;
+  gameData: {
+    teamA: string;
+    teamB: string;
+    description: string;
+    tossTime: string;
+    oddTeamA: number;
+    oddTeamB: number;
+    imageUrl?: string;
+    status: string;
+  };
+};
+
+// Type for Team Match (backward compatibility)
 type TeamMatch = {
   id: number;
   teamA: string;
@@ -59,22 +81,59 @@ export default function CricketTossPage() {
 function CricketTossMatches() {
   const { toast } = useToast();
 
-  // Query for active cricket matches
-  const { data: matches = [], isLoading, error } = useQuery<TeamMatch[]>({
-    queryKey: ['/api/team-matches/category', 'cricket'],
+  // Query for standalone cricket toss games (new API)
+  const { data: cricketTossGames = [], isLoading: isLoadingTossGames, error: tossGamesError } = useQuery<CricketTossGame[]>({
+    queryKey: ['/api/cricket-toss-games'],
     queryFn: async () => {
-      const response = await fetch('/api/team-matches/category/cricket');
-      if (!response.ok) {
-        throw new Error('Failed to fetch matches');
+      try {
+        const response = await fetch('/api/cricket-toss-games');
+        if (!response.ok) {
+          throw new Error('Failed to fetch cricket toss games');
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching cricket toss games:', error);
+        return [];
       }
-      return response.json();
     },
   });
 
-  if (error) {
+  // For backward compatibility - query for cricket team matches
+  const { data: teamMatches = [], isLoading: isLoadingTeamMatches, error: teamMatchesError } = useQuery<TeamMatch[]>({
+    queryKey: ['/api/team-matches/category', 'cricket'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/team-matches/category/cricket');
+        if (!response.ok) {
+          throw new Error('Failed to fetch team matches');
+        }
+        return response.json();
+      } catch (error) {
+        console.error('Error fetching team matches:', error);
+        return [];
+      }
+    },
+  });
+
+  // Combine both data sources for the UI
+  const allGames = [
+    ...cricketTossGames.map(game => ({
+      type: 'cricket_toss_game',
+      data: game
+    })),
+    ...teamMatches.map(match => ({
+      type: 'team_match',
+      data: match
+    }))
+  ];
+  
+  const isLoading = isLoadingTossGames || isLoadingTeamMatches;
+  
+  // Show error toast if both queries failed
+  if (tossGamesError && teamMatchesError) {
     toast({
       title: "Error",
-      description: "Failed to load cricket matches. Please try again.",
+      description: "Failed to load cricket games. Please try again.",
       variant: "destructive",
     });
   }
