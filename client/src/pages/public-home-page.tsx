@@ -240,7 +240,7 @@ const gameCards = [
     title: "Cricket Betting",
     description: "Bet on your favorite cricket teams and matches.",
     imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
-    path: "/cricket",
+    path: "/sports", // Updated to point to sports betting page
     popularity: "high" as const,
     winRate: 42
   }

@@ -29,7 +29,7 @@ const allGames = [
     title: "Sports Betting",
     description: "Bet on your favorite cricket teams and matches.",
     imageBg: "linear-gradient(to right, #2d2339, #784cb3)",
-    path: "/team-match",
+    path: "/sports", // Updated to point to sports betting page
     popularity: "medium" as const,
     winRate: 36
   },
