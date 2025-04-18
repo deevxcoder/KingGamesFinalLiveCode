@@ -100,17 +100,52 @@ export default function SatamatkaGame() {
   }, [selectedNumber, form]);
 
   // Query the market details
-  const { data: market, isLoading } = useQuery({
+  const { data: market, isLoading, error: marketError } = useQuery({
     queryKey: ["/api/satamatka/markets", marketId],
-    queryFn: getQueryFn({ on401: "throw" }),
-    enabled: !!user && !isNaN(marketId),
-    onSuccess: (data) => {
-      console.log("Market data received:", data);
+    queryFn: async ({ queryKey }) => {
+      try {
+        const res = await fetch(`${queryKey[0]}/${queryKey[1]}`, {
+          credentials: "include",
+        });
+        
+        if (res.status === 401) {
+          toast({
+            variant: "destructive",
+            title: "Authentication required",
+            description: "Please log in to view market details.",
+          });
+          setLocation("/auth");
+          return null;
+        }
+        
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`${res.status}: ${text || res.statusText}`);
+        }
+        
+        return await res.json();
+      } catch (error) {
+        console.error("Market fetch error:", error);
+        throw error;
+      }
     },
-    onError: (error) => {
-      console.error("Error fetching market:", error);
-    }
+    enabled: !!user && !isNaN(marketId)
   });
+
+  // Log market data when it changes
+  useEffect(() => {
+    if (market) {
+      console.log("Market data received:", market);
+    }
+    if (marketError) {
+      console.error("Error fetching market:", marketError);
+      toast({
+        variant: "destructive",
+        title: "Error loading market",
+        description: marketError instanceof Error ? marketError.message : "Could not load market details. Please try again."
+      });
+    }
+  }, [market, marketError, toast]);
 
   // Mutation for placing a bet
   const placeBetMutation = useMutation({

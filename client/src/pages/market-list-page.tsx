@@ -70,7 +70,7 @@ export default function MarketListPage() {
         <TabsList className="mb-6 grid w-full grid-cols-4">
           <TabsTrigger value="active" className="flex items-center justify-center">
             <Clock className="h-4 w-4 mr-2" />
-            <span>Active ({openMarkets.length})</span>
+            <span>Active ({activeMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="closed" className="flex items-center justify-center">
             <Timer className="h-4 w-4 mr-2" />
@@ -112,8 +112,8 @@ export default function MarketListPage() {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ))
-            ) : openMarkets.length > 0 ? (
-              openMarkets.map((market) => (
+            ) : activeMarkets.length > 0 ? (
+              activeMarkets.map((market) => (
                 <MarketCard
                   key={market.id}
                   id={market.id}
