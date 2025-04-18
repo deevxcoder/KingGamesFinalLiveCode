@@ -425,26 +425,28 @@ export default function SatamatkaGame() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex items-center mb-6">
-        <Button
-          variant="outline"
-          size="sm"
-          className="mr-2"
-          onClick={() => setLocation("/markets")}
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" /> Back
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">{typedMarket.name}</h1>
-          <p className="text-muted-foreground">
+    <div className="py-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
+        <div className="flex items-center">
+          <Button
+            variant="outline"
+            size="sm"
+            className="mr-2"
+            onClick={() => setLocation("/markets")}
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" /> Back
+          </Button>
+        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <p className="text-sm text-muted-foreground bg-slate-800/30 px-3 py-1 rounded-full">
+            <Clock className="h-4 w-4 inline mr-1" />
             Open: {format(new Date(typedMarket.openTime), "h:mm a")} | Close:{" "}
             {format(new Date(typedMarket.closeTime), "h:mm a")}
           </p>
+          <Badge className="bg-green-500 hover:bg-green-600 text-white">
+            Open for Betting
+          </Badge>
         </div>
-        <Badge className="ml-auto bg-green-500 hover:bg-green-600 text-white">
-          Open for Betting
-        </Badge>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
