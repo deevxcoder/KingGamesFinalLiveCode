@@ -11,7 +11,7 @@ const allGames = [
     title: "Market Game",
     description: "Strategic market betting game with multiple betting options.",
     imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
-    path: "/satamatka",
+    path: "/markets", // Updated to point to markets page
     popularity: "high" as const,
     winRate: 40
   },

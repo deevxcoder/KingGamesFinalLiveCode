@@ -231,7 +231,7 @@ const gameCards = [
     title: "Market Game",
     description: "Play market-based games with multiple betting options and high payouts.",
     imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
-    path: "/satamatka",
+    path: "/markets", // Updated to point to markets page
     popularity: "medium" as const,
     winRate: 36
   },

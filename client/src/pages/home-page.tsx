@@ -31,7 +31,7 @@ const gameCards = [
     title: "Market Game",
     description: "Strategic market betting game with multiple betting options.",
     imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
-    path: "/satamatka",
+    path: "/markets", // Updated to point to markets page for consistency
     popularity: "high" as const,
     winRate: 40
   },
@@ -303,7 +303,7 @@ export default function HomePage() {
               onClick={() => setLocation("/markets")}
             >
               <Calendar className="h-5 w-5 mr-2" />
-              Markets
+              Market Games
             </Button>
             
             <Button 
