@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { storage } from "./storage";
 import { GameType, TeamMatchResult } from "@shared/schema";
+import { db, pool } from "./db";
 
 // Schema for creating a cricket toss game
 const createCricketTossSchema = z.object({
@@ -209,12 +210,32 @@ export function setupCricketTossApiRoutes(app: express.Express) {
       // Process results and handle payouts for users who bet on this game
       // Note: In a real implementation, this would also update user balances for winners
       
-      const updatedGame = await storage.updateGameResult(gameId, result);
-      
-      // After result declaration, close the game
-      await storage.updateGameStatus(gameId, "resulted");
-      
-      res.json(updatedGame);
+      try {
+        // Update both the result and status in a single direct SQL query
+        const updateResult = await pool.query(
+          `UPDATE games SET result = $1, status = 'resulted' WHERE id = $2 RETURNING *`,
+          [result, gameId]
+        );
+        
+        if (updateResult.rows.length === 0) {
+          return res.status(404).json({ error: "Game not found or could not be updated" });
+        }
+        
+        // Get the updated game to return to client
+        const updatedGame = await storage.getGame(gameId);
+        
+        if (!updatedGame) {
+          return res.status(500).json({ error: "Failed to retrieve updated game" });
+        }
+        
+        res.json(updatedGame);
+      } catch (error) {
+        console.error("Error updating game result:", error);
+        return res.status(500).json({ 
+          error: "Failed to update game result",
+          message: error instanceof Error ? error.message : String(error)
+        });
+      }
     } catch (err) {
       next(err);
     }
