@@ -20,6 +20,7 @@ interface GameCardProps {
   path: string;
   popularity?: "high" | "medium" | "low";
   winRate?: number;
+  comingSoon?: boolean;
 }
 
 export default function GameCard({ 
@@ -29,7 +30,8 @@ export default function GameCard({
   imageBg, 
   path,
   popularity = "medium",
-  winRate
+  winRate,
+  comingSoon = false
 }: GameCardProps) {
   const [_, setLocation] = useLocation();
   const { user } = useAuth() || {};
@@ -62,9 +64,15 @@ export default function GameCard({
         <div className="h-full w-full bg-gradient-to-b from-transparent to-black/80 flex items-end p-4">
           <div>
             <h3 className="text-xl font-bold text-white mb-1">{title}</h3>
-            {popularity !== "low" && (
-              <div className="mb-2">{getPopularityBadge()}</div>
-            )}
+            <div className="mb-2 flex gap-2">
+              {popularity !== "low" && getPopularityBadge()}
+              
+              {comingSoon && (
+                <Badge variant="outline" className="bg-orange-900/30 text-orange-300 border-orange-500/30">
+                  Coming Soon
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -82,8 +90,15 @@ export default function GameCard({
       
       <CardFooter className="p-4 pt-0 gap-2">
         <Button 
-          className="w-full bg-gradient-to-r from-indigo-800 to-blue-600 hover:from-indigo-700 hover:to-blue-500"
+          className={`w-full ${
+            comingSoon 
+              ? "bg-gray-700 hover:bg-gray-600 cursor-not-allowed" 
+              : "bg-gradient-to-r from-indigo-800 to-blue-600 hover:from-indigo-700 hover:to-blue-500"
+          }`}
           onClick={() => {
+            // For Coming Soon games, do nothing
+            if (comingSoon) return;
+            
             // If user is logged in, go to the game or dashboard
             // If not, redirect to auth page
             if (user) {
@@ -93,8 +108,14 @@ export default function GameCard({
             }
           }}
         >
-          <Play className="h-4 w-4 mr-2" />
-          {user ? "Play Now" : "Login to Play"}
+          {comingSoon ? (
+            <span>Coming Soon</span>
+          ) : (
+            <>
+              <Play className="h-4 w-4 mr-2" />
+              {user ? "Play Now" : "Login to Play"}
+            </>
+          )}
         </Button>
       </CardFooter>
     </Card>

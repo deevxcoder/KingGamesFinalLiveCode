@@ -11,7 +11,7 @@ const allGames = [
     title: "Market Game",
     description: "Strategic market betting game with multiple betting options.",
     imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
-    path: "/markets", // Updated to point to markets page
+    path: "/markets",
     popularity: "high" as const,
     winRate: 40
   },
@@ -29,7 +29,7 @@ const allGames = [
     title: "Sports Betting",
     description: "Bet on your favorite cricket teams and matches.",
     imageBg: "linear-gradient(to right, #2d2339, #784cb3)",
-    path: "/sports", // Updated to point to sports betting page
+    path: "/sports",
     popularity: "medium" as const,
     winRate: 36
   },
@@ -43,40 +43,14 @@ const allGames = [
     winRate: 50
   },
   {
-    id: "slots",
-    title: "Slot Machine",
-    description: "Try your luck with our virtual slot machine games.",
-    imageBg: "linear-gradient(to right, #2d1b36, #9d4e82)",
-    path: "/slots",
-    popularity: "medium" as const,
-    winRate: 30
-  },
-  {
-    id: "roulette",
-    title: "Roulette",
-    description: "Place your bets on the spinning wheel of fortune.",
-    imageBg: "linear-gradient(to right, #1f2c33, #2b7a78)",
-    path: "/roulette",
-    popularity: "medium" as const,
-    winRate: 35
-  },
-  {
-    id: "cardgames",
-    title: "Card Games",
-    description: "Play your favorite card games and win big.",
-    imageBg: "linear-gradient(to right, #302626, #a44a3f)",
-    path: "/cards",
+    id: "kingsoriginal",
+    title: "Kings Original",
+    description: "Coming soon! Our collection of premium games including Big-Small, Color, Lottery, Roulette and more.",
+    imageBg: "linear-gradient(to right, #4a4a4a, #6a6a6a)",
+    path: "#",
     popularity: "low" as const,
-    winRate: 40
-  },
-  {
-    id: "lottery",
-    title: "Lottery",
-    description: "Try your luck in our daily and weekly lottery draws.",
-    imageBg: "linear-gradient(to right, #1e241e, #4e7561)",
-    path: "/lottery",
-    popularity: "low" as const,
-    winRate: 20
+    winRate: 0,
+    comingSoon: true
   }
 ];
 
@@ -123,6 +97,7 @@ export default function GamesPage() {
             path={game.path}
             popularity={game.popularity}
             winRate={game.winRate}
+            comingSoon={game.comingSoon}
           />
         ))}
       </div>
