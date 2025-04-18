@@ -466,39 +466,6 @@ export default function AdminCricketTossPage() {
           </div>
           
           <div className="flex gap-2">
-            <Button 
-              onClick={() => {
-                toast({
-                  title: "Seeding games...",
-                  description: "Creating open cricket toss games for demo."
-                });
-                fetch('/api/admin/seed-open-cricket-toss', {
-                  method: 'POST',
-                  credentials: 'include'
-                })
-                .then(res => res.json())
-                .then(data => {
-                  toast({
-                    title: "Cricket toss games created",
-                    description: `Created ${data.createdGamesCount} new games for betting.`
-                  });
-                  queryClient.invalidateQueries({ queryKey: ['/api/cricket-toss-games'] });
-                })
-                .catch(err => {
-                  toast({
-                    title: "Error creating games",
-                    description: err.message,
-                    variant: "destructive"
-                  });
-                });
-              }} 
-              variant="outline" 
-              className="bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700"
-            >
-              <Clock className="h-4 w-4 mr-2" />
-              Seed Open Games
-            </Button>
-            
             <Button onClick={handleAddGame} className="bg-gradient-to-r from-blue-600 to-indigo-600">
               <Plus className="h-4 w-4 mr-2" />
               Add Cricket Toss Game
