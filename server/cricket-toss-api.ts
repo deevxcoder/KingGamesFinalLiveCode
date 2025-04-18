@@ -242,6 +242,7 @@ export function setupCricketTossApiRoutes(app: express.Express) {
       
       // Log the request body for debugging
       console.log('Cricket toss betting request body:', req.body);
+      console.log('Request user:', req.user);
       
       // Handle potential parsing errors (client may send string instead of number)
       const parsedBody = {
@@ -250,6 +251,8 @@ export function setupCricketTossApiRoutes(app: express.Express) {
           ? parseInt(req.body.betAmount, 10)
           : req.body.betAmount
       };
+      
+      console.log('Parsed body:', parsedBody);
       
       const validationResult = playSchema.safeParse(parsedBody);
       
