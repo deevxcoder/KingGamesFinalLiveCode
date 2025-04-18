@@ -143,15 +143,20 @@ export class DatabaseStorage implements IStorage {
         return;
       }
       
-      // Get current cricket toss games - there's no status column, so we'll filter all cricket toss games
-      const existingCricketTossGames = await db
+      // First, check if we have active team matches for cricket toss
+      const activeTeamMatches = await db
         .select()
-        .from(games)
-        .where(eq(games.gameType, 'cricket_toss'));
+        .from(teamMatches)
+        .where(
+          and(
+            eq(teamMatches.category, 'cricket'),
+            eq(teamMatches.status, 'open')
+          )
+        );
       
-      // If we already have 5 or more cricket toss games, we don't need to add more
-      if (existingCricketTossGames.length >= 5) {
-        console.log(`Found ${existingCricketTossGames.length} Cricket Toss games, skipping seeding.`);
+      // If we already have 5 or more active cricket toss matches, we don't need to add more
+      if (activeTeamMatches.length >= 5) {
+        console.log(`Found ${activeTeamMatches.length} active Cricket Toss matches, skipping seeding.`);
         return;
       }
       
@@ -161,7 +166,7 @@ export class DatabaseStorage implements IStorage {
           teamA: "India",
           teamB: "Australia",
           description: "T20 World Cup 2025 - Group Stage",
-          tossTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days in future
+          matchTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days in future
           oddTeamA: 190,
           oddTeamB: 210,
           imageUrl: "/images/india-vs-australia.svg"
@@ -170,7 +175,7 @@ export class DatabaseStorage implements IStorage {
           teamA: "England",
           teamB: "New Zealand", 
           description: "Test Match Series 2025 - 1st Match",
-          tossTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days in future
+          matchTime: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days in future
           oddTeamA: 200,
           oddTeamB: 200,
           imageUrl: "/images/england-vs-nz.svg"
@@ -179,7 +184,7 @@ export class DatabaseStorage implements IStorage {
           teamA: "Pakistan",
           teamB: "South Africa",
           description: "ODI Series 2025 - 2nd Match",
-          tossTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day in future
+          matchTime: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // 1 day in future
           oddTeamA: 180,
           oddTeamB: 220,
           imageUrl: "/images/pakistan-vs-sa.svg"
@@ -188,7 +193,7 @@ export class DatabaseStorage implements IStorage {
           teamA: "West Indies",
           teamB: "Sri Lanka",
           description: "Caribbean Premier League 2025 - Final",
-          tossTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), // 4 days in future
+          matchTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), // 4 days in future
           oddTeamA: 210,
           oddTeamB: 190,
           imageUrl: "/images/wi-vs-sl.svg"
@@ -197,7 +202,7 @@ export class DatabaseStorage implements IStorage {
           teamA: "Mumbai Indians",
           teamB: "Chennai Super Kings",
           description: "IPL 2025 - Qualifier 1",
-          tossTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days in future
+          matchTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days in future
           oddTeamA: 195,
           oddTeamB: 205,
           imageUrl: "/images/mi-vs-csk.svg"
@@ -206,7 +211,7 @@ export class DatabaseStorage implements IStorage {
           teamA: "Royal Challengers Bangalore",
           teamB: "Kolkata Knight Riders",
           description: "IPL 2025 - Eliminator",
-          tossTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days in future
+          matchTime: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days in future
           oddTeamA: 185,
           oddTeamB: 215,
           imageUrl: "/images/mi-vs-csk.svg" // Reusing image as placeholder
@@ -215,7 +220,7 @@ export class DatabaseStorage implements IStorage {
           teamA: "Bangladesh",
           teamB: "Afghanistan",
           description: "Asia Cup 2025 - Group Match",
-          tossTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days in future
+          matchTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days in future
           oddTeamA: 220,
           oddTeamB: 180,
           imageUrl: "/images/india-vs-australia.svg" // Reusing image as placeholder
@@ -223,30 +228,45 @@ export class DatabaseStorage implements IStorage {
       ];
       
       // Determine how many more games we need to add to reach 5
-      const gamesNeeded = 5 - existingCricketTossGames.length;
+      const gamesNeeded = 5 - activeTeamMatches.length;
       const gamesToAdd = tossGames.slice(0, gamesNeeded);
       
-      console.log(`Adding ${gamesNeeded} new Cricket Toss games to reach the target of 5 games.`);
+      console.log(`Adding ${gamesNeeded} new Cricket Toss matches to reach the target of 5 active matches.`);
       
-      // Create Cricket Toss games
+      // Create Cricket Toss matches
       for (const game of gamesToAdd) {
+        // First, insert into team_matches table
+        const [match] = await db.insert(teamMatches).values({
+          teamA: game.teamA,
+          teamB: game.teamB,
+          category: 'cricket',
+          description: game.description,
+          matchTime: game.matchTime,
+          oddTeamA: game.oddTeamA,
+          oddTeamB: game.oddTeamB,
+          status: 'open',
+        }).returning();
+        
+        // Then insert into games table with reference to team_match
         await db.insert(games).values({
           userId: admin.id,
           gameType: 'cricket_toss',
           betAmount: 0,
           prediction: '',
+          matchId: match.id, // Link to the team match
           gameData: {
             ...game,
-            status: 'open' // Include status inside gameData
+            status: 'open',
+            matchId: match.id
           },
           result: '',
           payout: 0
         });
       }
       
-      console.log("Cricket Toss games seeded successfully!");
+      console.log("Cricket Toss matches seeded successfully!");
     } catch (error) {
-      console.error("Error seeding Cricket Toss games:", error);
+      console.error("Error seeding Cricket Toss matches:", error);
     }
   }
   
