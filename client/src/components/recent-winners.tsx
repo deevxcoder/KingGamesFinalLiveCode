@@ -86,11 +86,11 @@ export default function RecentWinners({ winners }: RecentWinnersProps) {
                   {profit > 100 ? (
                     <Badge variant="outline" className="bg-emerald-900/30 text-emerald-300 border-emerald-500/30 flex items-center">
                       <Sparkles className="h-3 w-3 mr-1" />
-                      +${formattedProfit}
+                      +₹{formattedProfit}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="bg-teal-900/30 text-teal-300 border-teal-500/30">
-                      +${formattedProfit}
+                      +₹{formattedProfit}
                     </Badge>
                   )}
                 </div>
