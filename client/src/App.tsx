@@ -29,6 +29,7 @@ import WalletPage from "@/pages/wallet-page";
 import AdminSettingsPage from "@/pages/admin-settings-page";
 import SubadminSettingsPage from "@/pages/subadmin-settings-page";
 import FundManagementPage from "@/pages/fund-management-page";
+import LeaderboardPage from "@/pages/leaderboard-page";
 
 function Router() {
   return (
@@ -145,6 +146,12 @@ function Router() {
       <ProtectedRoute
         path="/wallet"
         component={WalletPage}
+      />
+      
+      {/* Leaderboard route - accessible to all authenticated users */}
+      <ProtectedRoute
+        path="/leaderboard"
+        component={LeaderboardPage}
       />
       
       {/* 404 route */}
