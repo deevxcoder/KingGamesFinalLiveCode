@@ -235,14 +235,19 @@ export async function reviewWalletRequest(
       
       // If request is approved, update the user's balance and create a transaction record
       if (status === RequestStatus.APPROVED) {
-        const balanceChange = request.requestType === RequestType.DEPOSIT 
+        // Convert amount to paisa (multiply by 100) since the balance is stored in paisa
+        // but the deposit/withdrawal amounts are entered in rupees
+        const balanceChangeRupees = request.requestType === RequestType.DEPOSIT 
           ? request.amount 
           : -request.amount;
+          
+        // Convert rupees to paisa (multiply by 100) for storage
+        const balanceChangePaisa = balanceChangeRupees * 100;
         
         // Update user balance with SQL function to add
         const updatedUsersResult = await client.query(
           'UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING *',
-          [balanceChange, request.userId]
+          [balanceChangePaisa, request.userId]
         );
         
         if (updatedUsersResult.rowCount === 0) {
