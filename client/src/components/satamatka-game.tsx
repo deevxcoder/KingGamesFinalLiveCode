@@ -90,6 +90,13 @@ const formSchema = z.object({
     .max(10000, "Maximum bet amount is 10,000"),
 });
 
+// Game data interface for Satamatka game
+interface SatamatkaGameData {
+  gameMode: string;
+  marketId: number;
+  marketName?: string;
+}
+
 // Game interface for recent bets
 interface Game {
   id: number;
@@ -103,6 +110,7 @@ interface Game {
   marketId?: number;
   marketName?: string;
   createdAt: string;
+  gameData?: SatamatkaGameData | any; // Using any as fallback since different game types have different data structures
 }
 
 export default function SatamatkaGame() {
@@ -186,6 +194,9 @@ export default function SatamatkaGame() {
     queryKey: ["/api/games/my-history"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user,
+    onSuccess: (data) => {
+      console.log("Received bet history:", data);
+    }
   });
 
   // Mutation for placing a bet
@@ -573,6 +584,7 @@ export default function SatamatkaGame() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Market</TableHead>
+                  <TableHead>Game Type</TableHead>
                   <TableHead>Prediction</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
@@ -582,14 +594,25 @@ export default function SatamatkaGame() {
               <TableBody>
                 {(recentBets as Game[]).slice(0, 5).map((bet) => (
                   <TableRow key={bet.id}>
-                    <TableCell>{bet.marketName || 'Unknown'}</TableCell>
+                    <TableCell>
+                      {bet.marketName || 
+                       (bet.gameType === 'satamatka' && bet.marketId ? 
+                        (bet.marketId === marketId ? typedMarket.name : `Market #${bet.marketId}`) : 
+                        'Unknown')}
+                    </TableCell>
+                    <TableCell>
+                      {bet.gameType === 'satamatka' && bet.gameData ? 
+                        (GAME_MODES[bet.gameData.gameMode as keyof typeof GAME_MODES] || bet.gameData.gameMode) : 
+                        bet.gameType}
+                    </TableCell>
                     <TableCell>{bet.prediction}</TableCell>
                     <TableCell>₹{bet.betAmount}</TableCell>
                     <TableCell>
                       <Badge
                         variant={
                           bet.status === "win" ? "success" : 
-                          bet.status === "loss" ? "destructive" : "outline"
+                          bet.status === "loss" ? "destructive" : 
+                          bet.status === "pending" ? "secondary" : "outline"
                         }
                       >
                         {bet.status === "pending" ? "Pending" : 
@@ -602,7 +625,7 @@ export default function SatamatkaGame() {
                 ))}
                 {(recentBets as Game[]).length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
                       No recent bets found. Place your first bet!
                     </TableCell>
                   </TableRow>
