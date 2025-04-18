@@ -240,10 +240,6 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         })
       });
       
-      // Log the request body for debugging
-      console.log('Cricket toss betting request body:', req.body);
-      console.log('Request user:', req.user);
-      
       // Handle potential parsing errors (client may send string instead of number)
       const parsedBody = {
         ...req.body,
@@ -252,12 +248,9 @@ export function setupCricketTossApiRoutes(app: express.Express) {
           : req.body.betAmount
       };
       
-      console.log('Parsed body:', parsedBody);
-      
       const validationResult = playSchema.safeParse(parsedBody);
       
       if (!validationResult.success) {
-        console.log('Validation error:', validationResult.error.format());
         return res.status(400).json({ 
           message: "Invalid bet amount or prediction" 
         });
@@ -265,19 +258,19 @@ export function setupCricketTossApiRoutes(app: express.Express) {
       
       const { betAmount, betOn } = validationResult.data;
       
-      // Get the team match instead of game
-      const match = await storage.getTeamMatch(gameId);
+      // Get the cricket toss game directly - no dependency on team match
+      const game = await storage.getGame(gameId);
       
-      if (!match) {
-        return res.status(404).json({ message: "Cricket Toss match not found" });
+      if (!game) {
+        return res.status(404).json({ message: "Cricket Toss game not found" });
       }
       
-      if (match.category !== 'cricket') {
-        return res.status(400).json({ message: "Match is not a Cricket Toss match" });
+      if (game.gameType !== GameType.CRICKET_TOSS) {
+        return res.status(400).json({ message: "Game is not a Cricket Toss game" });
       }
       
-      if (match.status !== 'open') {
-        return res.status(400).json({ message: "Match is not open for betting" });
+      if (game.gameData?.status !== 'open') {
+        return res.status(400).json({ message: "Game is not open for betting" });
       }
       
       // Check if user has sufficient balance
@@ -294,8 +287,9 @@ export function setupCricketTossApiRoutes(app: express.Express) {
       // Deduct the bet amount from user's balance
       await storage.updateUserBalance(user.id, user.balance - betAmount);
       
-      // Calculate potential payout based on odds from the match
-      const odds = betOn === TeamMatchResult.TEAM_A ? match.oddTeamA : match.oddTeamB;
+      // Calculate potential payout based on odds from the game data
+      const gameData = game.gameData as any;
+      const odds = betOn === TeamMatchResult.TEAM_A ? gameData.oddTeamA : gameData.oddTeamB;
       const potentialPayout = Math.floor((betAmount * odds) / 100);
       
       // Create a new game entry for this user's bet
@@ -304,15 +298,14 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         gameType: GameType.CRICKET_TOSS,
         betAmount,
         prediction: betOn, // Use betOn as prediction to match the schema
-        matchId: match.id, // Link to the team match
         gameData: {
-          teamA: match.teamA,
-          teamB: match.teamB,
-          matchId: match.id,
-          oddTeamA: match.oddTeamA,
-          oddTeamB: match.oddTeamB,
-          description: match.description,
-          matchTime: match.matchTime,
+          teamA: gameData.teamA,
+          teamB: gameData.teamB,
+          tossGameId: game.id, // Link to the original cricket toss game
+          oddTeamA: gameData.oddTeamA,
+          oddTeamB: gameData.oddTeamB,
+          description: gameData.description,
+          tossTime: gameData.tossTime,
           status: 'pending'
         },
         result: "pending", // Use pending instead of null
