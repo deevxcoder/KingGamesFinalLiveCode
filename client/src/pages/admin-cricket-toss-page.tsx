@@ -268,23 +268,51 @@ export default function AdminCricketTossPage() {
     if (!game.gameData) return;
     
     setEditingGame(game);
-    const tossDate = parseISO(game.gameData.tossTime);
-    gameForm.reset({
-      teamA: game.gameData.teamA,
-      teamB: game.gameData.teamB,
-      description: game.gameData.description || "",
-      tossDate: format(tossDate, "yyyy-MM-dd"),
-      tossTime: format(tossDate, "HH:mm"),
-      oddTeamA: game.gameData.oddTeamA,
-      oddTeamB: game.gameData.oddTeamB,
-      imageUrl: game.gameData.imageUrl || "",
-    });
+    
+    try {
+      // Add safe handling of date parsing for toss time
+      let tossDate = new Date();
+      let tossTimeStr = "12:00";
+      
+      if (game.gameData.tossTime) {
+        const parsedDate = parseISO(game.gameData.tossTime);
+        tossDate = parsedDate;
+        tossTimeStr = format(parsedDate, "HH:mm");
+      }
+      
+      gameForm.reset({
+        teamA: game.gameData.teamA,
+        teamB: game.gameData.teamB,
+        description: game.gameData.description || "",
+        tossDate: format(tossDate, "yyyy-MM-dd"),
+        tossTime: tossTimeStr,
+        oddTeamA: game.gameData.oddTeamA,
+        oddTeamB: game.gameData.oddTeamB,
+        imageUrl: game.gameData.imageUrl || "",
+      });
+    } catch (error) {
+      console.error("Error parsing game data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load game data for editing. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Handle opening declare result dialog
   const handleDeclareResult = (game: CricketTossGame) => {
-    setDeclareResultGame(game);
-    resultForm.reset({ result: game.result || "" });
+    try {
+      setDeclareResultGame(game);
+      resultForm.reset({ result: game.result || "" });
+    } catch (error) {
+      console.error("Error handling declare result:", error);
+      toast({
+        title: "Error",
+        description: "Failed to open result declaration dialog. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Helper to identify standalone cricket toss games vs legacy games

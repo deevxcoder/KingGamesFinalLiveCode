@@ -30,6 +30,41 @@ export function setupCricketTossRoutes(app: express.Express) {
       next(err);
     }
   });
+  
+  // Update cricket toss game result (admin only)
+  app.patch("/api/cricket-toss-games/:id/result", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated() || req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Only admin can declare results" });
+      }
+      
+      const gameId = Number(req.params.id);
+      const { result } = req.body;
+      
+      if (!result || !["team_a", "team_b"].includes(result)) {
+        return res.status(400).json({ message: "Invalid result value" });
+      }
+      
+      const game = await storage.getGame(gameId);
+      if (!game) {
+        return res.status(404).json({ message: "Game not found" });
+      }
+      
+      if (game.gameType !== GameType.CRICKET_TOSS) {
+        return res.status(400).json({ message: "Game is not a cricket toss game" });
+      }
+      
+      // Update the game result
+      const updatedGame = await storage.updateGameResult(gameId, result);
+      
+      // Also update game status to "resulted"
+      await storage.updateGameStatus(gameId, "resulted");
+      
+      res.json(updatedGame);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Get active cricket toss games
   app.get("/api/cricket-toss-games/active", async (req: Request, res: Response, next: NextFunction) => {
