@@ -23,8 +23,8 @@ const updateCricketTossStatusSchema = z.object({
 
 // Schema for declaring a cricket toss game result
 const declareCricketTossResultSchema = z.object({
-  result: z.string().refine(val => [TeamMatchResult.TEAM_A, TeamMatchResult.TEAM_B].includes(val), {
-    message: "Result must be either team_a or team_b"
+  result: z.enum([TeamMatchResult.TEAM_A, TeamMatchResult.TEAM_B], {
+    errorMap: () => ({ message: "Result must be either team_a or team_b" })
   })
 });
 
@@ -63,7 +63,8 @@ export function setupCricketTossApiRoutes(app: express.Express) {
     try {
       const allGames = await storage.getAllGames();
       const activeGames = allGames.filter(
-        game => game.gameType === GameType.CRICKET_TOSS && game.status === "open"
+        game => game.gameType === GameType.CRICKET_TOSS && 
+        (game.gameData as any)?.status === "open"
       );
       
       res.json(activeGames);
@@ -235,8 +236,8 @@ export function setupCricketTossApiRoutes(app: express.Express) {
       // Validate the request body
       const playSchema = z.object({
         betAmount: z.number().min(10, "Minimum bet amount is 10"),
-        betOn: z.string().refine(val => [TeamMatchResult.TEAM_A, TeamMatchResult.TEAM_B].includes(val), {
-          message: "Bet must be on either team_a or team_b"
+        betOn: z.enum([TeamMatchResult.TEAM_A, TeamMatchResult.TEAM_B], {
+          errorMap: () => ({ message: "Bet must be on either team_a or team_b" })
         })
       });
       
@@ -269,7 +270,7 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         return res.status(400).json({ message: "Game is not a Cricket Toss game" });
       }
       
-      if (game.gameData?.status !== 'open') {
+      if ((game.gameData as any)?.status !== 'open') {
         return res.status(400).json({ message: "Game is not open for betting" });
       }
       
