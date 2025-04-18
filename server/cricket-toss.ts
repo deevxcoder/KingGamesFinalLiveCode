@@ -56,22 +56,34 @@ export function setupCricketTossRoutes(app: express.Express) {
         return res.status(400).json({ message: "Game is not a cricket toss game" });
       }
       
-      // Update the game result
-      const updatedGame = await storage.updateGameResult(gameId, result);
-      
-      // Also update the database directly to set the status
+      // Update the game result directly using a more reliable method
       try {
-        await pool.query(`
-          UPDATE games 
-          SET status = 'resulted'
-          WHERE id = $1
-        `, [gameId]);
+        // First update the result field
+        const updateResult = await pool.query(
+          `UPDATE games SET result = $1 WHERE id = $2 RETURNING *`,
+          [result, gameId]
+        );
+        
+        if (updateResult.rows.length === 0) {
+          return res.status(404).json({ message: "Game not found or could not be updated" });
+        }
+        
+        // Get the updated game so we can return it to the client
+        const updatedGame = await storage.getGame(gameId);
+        
+        if (!updatedGame) {
+          return res.status(404).json({ message: "Failed to retrieve updated game" });
+        }
+        
+        // Return the updated game
+        res.json(updatedGame);
       } catch (error) {
-        console.error("Error updating game status:", error);
-        // Continue with the response even if this fails
+        console.error("Error updating game result:", error);
+        return res.status(500).json({ 
+          message: "Failed to update game result", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
       }
-      
-      res.json(updatedGame);
     } catch (err) {
       next(err);
     }
@@ -122,34 +134,28 @@ export function setupCricketTossRoutes(app: express.Express) {
         imageUrl: imageUrl || "",
       };
       
-      // Create a new object with the updated gameData that we'll send back to the client
-      // We need a safer approach that doesn't rely on the database update
-      
-      // First, manually update the database using a direct SQL query
+      // Create a simpler method for updating the game data
       try {
-        // Use the database pool directly to run a custom SQL query
-        await pool.query(`
-          UPDATE games 
-          SET game_data = $1 
-          WHERE id = $2
-        `, [JSON.stringify(updatedGameData), gameId]);
+        // Use the Node PostgreSQL client directly
+        const result = await pool.query(
+          `UPDATE games SET game_data = $1 WHERE id = $2 RETURNING *`,
+          [JSON.stringify(updatedGameData), gameId]
+        );
         
-        // Get the updated game
-        const updatedGame = await storage.getGame(gameId);
-        
-        if (!updatedGame) {
+        if (result.rows.length === 0) {
           return res.status(404).json({ message: "Failed to update game" });
         }
         
         // Return the updated game
+        const updatedGame = await storage.getGame(gameId);
         res.json(updatedGame);
       } catch (error) {
         console.error("Error updating game:", error);
-        return res.status(500).json({ message: "Failed to update game data" });
+        return res.status(500).json({ 
+          message: "Failed to update game data", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
       }
-      
-      // Exit early since we've already sent the response
-      return;
     } catch (err) {
       next(err);
     }
