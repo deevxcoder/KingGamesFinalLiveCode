@@ -472,7 +472,136 @@ export default function SatamatkaGame() {
           )}
         </div>
       );
-    } else if (selectedGameMode === "harf" || selectedGameMode === "crossing") {
+    } else if (selectedGameMode === "harf") {
+      // Create improved Harf bet type UI with left digit, right digit selection
+      return (
+        <div className="space-y-4">
+          <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {[10, 50, 100, 500].map((amount) => (
+              <Button
+                key={amount}
+                variant={quickBetAmount === amount ? "default" : "outline"}
+                size="sm"
+                onClick={() => setQuickBetAmount(amount)}
+                className={`${
+                  quickBetAmount === amount 
+                    ? "bg-primary/90 text-primary-foreground" 
+                    : "hover:bg-primary/20"
+                }`}
+              >
+                ₹{amount}
+              </Button>
+            ))}
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Left Digit Selection (First digit 0-9) */}
+            <Card className="border border-slate-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Left Digit (First Position)</CardTitle>
+                <CardDescription className="text-xs">Select the first position (0-9)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-5 gap-2">
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const num = `L${i}`;
+                    const isSelected = selectedNumbers.has(num);
+                    const betAmount = selectedNumbers.get(num) || 0;
+                    
+                    return (
+                      <div key={num} className="relative">
+                        <Button
+                          variant={isSelected ? "default" : "outline"}
+                          className={`h-10 w-full flex flex-col items-center justify-center p-1 ${
+                            isSelected ? "bg-primary/90" : ""
+                          }`}
+                          onClick={() => handleNumberSelection(num)}
+                        >
+                          <span className="text-base font-medium">{i}</span>
+                          {isSelected && (
+                            <span className="text-xs mt-1">₹{betAmount}</span>
+                          )}
+                        </Button>
+                        {isSelected && (
+                          <button
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeNumberSelection(num);
+                            }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Right Digit Selection (Second digit 0-9) */}
+            <Card className="border border-slate-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Right Digit (Second Position)</CardTitle>
+                <CardDescription className="text-xs">Select the second position (0-9)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-5 gap-2">
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const num = `R${i}`;
+                    const isSelected = selectedNumbers.has(num);
+                    const betAmount = selectedNumbers.get(num) || 0;
+                    
+                    return (
+                      <div key={num} className="relative">
+                        <Button
+                          variant={isSelected ? "default" : "outline"}
+                          className={`h-10 w-full flex flex-col items-center justify-center p-1 ${
+                            isSelected ? "bg-primary/90" : ""
+                          }`}
+                          onClick={() => handleNumberSelection(num)}
+                        >
+                          <span className="text-base font-medium">{i}</span>
+                          {isSelected && (
+                            <span className="text-xs mt-1">₹{betAmount}</span>
+                          )}
+                        </Button>
+                        {isSelected && (
+                          <button
+                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeNumberSelection(num);
+                            }}
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Bet slip button for selected numbers */}
+          {selectedNumbers.size > 0 && (
+            <div className="mt-4">
+              <Button 
+                variant="default" 
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                onClick={() => setShowBetSlip(true)}
+              >
+                View Bet Slip ({selectedNumbers.size} numbers, ₹{calculateTotalBetAmount()})
+              </Button>
+            </div>
+          )}
+        </div>
+      );
+    } else if (selectedGameMode === "crossing") {
       // Generate grid of 10 numbers (0-9)
       return (
         <div className="grid grid-cols-5 gap-2 p-2">
@@ -522,7 +651,7 @@ export default function SatamatkaGame() {
       case "jodi":
         return "Predict the exact two-digit number (00-99). Payout ratio: 90x";
       case "harf":
-        return "Predict a single digit (0-9). Payout ratio: 9x";
+        return "Predict digits in specific positions (left/right). Select first digit, second digit, or both. Payout ratio: 9x";
       case "crossing":
         return "Predict a single digit that appears in either position. Payout ratio: 4.5x";
       case "odd_even":
@@ -629,25 +758,37 @@ export default function SatamatkaGame() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Array.from(selectedNumbers.entries()).map(([num, amount]) => (
-                  <TableRow key={num}>
-                    <TableCell className="font-medium">{num}</TableCell>
-                    <TableCell>₹{amount}</TableCell>
-                    <TableCell className="text-amber-500">
-                      ₹{calculatePotentialWin(selectedGameMode, amount)}
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7 rounded-full bg-red-100 text-red-700 hover:bg-red-200"
-                        onClick={() => removeNumberSelection(num)}
-                      >
-                        ×
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {Array.from(selectedNumbers.entries()).map(([num, amount]) => {
+                  // Format display for left/right digit selections in Harf mode
+                  let displayNum = num;
+                  if (selectedGameMode === "harf") {
+                    if (num.startsWith("L")) {
+                      displayNum = `Left: ${num.substring(1)}`;
+                    } else if (num.startsWith("R")) {
+                      displayNum = `Right: ${num.substring(1)}`;
+                    }
+                  }
+                  
+                  return (
+                    <TableRow key={num}>
+                      <TableCell className="font-medium">{displayNum}</TableCell>
+                      <TableCell>₹{amount}</TableCell>
+                      <TableCell className="text-amber-500">
+                        ₹{calculatePotentialWin(selectedGameMode, amount)}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 rounded-full bg-red-100 text-red-700 hover:bg-red-200"
+                          onClick={() => removeNumberSelection(num)}
+                        >
+                          ×
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
