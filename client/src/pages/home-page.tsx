@@ -40,7 +40,7 @@ const gameCards = [
     path: "/markets",
     popularity: "high" as const,
     winRate: 40,
-    imageUrl: "/images/mi-vs-csk.svg" // Using match image for market game
+    gameType: "market" // Using game type for automatic image selection
   },
   {
     id: "crickettoss",
@@ -50,7 +50,7 @@ const gameCards = [
     path: "/cricket-toss",
     popularity: "high" as const,
     winRate: 50,
-    imageUrl: "/images/india-vs-australia.svg" // Using cricket related image
+    gameType: "cricket" // Using game type for automatic image selection
   },
   {
     id: "sportsbetting",
@@ -60,7 +60,7 @@ const gameCards = [
     path: "/sports",
     popularity: "medium" as const,
     winRate: 36,
-    imageUrl: "/images/pakistan-vs-sa.svg" // Using cricket match image
+    gameType: "sports" // Using game type for automatic image selection
   },
   {
     id: "coinflip",
@@ -70,7 +70,7 @@ const gameCards = [
     path: "/coinflip",
     popularity: "high" as const,
     winRate: 50,
-    imageUrl: "/images/heads.png" // Using coin image
+    gameType: "coinflip" // Using game type for automatic image selection
   }
 ];
 
@@ -307,7 +307,7 @@ export default function HomePage() {
                   path={game.path}
                   popularity={game.popularity}
                   winRate={game.winRate}
-                  imageUrl={game.imageUrl}
+                  gameType={game.gameType}
                 />
               ))}
             </div>
