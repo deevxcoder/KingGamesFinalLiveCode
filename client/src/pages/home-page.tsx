@@ -25,9 +25,9 @@ import {
   Gamepad,
   Coins,
   Activity,
-  Club,
-  CircleDot
+  Club
 } from "lucide-react";
+import { GiCricketBat } from "react-icons/gi";
 import { useLocation } from "wouter";
 
 // Sample game cards data - in real app this would come from API
@@ -196,7 +196,7 @@ export default function HomePage() {
           <GameIconCard
             id="cricket"
             title="Cricket Toss"
-            icon={CircleDot}
+            icon={GiCricketBat}
             path="/cricket-toss"
             gradient="bg-gradient-to-r from-green-700 to-emerald-600"
           />
