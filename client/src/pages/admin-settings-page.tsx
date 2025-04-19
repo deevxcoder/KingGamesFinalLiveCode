@@ -29,6 +29,12 @@ export default function AdminSettingsPage() {
   
   // Game Card Images State
   const [gameCardImages, setGameCardImages] = useState<{filename: string, url: string, gameType?: string}[]>([]);
+  const [selectedGameImages, setSelectedGameImages] = useState<{[key: string]: string}>({
+    market: '',
+    cricket: '',
+    sports: '',
+    coinflip: ''
+  });
   const [isUploadingGameCard, setIsUploadingGameCard] = useState<{[key: string]: boolean}>({
     market: false,
     cricket: false,
@@ -65,6 +71,13 @@ export default function AdminSettingsPage() {
   const { data: paymentSettings, isLoading: isLoadingPayment } = useQuery<any[]>({
     queryKey: ['/api/settings', 'payment'],
     queryFn: () => apiRequest("GET", '/api/settings?type=payment')
+      .then(res => res.json()),
+  });
+  
+  // Load game image settings
+  const { data: gameImageSettings } = useQuery<any[]>({
+    queryKey: ['/api/settings', 'game_images'],
+    queryFn: () => apiRequest("GET", '/api/settings?type=game_images')
       .then(res => res.json()),
   });
 
@@ -201,6 +214,30 @@ export default function AdminSettingsPage() {
       setGameCardImages(processedImages);
     }
   }, [gameCardImagesData]);
+  
+  // Process game image settings when they load
+  useEffect(() => {
+    if (gameImageSettings && gameImageSettings.length > 0) {
+      // Create a temporary object to hold selected images
+      const selectedImgs: {[key: string]: string} = {
+        market: '',
+        cricket: '',
+        sports: '',
+        coinflip: ''
+      };
+      
+      // Update selected images based on settings
+      gameImageSettings.forEach((setting: any) => {
+        const gameType = setting.settingKey.replace('primary_', '');
+        if (selectedImgs.hasOwnProperty(gameType)) {
+          selectedImgs[gameType] = setting.settingValue;
+        }
+      });
+      
+      // Update state with selected images
+      setSelectedGameImages(selectedImgs);
+    }
+  }, [gameImageSettings]);
   
   // Upload slider image mutation
   const uploadSliderMutation = useMutation({
@@ -542,6 +579,32 @@ export default function AdminSettingsPage() {
     }
   });
   
+  // Handle selecting a game card image as primary
+  const handleSelectGameImage = (filename: string, gameType: string) => {
+    // Update the selected image for this game type
+    setSelectedGameImages(prev => ({
+      ...prev,
+      [gameType]: filename
+    }));
+    
+    // Save this selection to the database
+    saveMutation.mutate({
+      settingType: "game_images",
+      settingKey: `primary_${gameType}`,
+      settingValue: filename
+    });
+    
+    toast({
+      title: "Primary Image Selected",
+      description: `This image will now be used as the primary image for ${gameType.toUpperCase()} games.`,
+    });
+  };
+  
+  // Handler for retrieving the selected status of an image
+  const isSelectedImage = (filename: string, gameType: string) => {
+    return selectedGameImages[gameType] === filename;
+  };
+
   // Handle game card image upload
   const handleGameCardImageUpload = (event: React.ChangeEvent<HTMLInputElement>, gameType: string) => {
     if (!event.target.files || event.target.files.length === 0) {
@@ -1090,7 +1153,7 @@ export default function AdminSettingsPage() {
                               .map((image) => (
                                 <div 
                                   key={image.filename} 
-                                  className="relative group overflow-hidden rounded-md border border-slate-700"
+                                  className={`relative group overflow-hidden rounded-md border ${isSelectedImage(image.filename, 'market') ? 'border-green-500 ring-2 ring-green-500' : 'border-slate-700'}`}
                                 >
                                   <img 
                                     src={image.url} 
@@ -1098,21 +1161,40 @@ export default function AdminSettingsPage() {
                                     className="object-cover w-full h-[160px]"
                                   />
                                   
-                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3">
-                                    <div className="text-white text-sm font-medium">
-                                      Market Game
+                                  <div className="absolute inset-0 bg-black/40 flex flex-col justify-between p-3">
+                                    <div className="flex justify-between">
+                                      {isSelectedImage(image.filename, 'market') && (
+                                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                          Selected
+                                        </div>
+                                      )}
+                                      
+                                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                                        <Button
+                                          variant="destructive"
+                                          size="icon"
+                                          className="h-8 w-8 rounded-full"
+                                          onClick={() => handleDeleteGameCardImage(image.filename)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                  
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      variant="destructive"
-                                      size="icon"
-                                      className="h-8 w-8 rounded-full"
-                                      onClick={() => handleDeleteGameCardImage(image.filename)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    
+                                    <div className="flex items-center justify-between">
+                                      <div className="text-white text-sm font-medium">
+                                        Market Game
+                                      </div>
+                                      
+                                      <Button
+                                        size="sm"
+                                        variant={isSelectedImage(image.filename, 'market') ? "secondary" : "outline"}
+                                        className={`${isSelectedImage(image.filename, 'market') ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-800/60 hover:bg-slate-700'}`}
+                                        onClick={() => handleSelectGameImage(image.filename, 'market')}
+                                      >
+                                        {isSelectedImage(image.filename, 'market') ? 'Selected' : 'Select'}
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                             ))}
@@ -1159,7 +1241,7 @@ export default function AdminSettingsPage() {
                               .map((image) => (
                                 <div 
                                   key={image.filename} 
-                                  className="relative group overflow-hidden rounded-md border border-slate-700"
+                                  className={`relative group overflow-hidden rounded-md border ${isSelectedImage(image.filename, 'sports') ? 'border-green-500 ring-2 ring-green-500' : 'border-slate-700'}`}
                                 >
                                   <img 
                                     src={image.url} 
@@ -1167,21 +1249,40 @@ export default function AdminSettingsPage() {
                                     className="object-cover w-full h-[160px]"
                                   />
                                   
-                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3">
-                                    <div className="text-white text-sm font-medium">
-                                      Sports Betting
+                                  <div className="absolute inset-0 bg-black/40 flex flex-col justify-between p-3">
+                                    <div className="flex justify-between">
+                                      {isSelectedImage(image.filename, 'sports') && (
+                                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                          Selected
+                                        </div>
+                                      )}
+                                      
+                                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                                        <Button
+                                          variant="destructive"
+                                          size="icon"
+                                          className="h-8 w-8 rounded-full"
+                                          onClick={() => handleDeleteGameCardImage(image.filename)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                  
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      variant="destructive"
-                                      size="icon"
-                                      className="h-8 w-8 rounded-full"
-                                      onClick={() => handleDeleteGameCardImage(image.filename)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    
+                                    <div className="flex items-center justify-between">
+                                      <div className="text-white text-sm font-medium">
+                                        Sports Betting
+                                      </div>
+                                      
+                                      <Button
+                                        size="sm"
+                                        variant={isSelectedImage(image.filename, 'sports') ? "secondary" : "outline"}
+                                        className={`${isSelectedImage(image.filename, 'sports') ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-800/60 hover:bg-slate-700'}`}
+                                        onClick={() => handleSelectGameImage(image.filename, 'sports')}
+                                      >
+                                        {isSelectedImage(image.filename, 'sports') ? 'Selected' : 'Select'}
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                             ))}
@@ -1228,7 +1329,7 @@ export default function AdminSettingsPage() {
                               .map((image) => (
                                 <div 
                                   key={image.filename} 
-                                  className="relative group overflow-hidden rounded-md border border-slate-700"
+                                  className={`relative group overflow-hidden rounded-md border ${isSelectedImage(image.filename, 'cricket') ? 'border-green-500 ring-2 ring-green-500' : 'border-slate-700'}`}
                                 >
                                   <img 
                                     src={image.url} 
@@ -1236,21 +1337,40 @@ export default function AdminSettingsPage() {
                                     className="object-cover w-full h-[160px]"
                                   />
                                   
-                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3">
-                                    <div className="text-white text-sm font-medium">
-                                      Cricket Toss
+                                  <div className="absolute inset-0 bg-black/40 flex flex-col justify-between p-3">
+                                    <div className="flex justify-between">
+                                      {isSelectedImage(image.filename, 'cricket') && (
+                                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                          Selected
+                                        </div>
+                                      )}
+                                      
+                                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                                        <Button
+                                          variant="destructive"
+                                          size="icon"
+                                          className="h-8 w-8 rounded-full"
+                                          onClick={() => handleDeleteGameCardImage(image.filename)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                  
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      variant="destructive"
-                                      size="icon"
-                                      className="h-8 w-8 rounded-full"
-                                      onClick={() => handleDeleteGameCardImage(image.filename)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    
+                                    <div className="flex items-center justify-between">
+                                      <div className="text-white text-sm font-medium">
+                                        Cricket Toss
+                                      </div>
+                                      
+                                      <Button
+                                        size="sm"
+                                        variant={isSelectedImage(image.filename, 'cricket') ? "secondary" : "outline"}
+                                        className={`${isSelectedImage(image.filename, 'cricket') ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-800/60 hover:bg-slate-700'}`}
+                                        onClick={() => handleSelectGameImage(image.filename, 'cricket')}
+                                      >
+                                        {isSelectedImage(image.filename, 'cricket') ? 'Selected' : 'Select'}
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                             ))}
@@ -1297,7 +1417,7 @@ export default function AdminSettingsPage() {
                               .map((image) => (
                                 <div 
                                   key={image.filename} 
-                                  className="relative group overflow-hidden rounded-md border border-slate-700"
+                                  className={`relative group overflow-hidden rounded-md border ${isSelectedImage(image.filename, 'coinflip') ? 'border-green-500 ring-2 ring-green-500' : 'border-slate-700'}`}
                                 >
                                   <img 
                                     src={image.url} 
@@ -1305,21 +1425,40 @@ export default function AdminSettingsPage() {
                                     className="object-cover w-full h-[160px]"
                                   />
                                   
-                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3">
-                                    <div className="text-white text-sm font-medium">
-                                      Coin Flip
+                                  <div className="absolute inset-0 bg-black/40 flex flex-col justify-between p-3">
+                                    <div className="flex justify-between">
+                                      {isSelectedImage(image.filename, 'coinflip') && (
+                                        <div className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
+                                          Selected
+                                        </div>
+                                      )}
+                                      
+                                      <div className="flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-auto">
+                                        <Button
+                                          variant="destructive"
+                                          size="icon"
+                                          className="h-8 w-8 rounded-full"
+                                          onClick={() => handleDeleteGameCardImage(image.filename)}
+                                        >
+                                          <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                      </div>
                                     </div>
-                                  </div>
-                                  
-                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      variant="destructive"
-                                      size="icon"
-                                      className="h-8 w-8 rounded-full"
-                                      onClick={() => handleDeleteGameCardImage(image.filename)}
-                                    >
-                                      <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    
+                                    <div className="flex items-center justify-between">
+                                      <div className="text-white text-sm font-medium">
+                                        Coin Flip
+                                      </div>
+                                      
+                                      <Button
+                                        size="sm"
+                                        variant={isSelectedImage(image.filename, 'coinflip') ? "secondary" : "outline"}
+                                        className={`${isSelectedImage(image.filename, 'coinflip') ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-800/60 hover:bg-slate-700'}`}
+                                        onClick={() => handleSelectGameImage(image.filename, 'coinflip')}
+                                      >
+                                        {isSelectedImage(image.filename, 'coinflip') ? 'Selected' : 'Select'}
+                                      </Button>
+                                    </div>
                                   </div>
                                 </div>
                             ))}
