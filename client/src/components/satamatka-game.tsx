@@ -198,11 +198,15 @@ export default function SatamatkaGame() {
   const { data: recentBets = [], refetch: refetchRecentBets } = useQuery({
     queryKey: ["/api/games/my-history"],
     queryFn: getQueryFn({ on401: "throw" }),
-    enabled: !!user,
-    onSuccess: (data) => {
-      console.log("Received bet history:", data);
-    }
+    enabled: !!user
   });
+  
+  // Log bet history when received
+  useEffect(() => {
+    if (recentBets && recentBets.length > 0) {
+      console.log("Received bet history:", recentBets);
+    }
+  }, [recentBets]);
 
   // Mutation for placing a single bet
   const placeBetMutation = useMutation({
@@ -811,106 +815,25 @@ export default function SatamatkaGame() {
           <CardContent>{renderNumberGrid()}</CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Place Your Bet</CardTitle>
-            <CardDescription>Fill in the details to place your bet</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="prediction"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Your Prediction</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          value={selectedNumber || field.value}
-                          readOnly
-                          placeholder="Select a number from the grid"
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Select your prediction from the number grid on the left
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                <FormField
-                  control={form.control}
-                  name="betAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Bet Amount</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          min={10} 
-                          max={10000} 
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Min: 10, Max: 10,000
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="pt-2">
-                  <Button
-                    type="submit"
-                    className="w-full"
-                    disabled={
-                      placeBetMutation.isPending ||
-                      !selectedNumber ||
-                      !user
-                    }
-                  >
-                    {placeBetMutation.isPending ? (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Placing Bet...
-                      </>
-                    ) : (
-                      <>
-                        Place Bet <ChevronRight className="ml-2 h-4 w-4" />
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </CardContent>
-          <CardFooter className="border-t px-6 py-4">
-            <div className="flex justify-between w-full text-sm">
-              <div>Balance: ₹{user?.balance || 0}</div>
-              {selectedNumber && form.getValues("betAmount") && (
-                <div>
-                  Potential Win: ₹
-                  {calculatePotentialWin(
-                    selectedGameMode,
-                    form.getValues("betAmount")
-                  )}
-                </div>
-              )}
-            </div>
-          </CardFooter>
-        </Card>
       </div>
 
       {/* Recent Bets Table */}
       <div className="mt-8">
         <Card>
-          <CardHeader>
-            <CardTitle>Your Recent Bets</CardTitle>
-            <CardDescription>Latest bets you've placed</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Your Recent Bets</CardTitle>
+              <CardDescription>Latest bets you've placed</CardDescription>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setLocation("/game-history")}
+              className="ml-auto"
+            >
+              View Full History
+            </Button>
           </CardHeader>
           <CardContent>
             <Table>
@@ -925,7 +848,7 @@ export default function SatamatkaGame() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(recentBets as Game[]).slice(0, 5).map((bet) => (
+                {(recentBets as Game[]).slice(0, 10).map((bet) => (
                   <TableRow key={bet.id}>
                     <TableCell>
                       {bet.marketName || 
