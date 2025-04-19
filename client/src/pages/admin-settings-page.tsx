@@ -476,12 +476,33 @@ export default function AdminSettingsPage() {
       };
     },
     onSuccess: (data) => {
-      const { gameType } = data;
+      const { gameType, result } = data;
+      
+      // Immediately add the newly uploaded image to the state with the correct game type
+      if (result && result.imageUrl) {
+        // Create the filename from the URL
+        const urlParts = result.imageUrl.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        
+        // Add the new image to the state
+        setGameCardImages(prevImages => [
+          ...prevImages,
+          {
+            filename: filename,
+            url: result.imageUrl,
+            gameType: gameType
+          }
+        ]);
+      }
+      
       toast({
         title: "Image Uploaded",
         description: `Game card image for ${gameType.toUpperCase()} has been uploaded successfully.`,
       });
+      
+      // Still refetch to ensure state is in sync with server
       refetchGameCardImages();
+      
       setIsUploadingGameCard(prev => ({
         ...prev,
         [data.gameType]: false
