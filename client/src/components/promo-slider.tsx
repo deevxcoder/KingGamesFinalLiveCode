@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
-// Cricket-related promo images from Unsplash
-const promoImages = [
+// Fallback promo images in case no admin uploaded images are available
+const fallbackPromoImages = [
   {
     id: 1,
     url: "https://images.unsplash.com/photo-1531415074968-036ba1b575da?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&h=300&q=80",
@@ -23,9 +25,35 @@ const promoImages = [
 
 export default function PromoSlider() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [promoImages, setPromoImages] = useState<{id: number, url: string, alt: string}[]>([]);
+  
+  // Fetch slider images from the API
+  const { data: sliderImages, isLoading } = useQuery<{filename: string, url: string}[]>({
+    queryKey: ['/api/sliders'],
+    queryFn: () => apiRequest("GET", '/api/sliders')
+      .then(res => res.json()),
+  });
+  
+  // Process slider images or use fallback images if none are available
+  useEffect(() => {
+    if (sliderImages && sliderImages.length > 0) {
+      // Convert the server images to the format expected by the slider
+      const formattedImages = sliderImages.map((image, index) => ({
+        id: index + 1,
+        url: image.url,
+        alt: `Promotional Slider ${index + 1}`
+      }));
+      setPromoImages(formattedImages);
+    } else {
+      // If no images are available from the server, use the fallback images
+      setPromoImages(fallbackPromoImages);
+    }
+  }, [sliderImages]);
   
   // Auto-slide every 5 seconds
   useEffect(() => {
+    if (promoImages.length === 0) return;
+    
     const interval = setInterval(() => {
       setCurrentImageIndex((prevIndex) => 
         prevIndex === promoImages.length - 1 ? 0 : prevIndex + 1
@@ -33,20 +61,33 @@ export default function PromoSlider() {
     }, 5000);
     
     return () => clearInterval(interval);
-  }, []);
+  }, [promoImages]);
   
   const goToPrevious = () => {
+    if (promoImages.length === 0) return;
     setCurrentImageIndex((prevIndex) => 
       prevIndex === 0 ? promoImages.length - 1 : prevIndex - 1
     );
   };
   
   const goToNext = () => {
+    if (promoImages.length === 0) return;
     setCurrentImageIndex((prevIndex) => 
       prevIndex === promoImages.length - 1 ? 0 : prevIndex + 1
     );
   };
   
+  // Loading state
+  if (isLoading || promoImages.length === 0) {
+    return (
+      <Card className="w-full bg-slate-900/50 border-slate-800 overflow-hidden relative">
+        <CardContent className="p-0 flex items-center justify-center h-[180px]">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="w-full bg-slate-900/50 border-slate-800 overflow-hidden relative">
       <CardContent className="p-0 relative">
@@ -67,12 +108,15 @@ export default function PromoSlider() {
                   <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center">
                     <div className="pl-8 max-w-md">
                       <h3 className="text-white text-lg md:text-xl font-bold mb-2">
-                        {image.alt.split(' - ')[1]}
+                        {image.alt.includes(' - ') 
+                          ? image.alt.split(' - ')[1] 
+                          : "Special Offer"}
                       </h3>
                       <p className="text-white/90 text-sm md:text-base">
                         {image.id === 1 && "Get 50% bonus on your first deposit today!"}
                         {image.id === 2 && "Earn 10% cashback on all your cricket bets daily!"}
                         {image.id === 3 && "Join our VIP program for exclusive rewards and bonuses!"}
+                        {image.id > 3 && "Limited time offer! Play now and win big!"}
                       </p>
                     </div>
                   </div>
