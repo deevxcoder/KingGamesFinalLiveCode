@@ -133,12 +133,19 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                         return `Satamatka ${game.gameMode ? `(${formatGameMode(game.gameMode)})` : ''}`;
                       }
                     } else if (game.gameType === 'team_match') {
-                      // For Team Match games, show team names
-                      if (game.match) {
+                      // For Team Match games, prioritize showing team names
+                      if (game.match && game.match.teamA && game.match.teamB) {
                         return `${game.match.teamA} vs ${game.match.teamB}`;
                       } else if (game.gameData && game.gameData.teamA && game.gameData.teamB) {
                         return `${game.gameData.teamA} vs ${game.gameData.teamB}`;
                       } else {
+                        // Look for a match name in the prediction if available
+                        if (game.prediction === 'team_a' || game.prediction === 'team_b') {
+                          const teamName = formatPrediction(game.prediction, game);
+                          if (teamName && teamName !== 'Team A' && teamName !== 'Team B') {
+                            return `${teamName} Match`;
+                          }
+                        }
                         return 'Team Match';
                       }
                     } else if (game.gameType === 'cricket_toss') {

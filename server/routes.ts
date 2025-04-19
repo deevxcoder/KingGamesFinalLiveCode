@@ -181,7 +181,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const games = await storage.getGamesByUserId(req.user!.id);
+      let games = await storage.getGamesByUserId(req.user!.id);
+      
+      // Enhance team match games with team data if needed
+      games = games.map(game => {
+        // For team_match games, ensure we include proper team data in gameData
+        if (game.gameType === 'team_match' && game.match && !game.gameData) {
+          return {
+            ...game,
+            gameData: {
+              teamA: game.match.teamA,
+              teamB: game.match.teamB
+            }
+          };
+        }
+        return game;
+      });
+
       res.json(games);
     } catch (err) {
       next(err);
