@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { UserRole } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
 import GameCard from "@/components/game-card";
+import GameIconCard from "@/components/game-icon-card";
 import RecentWinners from "@/components/recent-winners";
 import RecentResults from "@/components/recent-results";
 import BalanceCard from "@/components/balance-card";
@@ -20,7 +21,10 @@ import {
   TrendingUp,
   Users,
   ShieldCheck,
-  Target
+  Target,
+  Gamepad2,
+  Coins,
+  Activity
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -186,6 +190,40 @@ export default function HomePage() {
           </div>
         )}
       </div>
+      
+      {/* Game Icon Cards - Only visible to players */}
+      {isPlayer && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <GameIconCard
+            id="market"
+            title="Market Games"
+            icon={Calendar}
+            path="/markets"
+            gradient="bg-gradient-to-r from-blue-700 to-cyan-600"
+          />
+          <GameIconCard
+            id="sports"
+            title="Sports Betting"
+            icon={Trophy}
+            path="/sports"
+            gradient="bg-gradient-to-r from-purple-700 to-indigo-600"
+          />
+          <GameIconCard
+            id="cricket"
+            title="Cricket Toss"
+            icon={Cricket}
+            path="/cricket-toss"
+            gradient="bg-gradient-to-r from-green-700 to-emerald-600"
+          />
+          <GameIconCard
+            id="coinflip"
+            title="Coin Flip"
+            icon={Coins}
+            path="/coinflip"
+            gradient="bg-gradient-to-r from-amber-700 to-yellow-600"
+          />
+        </div>
+      )}
       
       {/* Admin/Subadmin message */}
       {isAdminOrSubadmin && (
