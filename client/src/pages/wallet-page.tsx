@@ -780,7 +780,7 @@ export default function WalletPage() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-400">Current Balance</p>
-                    <p className="text-3xl font-bold text-fuchsia-300">₹{(user?.balance / 100).toFixed(2)}</p>
+                    <p className="text-3xl font-bold text-fuchsia-300">₹{user?.balance ? (user.balance / 100).toFixed(2) : '0.00'}</p>
                     <p className="text-xs text-slate-500 mt-1">
                       Last updated: {new Date().toLocaleDateString('en-IN')}
                     </p>
@@ -1045,7 +1045,7 @@ export default function WalletPage() {
                   <div className="p-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600">
                     <IndianRupee className="h-4 w-4 text-white" />
                   </div>
-                  <h3 className="text-lg font-semibold text-fuchsia-300">Your balance: ₹{(user?.balance / 100).toFixed(2)}</h3>
+                  <h3 className="text-lg font-semibold text-fuchsia-300">Your balance: ₹{user?.balance ? (user.balance / 100).toFixed(2) : '0.00'}</h3>
                 </div>
                 <p className="pl-9 text-sm text-slate-400">
                   Minimum withdrawal amount is ₹500. Maximum is ₹50,000.
