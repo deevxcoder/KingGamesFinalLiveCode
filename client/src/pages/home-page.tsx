@@ -150,13 +150,6 @@ export default function HomePage() {
 
   return (
     <DashboardLayout title="Dashboard">
-      {/* Welcome message */}
-      <div className="mb-6">
-        <p className="text-slate-400">
-          Welcome back, <span className="font-medium text-slate-300">{user?.username}</span>!
-        </p>
-      </div>
-      
       {/* Balance Bar for Admin/Subadmin, Promo Slider for Players */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-6 space-y-4 lg:space-y-0">
         {isPlayer ? (
