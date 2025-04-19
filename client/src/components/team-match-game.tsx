@@ -9,7 +9,10 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
-import { Football, Cricket, Basketball, Trophy } from "lucide-react";
+import { Trophy } from "lucide-react";
+import { IoFootball } from "react-icons/io5";
+import { GiCricketBat } from "react-icons/gi";
+import { FaBasketball } from "react-icons/fa6";
 import { Badge } from '@/components/ui/badge';
 
 // Type for Team Match
@@ -56,7 +59,7 @@ export default function TeamMatchGame({ match, onClose }: TeamMatchGameProps) {
       });
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/games/my-history'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/games/my-game-history'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user'] });
       
       toast({
@@ -79,11 +82,11 @@ export default function TeamMatchGame({ match, onClose }: TeamMatchGameProps) {
   const getCategoryIcon = () => {
     switch (match.category) {
       case 'cricket':
-        return <Cricket className="h-5 w-5 mr-2 text-indigo-400" />;
+        return <GiCricketBat className="h-5 w-5 mr-2 text-indigo-400" />;
       case 'football':
-        return <Football className="h-5 w-5 mr-2 text-indigo-400" />;
+        return <IoFootball className="h-5 w-5 mr-2 text-indigo-400" />;
       case 'basketball':
-        return <Basketball className="h-5 w-5 mr-2 text-indigo-400" />;
+        return <FaBasketball className="h-5 w-5 mr-2 text-indigo-400" />;
       default:
         return <Trophy className="h-5 w-5 mr-2 text-indigo-400" />;
     }

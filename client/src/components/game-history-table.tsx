@@ -36,8 +36,8 @@ interface GameHistoryTableProps {
 export default function GameHistoryTable({ games, showFullHistory = false }: GameHistoryTableProps) {
   const [_, setLocation] = useLocation();
   
-  // Display only the most recent 5 games unless showFullHistory is true
-  const displayGames = showFullHistory ? games : games.slice(0, 5);
+  // Display only the most recent 10 games unless showFullHistory is true
+  const displayGames = showFullHistory ? games : games.slice(0, 10);
   
   // Format timestamp to relative time
   const formatTime = (timestamp: string) => {
@@ -122,7 +122,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
             <Button 
               variant="link" 
               className="text-blue-400 hover:text-blue-300"
-              onClick={() => setLocation("/history")}
+              onClick={() => setLocation("/game-history")}
             >
               View All History
             </Button>
