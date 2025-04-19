@@ -48,7 +48,7 @@ function Router() {
         allowedRoles={[UserRole.PLAYER]}
       />
       <ProtectedRoute 
-        path="/history" 
+        path="/game-history" 
         component={GameHistoryPage} 
         allowedRoles={[UserRole.PLAYER]}
       />

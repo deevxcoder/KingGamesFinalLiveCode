@@ -43,7 +43,7 @@ export default function MobileNav() {
     {
       name: "History",
       icon: <History className="w-5 h-5" />,
-      path: "/history",
+      path: "/game-history",
       visible: isPlayer,
     },
     // Risk Management for admin/subadmin
