@@ -343,9 +343,8 @@ export default function SatamatkaGame() {
     const newSelections = new Map(selectedNumbers);
     
     if (newSelections.has(num)) {
-      // If already selected, increment bet amount
-      const currentAmount = newSelections.get(num) || 0;
-      newSelections.set(num, currentAmount + quickBetAmount);
+      // If already selected, remove it (toggle behavior)
+      newSelections.delete(num);
     } else {
       // If not selected, add with current bet amount
       newSelections.set(num, quickBetAmount);
@@ -354,7 +353,7 @@ export default function SatamatkaGame() {
     setSelectedNumbers(newSelections);
   };
   
-  // Remove a number from selection
+  // Remove a number from selection (used in bet slip and other UI elements)
   const removeNumberSelection = (num: string) => {
     const newSelections = new Map(selectedNumbers);
     newSelections.delete(num);
