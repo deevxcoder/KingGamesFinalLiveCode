@@ -347,6 +347,32 @@ export default function AdminSettingsPage() {
       setByAdmin: true
     });
   };
+  
+  // Handle slider image upload
+  const handleSliderImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
+    }
+    
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('sliderImage', file);
+    
+    setIsUploading(true);
+    uploadSliderMutation.mutate(formData);
+    
+    // Reset the file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+  
+  // Handle slider image delete
+  const handleDeleteSliderImage = (filename: string) => {
+    if (confirm('Are you sure you want to delete this slider image?')) {
+      deleteSliderMutation.mutate(filename);
+    }
+  };
 
   return (
     <DashboardLayout title="Admin Settings">
@@ -671,6 +697,119 @@ export default function AdminSettingsPage() {
               })}>
                 Apply to All Subadmins
               </Button>
+            </CardFooter>
+          </Card>
+        </TabsContent>
+        
+        {/* Slider Settings Tab */}
+        <TabsContent value="slider">
+          <Card>
+            <CardHeader>
+              <CardTitle>Promo Slider Settings</CardTitle>
+              <CardDescription>
+                Manage the promotional slider images shown on the player dashboard
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {isLoadingSliderImages ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 text-blue-400 mt-0.5" />
+                        <div>
+                          <h3 className="text-sm font-medium text-blue-400">Image Requirements</h3>
+                          <p className="text-sm text-slate-400 mt-1">
+                            For best results, upload images with a 4:1 aspect ratio (e.g., 1200×300 pixels).
+                            Images should be less than 2MB in size and in JPG, PNG, or WebP format.
+                            Images will be displayed at a height of 180px on all devices, with responsive width.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-4">
+                        <Button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="gap-2"
+                          disabled={isUploading}
+                        >
+                          {isUploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                          Upload New Image
+                        </Button>
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleSliderImageUpload}
+                        />
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => refetchSliderImages()}
+                          size="icon"
+                          title="Refresh slider images"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      {sliderImages.length === 0 ? (
+                        <div className="py-8 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
+                          <p className="text-slate-400">No slider images uploaded yet. Upload some images to display in the promotional slider.</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {sliderImages.map((image) => (
+                            <div 
+                              key={image.filename} 
+                              className="relative group overflow-hidden rounded-lg border border-slate-700"
+                            >
+                              <img 
+                                src={image.url} 
+                                alt={`Slider image ${image.filename}`}
+                                className="w-full h-40 object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className="gap-1"
+                                  onClick={() => handleDeleteSliderImage(image.filename)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Delete
+                                </Button>
+                              </div>
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-xs p-2 truncate">
+                                {image.filename}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+            <CardFooter className="flex justify-between border-t border-slate-800 pt-4">
+              <div className="text-sm text-slate-400">
+                Total Images: {sliderImages.length}
+              </div>
+              <div className="text-sm text-slate-400">
+                Images are displayed in the order they were uploaded
+              </div>
             </CardFooter>
           </Card>
         </TabsContent>
