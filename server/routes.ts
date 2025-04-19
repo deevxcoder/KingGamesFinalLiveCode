@@ -805,8 +805,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                    /^L[0-9]$/.test(prediction) || // Left digit format
                    /^R[0-9]$/.test(prediction);   // Right digit format
           case SatamatkaGameMode.CROSSING:
-            // For Crossing, prediction should be a single digit
-            return /^[0-9]$/.test(prediction);
+            // For Crossing, prediction can now be:
+            // - A single digit (original implementation)
+            // - A string representing multiple digits to create combinations
+            // - A format like "2,3,5" indicating selected digits for combination
+            return /^[0-9]$/.test(prediction) || // Original format (single digit)
+                   /^[0-9]+(,[0-9]+)+$/.test(prediction) || // Comma-separated digits
+                   /^Combinations of [0-9,]+$/.test(prediction) || // Text description format
+                   /^[0-9]+ digits \([0-9]+ combinations\)$/.test(prediction); // Summary format
           case SatamatkaGameMode.ODD_EVEN:
             // For Odd-Even, prediction should be "odd" or "even"
             return prediction === "odd" || prediction === "even";

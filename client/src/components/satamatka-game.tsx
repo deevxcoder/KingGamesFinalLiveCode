@@ -602,22 +602,153 @@ export default function SatamatkaGame() {
         </div>
       );
     } else if (selectedGameMode === "crossing") {
-      // Generate grid of 10 numbers (0-9)
+      // Calculate total combinations based on selected numbers
+      const calculateCombinations = (digits: string[]) => {
+        if (digits.length <= 1) return 0;
+        
+        // Number of combinations is N*(N-1) where N is the number of digits selected
+        // Each pair of digits forms two combinations (e.g., 1,2 forms 12 and 21)
+        return digits.length * (digits.length - 1);
+      };
+      
+      // Extract just the digit values from the selected numbers Map keys
+      const selectedDigits = Array.from(selectedNumbers.keys());
+      const totalCombinations = calculateCombinations(selectedDigits);
+      
       return (
-        <div className="grid grid-cols-5 gap-2 p-2">
-          {Array.from({ length: 10 }, (_, i) => {
-            const num = i.toString();
-            return (
-              <Button
-                key={num}
-                variant={selectedNumber === num ? "default" : "outline"}
-                className="h-10 w-10"
-                onClick={() => setSelectedNumber(num)}
+        <div className="space-y-4">
+          {/* Quick bet amount buttons */}
+          <div className="p-2 mb-2 bg-muted/30 rounded-lg">
+            <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
+            <div className="grid grid-cols-4 gap-2">
+              {[10, 50, 100, 500].map((amount) => (
+                <Button
+                  key={amount}
+                  variant={quickBetAmount === amount ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setQuickBetAmount(amount)}
+                  className={`${
+                    quickBetAmount === amount 
+                      ? "bg-primary/90 text-primary-foreground" 
+                      : "hover:bg-primary/20"
+                  }`}
+                >
+                  ₹{amount}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Selected digits summary */}
+          {selectedDigits.length > 0 && (
+            <div className="mb-2 p-3 border rounded-lg border-primary/30 bg-primary/5">
+              <div className="flex justify-between items-center mb-2">
+                <h4 className="text-sm font-medium">Selected Digits</h4>
+                <Badge variant="outline" className="bg-primary/10">
+                  {selectedDigits.join(", ")}
+                </Badge>
+              </div>
+              
+              <div className="flex flex-col space-y-1 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Combinations:</span>
+                  <span className="font-medium">{totalCombinations} numbers</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Bet per combination:</span>
+                  <span className="font-medium">₹{quickBetAmount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Total bet amount:</span>
+                  <span className="font-medium">₹{totalCombinations * quickBetAmount}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Potential win (max):</span>
+                  <span className="font-medium text-amber-500">₹{calculatePotentialWin(selectedGameMode, quickBetAmount) * totalCombinations}</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Number selection grid */}
+          <div>
+            <div className="text-sm font-medium mb-2">Select Numbers (0-9)</div>
+            <div className="grid grid-cols-5 gap-3 p-2">
+              {Array.from({ length: 10 }, (_, i) => {
+                const num = i.toString();
+                const isSelected = selectedNumbers.has(num);
+                
+                return (
+                  <div key={num} className="relative">
+                    <Button
+                      variant={isSelected ? "default" : "outline"}
+                      className={`h-12 w-full flex items-center justify-center p-1 ${
+                        isSelected ? "bg-primary text-primary-foreground" : ""
+                      }`}
+                      onClick={() => handleNumberSelection(num)}
+                    >
+                      <span className="text-lg font-medium">{num}</span>
+                    </Button>
+                    {isSelected && (
+                      <div className="absolute -top-2 -right-2 bg-primary text-white rounded-full h-5 w-5 flex items-center justify-center text-xs border border-white">
+                        ✓
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Combinations preview */}
+          {selectedDigits.length > 1 && (
+            <div className="mt-4 p-3 border rounded-lg bg-muted/10">
+              <h4 className="text-sm font-medium mb-2">Generated Combinations</h4>
+              <div className="grid grid-cols-5 md:grid-cols-8 gap-2">
+                {selectedDigits.flatMap((digit1, i) => 
+                  selectedDigits.filter((_, j) => i !== j).map(digit2 => {
+                    const combination = `${digit1}${digit2}`;
+                    return (
+                      <Badge 
+                        key={combination} 
+                        variant="outline" 
+                        className="py-1.5 bg-primary/5 border-primary/20"
+                      >
+                        {combination}
+                      </Badge>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+          
+          {/* Place all bets button */}
+          {selectedDigits.length > 1 && (
+            <div className="mt-4">
+              <Button 
+                variant="default" 
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                onClick={() => {
+                  // Generate prediction text describing the combinations
+                  const combinationsText = selectedDigits.length > 3 
+                    ? `${selectedDigits.length} digits (${totalCombinations} combinations)`
+                    : `Combinations of ${selectedDigits.join(",")}`;
+                  
+                  // Set bet details for confirmation dialog
+                  setBetDetails({
+                    prediction: combinationsText,
+                    betAmount: totalCombinations * quickBetAmount
+                  });
+                  
+                  // Open confirmation dialog
+                  setConfirmDialogOpen(true);
+                }}
               >
-                {num}
+                Place Bets on {totalCombinations} Combinations (₹{totalCombinations * quickBetAmount})
               </Button>
-            );
-          })}
+            </div>
+          )}
         </div>
       );
     } else if (selectedGameMode === "odd_even") {
@@ -653,7 +784,7 @@ export default function SatamatkaGame() {
       case "harf":
         return "Predict digits in specific positions (left/right). Select first digit, second digit, or both. Payout ratio: 9x";
       case "crossing":
-        return "Predict a single digit that appears in either position. Payout ratio: 4.5x";
+        return "Select multiple digits (0-9) to create two-digit combinations. For example, selecting 1,2,3 creates: 12, 21, 13, 31, 23, 32. Payout ratio: 4.5x";
       case "odd_even":
         return "Predict if the result will be odd or even. Payout ratio: 1.8x";
       default:
