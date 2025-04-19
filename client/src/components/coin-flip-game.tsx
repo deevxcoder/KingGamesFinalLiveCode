@@ -49,6 +49,10 @@ export default function CoinFlipGame() {
       // Set the result to trigger animation
       setResult(data.game.result);
       
+      // First let the coin flip for a while (1.4 seconds) without showing result
+      // Then slow down to show the result (0.6 seconds)
+      // Then stop and show popup
+      
       // Wait for the coin flip animation to complete (2 seconds)
       setTimeout(() => {
         // Set flipping to false (stop spinning)
@@ -63,12 +67,15 @@ export default function CoinFlipGame() {
           result: data.game.result
         });
         
-        // Show appropriate popup immediately
-        if (isWin) {
-          setShowWinPopup(true);
-        } else {
-          setShowLosePopup(true);
-        }
+        // Show appropriate popup after a slight delay
+        // This gives user time to see the final result before showing popup
+        setTimeout(() => {
+          if (isWin) {
+            setShowWinPopup(true);
+          } else {
+            setShowLosePopup(true);
+          }
+        }, 600); // Add a small delay after animation stops
       }, 2000); // 2 seconds for coin flip animation
     },
     onError: (error: Error) => {
@@ -173,9 +180,7 @@ export default function CoinFlipGame() {
                   className="w-full h-full relative transform-style-3d"
                   animate={{
                     rotateY: isFlipping 
-                      ? result === GameOutcome.HEADS 
-                        ? 1440  // 4 full rotations + 0 degrees (heads)
-                        : 1530  // 4 full rotations + 180 degrees (tails)
+                      ? [0, 1080, result === GameOutcome.HEADS ? 1440 : 1530]  // Start, multiple spins, then result position
                       : result === GameOutcome.HEADS
                         ? 0     // Keep showing heads after animation
                         : result === GameOutcome.TAILS
@@ -183,8 +188,9 @@ export default function CoinFlipGame() {
                           : 0,  // Default position
                   }}
                   transition={{
-                    duration: 2,
-                    ease: "easeInOut",
+                    duration: isFlipping ? 2 : 0,
+                    ease: "easeOut",
+                    times: isFlipping ? [0, 0.7, 1] : [0, 1],  // Control timing of animation segments
                   }}
                   style={{ transformStyle: "preserve-3d" }}
                 >
@@ -216,7 +222,7 @@ export default function CoinFlipGame() {
             
             <div className="text-center">
               <p className="text-muted-foreground mb-2 text-sm">Select your prediction:</p>
-              <div className="flex flex-col sm:flex-row justify-center space-y-2 sm:space-y-0 sm:space-x-3">
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row sm:justify-center sm:space-x-3">
                 <Button
                   onClick={() => selectPrediction(GameOutcome.HEADS)}
                   className={`px-4 py-3 relative ${
