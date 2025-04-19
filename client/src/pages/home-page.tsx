@@ -211,7 +211,7 @@ export default function HomePage() {
           <GameIconCard
             id="cricket"
             title="Cricket Toss"
-            icon={Cricket}
+            icon={Activity}
             path="/cricket-toss"
             gradient="bg-gradient-to-r from-green-700 to-emerald-600"
           />
