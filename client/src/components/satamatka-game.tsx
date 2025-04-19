@@ -412,51 +412,14 @@ export default function SatamatkaGame() {
             </div>
           </div>
           
-          {/* Mobile-optimized number grid showing 00-20 initially with 5 numbers per row */}
+          {/* Mobile-optimized number grid with 5 numbers per row */}
           <div className="space-y-4">
             <div className="text-sm font-medium">Select Numbers</div>
             
-            {/* First 21 numbers (00-20) shown prominently */}
-            <div className="grid grid-cols-5 gap-2 p-2">
-              {Array.from({ length: 21 }, (_, i) => {
+            {/* All numbers (00-99) in a scrollable container with first 20 visible initially */}
+            <div className="grid grid-cols-5 gap-2 max-h-[320px] overflow-y-auto p-2 border rounded-lg border-slate-700">
+              {Array.from({ length: 100 }, (_, i) => {
                 const num = i.toString().padStart(2, "0");
-                const isSelected = selectedNumbers.has(num);
-                const betAmount = selectedNumbers.get(num) || 0;
-                
-                return (
-                  <div key={num} className="relative">
-                    <Button
-                      variant={isSelected ? "default" : "outline"}
-                      className={`h-12 w-full flex flex-col items-center justify-center p-1 ${
-                        isSelected ? "bg-primary/90" : ""
-                      }`}
-                      onClick={() => handleNumberSelection(num)}
-                    >
-                      <span className="text-base font-medium">{num}</span>
-                      {isSelected && (
-                        <span className="text-xs mt-1">₹{betAmount}</span>
-                      )}
-                    </Button>
-                    {isSelected && (
-                      <button
-                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeNumberSelection(num);
-                        }}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-            
-            {/* Remaining numbers (21-99) in a scrollable container */}
-            <div className="grid grid-cols-5 gap-2 max-h-[230px] overflow-y-auto p-2 border rounded-lg border-slate-700">
-              {Array.from({ length: 79 }, (_, i) => {
-                const num = (i + 21).toString().padStart(2, "0");
                 const isSelected = selectedNumbers.has(num);
                 const betAmount = selectedNumbers.get(num) || 0;
                 
