@@ -28,9 +28,19 @@ export default function AdminSettingsPage() {
   const [isUploading, setIsUploading] = useState(false);
   
   // Game Card Images State
-  const [gameCardImages, setGameCardImages] = useState<{filename: string, url: string}[]>([]);
-  const [isUploadingGameCard, setIsUploadingGameCard] = useState(false);
-  const gameCardFileInputRef = useRef<HTMLInputElement>(null);
+  const [gameCardImages, setGameCardImages] = useState<{filename: string, url: string, gameType?: string}[]>([]);
+  const [isUploadingGameCard, setIsUploadingGameCard] = useState<{[key: string]: boolean}>({
+    market: false,
+    cricket: false,
+    sports: false,
+    coinflip: false
+  });
+  const gameCardFileInputRefs = {
+    market: useRef<HTMLInputElement>(null),
+    cricket: useRef<HTMLInputElement>(null),
+    sports: useRef<HTMLInputElement>(null),
+    coinflip: useRef<HTMLInputElement>(null)
+  };
 
   // Game Odds Settings
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.95");
@@ -437,7 +447,7 @@ export default function AdminSettingsPage() {
   
   // Upload game card image mutation
   const uploadGameCardMutation = useMutation({
-    mutationFn: async (formData: FormData) => {
+    mutationFn: async ({ formData, gameType }: { formData: FormData; gameType: string }) => {
       const response = await fetch('/api/upload/gamecard', {
         method: 'POST',
         body: formData,
@@ -449,23 +459,33 @@ export default function AdminSettingsPage() {
         throw new Error(errorData.error || 'Failed to upload image');
       }
       
-      return response.json();
+      return { 
+        result: await response.json(),
+        gameType
+      };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const { gameType } = data;
       toast({
         title: "Image Uploaded",
-        description: "Game card image has been uploaded successfully.",
+        description: `Game card image for ${gameType.toUpperCase()} has been uploaded successfully.`,
       });
       refetchGameCardImages();
-      setIsUploadingGameCard(false);
+      setIsUploadingGameCard(prev => ({
+        ...prev,
+        [data.gameType]: false
+      }));
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables) => {
       toast({
         title: "Upload Failed",
         description: error.message,
         variant: "destructive",
       });
-      setIsUploadingGameCard(false);
+      setIsUploadingGameCard(prev => ({
+        ...prev,
+        [variables.gameType]: false
+      }));
     }
   });
   
@@ -491,7 +511,7 @@ export default function AdminSettingsPage() {
   });
   
   // Handle game card image upload
-  const handleGameCardImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGameCardImageUpload = (event: React.ChangeEvent<HTMLInputElement>, gameType: string) => {
     if (!event.target.files || event.target.files.length === 0) {
       return;
     }
@@ -499,13 +519,18 @@ export default function AdminSettingsPage() {
     const file = event.target.files[0];
     const formData = new FormData();
     formData.append('gameCardImage', file);
+    formData.append('gameType', gameType);
     
-    setIsUploadingGameCard(true);
-    uploadGameCardMutation.mutate(formData);
+    setIsUploadingGameCard(prev => ({
+      ...prev,
+      [gameType]: true
+    }));
+    
+    uploadGameCardMutation.mutate({ formData, gameType });
     
     // Reset the file input
-    if (gameCardFileInputRef.current) {
-      gameCardFileInputRef.current.value = '';
+    if (gameCardFileInputRefs[gameType as keyof typeof gameCardFileInputRefs]?.current) {
+      gameCardFileInputRefs[gameType as keyof typeof gameCardFileInputRefs].current!.value = '';
     }
   };
   
@@ -963,7 +988,7 @@ export default function AdminSettingsPage() {
             <CardHeader>
               <CardTitle>Game Card Images</CardTitle>
               <CardDescription>
-                Manage the game card images shown on the home page and game selection screens
+                Manage the game card images shown for each game type on the platform
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -988,110 +1013,292 @@ export default function AdminSettingsPage() {
                       </div>
                     </div>
                     
-                    <div className="flex flex-col gap-4">
-                      <div className="flex items-center gap-4">
-                        <Button
-                          onClick={() => gameCardFileInputRef.current?.click()}
-                          className="gap-2"
-                          disabled={isUploadingGameCard}
-                        >
-                          {isUploadingGameCard ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Upload className="h-4 w-4" />
-                          )}
-                          Upload Game Card Image
-                        </Button>
-                        <input
-                          type="file"
-                          ref={gameCardFileInputRef}
-                          className="hidden"
-                          accept="image/*"
-                          onChange={handleGameCardImageUpload}
-                        />
+                    <div className="flex items-center justify-end gap-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => refetchGameCardImages()}
+                        size="icon"
+                        title="Refresh game card images"
+                      >
+                        <RefreshCw className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="space-y-8">
+                      {/* Market Game Card Image Section */}
+                      <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <h3 className="text-lg font-medium mb-4">Market Game Card Image</h3>
                         
-                        <Button
-                          variant="outline"
-                          onClick={() => refetchGameCardImages()}
-                          size="icon"
-                          title="Refresh game card images"
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </Button>
+                        <div className="flex flex-col gap-6">
+                          <div className="flex items-center gap-4">
+                            <Button
+                              onClick={() => gameCardFileInputRefs.market.current?.click()}
+                              className="gap-2"
+                              disabled={isUploadingGameCard.market}
+                            >
+                              {isUploadingGameCard.market ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Upload className="h-4 w-4" />
+                              )}
+                              Upload Market Game Image
+                            </Button>
+                            <input
+                              type="file"
+                              ref={gameCardFileInputRefs.market}
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => handleGameCardImageUpload(e, 'market')}
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {gameCardImages
+                              .filter(img => img.gameType === 'market')
+                              .map((image) => (
+                                <div 
+                                  key={image.filename} 
+                                  className="relative group overflow-hidden rounded-md border border-slate-700"
+                                >
+                                  <img 
+                                    src={image.url} 
+                                    alt="Market Game Card" 
+                                    className="object-cover w-full h-[160px]"
+                                  />
+                                  
+                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3">
+                                    <div className="text-white text-sm font-medium">
+                                      Market Game
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      variant="destructive"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full"
+                                      onClick={() => handleDeleteGameCardImage(image.filename)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                            ))}
+                            
+                            {gameCardImages.filter(img => img.gameType === 'market').length === 0 && (
+                              <div className="py-6 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
+                                <p className="text-slate-400">No Market Game card image uploaded yet. Upload an image to use as background for the Market Game card.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                       
-                      {gameCardImages.length === 0 ? (
-                        <div className="py-8 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
-                          <p className="text-slate-400">No game card images uploaded yet. Upload some images to use them as backgrounds for game cards.</p>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {gameCardImages.map((image) => (
-                            <div 
-                              key={image.filename} 
-                              className="relative group overflow-hidden rounded-md border border-slate-700"
+                      {/* Sports Betting Card Image Section */}
+                      <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <h3 className="text-lg font-medium mb-4">Sports Betting Card Image</h3>
+                        
+                        <div className="flex flex-col gap-6">
+                          <div className="flex items-center gap-4">
+                            <Button
+                              onClick={() => gameCardFileInputRefs.sports.current?.click()}
+                              className="gap-2"
+                              disabled={isUploadingGameCard.sports}
                             >
-                              <img 
-                                src={image.url} 
-                                alt="Game Card" 
-                                className="object-cover w-full h-[160px]"
-                              />
-                              
-                              <div className="absolute inset-0 bg-black/40 flex items-end p-3">
-                                <div className="text-white text-sm font-medium truncate">
-                                  {image.filename.replace('gamecard-', '').substring(0, 15)}...
+                              {isUploadingGameCard.sports ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Upload className="h-4 w-4" />
+                              )}
+                              Upload Sports Betting Image
+                            </Button>
+                            <input
+                              type="file"
+                              ref={gameCardFileInputRefs.sports}
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => handleGameCardImageUpload(e, 'sports')}
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {gameCardImages
+                              .filter(img => img.gameType === 'sports')
+                              .map((image) => (
+                                <div 
+                                  key={image.filename} 
+                                  className="relative group overflow-hidden rounded-md border border-slate-700"
+                                >
+                                  <img 
+                                    src={image.url} 
+                                    alt="Sports Betting Card" 
+                                    className="object-cover w-full h-[160px]"
+                                  />
+                                  
+                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3">
+                                    <div className="text-white text-sm font-medium">
+                                      Sports Betting
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      variant="destructive"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full"
+                                      onClick={() => handleDeleteGameCardImage(image.filename)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </div>
+                            ))}
+                            
+                            {gameCardImages.filter(img => img.gameType === 'sports').length === 0 && (
+                              <div className="py-6 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
+                                <p className="text-slate-400">No Sports Betting card image uploaded yet. Upload an image to use as background for the Sports Betting card.</p>
                               </div>
-                              
-                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  variant="destructive"
-                                  size="icon"
-                                  className="h-8 w-8 rounded-full"
-                                  onClick={() => handleDeleteGameCardImage(image.filename)}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
-
-                              <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button
-                                  variant="secondary"
-                                  size="sm"
-                                  className="h-8 px-2 text-xs"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(image.url);
-                                    toast({
-                                      title: "URL Copied",
-                                      description: "Image URL has been copied to clipboard",
-                                    });
-                                  }}
-                                >
-                                  Copy URL
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
+                            )}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    
-                    <div className="mt-6 p-4 bg-amber-900/20 border border-amber-700/30 rounded-lg">
-                      <h3 className="text-lg font-medium text-amber-400 mb-2">How to use these images</h3>
-                      <p className="text-sm text-slate-300 mb-4">
-                        After uploading images, you can use them for game cards by copying their URLs and updating the gameCards array in the frontend code or using them in your game configuration settings.
-                      </p>
-                      <div className="text-xs bg-slate-800/70 p-3 rounded border border-slate-700 font-mono text-slate-300 overflow-x-auto">
-                        <code>{`
-// Example usage in game card configuration
-{
-  id: "coinflip",
-  title: "Coin Flip",
-  description: "Classic heads or tails game",
-  imageUrl: "/uploads/gamecards/gamecard-FILENAME.jpg", // ← Use the copied URL here
-  path: "/coinflip"
-}
-                        `}</code>
+                      </div>
+                      
+                      {/* Cricket Toss Card Image Section */}
+                      <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <h3 className="text-lg font-medium mb-4">Cricket Toss Card Image</h3>
+                        
+                        <div className="flex flex-col gap-6">
+                          <div className="flex items-center gap-4">
+                            <Button
+                              onClick={() => gameCardFileInputRefs.cricket.current?.click()}
+                              className="gap-2"
+                              disabled={isUploadingGameCard.cricket}
+                            >
+                              {isUploadingGameCard.cricket ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Upload className="h-4 w-4" />
+                              )}
+                              Upload Cricket Toss Image
+                            </Button>
+                            <input
+                              type="file"
+                              ref={gameCardFileInputRefs.cricket}
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => handleGameCardImageUpload(e, 'cricket')}
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {gameCardImages
+                              .filter(img => img.gameType === 'cricket')
+                              .map((image) => (
+                                <div 
+                                  key={image.filename} 
+                                  className="relative group overflow-hidden rounded-md border border-slate-700"
+                                >
+                                  <img 
+                                    src={image.url} 
+                                    alt="Cricket Toss Card" 
+                                    className="object-cover w-full h-[160px]"
+                                  />
+                                  
+                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3">
+                                    <div className="text-white text-sm font-medium">
+                                      Cricket Toss
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      variant="destructive"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full"
+                                      onClick={() => handleDeleteGameCardImage(image.filename)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                            ))}
+                            
+                            {gameCardImages.filter(img => img.gameType === 'cricket').length === 0 && (
+                              <div className="py-6 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
+                                <p className="text-slate-400">No Cricket Toss card image uploaded yet. Upload an image to use as background for the Cricket Toss card.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Coin Flip Card Image Section */}
+                      <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                        <h3 className="text-lg font-medium mb-4">Coin Flip Card Image</h3>
+                        
+                        <div className="flex flex-col gap-6">
+                          <div className="flex items-center gap-4">
+                            <Button
+                              onClick={() => gameCardFileInputRefs.coinflip.current?.click()}
+                              className="gap-2"
+                              disabled={isUploadingGameCard.coinflip}
+                            >
+                              {isUploadingGameCard.coinflip ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Upload className="h-4 w-4" />
+                              )}
+                              Upload Coin Flip Image
+                            </Button>
+                            <input
+                              type="file"
+                              ref={gameCardFileInputRefs.coinflip}
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => handleGameCardImageUpload(e, 'coinflip')}
+                            />
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {gameCardImages
+                              .filter(img => img.gameType === 'coinflip')
+                              .map((image) => (
+                                <div 
+                                  key={image.filename} 
+                                  className="relative group overflow-hidden rounded-md border border-slate-700"
+                                >
+                                  <img 
+                                    src={image.url} 
+                                    alt="Coin Flip Card" 
+                                    className="object-cover w-full h-[160px]"
+                                  />
+                                  
+                                  <div className="absolute inset-0 bg-black/40 flex items-end p-3">
+                                    <div className="text-white text-sm font-medium">
+                                      Coin Flip
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      variant="destructive"
+                                      size="icon"
+                                      className="h-8 w-8 rounded-full"
+                                      onClick={() => handleDeleteGameCardImage(image.filename)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                            ))}
+                            
+                            {gameCardImages.filter(img => img.gameType === 'coinflip').length === 0 && (
+                              <div className="py-6 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
+                                <p className="text-slate-400">No Coin Flip card image uploaded yet. Upload an image to use as background for the Coin Flip card.</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>

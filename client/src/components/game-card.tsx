@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/hooks/use-auth";
+import { useEffect, useState } from "react";
 
 interface GameCardProps {
   id: string;
@@ -21,7 +22,8 @@ interface GameCardProps {
   popularity?: "high" | "medium" | "low";
   winRate?: number;
   comingSoon?: boolean;
-  imageUrl?: string; // Add support for actual image URL
+  imageUrl?: string; // For direct image URL (backward compatibility)
+  gameType?: "market" | "sports" | "cricket" | "coinflip"; // Game type for automatic image selection
 }
 
 export default function GameCard({ 
@@ -33,10 +35,37 @@ export default function GameCard({
   popularity = "medium",
   winRate,
   comingSoon = false,
-  imageUrl
+  imageUrl,
+  gameType
 }: GameCardProps) {
   const [_, setLocation] = useLocation();
   const { user } = useAuth() || {};
+  const [gameCardImage, setGameCardImage] = useState<string | null>(null);
+  
+  // Fetch game card image based on game type
+  useEffect(() => {
+    // If a direct imageUrl is provided, use that (for backward compatibility)
+    if (imageUrl) {
+      setGameCardImage(imageUrl);
+      return;
+    }
+    
+    // If no gameType provided, use the default image background
+    if (!gameType) return;
+    
+    // Fetch the appropriate game card image
+    fetch(`/api/gamecards?gameType=${gameType}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.length > 0) {
+          // Use the first image for this game type
+          setGameCardImage(data[0].url);
+        }
+      })
+      .catch(err => {
+        console.error(`Error fetching image for ${gameType} game card:`, err);
+      });
+  }, [gameType, imageUrl]);
 
   const getPopularityBadge = () => {
     switch (popularity) {
@@ -61,7 +90,7 @@ export default function GameCard({
     <Card className="overflow-hidden h-full transition-all duration-200 hover:shadow-lg border-slate-800 bg-slate-900/70 backdrop-blur-sm">
       <div 
         className="h-40 bg-cover bg-center relative"
-        style={{ backgroundImage: imageUrl ? `url(${imageUrl})` : imageBg }}
+        style={{ backgroundImage: gameCardImage ? `url(${gameCardImage})` : imageUrl ? `url(${imageUrl})` : imageBg }}
       >
         <div className="h-full w-full bg-gradient-to-b from-transparent to-black/80 flex items-end p-4">
           <div>

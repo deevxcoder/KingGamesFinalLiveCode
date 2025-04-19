@@ -203,17 +203,34 @@ export function setupUploadRoutes(app: express.Express) {
         return res.status(400).json({ error: 'No file uploaded' });
       }
       
-      // Get game ID from request body, this will be used for naming conventions
-      const { gameId } = req.body;
+      // Get game type from request body (market, cricket, sports, coinflip)
+      const { gameType } = req.body;
+      
+      if (!gameType) {
+        return res.status(400).json({ error: 'Game type is required' });
+      }
+
+      // Create a new filename that includes the game type for better organization
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+      const ext = path.extname(req.file.originalname);
+      const newFilename = `gamecard-${gameType}-${uniqueSuffix}${ext}`;
+      
+      // Create the new file path 
+      const oldPath = path.join(gameCardUploadsDir, req.file.filename);
+      const newPath = path.join(gameCardUploadsDir, newFilename);
+      
+      // Rename the file to include the game type
+      fs.renameSync(oldPath, newPath);
       
       // Generate URL for the uploaded file
-      const fileUrl = `/uploads/gamecards/${req.file.filename}`;
+      const fileUrl = `/uploads/gamecards/${newFilename}`;
       
       // Return the URL to the client
       res.json({ 
         success: true, 
         imageUrl: fileUrl,
-        gameId: gameId || null
+        gameType: gameType,
+        filename: newFilename
       });
     } catch (error) {
       console.error('Upload error:', error);
@@ -221,17 +238,31 @@ export function setupUploadRoutes(app: express.Express) {
     }
   });
   
-  // API route to get all game card images
+  // API route to get all game card images, optionally filtered by game type
   app.get('/api/gamecards', async (req: Request, res: Response) => {
     try {
+      const gameType = req.query.gameType as string | undefined;
+      
       // Read the game cards directory
       const files = fs.readdirSync(gameCardUploadsDir);
       
+      // Filter by game type if provided
+      const filteredFiles = gameType 
+        ? files.filter(file => file.includes(`gamecard-${gameType}-`))
+        : files;
+      
       // Map to URLs
-      const gameCardImages = files.map(file => ({
-        filename: file,
-        url: `/uploads/gamecards/${file}`
-      }));
+      const gameCardImages = filteredFiles.map(file => {
+        // Extract game type from filename
+        const typeMatch = file.match(/gamecard-([\w-]+)-\d+/);
+        const extractedType = typeMatch ? typeMatch[1] : 'unknown';
+        
+        return {
+          filename: file,
+          url: `/uploads/gamecards/${file}`,
+          gameType: extractedType
+        };
+      });
       
       res.json(gameCardImages);
     } catch (error) {
