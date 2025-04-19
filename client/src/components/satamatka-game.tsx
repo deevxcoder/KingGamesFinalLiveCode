@@ -195,7 +195,7 @@ export default function SatamatkaGame() {
   }, [market, marketError, toast]);
 
   // Query for user's recent bets
-  const { data: recentBets = [], refetch: refetchRecentBets } = useQuery({
+  const { data: recentBets = [] as Game[], refetch: refetchRecentBets } = useQuery<Game[]>({
     queryKey: ["/api/games/my-history"],
     queryFn: getQueryFn({ on401: "throw" }),
     enabled: !!user
@@ -203,7 +203,7 @@ export default function SatamatkaGame() {
   
   // Log bet history when received
   useEffect(() => {
-    if (recentBets && recentBets.length > 0) {
+    if (recentBets && Array.isArray(recentBets) && recentBets.length > 0) {
       console.log("Received bet history:", recentBets);
     }
   }, [recentBets]);
@@ -829,7 +829,7 @@ export default function SatamatkaGame() {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => setLocation("/game-history")}
+              onClick={() => setLocation("/history")}
               className="ml-auto"
             >
               View Full History
