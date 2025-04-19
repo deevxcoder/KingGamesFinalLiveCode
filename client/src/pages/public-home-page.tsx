@@ -321,21 +321,23 @@ export default function PublicHomePage() {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {gameCards.map((game) => (
-              <GameCard 
-                key={game.id}
-                id={game.id}
-                title={game.title}
-                description={game.description}
-                imageBg={game.imageBg}
-                path={game.path}
-                popularity={game.popularity}
-                winRate={game.winRate}
-                comingSoon={game.comingSoon}
-                gameType={game.gameType}
-                imageUrl={game.imageUrl} // Keep for backward compatibility with Kings Original
-              />
+              <div className="mx-auto w-full max-w-[400px] sm:max-w-none">
+                <GameCard 
+                  key={game.id}
+                  id={game.id}
+                  title={game.title}
+                  description={game.description}
+                  imageBg={game.imageBg}
+                  path={game.path}
+                  popularity={game.popularity}
+                  winRate={game.winRate}
+                  comingSoon={game.comingSoon}
+                  gameType={game.gameType}
+                  imageUrl={game.imageUrl} // Keep for backward compatibility with Kings Original
+                />
+              </div>
             ))}
           </div>
         </div>
