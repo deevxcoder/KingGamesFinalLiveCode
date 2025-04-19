@@ -273,8 +273,29 @@ export default function AdminSettingsPage() {
     }
   });
 
+  // Additional mutation to update wallet payment details
+  const saveWalletPaymentDetailsMutation = useMutation({
+    mutationFn: (details: any) => apiRequest("PUT", '/api/wallet/payment-details', details)
+      .then(res => res.json()),
+    onSuccess: () => {
+      toast({
+        title: "Payment Details Saved",
+        description: "Payment details have been updated for wallet deposits.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/wallet/payment-details'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Saving Payment Details",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
   // Handle payment settings save
   const handleSavePayment = () => {
+    // Save individual settings
     // Save UPI ID
     saveMutation.mutate({ 
       settingType: "payment", 
@@ -305,6 +326,23 @@ export default function AdminSettingsPage() {
       settingType: "payment", 
       settingKey: "ifsc_code", 
       settingValue: ifscCode 
+    });
+    
+    // IMPORTANT: Also update the wallet payment details for the client interface
+    saveWalletPaymentDetailsMutation.mutate({
+      upi: {
+        id: upiId,
+        qrCode: null
+      },
+      bank: {
+        name: bankName,
+        accountNumber: accountNumber,
+        ifscCode: ifscCode,
+        accountHolder: accountName
+      },
+      cash: {
+        instructions: "Contact administrator for cash payment"
+      }
     });
   };
 

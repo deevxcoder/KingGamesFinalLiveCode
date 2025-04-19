@@ -403,16 +403,38 @@ export function setupWalletRoutes(app: express.Express) {
       
       // Default payment details if none found
       if (!paymentSettings) {
+        // Get all payment-related settings to build our response
+        const upiSettings = await db.query.systemSettings.findFirst({
+          where: eq(systemSettings.settingKey, 'upi_id')
+        });
+        
+        const bankNameSettings = await db.query.systemSettings.findFirst({
+          where: eq(systemSettings.settingKey, 'bank_name')
+        });
+        
+        const accountHolderSettings = await db.query.systemSettings.findFirst({
+          where: eq(systemSettings.settingKey, 'account_holder')
+        });
+        
+        const accountNumberSettings = await db.query.systemSettings.findFirst({
+          where: eq(systemSettings.settingKey, 'account_number')
+        });
+        
+        const ifscCodeSettings = await db.query.systemSettings.findFirst({
+          where: eq(systemSettings.settingKey, 'ifsc_code')
+        });
+        
+        // Use admin values from settings, or fallback to defaults if truly not set
         return res.json({
           upi: {
-            id: 'example@upi',
+            id: upiSettings?.settingValue || 'admin@upi',
             qrCode: null,
           },
           bank: {
-            name: 'Sample Bank',
-            accountNumber: '123456789',
-            ifscCode: 'SBIN0001234',
-            accountHolder: 'Administrator',
+            name: bankNameSettings?.settingValue || 'Bank Name',
+            accountNumber: accountNumberSettings?.settingValue || 'Account Number',
+            ifscCode: ifscCodeSettings?.settingValue || 'IFSC Code',
+            accountHolder: accountHolderSettings?.settingValue || 'Account Holder',
           },
           cash: {
             instructions: 'Contact administrator for cash payment',
