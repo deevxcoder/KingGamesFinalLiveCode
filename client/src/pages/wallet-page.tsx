@@ -76,7 +76,26 @@ export default function WalletPage() {
   // Set payment details when they are fetched
   useEffect(() => {
     if (systemPaymentDetails) {
-      setPaymentModeDetails(systemPaymentDetails);
+      // Transform the API response to match the expected structure
+      const transformedDetails: PaymentDetails = {
+        upiDetails: systemPaymentDetails.upi ? {
+          upiId: systemPaymentDetails.upi.id,
+          qrImageUrl: systemPaymentDetails.upi.qrCode || undefined
+        } : undefined,
+        bankDetails: systemPaymentDetails.bank ? {
+          accountName: systemPaymentDetails.bank.accountHolder,
+          accountNumber: systemPaymentDetails.bank.accountNumber,
+          ifscCode: systemPaymentDetails.bank.ifscCode,
+          bankName: systemPaymentDetails.bank.name
+        } : undefined,
+        cashDetails: systemPaymentDetails.cash ? {
+          handlerName: systemPaymentDetails.cash.instructions,
+          contactNumber: systemPaymentDetails.cash.contact || undefined
+        } : undefined
+      };
+      
+      setPaymentModeDetails(transformedDetails);
+      console.log("Payment details transformed:", transformedDetails);
     }
   }, [systemPaymentDetails]);
 
