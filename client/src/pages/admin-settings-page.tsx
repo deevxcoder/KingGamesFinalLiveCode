@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,11 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload, X, Info, Trash2, RefreshCw } from "lucide-react";
 
 export default function AdminSettingsPage() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("payment");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Payment Settings
   const [upiId, setUpiId] = useState("");
@@ -21,6 +22,10 @@ export default function AdminSettingsPage() {
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
   const [ifscCode, setIfscCode] = useState("");
+  
+  // Slider Images State
+  const [sliderImages, setSliderImages] = useState<{filename: string, url: string}[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Game Odds Settings
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.95");
@@ -134,6 +139,79 @@ export default function AdminSettingsPage() {
       setSatamatkaOdds(updatedOdds);
     }
   }, [satamatkaOddsData]);
+  
+  // Load slider images
+  const { 
+    data: sliderImagesData, 
+    isLoading: isLoadingSliderImages,
+    refetch: refetchSliderImages
+  } = useQuery<{filename: string, url: string}[]>({
+    queryKey: ['/api/sliders'],
+    queryFn: () => apiRequest("GET", '/api/sliders')
+      .then(res => res.json()),
+  });
+  
+  // Update slider images when data is loaded
+  useEffect(() => {
+    if (sliderImagesData) {
+      setSliderImages(sliderImagesData);
+    }
+  }, [sliderImagesData]);
+  
+  // Upload slider image mutation
+  const uploadSliderMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch('/api/upload/slider', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload image');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Image Uploaded",
+        description: "Slider image has been uploaded successfully.",
+      });
+      refetchSliderImages();
+      setIsUploading(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setIsUploading(false);
+    }
+  });
+  
+  // Delete slider image mutation
+  const deleteSliderMutation = useMutation({
+    mutationFn: (filename: string) => 
+      apiRequest("DELETE", `/api/sliders/${filename}`)
+        .then(res => res.json()),
+    onSuccess: () => {
+      toast({
+        title: "Image Deleted",
+        description: "Slider image has been deleted successfully.",
+      });
+      refetchSliderImages();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   // Save settings mutation
   const saveMutation = useMutation({
@@ -277,10 +355,11 @@ export default function AdminSettingsPage() {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="payment">Payment Settings</TabsTrigger>
           <TabsTrigger value="odds">Game Odds</TabsTrigger>
           <TabsTrigger value="commission">Subadmin Commission</TabsTrigger>
+          <TabsTrigger value="slider">Promo Slider</TabsTrigger>
         </TabsList>
         
         {/* Payment Settings Tab */}
