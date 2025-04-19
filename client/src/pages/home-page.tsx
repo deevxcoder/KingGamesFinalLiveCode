@@ -24,7 +24,9 @@ import {
   Target,
   Gamepad2,
   Coins,
-  Activity
+  Activity,
+  Club,
+  Disc
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -211,7 +213,7 @@ export default function HomePage() {
           <GameIconCard
             id="cricket"
             title="Cricket Toss"
-            icon={Activity}
+            icon={Club}
             path="/cricket-toss"
             gradient="bg-gradient-to-r from-green-700 to-emerald-600"
           />
