@@ -797,8 +797,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // For Jodi, prediction should be a two-digit number
             return /^[0-9]{2}$/.test(prediction);
           case SatamatkaGameMode.HARF:
-            // For Harf, prediction should be a single digit
-            return /^[0-9]$/.test(prediction);
+            // For Harf, prediction can be:
+            // - A single digit (original implementation)
+            // - L followed by a digit (left/first position)
+            // - R followed by a digit (right/second position)
+            return /^[0-9]$/.test(prediction) || // Original format
+                   /^L[0-9]$/.test(prediction) || // Left digit format
+                   /^R[0-9]$/.test(prediction);   // Right digit format
           case SatamatkaGameMode.CROSSING:
             // For Crossing, prediction should be a single digit
             return /^[0-9]$/.test(prediction);
