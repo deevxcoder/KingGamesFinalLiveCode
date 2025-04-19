@@ -484,7 +484,7 @@ export default function SatamatkaGame() {
             <div className="mt-4">
               <Button 
                 variant="default" 
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg transition-all duration-200"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
                 onClick={() => setShowBetSlip(true)}
               >
                 View Bet Slip ({selectedNumbers.size} numbers, ₹{calculateTotalBetAmount()})
@@ -634,7 +634,7 @@ export default function SatamatkaGame() {
             <div className="mt-4">
               <Button 
                 variant="default" 
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg transition-all duration-200"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
                 onClick={() => setShowBetSlip(true)}
               >
                 View Bet Slip ({selectedNumbers.size} numbers, ₹{calculateTotalBetAmount()})
@@ -791,7 +791,7 @@ export default function SatamatkaGame() {
             <div className="mt-4">
               <Button 
                 variant="default" 
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg transition-all duration-200"
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
                 onClick={() => {
                   // Generate prediction text describing the combinations
                   const combinationsText = selectedDigits.length > 3 
@@ -944,7 +944,7 @@ export default function SatamatkaGame() {
               <CardFooter>
                 <Button 
                   variant="default" 
-                  className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg transition-all duration-200"
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
                   onClick={() => {
                     setBetDetails({
                       prediction: Array.from(selectedNumbers.keys())[0],
@@ -1141,7 +1141,7 @@ export default function SatamatkaGame() {
             <Button 
               type="button"
               onClick={placeBetsForAllSelections}
-              className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg transition-all duration-200"
+              className="bg-gradient-to-r from-green-500 to-emerald-600"
               disabled={selectedNumbers.size === 0 || placeBetMutation.isPending}
             >
               {placeBetMutation.isPending ? (
@@ -1207,7 +1207,7 @@ export default function SatamatkaGame() {
             <Button 
               type="button"
               onClick={handleConfirmBet}
-              className="bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg transition-all duration-200"
+              className="bg-gradient-to-r from-green-500 to-emerald-600"
               disabled={placeBetMutation.isPending || placeMultipleBetsMutation.isPending}
             >
               {placeBetMutation.isPending || placeMultipleBetsMutation.isPending ? (
