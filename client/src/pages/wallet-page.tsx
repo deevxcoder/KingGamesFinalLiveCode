@@ -365,7 +365,26 @@ export default function WalletPage() {
                   <h3 className="text-lg font-semibold text-fuchsia-300">UPI Payment Details</h3>
                 </div>
                 <div className="pl-9">
-                  <p className="mt-2 text-slate-300"><strong className="text-slate-200">UPI ID:</strong> {paymentModeDetails.upiDetails.upiId}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <p className="text-slate-300"><strong className="text-slate-200">UPI ID:</strong> {paymentModeDetails.upiDetails.upiId}</p>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      onClick={() => {
+                        if (paymentModeDetails?.upiDetails?.upiId) {
+                          navigator.clipboard.writeText(paymentModeDetails.upiDetails.upiId);
+                          toast({
+                            title: "Copied!",
+                            description: "UPI ID copied to clipboard",
+                          });
+                        }
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    </Button>
+                  </div>
                   {paymentModeDetails.upiDetails.qrImageUrl && (
                     <div className="mt-3">
                       <p className="text-slate-200 font-medium">Scan QR Code:</p>
@@ -411,10 +430,89 @@ export default function WalletPage() {
                   <h3 className="text-lg font-semibold text-fuchsia-300">Bank Transfer Details</h3>
                 </div>
                 <div className="pl-9">
-                  <p className="mt-2 text-slate-300"><strong className="text-slate-200">Account Name:</strong> {paymentModeDetails.bankDetails.accountName}</p>
-                  <p className="text-slate-300"><strong className="text-slate-200">Account Number:</strong> {paymentModeDetails.bankDetails.accountNumber}</p>
-                  <p className="text-slate-300"><strong className="text-slate-200">IFSC Code:</strong> {paymentModeDetails.bankDetails.ifscCode}</p>
-                  <p className="text-slate-300"><strong className="text-slate-200">Bank Name:</strong> {paymentModeDetails.bankDetails.bankName}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <p className="text-slate-300"><strong className="text-slate-200">Account Name:</strong> {paymentModeDetails.bankDetails.accountName}</p>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      onClick={() => {
+                        if (paymentModeDetails?.bankDetails?.accountName) {
+                          navigator.clipboard.writeText(paymentModeDetails.bankDetails.accountName);
+                          toast({
+                            title: "Copied!",
+                            description: "Account name copied to clipboard",
+                          });
+                        }
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-1 flex items-center gap-2">
+                    <p className="text-slate-300"><strong className="text-slate-200">Account Number:</strong> {paymentModeDetails.bankDetails.accountNumber}</p>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      onClick={() => {
+                        if (paymentModeDetails?.bankDetails?.accountNumber) {
+                          navigator.clipboard.writeText(paymentModeDetails.bankDetails.accountNumber);
+                          toast({
+                            title: "Copied!",
+                            description: "Account number copied to clipboard",
+                          });
+                        }
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-1 flex items-center gap-2">
+                    <p className="text-slate-300"><strong className="text-slate-200">IFSC Code:</strong> {paymentModeDetails.bankDetails.ifscCode}</p>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      onClick={() => {
+                        if (paymentModeDetails?.bankDetails?.ifscCode) {
+                          navigator.clipboard.writeText(paymentModeDetails.bankDetails.ifscCode);
+                          toast({
+                            title: "Copied!",
+                            description: "IFSC code copied to clipboard",
+                          });
+                        }
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-1 flex items-center gap-2">
+                    <p className="text-slate-300"><strong className="text-slate-200">Bank Name:</strong> {paymentModeDetails.bankDetails.bankName}</p>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      onClick={() => {
+                        if (paymentModeDetails?.bankDetails?.bankName) {
+                          navigator.clipboard.writeText(paymentModeDetails.bankDetails.bankName);
+                          toast({
+                            title: "Copied!",
+                            description: "Bank name copied to clipboard",
+                          });
+                        }
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    </Button>
+                  </div>
                 </div>
               </div>
             )}
@@ -448,9 +546,48 @@ export default function WalletPage() {
                   <h3 className="text-lg font-semibold text-fuchsia-300">Cash Handler Details</h3>
                 </div>
                 <div className="pl-9">
-                  <p className="mt-2 text-slate-300"><strong className="text-slate-200">Handler Name:</strong> {paymentModeDetails.cashDetails.handlerName}</p>
-                  {paymentModeDetails.cashDetails.contactNumber && (
-                    <p className="text-slate-300"><strong className="text-slate-200">Contact:</strong> {paymentModeDetails.cashDetails.contactNumber}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <p className="text-slate-300"><strong className="text-slate-200">Handler Name:</strong> {paymentModeDetails.cashDetails.handlerName}</p>
+                    <Button 
+                      type="button" 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-6 w-6 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300"
+                      onClick={() => {
+                        if (paymentModeDetails?.cashDetails?.handlerName) {
+                          navigator.clipboard.writeText(paymentModeDetails.cashDetails.handlerName);
+                          toast({
+                            title: "Copied!",
+                            description: "Handler name copied to clipboard",
+                          });
+                        }
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                    </Button>
+                  </div>
+                  
+                  {paymentModeDetails?.cashDetails?.contactNumber && (
+                    <div className="mt-1 flex items-center gap-2">
+                      <p className="text-slate-300"><strong className="text-slate-200">Contact:</strong> {paymentModeDetails.cashDetails.contactNumber}</p>
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-6 w-6 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300"
+                        onClick={() => {
+                          if (paymentModeDetails?.cashDetails?.contactNumber) {
+                            navigator.clipboard.writeText(paymentModeDetails.cashDetails.contactNumber);
+                            toast({
+                              title: "Copied!",
+                              description: "Contact number copied to clipboard",
+                            });
+                          }
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
