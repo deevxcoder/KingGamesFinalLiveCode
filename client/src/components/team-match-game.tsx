@@ -49,14 +49,15 @@ export default function TeamMatchGame({ match, onClose }: TeamMatchGameProps) {
         throw new Error("Please select a prediction and enter a valid bet amount");
       }
       
-      return apiRequest({
-        method: 'POST',
-        url: `/api/team-matches/${match.id}/play`,
-        body: {
+      return apiRequest(
+        'POST',
+        `/api/team-matches/${match.id}/play`,
+        {
           prediction,
           betAmount,
         },
-      });
+        { headers: { 'Content-Type': 'application/json' } }
+      );
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/games/my-game-history'] });
