@@ -529,11 +529,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getGamesByUserId(userId: number): Promise<Game[]> {
-    return await db
-      .select()
+    // Join with marketId and matchId to provide complete information
+    const gamesWithRelations = await db
+      .select({
+        game: games,
+        market: satamatkaMarkets,
+        match: teamMatches
+      })
       .from(games)
+      .leftJoin(satamatkaMarkets, eq(games.marketId, satamatkaMarkets.id))
+      .leftJoin(teamMatches, eq(games.matchId, teamMatches.id))
       .where(eq(games.userId, userId))
       .orderBy(desc(games.createdAt));
+    
+    // Transform the results to include nested market and match information
+    return gamesWithRelations.map(result => {
+      const { game, market, match } = result;
+      return {
+        ...game,
+        market: market || undefined,
+        match: match || undefined
+      };
+    });
   }
 
   async updateGameStatus(gameId: number, status: string): Promise<Game | undefined> {

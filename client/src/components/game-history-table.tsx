@@ -122,18 +122,34 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                   
                   // Helper function to get market or match info
                   const getMarketOrMatchInfo = (game: Game) => {
-                    if (game.gameType === 'satamatka' && game.market) {
+                    if (game.gameType === 'satamatka') {
                       // For Satamatka games, clearly show the market name and game mode
-                      const marketName = game.market.name || game.market.type || 'Satamatka Market';
-                      const gameModeName = game.gameMode ? formatGameMode(game.gameMode) : '';
-                      return `${marketName}${gameModeName ? ` (${gameModeName})` : ''}`;
-                    } else if (game.gameType === 'team_match' && game.match) {
+                      if (game.market) {
+                        const marketName = game.market.name || game.market.type || 'Satamatka Market';
+                        const gameModeName = game.gameMode ? formatGameMode(game.gameMode) : '';
+                        return `${marketName}${gameModeName ? ` (${gameModeName})` : ''}`;
+                      } else {
+                        // If market info is missing, provide a fallback with game mode
+                        return `Satamatka ${game.gameMode ? `(${formatGameMode(game.gameMode)})` : ''}`;
+                      }
+                    } else if (game.gameType === 'team_match') {
                       // For Team Match games, show team names
-                      return `${game.match.teamA} vs ${game.match.teamB}`;
-                    } else if (game.gameType === 'cricket_toss' && game.gameData) {
+                      if (game.match) {
+                        return `${game.match.teamA} vs ${game.match.teamB}`;
+                      } else if (game.gameData && game.gameData.teamA && game.gameData.teamB) {
+                        return `${game.gameData.teamA} vs ${game.gameData.teamB}`;
+                      } else {
+                        return 'Team Match';
+                      }
+                    } else if (game.gameType === 'cricket_toss') {
                       // For Cricket Toss games with gameData
-                      const { teamA, teamB } = game.gameData;
-                      return teamA && teamB ? `${teamA} vs ${teamB}` : 'Cricket Toss';
+                      if (game.gameData && game.gameData.teamA && game.gameData.teamB) {
+                        return `${game.gameData.teamA} vs ${game.gameData.teamB}`;
+                      } else if (game.match) {
+                        return `${game.match.teamA} vs ${game.match.teamB}`;
+                      } else {
+                        return 'Cricket Toss';
+                      }
                     } else if (game.gameType === 'coin_flip') {
                       return 'Coin Flip Game';
                     } else {
@@ -160,18 +176,35 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                   const formatPrediction = (prediction: string, game: Game) => {
                     // For team match games, display the actual team name
                     if (game.gameType === 'team_match') {
-                      if (prediction === 'team_a' && game.match) return game.match.teamA;
-                      if (prediction === 'team_b' && game.match) return game.match.teamB;
+                      if (prediction === 'team_a') {
+                        // Try to get team name from match data or game data
+                        if (game.match?.teamA) return game.match.teamA;
+                        if (game.gameData?.teamA) return game.gameData.teamA;
+                        return 'Team A';
+                      }
+                      if (prediction === 'team_b') {
+                        // Try to get team name from match data or game data
+                        if (game.match?.teamB) return game.match.teamB;
+                        if (game.gameData?.teamB) return game.gameData.teamB;
+                        return 'Team B';
+                      }
                       if (prediction === 'draw') return 'Draw';
                     }
                     
                     // For cricket toss games, display the actual team name
                     if (game.gameType === 'cricket_toss') {
-                      if (prediction === 'team_a' && game.gameData?.teamA) return game.gameData.teamA;
-                      if (prediction === 'team_b' && game.gameData?.teamB) return game.gameData.teamB;
-                      // Fallback to match data if gameData is missing
-                      if (prediction === 'team_a' && game.match?.teamA) return game.match.teamA;
-                      if (prediction === 'team_b' && game.match?.teamB) return game.match.teamB;
+                      if (prediction === 'team_a') {
+                        // Try to get team name from game data or match data
+                        if (game.gameData?.teamA) return game.gameData.teamA;
+                        if (game.match?.teamA) return game.match.teamA;
+                        return 'Team A';
+                      }
+                      if (prediction === 'team_b') {
+                        // Try to get team name from game data or match data
+                        if (game.gameData?.teamB) return game.gameData.teamB;
+                        if (game.match?.teamB) return game.match.teamB;
+                        return 'Team B';
+                      }
                       if (prediction === 'draw') return 'Draw';
                     }
                     
@@ -187,6 +220,8 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                       } else if (game.gameMode === 'odd_even') {
                         // Convert 'odd' or 'even' to proper case
                         return prediction.charAt(0).toUpperCase() + prediction.slice(1);
+                      } else if (game.gameMode === 'crossing') {
+                        return prediction;
                       }
                     }
                     
