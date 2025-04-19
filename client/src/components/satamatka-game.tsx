@@ -123,6 +123,11 @@ export default function SatamatkaGame() {
   const [selectedGameMode, setSelectedGameMode] = useState<string>("jodi");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [betDetails, setBetDetails] = useState<{prediction: string; betAmount: number} | null>(null);
+  
+  // New state for multi-selection and quick bet amounts
+  const [quickBetAmount, setQuickBetAmount] = useState<number>(10);
+  const [selectedNumbers, setSelectedNumbers] = useState<Map<string, number>>(new Map());
+  const [showBetSlip, setShowBetSlip] = useState<boolean>(false);
 
   // Form setup
   const form = useForm<z.infer<typeof formSchema>>({
@@ -266,28 +271,182 @@ export default function SatamatkaGame() {
       const formData = form.getValues();
       placeBetMutation.mutate(formData as any);
       setConfirmDialogOpen(false);
+      
+      // Reset multi-selection betting after successful confirmation
+      setSelectedNumbers(new Map());
+      setShowBetSlip(false);
     }
+  };
+  
+  // Handle multi-selection of numbers with incremental bet amounts
+  const handleNumberSelection = (num: string) => {
+    const newSelections = new Map(selectedNumbers);
+    
+    if (newSelections.has(num)) {
+      // If already selected, increment bet amount
+      const currentAmount = newSelections.get(num) || 0;
+      newSelections.set(num, currentAmount + quickBetAmount);
+    } else {
+      // If not selected, add with current bet amount
+      newSelections.set(num, quickBetAmount);
+    }
+    
+    setSelectedNumbers(newSelections);
+  };
+  
+  // Remove a number from selection
+  const removeNumberSelection = (num: string) => {
+    const newSelections = new Map(selectedNumbers);
+    newSelections.delete(num);
+    setSelectedNumbers(newSelections);
+  };
+  
+  // Calculate total bet amount across all selections
+  const calculateTotalBetAmount = () => {
+    let total = 0;
+    selectedNumbers.forEach(amount => {
+      total += amount;
+    });
+    return total;
+  };
+  
+  // Place bets for all selected numbers
+  const placeBetsForAllSelections = async () => {
+    if (selectedNumbers.size === 0) {
+      toast({
+        title: "No numbers selected",
+        description: "Please select at least one number to place a bet.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Set bet details for confirmation dialog
+    setBetDetails({
+      prediction: Array.from(selectedNumbers.keys()).join(", "),
+      betAmount: calculateTotalBetAmount()
+    });
+    setConfirmDialogOpen(true);
   };
 
   // Generate the number grid based on game mode
   const renderNumberGrid = () => {
     if (selectedGameMode === "jodi") {
-      // Generate grid of 100 numbers (00-99)
       return (
-        <div className="grid grid-cols-10 gap-2 max-h-[300px] overflow-y-auto p-2">
-          {Array.from({ length: 100 }, (_, i) => {
-            const num = i.toString().padStart(2, "0");
-            return (
-              <Button
-                key={num}
-                variant={selectedNumber === num ? "default" : "outline"}
-                className="h-10 w-10"
-                onClick={() => setSelectedNumber(num)}
+        <div className="space-y-4">
+          {/* Quick bet amount buttons */}
+          <div className="p-2 mb-4 bg-muted/30 rounded-lg">
+            <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
+            <div className="grid grid-cols-4 gap-2">
+              {[10, 50, 100, 500].map((amount) => (
+                <Button
+                  key={amount}
+                  variant={quickBetAmount === amount ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setQuickBetAmount(amount)}
+                  className={`${
+                    quickBetAmount === amount 
+                      ? "bg-primary/90 text-primary-foreground" 
+                      : "hover:bg-primary/20"
+                  }`}
+                >
+                  ₹{amount}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Mobile-optimized number grid showing 00-20 initially with 5 numbers per row */}
+          <div className="space-y-4">
+            <div className="text-sm font-medium">Select Numbers</div>
+            
+            {/* First 21 numbers (00-20) shown prominently */}
+            <div className="grid grid-cols-5 gap-2 p-2">
+              {Array.from({ length: 21 }, (_, i) => {
+                const num = i.toString().padStart(2, "0");
+                const isSelected = selectedNumbers.has(num);
+                const betAmount = selectedNumbers.get(num) || 0;
+                
+                return (
+                  <div key={num} className="relative">
+                    <Button
+                      variant={isSelected ? "default" : "outline"}
+                      className={`h-12 w-full flex flex-col items-center justify-center p-1 ${
+                        isSelected ? "bg-primary/90" : ""
+                      }`}
+                      onClick={() => handleNumberSelection(num)}
+                    >
+                      <span className="text-base font-medium">{num}</span>
+                      {isSelected && (
+                        <span className="text-xs mt-1">₹{betAmount}</span>
+                      )}
+                    </Button>
+                    {isSelected && (
+                      <button
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeNumberSelection(num);
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+            
+            {/* Remaining numbers (21-99) in a scrollable container */}
+            <div className="grid grid-cols-5 gap-2 max-h-[230px] overflow-y-auto p-2 border rounded-lg border-slate-700">
+              {Array.from({ length: 79 }, (_, i) => {
+                const num = (i + 21).toString().padStart(2, "0");
+                const isSelected = selectedNumbers.has(num);
+                const betAmount = selectedNumbers.get(num) || 0;
+                
+                return (
+                  <div key={num} className="relative">
+                    <Button
+                      variant={isSelected ? "default" : "outline"}
+                      className={`h-12 w-full flex flex-col items-center justify-center p-1 ${
+                        isSelected ? "bg-primary/90" : ""
+                      }`}
+                      onClick={() => handleNumberSelection(num)}
+                    >
+                      <span className="text-base font-medium">{num}</span>
+                      {isSelected && (
+                        <span className="text-xs mt-1">₹{betAmount}</span>
+                      )}
+                    </Button>
+                    {isSelected && (
+                      <button
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-5 w-5 flex items-center justify-center text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeNumberSelection(num);
+                        }}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          
+          {/* Bet slip button for selected numbers */}
+          {selectedNumbers.size > 0 && (
+            <div className="mt-4">
+              <Button 
+                variant="default" 
+                className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                onClick={() => setShowBetSlip(true)}
               >
-                {num}
+                View Bet Slip ({selectedNumbers.size} numbers, ₹{calculateTotalBetAmount()})
               </Button>
-            );
-          })}
+            </div>
+          )}
         </div>
       );
     } else if (selectedGameMode === "harf" || selectedGameMode === "crossing") {
@@ -426,6 +585,159 @@ export default function SatamatkaGame() {
 
   return (
     <div className="py-2">
+      {/* Bet slip dialog for showing all selections */}
+      <Dialog open={showBetSlip} onOpenChange={setShowBetSlip}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Your Bet Slip</DialogTitle>
+            <DialogDescription>
+              Review your selections before placing your bet
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="max-h-[400px] overflow-y-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Number</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Potential Win</TableHead>
+                  <TableHead className="w-10"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {Array.from(selectedNumbers.entries()).map(([num, amount]) => (
+                  <TableRow key={num}>
+                    <TableCell className="font-medium">{num}</TableCell>
+                    <TableCell>₹{amount}</TableCell>
+                    <TableCell className="text-amber-500">
+                      ₹{calculatePotentialWin(selectedGameMode, amount)}
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-full bg-red-100 text-red-700 hover:bg-red-200"
+                        onClick={() => removeNumberSelection(num)}
+                      >
+                        ×
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          
+          <div className="bg-muted/30 p-3 rounded-lg">
+            <div className="flex justify-between mb-2">
+              <span className="text-sm font-medium">Total Bet Amount:</span>
+              <span className="font-bold">₹{calculateTotalBetAmount()}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm font-medium">Potential Win:</span>
+              <span className="font-bold text-amber-500">
+                ₹{Array.from(selectedNumbers.values()).reduce(
+                  (total, amount) => total + calculatePotentialWin(selectedGameMode, amount),
+                  0
+                )}
+              </span>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowBetSlip(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              onClick={placeBetsForAllSelections}
+              className="bg-gradient-to-r from-green-500 to-emerald-600"
+              disabled={selectedNumbers.size === 0 || placeBetMutation.isPending}
+            >
+              {placeBetMutation.isPending ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Place All Bets"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Confirmation dialog for placing bet */}
+      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Your Bet</DialogTitle>
+            <DialogDescription>
+              Please review your bet details before confirming
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Market</p>
+                <p className="font-medium">{typedMarket.name}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Game Mode</p>
+                <p className="font-medium">{GAME_MODES[selectedGameMode as keyof typeof GAME_MODES]}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-muted-foreground">Prediction</p>
+              <p className="font-bold">{betDetails?.prediction}</p>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Bet Amount</p>
+                <p className="text-lg font-bold">₹{betDetails?.betAmount}</p>
+              </div>
+              <div className="text-right space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">Potential Win</p>
+                <p className="text-lg font-bold text-amber-500">
+                  ₹{betDetails ? calculatePotentialWin(selectedGameMode, betDetails.betAmount) : 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setConfirmDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              onClick={handleConfirmBet}
+              className="bg-gradient-to-r from-green-500 to-emerald-600"
+              disabled={placeBetMutation.isPending}
+            >
+              {placeBetMutation.isPending ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Confirm Bet"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-2">
         <div className="flex items-center">
           <Button
