@@ -22,7 +22,8 @@ import {
   BadgeDollarSign,
   Landmark,
   Gamepad2,
-  User
+  User,
+  Calendar
 } from "lucide-react";
 import { GiCricketBat } from "react-icons/gi";
 import { Button } from "@/components/ui/button";
@@ -97,7 +98,7 @@ export default function Sidebar() {
     {
       name: "Markets",
       path: "/markets",
-      icon: <Target className="w-5 h-5 mr-3" />,
+      icon: <Calendar className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
     },
     {
