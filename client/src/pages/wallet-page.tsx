@@ -63,13 +63,17 @@ export default function WalletPage() {
   const { data: systemPaymentDetails, isLoading: loadingPaymentDetails } = useQuery<PaymentDetails>({
     queryKey: ["/api/wallet/payment-details"],
     queryFn: async ({ queryKey }) => {
+      console.log("Fetching payment details from API...");
       const res = await fetch(queryKey[0] as string, {
         credentials: "include",
       });
       if (!res.ok) {
+        console.error("Failed to fetch payment details:", res.status);
         throw new Error("Failed to fetch payment details");
       }
-      return res.json();
+      const data = await res.json();
+      console.log("Received payment details from API:", data);
+      return data;
     }
   });
   
