@@ -105,21 +105,6 @@ export default function PromoSlider() {
                     alt={image.alt}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center">
-                    <div className="pl-8 max-w-md">
-                      <h3 className="text-white text-lg md:text-xl font-bold mb-2">
-                        {image.alt.includes(' - ') 
-                          ? image.alt.split(' - ')[1] 
-                          : "Special Offer"}
-                      </h3>
-                      <p className="text-white/90 text-sm md:text-base">
-                        {image.id === 1 && "Get 50% bonus on your first deposit today!"}
-                        {image.id === 2 && "Earn 10% cashback on all your cricket bets daily!"}
-                        {image.id === 3 && "Join our VIP program for exclusive rewards and bonuses!"}
-                        {image.id > 3 && "Limited time offer! Play now and win big!"}
-                      </p>
-                    </div>
-                  </div>
                 </div>
               </div>
             ))}
