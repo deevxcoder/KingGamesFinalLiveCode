@@ -343,8 +343,9 @@ export default function SatamatkaGame() {
     const newSelections = new Map(selectedNumbers);
     
     if (newSelections.has(num)) {
-      // If already selected, remove it (toggle behavior)
-      newSelections.delete(num);
+      // If already selected, add the quickBetAmount to the current amount
+      const currentAmount = newSelections.get(num) || 0;
+      newSelections.set(num, currentAmount + quickBetAmount);
     } else {
       // If not selected, add with current bet amount
       newSelections.set(num, quickBetAmount);
