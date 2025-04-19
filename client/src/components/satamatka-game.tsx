@@ -4,7 +4,7 @@ import { useParams, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { ChevronRight, ChevronLeft, RefreshCw, AlertCircle, Hash, Type, ArrowLeftRight, Divide, Clock } from "lucide-react";
+import { ChevronRight, ChevronLeft, RefreshCw, AlertCircle, Hash, Type, ArrowLeftRight, Divide, Clock, CheckCircle, AlignHorizontalJustifyStart, Grid2X2 } from "lucide-react";
 import { queryClient, apiRequest, getQueryFn } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
@@ -751,23 +751,131 @@ export default function SatamatkaGame() {
         </div>
       );
     } else if (selectedGameMode === "odd_even") {
-      // Generate odd-even options
+      // Enhanced Odd-Even game type UI with quick bet options and bet slip
       return (
-        <div className="grid grid-cols-2 gap-4 p-2">
-          <Button
-            variant={selectedNumber === "odd" ? "default" : "outline"}
-            className="h-12"
-            onClick={() => setSelectedNumber("odd")}
-          >
-            Odd
-          </Button>
-          <Button
-            variant={selectedNumber === "even" ? "default" : "outline"}
-            className="h-12"
-            onClick={() => setSelectedNumber("even")}
-          >
-            Even
-          </Button>
+        <div className="space-y-6">
+          {/* Quick bet amount buttons */}
+          <div className="p-3 bg-muted/30 rounded-lg">
+            <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
+            <div className="grid grid-cols-4 gap-2">
+              {[10, 50, 100, 500].map((amount) => (
+                <Button
+                  key={amount}
+                  variant={quickBetAmount === amount ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setQuickBetAmount(amount)}
+                  className={`${
+                    quickBetAmount === amount 
+                      ? "bg-primary/90 text-primary-foreground" 
+                      : "hover:bg-primary/20"
+                  }`}
+                >
+                  ₹{amount}
+                </Button>
+              ))}
+            </div>
+          </div>
+          
+          {/* Improved Odd-Even selection cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card 
+              className={`cursor-pointer transition-all border ${
+                selectedNumbers.has("odd") ? "border-primary shadow-md" : "border-slate-700"
+              }`}
+              onClick={() => handleNumberSelection("odd")}
+            >
+              <CardContent className="p-6 flex flex-col items-center justify-center">
+                <div className="bg-primary/10 rounded-full p-3 mb-3">
+                  <Grid2X2 className="h-10 w-10 text-primary" />
+                </div>
+                <p className="font-bold text-xl">ODD</p>
+                <p className="text-muted-foreground text-sm mt-1">1, 3, 5, 7, 9...</p>
+                {selectedNumbers.has("odd") && (
+                  <div className="mt-3 flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                    <div className="h-4 w-4 mr-1 text-green-600">✓</div>
+                    <span className="text-sm font-medium">Selected (₹{selectedNumbers.get("odd")})</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            
+            <Card 
+              className={`cursor-pointer transition-all border ${
+                selectedNumbers.has("even") ? "border-primary shadow-md" : "border-slate-700"
+              }`}
+              onClick={() => handleNumberSelection("even")}
+            >
+              <CardContent className="p-6 flex flex-col items-center justify-center">
+                <div className="bg-primary/10 rounded-full p-3 mb-3">
+                  <Divide className="h-10 w-10 text-primary" />
+                </div>
+                <p className="font-bold text-xl">EVEN</p>
+                <p className="text-muted-foreground text-sm mt-1">0, 2, 4, 6, 8...</p>
+                {selectedNumbers.has("even") && (
+                  <div className="mt-3 flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                    <div className="h-4 w-4 mr-1 text-green-600">✓</div>
+                    <span className="text-sm font-medium">Selected (₹{selectedNumbers.get("even")})</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Bet details card */}
+          {selectedNumbers.size > 0 && (
+            <Card className="border border-primary/20 bg-primary/5 mt-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Your Bet Details</CardTitle>
+                <CardDescription>
+                  Review your bet details before confirming
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Selected:</span>
+                    <span className="font-medium ml-2">
+                      {Array.from(selectedNumbers.keys())
+                        .map(n => n.charAt(0).toUpperCase() + n.slice(1))
+                        .join(", ")}
+                    </span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Amount:</span>
+                    <span className="font-medium ml-2">₹{calculateTotalBetAmount()}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Payout Ratio:</span>
+                    <span className="font-medium ml-2">1.8x</span>
+                  </div>
+                  <div className="text-sm">
+                    <span className="text-muted-foreground">Potential Win:</span>
+                    <span className="font-medium ml-2 text-amber-500">
+                      ₹{calculatePotentialWin(selectedGameMode, calculateTotalBetAmount())}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button 
+                  variant="default" 
+                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600"
+                  onClick={() => {
+                    setBetDetails({
+                      prediction: Array.from(selectedNumbers.keys())[0],
+                      betAmount: Array.from(selectedNumbers.values())[0]
+                    });
+                    setConfirmDialogOpen(true);
+                  }}
+                  disabled={selectedNumbers.size === 0}
+                >
+                  Place Bet Now
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
         </div>
       );
     }
