@@ -26,6 +26,11 @@ export default function AdminSettingsPage() {
   // Slider Images State
   const [sliderImages, setSliderImages] = useState<{filename: string, url: string}[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  
+  // Game Card Images State
+  const [gameCardImages, setGameCardImages] = useState<{filename: string, url: string}[]>([]);
+  const [isUploadingGameCard, setIsUploadingGameCard] = useState(false);
+  const gameCardFileInputRef = useRef<HTMLInputElement>(null);
 
   // Game Odds Settings
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.95");
@@ -157,6 +162,24 @@ export default function AdminSettingsPage() {
       setSliderImages(sliderImagesData);
     }
   }, [sliderImagesData]);
+  
+  // Load game card images
+  const { 
+    data: gameCardImagesData, 
+    isLoading: isLoadingGameCardImages,
+    refetch: refetchGameCardImages
+  } = useQuery<{filename: string, url: string}[]>({
+    queryKey: ['/api/gamecards'],
+    queryFn: () => apiRequest("GET", '/api/gamecards')
+      .then(res => res.json()),
+  });
+  
+  // Update game card images when data is loaded
+  useEffect(() => {
+    if (gameCardImagesData) {
+      setGameCardImages(gameCardImagesData);
+    }
+  }, [gameCardImagesData]);
   
   // Upload slider image mutation
   const uploadSliderMutation = useMutation({
@@ -411,6 +434,87 @@ export default function AdminSettingsPage() {
       deleteSliderMutation.mutate(filename);
     }
   };
+  
+  // Upload game card image mutation
+  const uploadGameCardMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch('/api/upload/gamecard', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to upload image');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Image Uploaded",
+        description: "Game card image has been uploaded successfully.",
+      });
+      refetchGameCardImages();
+      setIsUploadingGameCard(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      setIsUploadingGameCard(false);
+    }
+  });
+  
+  // Delete game card image mutation
+  const deleteGameCardMutation = useMutation({
+    mutationFn: (filename: string) => 
+      apiRequest("DELETE", `/api/gamecards/${filename}`)
+        .then(res => res.json()),
+    onSuccess: () => {
+      toast({
+        title: "Image Deleted",
+        description: "Game card image has been deleted successfully.",
+      });
+      refetchGameCardImages();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Delete Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handle game card image upload
+  const handleGameCardImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
+    }
+    
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('gameCardImage', file);
+    
+    setIsUploadingGameCard(true);
+    uploadGameCardMutation.mutate(formData);
+    
+    // Reset the file input
+    if (gameCardFileInputRef.current) {
+      gameCardFileInputRef.current.value = '';
+    }
+  };
+  
+  // Handle game card image delete
+  const handleDeleteGameCardImage = (filename: string) => {
+    if (confirm('Are you sure you want to delete this game card image?')) {
+      deleteGameCardMutation.mutate(filename);
+    }
+  };
 
   return (
     <DashboardLayout title="Admin Settings">
@@ -419,11 +523,12 @@ export default function AdminSettingsPage() {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="payment">Payment Settings</TabsTrigger>
           <TabsTrigger value="odds">Game Odds</TabsTrigger>
           <TabsTrigger value="commission">Subadmin Commission</TabsTrigger>
           <TabsTrigger value="slider">Promo Slider</TabsTrigger>
+          <TabsTrigger value="gamecards">Game Cards</TabsTrigger>
         </TabsList>
         
         {/* Payment Settings Tab */}

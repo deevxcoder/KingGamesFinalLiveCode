@@ -8,6 +8,7 @@ import { UserRole } from '@shared/schema';
 const uploadsDir = path.join(process.cwd(), 'uploads');
 const proofUploadsDir = path.join(uploadsDir, 'proofs');
 const sliderUploadsDir = path.join(uploadsDir, 'sliders');
+const gameCardUploadsDir = path.join(uploadsDir, 'gamecards');
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -19,6 +20,10 @@ if (!fs.existsSync(proofUploadsDir)) {
 
 if (!fs.existsSync(sliderUploadsDir)) {
   fs.mkdirSync(sliderUploadsDir, { recursive: true });
+}
+
+if (!fs.existsSync(gameCardUploadsDir)) {
+  fs.mkdirSync(gameCardUploadsDir, { recursive: true });
 }
 
 // File filter to accept only images
@@ -55,6 +60,18 @@ const sliderStorage = multer.diskStorage({
   }
 });
 
+// Configure game card uploads storage
+const gameCardStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, gameCardUploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `gamecard-${uniqueSuffix}${ext}`);
+  }
+});
+
 // Create multer instances for different upload types
 const proofUpload = multer({ 
   storage: proofStorage,
@@ -66,6 +83,14 @@ const proofUpload = multer({
 
 const sliderUpload = multer({ 
   storage: sliderStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB max file size
+  },
+  fileFilter: fileFilter
+});
+
+const gameCardUpload = multer({ 
+  storage: gameCardStorage,
   limits: {
     fileSize: 2 * 1024 * 1024 // 2MB max file size
   },
@@ -168,6 +193,71 @@ export function setupUploadRoutes(app: express.Express) {
     } catch (error) {
       console.error('Error deleting slider image:', error);
       res.status(500).json({ error: 'Failed to delete slider image' });
+    }
+  });
+  
+  // API route to upload game card images (admin only)
+  app.post('/api/upload/gamecard', requireAdmin, gameCardUpload.single('gameCardImage'), (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+      
+      // Get game ID from request body, this will be used for naming conventions
+      const { gameId } = req.body;
+      
+      // Generate URL for the uploaded file
+      const fileUrl = `/uploads/gamecards/${req.file.filename}`;
+      
+      // Return the URL to the client
+      res.json({ 
+        success: true, 
+        imageUrl: fileUrl,
+        gameId: gameId || null
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ error: 'File upload failed' });
+    }
+  });
+  
+  // API route to get all game card images
+  app.get('/api/gamecards', async (req: Request, res: Response) => {
+    try {
+      // Read the game cards directory
+      const files = fs.readdirSync(gameCardUploadsDir);
+      
+      // Map to URLs
+      const gameCardImages = files.map(file => ({
+        filename: file,
+        url: `/uploads/gamecards/${file}`
+      }));
+      
+      res.json(gameCardImages);
+    } catch (error) {
+      console.error('Error fetching game card images:', error);
+      res.status(500).json({ error: 'Failed to fetch game card images' });
+    }
+  });
+  
+  // API route to delete a game card image (admin only)
+  app.delete('/api/gamecards/:filename', requireAdmin, (req: Request, res: Response) => {
+    try {
+      const { filename } = req.params;
+      const filePath = path.join(gameCardUploadsDir, filename);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+      
+      // Delete the file
+      fs.unlinkSync(filePath);
+      
+      res.json({ success: true, message: 'Game card image deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting game card image:', error);
+      res.status(500).json({ error: 'Failed to delete game card image' });
     }
   });
 
