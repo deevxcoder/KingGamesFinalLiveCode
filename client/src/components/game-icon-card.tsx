@@ -1,11 +1,12 @@
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
+import { IconType } from "react-icons";
 
 interface GameIconCardProps {
   id: string;
   title: string;
-  icon: LucideIcon;
+  icon: LucideIcon | IconType;
   path: string;
   gradient: string;
 }
