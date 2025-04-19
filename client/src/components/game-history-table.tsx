@@ -250,7 +250,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                         {getMarketOrMatchInfo(game)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm text-slate-300">
-                        ₹{(game.betAmount / 100).toFixed(2)}
+                        ₹{game.betAmount.toFixed(2)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <Badge variant="outline" className={getBadgeClass(game.prediction, game.gameType)}>
@@ -271,7 +271,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                       <TableCell className={`whitespace-nowrap text-sm ${
                         isWin ? "text-teal-400" : "text-slate-400"
                       }`}>
-                        {isWin ? "+" : ""}₹{((isWin ? game.payout - game.betAmount : -game.betAmount) / 100).toFixed(2)}
+                        {isWin ? "+" : ""}₹{(isWin ? game.payout - game.betAmount : -game.betAmount).toFixed(2)}
                       </TableCell>
                     </TableRow>
                   );
