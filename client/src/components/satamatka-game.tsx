@@ -789,11 +789,10 @@ export default function SatamatkaGame() {
                   <Grid2X2 className="h-10 w-10 text-primary" />
                 </div>
                 <p className="font-bold text-xl">ODD</p>
-                <p className="text-muted-foreground text-sm mt-1">1, 3, 5, 7, 9...</p>
                 {selectedNumbers.has("odd") && (
                   <div className="mt-3 flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
                     <div className="h-4 w-4 mr-1 text-green-600">✓</div>
-                    <span className="text-sm font-medium">Selected (₹{selectedNumbers.get("odd")})</span>
+                    <span className="text-sm font-medium">Selected</span>
                   </div>
                 )}
               </CardContent>
@@ -810,11 +809,10 @@ export default function SatamatkaGame() {
                   <Divide className="h-10 w-10 text-primary" />
                 </div>
                 <p className="font-bold text-xl">EVEN</p>
-                <p className="text-muted-foreground text-sm mt-1">0, 2, 4, 6, 8...</p>
                 {selectedNumbers.has("even") && (
                   <div className="mt-3 flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
                     <div className="h-4 w-4 mr-1 text-green-600">✓</div>
-                    <span className="text-sm font-medium">Selected (₹{selectedNumbers.get("even")})</span>
+                    <span className="text-sm font-medium">Selected</span>
                   </div>
                 )}
               </CardContent>
