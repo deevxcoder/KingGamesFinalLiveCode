@@ -829,7 +829,7 @@ export default function SatamatkaGame() {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => setLocation("/history")}
+              onClick={() => setLocation("/game-history")}
               className="ml-auto"
             >
               View Full History
