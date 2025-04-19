@@ -21,6 +21,7 @@ interface GameCardProps {
   popularity?: "high" | "medium" | "low";
   winRate?: number;
   comingSoon?: boolean;
+  imageUrl?: string; // Add support for actual image URL
 }
 
 export default function GameCard({ 
@@ -31,7 +32,8 @@ export default function GameCard({
   path,
   popularity = "medium",
   winRate,
-  comingSoon = false
+  comingSoon = false,
+  imageUrl
 }: GameCardProps) {
   const [_, setLocation] = useLocation();
   const { user } = useAuth() || {};
@@ -59,7 +61,7 @@ export default function GameCard({
     <Card className="overflow-hidden h-full transition-all duration-200 hover:shadow-lg border-slate-800 bg-slate-900/70 backdrop-blur-sm">
       <div 
         className="h-40 bg-cover bg-center relative"
-        style={{ backgroundImage: imageBg }}
+        style={{ backgroundImage: imageUrl ? `url(${imageUrl})` : imageBg }}
       >
         <div className="h-full w-full bg-gradient-to-b from-transparent to-black/80 flex items-end p-4">
           <div>

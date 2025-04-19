@@ -13,7 +13,8 @@ const allGames = [
     imageBg: "linear-gradient(to right, #1a1d30, #4e3a9a)",
     path: "/markets",
     popularity: "high" as const,
-    winRate: 40
+    winRate: 40,
+    imageUrl: "/images/mi-vs-csk.svg" // Using related image
   },
   {
     id: "crickettoss",
@@ -22,7 +23,8 @@ const allGames = [
     imageBg: "linear-gradient(to right, #1e3a30, #2a8062)",
     path: "/cricket-toss",
     popularity: "high" as const,
-    winRate: 50
+    winRate: 50,
+    imageUrl: "/images/india-vs-australia.svg" // Using cricket related image
   },
   {
     id: "sportsbetting",
@@ -31,16 +33,18 @@ const allGames = [
     imageBg: "linear-gradient(to right, #2d2339, #784cb3)",
     path: "/sports",
     popularity: "medium" as const,
-    winRate: 36
+    winRate: 36,
+    imageUrl: "/images/england-vs-nz.svg" // Using cricket related image
   },
   {
     id: "coinflip",
     title: "Coin Flip",
     description: "Classic heads or tails betting with 50/50 odds for instant wins.",
     imageBg: "linear-gradient(to right, #1e293b, #3b5cb8)",
-    path: "/coinflip",
+    path: "/game",
     popularity: "high" as const,
-    winRate: 50
+    winRate: 50,
+    imageUrl: "/images/heads.png" // Using the coin flip image
   },
   {
     id: "kingsoriginal",
@@ -50,7 +54,8 @@ const allGames = [
     path: "#",
     popularity: "low" as const,
     winRate: 0,
-    comingSoon: true
+    comingSoon: true,
+    imageUrl: "/images/royal-k-logo.svg" // Logo as feature image
   }
 ];
 
@@ -98,6 +103,7 @@ export default function GamesPage() {
             popularity={game.popularity}
             winRate={game.winRate}
             comingSoon={game.comingSoon}
+            imageUrl={game.imageUrl}
           />
         ))}
       </div>
