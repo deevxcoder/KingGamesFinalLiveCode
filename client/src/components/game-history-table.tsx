@@ -122,11 +122,16 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                   
                   // Helper function to get market or match info
                   const getMarketOrMatchInfo = (game: Game) => {
-                    if (game.market) {
-                      return `${game.market.name} ${game.gameMode ? `(${formatGameMode(game.gameMode)})` : ''}`;
-                    } else if (game.match) {
+                    if (game.gameType === 'satamatka' && game.market) {
+                      // For Satamatka games, clearly show the market name and game mode
+                      const marketName = game.market.name || game.market.type || 'Satamatka Market';
+                      const gameModeName = game.gameMode ? formatGameMode(game.gameMode) : '';
+                      return `${marketName}${gameModeName ? ` (${gameModeName})` : ''}`;
+                    } else if (game.gameType === 'team_match' && game.match) {
+                      // For Team Match games, show team names
                       return `${game.match.teamA} vs ${game.match.teamB}`;
                     } else if (game.gameType === 'cricket_toss' && game.gameData) {
+                      // For Cricket Toss games with gameData
                       const { teamA, teamB } = game.gameData;
                       return teamA && teamB ? `${teamA} vs ${teamB}` : 'Cricket Toss';
                     } else if (game.gameType === 'coin_flip') {
@@ -153,13 +158,39 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
 
                   // Format prediction display
                   const formatPrediction = (prediction: string, game: Game) => {
-                    if (game.gameType === 'team_match' || game.gameType === 'cricket_toss') {
+                    // For team match games, display the actual team name
+                    if (game.gameType === 'team_match') {
                       if (prediction === 'team_a' && game.match) return game.match.teamA;
                       if (prediction === 'team_b' && game.match) return game.match.teamB;
-                      if (prediction === 'team_a' && game.gameData?.teamA) return game.gameData.teamA;
-                      if (prediction === 'team_b' && game.gameData?.teamB) return game.gameData.teamB;
                       if (prediction === 'draw') return 'Draw';
                     }
+                    
+                    // For cricket toss games, display the actual team name
+                    if (game.gameType === 'cricket_toss') {
+                      if (prediction === 'team_a' && game.gameData?.teamA) return game.gameData.teamA;
+                      if (prediction === 'team_b' && game.gameData?.teamB) return game.gameData.teamB;
+                      // Fallback to match data if gameData is missing
+                      if (prediction === 'team_a' && game.match?.teamA) return game.match.teamA;
+                      if (prediction === 'team_b' && game.match?.teamB) return game.match.teamB;
+                      if (prediction === 'draw') return 'Draw';
+                    }
+                    
+                    // For satamatka games, format numbers properly
+                    if (game.gameType === 'satamatka') {
+                      // If game mode is present, format accordingly
+                      if (game.gameMode === 'jodi') {
+                        // Jodi is typically a 2-digit number
+                        return prediction.padStart(2, '0');
+                      } else if (game.gameMode === 'harf') {
+                        // Harf is typically a single digit
+                        return prediction;
+                      } else if (game.gameMode === 'odd_even') {
+                        // Convert 'odd' or 'even' to proper case
+                        return prediction.charAt(0).toUpperCase() + prediction.slice(1);
+                      }
+                    }
+                    
+                    // Default return the prediction as is
                     return prediction;
                   };
                   

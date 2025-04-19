@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import DashboardLayout from "@/components/dashboard-layout";
 import GameHistoryTable from "@/components/game-history-table";
 import StatsCard from "@/components/stats-card";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -11,17 +12,26 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+// Interface for stats data
+interface UserStats {
+  totalBets: number;
+  winRate: number;
+}
+
 export default function GameHistoryPage() {
   const { user } = useAuth();
   
   // Fetch user statistics
-  const { data: stats } = useQuery({
+  const { data: stats } = useQuery<UserStats>({
     queryKey: ["/api/users/stats"],
     enabled: !!user,
   });
 
+  // Import Game type from the game-history-table component
+  type Game = React.ComponentProps<typeof GameHistoryTable>['games'][number];
+
   // Fetch all games for the user
-  const { data: games = [], isLoading } = useQuery({
+  const { data: games = [], isLoading } = useQuery<Game[]>({
     queryKey: ["/api/games/my-history"],
     enabled: !!user,
   });
