@@ -1246,36 +1246,50 @@ export default function SatamatkaGame() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Select Game Mode</CardTitle>
-            <CardDescription>Choose how you want to play</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              {Object.entries(GAME_MODES).map(([value, label]) => (
-                <Card 
-                  key={value} 
-                  className={`cursor-pointer transition-all hover:scale-105 ${selectedGameMode === value ? 'border-primary shadow-md' : 'border'}`}
-                  onClick={() => handleGameModeChange(value)}
-                >
-                  <CardContent className="p-4 flex flex-col items-center justify-center">
-                    {value === "jodi" && <Hash className="h-10 w-10 text-primary mb-2" />}
-                    {value === "harf" && <Type className="h-10 w-10 text-primary mb-2" />}
-                    {value === "crossing" && <ArrowLeftRight className="h-10 w-10 text-primary mb-2" />}
-                    {value === "odd_even" && <Divide className="h-10 w-10 text-primary mb-2" />}
-                    <p className="font-medium text-center">{label}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            <p className="text-sm text-muted-foreground p-2 bg-muted/50 rounded-md">
-              {getGameModeDescription()}
-            </p>
-          </CardContent>
-          <CardContent>{renderNumberGrid()}</CardContent>
-        </Card>
+      {/* Improved responsive layout for PC/laptop screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column for game mode selection */}
+        <div className="lg:col-span-1">
+          <Card>
+            <CardHeader>
+              <CardTitle>Select Game Mode</CardTitle>
+              <CardDescription>Choose how you want to play</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 mb-4">
+                {Object.entries(GAME_MODES).map(([value, label]) => (
+                  <Card 
+                    key={value} 
+                    className={`cursor-pointer transition-all hover:scale-105 ${selectedGameMode === value ? 'border-primary shadow-md' : 'border'}`}
+                    onClick={() => handleGameModeChange(value)}
+                  >
+                    <CardContent className="p-4 flex flex-col items-center justify-center">
+                      {value === "jodi" && <Hash className="h-10 w-10 text-primary mb-2" />}
+                      {value === "harf" && <Type className="h-10 w-10 text-primary mb-2" />}
+                      {value === "crossing" && <ArrowLeftRight className="h-10 w-10 text-primary mb-2" />}
+                      {value === "odd_even" && <Divide className="h-10 w-10 text-primary mb-2" />}
+                      <p className="font-medium text-center">{label}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+              <p className="text-sm text-muted-foreground p-2 bg-muted/50 rounded-md">
+                {getGameModeDescription()}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Right column for bet placement */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Place Your Bet</CardTitle>
+              <CardDescription>Select numbers and bet amount</CardDescription>
+            </CardHeader>
+            <CardContent>{renderNumberGrid()}</CardContent>
+          </Card>
+        </div>
 
 
       </div>
