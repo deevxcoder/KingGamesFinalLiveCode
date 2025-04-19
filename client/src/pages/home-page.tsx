@@ -22,7 +22,7 @@ import {
   Users,
   ShieldCheck,
   Target,
-  Gamepad2,
+  Gamepad,
   Coins,
   Activity,
   Club,
@@ -67,16 +67,6 @@ const gameCards = [
     path: "/coinflip",
     popularity: "high" as const,
     winRate: 50
-  },
-  {
-    id: "kingsoriginal",
-    title: "Kings Original",
-    description: "Coming soon! Our collection of premium games including Big-Small, Color, Lottery, Roulette and more.",
-    imageBg: "linear-gradient(to right, #4a4a4a, #6a6a6a)",
-    path: "#",
-    popularity: "low" as const,
-    winRate: 0,
-    comingSoon: true
   }
 ];
 
@@ -313,9 +303,19 @@ export default function HomePage() {
                   path={game.path}
                   popularity={game.popularity}
                   winRate={game.winRate}
-                  comingSoon={game.comingSoon}
                 />
               ))}
+            </div>
+            
+            <div className="mt-4 text-center">
+              <Button 
+                variant="outline"
+                className="border-slate-700 text-blue-300 hover:bg-slate-800 hover:text-blue-200"
+                onClick={() => setLocation("/games")}
+              >
+                <Gamepad className="h-4 w-4 mr-2" />
+                View All Games
+              </Button>
             </div>
           </div>
           
