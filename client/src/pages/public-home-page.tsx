@@ -224,7 +224,8 @@ const gameCards = [
     imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
     path: "/games",
     popularity: "high" as const,
-    winRate: 50
+    winRate: 50,
+    imageUrl: "/images/heads.png" // Using the coin flip image
   },
   {
     id: "satamatka",
@@ -233,7 +234,8 @@ const gameCards = [
     imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
     path: "/markets", // Updated to point to markets page
     popularity: "medium" as const,
-    winRate: 36
+    winRate: 36,
+    imageUrl: "/images/mi-vs-csk.svg" // Using related image
   },
   {
     id: "cricket",
@@ -242,7 +244,8 @@ const gameCards = [
     imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
     path: "/sports", // Updated to point to sports betting page
     popularity: "high" as const,
-    winRate: 42
+    winRate: 42,
+    imageUrl: "/images/india-vs-australia.svg" // Using cricket related image
   },
   {
     id: "kingsoriginal",
@@ -252,7 +255,8 @@ const gameCards = [
     path: "#",
     popularity: "low" as const,
     winRate: 0,
-    comingSoon: true
+    comingSoon: true,
+    imageUrl: "/images/royal-k-logo.svg" // Logo as feature image
   }
 ];
 
@@ -329,6 +333,7 @@ export default function PublicHomePage() {
                 popularity={game.popularity}
                 winRate={game.winRate}
                 comingSoon={game.comingSoon}
+                imageUrl={game.imageUrl}
               />
             ))}
           </div>
