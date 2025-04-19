@@ -14,7 +14,7 @@ const allGames = [
     path: "/markets",
     popularity: "high" as const,
     winRate: 40,
-    imageUrl: "/images/mi-vs-csk.svg" // Using related image
+    gameType: "market" as const // Using game type for automatic image selection
   },
   {
     id: "crickettoss",
@@ -24,7 +24,7 @@ const allGames = [
     path: "/cricket-toss",
     popularity: "high" as const,
     winRate: 50,
-    imageUrl: "/images/india-vs-australia.svg" // Using cricket related image
+    gameType: "cricket" as const // Using game type for automatic image selection
   },
   {
     id: "sportsbetting",
@@ -34,7 +34,7 @@ const allGames = [
     path: "/sports",
     popularity: "medium" as const,
     winRate: 36,
-    imageUrl: "/images/england-vs-nz.svg" // Using cricket related image
+    gameType: "sports" as const // Using game type for automatic image selection
   },
   {
     id: "coinflip",
@@ -44,7 +44,7 @@ const allGames = [
     path: "/game",
     popularity: "high" as const,
     winRate: 50,
-    imageUrl: "/images/heads.png" // Using the coin flip image
+    gameType: "coinflip" as const // Using game type for automatic image selection
   },
   {
     id: "kingsoriginal",
@@ -103,7 +103,8 @@ export default function GamesPage() {
             popularity={game.popularity}
             winRate={game.winRate}
             comingSoon={game.comingSoon}
-            imageUrl={game.imageUrl}
+            gameType={game.gameType}
+            imageUrl={game.imageUrl} // Keep for backward compatibility with Kings Original
           />
         ))}
       </div>
