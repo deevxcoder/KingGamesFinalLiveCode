@@ -253,14 +253,29 @@ export function setupUploadRoutes(app: express.Express) {
       
       // Map to URLs
       const gameCardImages = filteredFiles.map(file => {
-        // Extract game type from filename
-        const typeMatch = file.match(/gamecard-([\w-]+)-\d+/);
-        const extractedType = typeMatch ? typeMatch[1] : 'unknown';
+        // Extract game type from filename, ensuring we handle existing files correctly
+        let gameType = 'unknown';
+        
+        // Handle the newer format (with gameType in the name)
+        const typeMatch = file.match(/gamecard-(market|sports|cricket|coinflip)-\d+/);
+        if (typeMatch) {
+          gameType = typeMatch[1];
+        } 
+        // Handle older format or files without proper game type
+        else if (file.includes('market')) {
+          gameType = 'market';
+        } else if (file.includes('sports')) {
+          gameType = 'sports';
+        } else if (file.includes('cricket')) {
+          gameType = 'cricket';
+        } else if (file.includes('coinflip')) {
+          gameType = 'coinflip';
+        }
         
         return {
           filename: file,
           url: `/uploads/gamecards/${file}`,
-          gameType: extractedType
+          gameType: gameType
         };
       });
       

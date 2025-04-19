@@ -200,18 +200,10 @@ export default function AdminSettingsPage() {
   // Update game card images when data is loaded
   useEffect(() => {
     if (gameCardImagesData) {
-      // Extract game type from filename if available
-      const processedImages = gameCardImagesData.map((image: any) => {
-        const typeMatch = image.filename.match(/gamecard-([\w-]+)-\d+/);
-        const extractedType = typeMatch ? typeMatch[1] : 'unknown';
-        
-        return {
-          ...image,
-          gameType: extractedType
-        };
-      });
+      console.log('Received game card images from server:', gameCardImagesData);
       
-      setGameCardImages(processedImages);
+      // The server now includes gameType directly in the API response
+      setGameCardImages(gameCardImagesData);
     }
   }, [gameCardImagesData]);
   
@@ -515,21 +507,24 @@ export default function AdminSettingsPage() {
     onSuccess: (data) => {
       const { gameType, result } = data;
       
+      console.log("Upload success response:", result);
+      
       // Immediately add the newly uploaded image to the state with the correct game type
       if (result && result.imageUrl) {
-        // Create the filename from the URL
-        const urlParts = result.imageUrl.split('/');
-        const filename = urlParts[urlParts.length - 1];
+        const newImage = {
+          filename: result.filename,
+          url: result.imageUrl,
+          gameType: result.gameType || gameType
+        };
+        
+        console.log("Adding new image to state:", newImage);
         
         // Add the new image to the state
-        setGameCardImages(prevImages => [
-          ...prevImages,
-          {
-            filename: filename,
-            url: result.imageUrl,
-            gameType: gameType
-          }
-        ]);
+        setGameCardImages(prevImages => {
+          const newImages = [...prevImages, newImage];
+          console.log("Updated images state:", newImages);
+          return newImages;
+        });
       }
       
       toast({
@@ -537,8 +532,8 @@ export default function AdminSettingsPage() {
         description: `Game card image for ${gameType.toUpperCase()} has been uploaded successfully.`,
       });
       
-      // Still refetch to ensure state is in sync with server
-      refetchGameCardImages();
+      // No longer need to refetch - we already have the correct state
+      // refetchGameCardImages();
       
       setIsUploadingGameCard(prev => ({
         ...prev,
@@ -614,7 +609,10 @@ export default function AdminSettingsPage() {
     const file = event.target.files[0];
     const formData = new FormData();
     formData.append('gameCardImage', file);
+    // Ensure we use exact game type strings that match the server-side processing
     formData.append('gameType', gameType);
+    
+    console.log(`Uploading ${gameType} game card image:`, file.name);
     
     setIsUploadingGameCard(prev => ({
       ...prev,
