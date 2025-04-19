@@ -956,6 +956,150 @@ export default function AdminSettingsPage() {
             </CardFooter>
           </Card>
         </TabsContent>
+        
+        {/* Game Cards Tab */}
+        <TabsContent value="gamecards">
+          <Card>
+            <CardHeader>
+              <CardTitle>Game Card Images</CardTitle>
+              <CardDescription>
+                Manage the game card images shown on the home page and game selection screens
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {isLoadingGameCardImages ? (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4">
+                    <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 text-blue-400 mt-0.5" />
+                        <div>
+                          <h3 className="text-sm font-medium text-blue-400">Image Requirements</h3>
+                          <p className="text-sm text-slate-400 mt-1">
+                            For best results, upload images with a landscape aspect ratio (e.g., 800×450 pixels).
+                            Images should be less than 2MB in size and in JPG, PNG, or WebP format.
+                            Images will be displayed as background on game cards, so they should have good contrast with text overlay.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-4">
+                        <Button
+                          onClick={() => gameCardFileInputRef.current?.click()}
+                          className="gap-2"
+                          disabled={isUploadingGameCard}
+                        >
+                          {isUploadingGameCard ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                          Upload Game Card Image
+                        </Button>
+                        <input
+                          type="file"
+                          ref={gameCardFileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleGameCardImageUpload}
+                        />
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => refetchGameCardImages()}
+                          size="icon"
+                          title="Refresh game card images"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      {gameCardImages.length === 0 ? (
+                        <div className="py-8 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
+                          <p className="text-slate-400">No game card images uploaded yet. Upload some images to use them as backgrounds for game cards.</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {gameCardImages.map((image) => (
+                            <div 
+                              key={image.filename} 
+                              className="relative group overflow-hidden rounded-md border border-slate-700"
+                            >
+                              <img 
+                                src={image.url} 
+                                alt="Game Card" 
+                                className="object-cover w-full h-[160px]"
+                              />
+                              
+                              <div className="absolute inset-0 bg-black/40 flex items-end p-3">
+                                <div className="text-white text-sm font-medium truncate">
+                                  {image.filename.replace('gamecard-', '').substring(0, 15)}...
+                                </div>
+                              </div>
+                              
+                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="destructive"
+                                  size="icon"
+                                  className="h-8 w-8 rounded-full"
+                                  onClick={() => handleDeleteGameCardImage(image.filename)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+
+                              <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button
+                                  variant="secondary"
+                                  size="sm"
+                                  className="h-8 px-2 text-xs"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(image.url);
+                                    toast({
+                                      title: "URL Copied",
+                                      description: "Image URL has been copied to clipboard",
+                                    });
+                                  }}
+                                >
+                                  Copy URL
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="mt-6 p-4 bg-amber-900/20 border border-amber-700/30 rounded-lg">
+                      <h3 className="text-lg font-medium text-amber-400 mb-2">How to use these images</h3>
+                      <p className="text-sm text-slate-300 mb-4">
+                        After uploading images, you can use them for game cards by copying their URLs and updating the gameCards array in the frontend code or using them in your game configuration settings.
+                      </p>
+                      <div className="text-xs bg-slate-800/70 p-3 rounded border border-slate-700 font-mono text-slate-300 overflow-x-auto">
+                        <code>{`
+// Example usage in game card configuration
+{
+  id: "coinflip",
+  title: "Coin Flip",
+  description: "Classic heads or tails game",
+  imageUrl: "/uploads/gamecards/gamecard-FILENAME.jpg", // ← Use the copied URL here
+  path: "/coinflip"
+}
+                        `}</code>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </DashboardLayout>
   );
