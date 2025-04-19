@@ -31,7 +31,7 @@ export default function GameHistoryPage() {
       <Card className="mb-6">
         <CardHeader>
           <CardDescription>
-            View your coin toss game history and betting results
+            View your comprehensive betting history and results from all games
           </CardDescription>
         </CardHeader>
         <CardContent>
