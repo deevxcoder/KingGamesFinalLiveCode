@@ -204,7 +204,7 @@ export default function SatamatkaGame() {
     }
   });
 
-  // Mutation for placing a bet
+  // Mutation for placing a single bet
   const placeBetMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       // Fix: Use correct method parameter ordering in apiRequest
@@ -228,7 +228,7 @@ export default function SatamatkaGame() {
       
       // Reset form
       form.reset({
-        gameMode: selectedGameMode,
+        gameMode: selectedGameMode as any,
         prediction: "",
         betAmount: 100,
       });
@@ -242,6 +242,49 @@ export default function SatamatkaGame() {
         variant: "destructive",
         title: "Failed to place bet",
         description: error.message,
+      });
+    },
+  });
+  
+  // Mutation for placing multiple bets
+  const placeMultipleBetsMutation = useMutation({
+    mutationFn: async (bets: Array<{number: string, amount: number}>) => {
+      // Create a promise array for all bets
+      const betPromises = bets.map(bet => {
+        return apiRequest("POST", "/api/satamatka/play", {
+          marketId: marketId,
+          gameMode: selectedGameMode,
+          prediction: bet.number,
+          betAmount: bet.amount,
+        });
+      });
+      
+      // Execute all bets in parallel
+      return Promise.all(betPromises);
+    },
+    onSuccess: () => {
+      // Show success toast
+      toast({
+        title: "All bets placed successfully!",
+        description: `${selectedNumbers.size} bets have been placed on the selected market.`,
+      });
+
+      // Invalidate relevant queries and refetch data
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/games/my-history"] });
+      
+      // Reset multi-selection
+      setSelectedNumbers(new Map());
+      setShowBetSlip(false);
+      
+      // Refetch recent bets to show updated list
+      refetchRecentBets();
+    },
+    onError: (error: Error) => {
+      toast({
+        variant: "destructive",
+        title: "Failed to place bets",
+        description: error.message || "Some bets could not be placed. Please try again.",
       });
     },
   });
@@ -267,12 +310,25 @@ export default function SatamatkaGame() {
   
   // Handle bet confirmation from dialog
   const handleConfirmBet = () => {
-    if (betDetails && form.getValues()) {
-      const formData = form.getValues();
-      placeBetMutation.mutate(formData as any);
-      setConfirmDialogOpen(false);
+    if (betDetails) {
+      // Check if we're confirming a single bet or multiple bets
+      if (selectedNumbers.size > 0) {
+        // Processing multiple bets
+        const bets = Array.from(selectedNumbers.entries()).map(([number, amount]) => ({
+          number, 
+          amount
+        }));
+        
+        // Use the multiple bets mutation
+        placeMultipleBetsMutation.mutate(bets);
+      } else {
+        // Single bet from the form
+        const formData = form.getValues();
+        placeBetMutation.mutate(formData as any);
+      }
       
-      // Reset multi-selection betting after successful confirmation
+      // Close dialog and reset UI
+      setConfirmDialogOpen(false);
       setSelectedNumbers(new Map());
       setShowBetSlip(false);
     }
@@ -723,9 +779,9 @@ export default function SatamatkaGame() {
               type="button"
               onClick={handleConfirmBet}
               className="bg-gradient-to-r from-green-500 to-emerald-600"
-              disabled={placeBetMutation.isPending}
+              disabled={placeBetMutation.isPending || placeMultipleBetsMutation.isPending}
             >
-              {placeBetMutation.isPending ? (
+              {placeBetMutation.isPending || placeMultipleBetsMutation.isPending ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
@@ -989,11 +1045,14 @@ export default function SatamatkaGame() {
             <Button variant="outline" onClick={() => setConfirmDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleConfirmBet} disabled={placeBetMutation.isPending}>
-              {placeBetMutation.isPending ? (
+            <Button 
+              onClick={handleConfirmBet} 
+              disabled={placeBetMutation.isPending || placeMultipleBetsMutation.isPending}
+            >
+              {placeBetMutation.isPending || placeMultipleBetsMutation.isPending ? (
                 <>
                   <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Placing Bet...
+                  Placing Bet{selectedNumbers.size > 0 ? 's' : ''}...
                 </>
               ) : (
                 "Confirm Bet"
