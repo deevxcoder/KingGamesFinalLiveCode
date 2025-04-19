@@ -397,22 +397,43 @@ export default function SatamatkaGame() {
           {/* Quick bet amount buttons */}
           <div className="p-2 mb-4 bg-muted/30 rounded-lg">
             <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
-            <div className="grid grid-cols-4 gap-2">
-              {[10, 50, 100, 500].map((amount) => (
-                <Button
-                  key={amount}
-                  variant={quickBetAmount === amount ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setQuickBetAmount(amount)}
-                  className={`${
-                    quickBetAmount === amount 
-                      ? "bg-primary/90 text-primary-foreground" 
-                      : "hover:bg-primary/20"
-                  }`}
-                >
-                  ₹{amount}
-                </Button>
-              ))}
+            <div className="space-y-2">
+              {/* First row: 1, 5, 10, 50 */}
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 5, 10, 50].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant={quickBetAmount === amount ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setQuickBetAmount(amount)}
+                    className={`${
+                      quickBetAmount === amount 
+                        ? "bg-primary/90 text-primary-foreground" 
+                        : "hover:bg-primary/20"
+                    }`}
+                  >
+                    ₹{amount}
+                  </Button>
+                ))}
+              </div>
+              {/* Second row: 100, 500, 1000, 5000 */}
+              <div className="grid grid-cols-4 gap-2">
+                {[100, 500, 1000, 5000].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant={quickBetAmount === amount ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setQuickBetAmount(amount)}
+                    className={`${
+                      quickBetAmount === amount 
+                        ? "bg-primary/90 text-primary-foreground" 
+                        : "hover:bg-primary/20"
+                    }`}
+                  >
+                    ₹{amount}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
           
@@ -477,22 +498,43 @@ export default function SatamatkaGame() {
       return (
         <div className="space-y-4">
           <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
-          <div className="grid grid-cols-4 gap-2 mb-4">
-            {[10, 50, 100, 500].map((amount) => (
-              <Button
-                key={amount}
-                variant={quickBetAmount === amount ? "default" : "outline"}
-                size="sm"
-                onClick={() => setQuickBetAmount(amount)}
-                className={`${
-                  quickBetAmount === amount 
-                    ? "bg-primary/90 text-primary-foreground" 
-                    : "hover:bg-primary/20"
-                }`}
-              >
-                ₹{amount}
-              </Button>
-            ))}
+          <div className="space-y-2 mb-4">
+            {/* First row: 1, 5, 10, 50 */}
+            <div className="grid grid-cols-4 gap-2">
+              {[1, 5, 10, 50].map((amount) => (
+                <Button
+                  key={amount}
+                  variant={quickBetAmount === amount ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setQuickBetAmount(amount)}
+                  className={`${
+                    quickBetAmount === amount 
+                      ? "bg-primary/90 text-primary-foreground" 
+                      : "hover:bg-primary/20"
+                  }`}
+                >
+                  ₹{amount}
+                </Button>
+              ))}
+            </div>
+            {/* Second row: 100, 500, 1000, 5000 */}
+            <div className="grid grid-cols-4 gap-2">
+              {[100, 500, 1000, 5000].map((amount) => (
+                <Button
+                  key={amount}
+                  variant={quickBetAmount === amount ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setQuickBetAmount(amount)}
+                  className={`${
+                    quickBetAmount === amount 
+                      ? "bg-primary/90 text-primary-foreground" 
+                      : "hover:bg-primary/20"
+                  }`}
+                >
+                  ₹{amount}
+                </Button>
+              ))}
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -620,22 +662,43 @@ export default function SatamatkaGame() {
           {/* Quick bet amount buttons */}
           <div className="p-2 mb-2 bg-muted/30 rounded-lg">
             <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
-            <div className="grid grid-cols-4 gap-2">
-              {[10, 50, 100, 500].map((amount) => (
-                <Button
-                  key={amount}
-                  variant={quickBetAmount === amount ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setQuickBetAmount(amount)}
-                  className={`${
-                    quickBetAmount === amount 
-                      ? "bg-primary/90 text-primary-foreground" 
-                      : "hover:bg-primary/20"
-                  }`}
-                >
-                  ₹{amount}
-                </Button>
-              ))}
+            <div className="space-y-2">
+              {/* First row: 1, 5, 10, 50 */}
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 5, 10, 50].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant={quickBetAmount === amount ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setQuickBetAmount(amount)}
+                    className={`${
+                      quickBetAmount === amount 
+                        ? "bg-primary/90 text-primary-foreground" 
+                        : "hover:bg-primary/20"
+                    }`}
+                  >
+                    ₹{amount}
+                  </Button>
+                ))}
+              </div>
+              {/* Second row: 100, 500, 1000, 5000 */}
+              <div className="grid grid-cols-4 gap-2">
+                {[100, 500, 1000, 5000].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant={quickBetAmount === amount ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setQuickBetAmount(amount)}
+                    className={`${
+                      quickBetAmount === amount 
+                        ? "bg-primary/90 text-primary-foreground" 
+                        : "hover:bg-primary/20"
+                    }`}
+                  >
+                    ₹{amount}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
           
@@ -758,22 +821,43 @@ export default function SatamatkaGame() {
           {/* Quick bet amount buttons */}
           <div className="p-3 bg-muted/30 rounded-lg">
             <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
-            <div className="grid grid-cols-4 gap-2">
-              {[10, 50, 100, 500].map((amount) => (
-                <Button
-                  key={amount}
-                  variant={quickBetAmount === amount ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setQuickBetAmount(amount)}
-                  className={`${
-                    quickBetAmount === amount 
-                      ? "bg-primary/90 text-primary-foreground" 
-                      : "hover:bg-primary/20"
-                  }`}
-                >
-                  ₹{amount}
-                </Button>
-              ))}
+            <div className="space-y-2">
+              {/* First row: 1, 5, 10, 50 */}
+              <div className="grid grid-cols-4 gap-2">
+                {[1, 5, 10, 50].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant={quickBetAmount === amount ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setQuickBetAmount(amount)}
+                    className={`${
+                      quickBetAmount === amount 
+                        ? "bg-primary/90 text-primary-foreground" 
+                        : "hover:bg-primary/20"
+                    }`}
+                  >
+                    ₹{amount}
+                  </Button>
+                ))}
+              </div>
+              {/* Second row: 100, 500, 1000, 5000 */}
+              <div className="grid grid-cols-4 gap-2">
+                {[100, 500, 1000, 5000].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant={quickBetAmount === amount ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setQuickBetAmount(amount)}
+                    className={`${
+                      quickBetAmount === amount 
+                        ? "bg-primary/90 text-primary-foreground" 
+                        : "hover:bg-primary/20"
+                    }`}
+                  >
+                    ₹{amount}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
           
