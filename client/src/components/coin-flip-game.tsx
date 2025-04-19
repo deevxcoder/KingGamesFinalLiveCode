@@ -396,8 +396,8 @@ export default function CoinFlipGame() {
               <div className="my-5 text-center">
                 <div className="flex items-center justify-center mb-3">
                   <Trophy className="h-12 w-12 text-amber-500 mr-2" />
-                  <div className="flex items-center text-3xl font-bold text-primary">
-                    <IndianRupee className="h-8 w-8 mr-1" /> 
+                  <div className="flex items-center text-3xl font-bold text-green-500">
+                    <IndianRupee className="h-8 w-8 mr-1 text-green-500" /> 
                     <span>{lastResult.amount.toFixed(2)}</span>
                   </div>
                 </div>
@@ -447,6 +447,14 @@ export default function CoinFlipGame() {
               </div>
               
               <div className="my-5 text-center">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="flex items-center text-2xl font-bold text-red-500">
+                    <span>- </span>
+                    <IndianRupee className="h-6 w-6 mr-0.5 text-red-500" /> 
+                    <span>{betAmount.toFixed(2)}</span>
+                  </div>
+                </div>
+                
                 <p className="text-slate-300 mb-4">
                   Your prediction was <strong className="text-purple-400">{lastResult.prediction}</strong> but the result was <strong className="text-purple-400">{lastResult.result}</strong>
                 </p>
