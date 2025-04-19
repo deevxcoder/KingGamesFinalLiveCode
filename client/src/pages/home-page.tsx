@@ -40,7 +40,7 @@ const gameCards = [
     path: "/markets",
     popularity: "high" as const,
     winRate: 40,
-    gameType: "market" // Using game type for automatic image selection
+    gameType: "market" as const // Using game type for automatic image selection
   },
   {
     id: "crickettoss",
@@ -50,7 +50,7 @@ const gameCards = [
     path: "/cricket-toss",
     popularity: "high" as const,
     winRate: 50,
-    gameType: "cricket" // Using game type for automatic image selection
+    gameType: "cricket" as const // Using game type for automatic image selection
   },
   {
     id: "sportsbetting",
@@ -60,7 +60,7 @@ const gameCards = [
     path: "/sports",
     popularity: "medium" as const,
     winRate: 36,
-    gameType: "sports" // Using game type for automatic image selection
+    gameType: "sports" as const // Using game type for automatic image selection
   },
   {
     id: "coinflip",
@@ -70,7 +70,7 @@ const gameCards = [
     path: "/coinflip",
     popularity: "high" as const,
     winRate: 50,
-    gameType: "coinflip" // Using game type for automatic image selection
+    gameType: "coinflip" as const // Using game type for automatic image selection
   }
 ];
 

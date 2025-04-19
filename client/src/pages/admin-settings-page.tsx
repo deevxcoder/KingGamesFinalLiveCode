@@ -187,7 +187,18 @@ export default function AdminSettingsPage() {
   // Update game card images when data is loaded
   useEffect(() => {
     if (gameCardImagesData) {
-      setGameCardImages(gameCardImagesData);
+      // Extract game type from filename if available
+      const processedImages = gameCardImagesData.map((image: any) => {
+        const typeMatch = image.filename.match(/gamecard-([\w-]+)-\d+/);
+        const extractedType = typeMatch ? typeMatch[1] : 'unknown';
+        
+        return {
+          ...image,
+          gameType: extractedType
+        };
+      });
+      
+      setGameCardImages(processedImages);
     }
   }, [gameCardImagesData]);
   

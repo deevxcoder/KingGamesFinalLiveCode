@@ -23,7 +23,7 @@ interface GameCardProps {
   winRate?: number;
   comingSoon?: boolean;
   imageUrl?: string; // For direct image URL (backward compatibility)
-  gameType?: "market" | "sports" | "cricket" | "coinflip"; // Game type for automatic image selection
+  gameType?: "market" | "sports" | "cricket" | "coinflip" | string; // Game type for automatic image selection
 }
 
 export default function GameCard({ 
