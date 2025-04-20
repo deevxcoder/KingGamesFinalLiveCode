@@ -37,6 +37,8 @@ import { Label } from "@/components/ui/label";
 import { DateRangePicker } from "@/components/date-range-picker";
 import { Search, Filter, X, Calendar, ArrowDownUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
@@ -402,80 +404,11 @@ export default function GameHistoryPage() {
             
             {/* Date Range Picker */}
             <div>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    id="date"
-                    variant="outline"
-                    className={cn(
-                      "w-full justify-start text-left font-normal bg-slate-950/50 border-slate-800",
-                      !dateRange.from && "text-muted-foreground"
-                    )}
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {dateRange.from ? (
-                      dateRange.to ? (
-                        <>
-                          {format(dateRange.from, "MMM dd, y")} 
-                          {dateRange.from.getTime() !== dateRange.to.getTime() && (
-                            <> - {format(dateRange.to, "MMM dd, y")}</>
-                          )}
-                        </>
-                      ) : (
-                        format(dateRange.from, "MMM dd, y")
-                      )
-                    ) : (
-                      <span>Date Range Filter</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={dateRange.from}
-                    selected={dateRange}
-                    onSelect={(range) => range && setDateRange(range)}
-                    numberOfMonths={2}
-                  />
-                  <div className="p-3 border-t border-slate-700 flex justify-between gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs border-slate-700"
-                      onClick={() => handlePresetChange("today")}
-                    >
-                      Today
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs border-slate-700"
-                      onClick={() => handlePresetChange("last7days")}
-                    >
-                      Last 7 days
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-xs border-slate-700"
-                      onClick={() => handlePresetChange("last30days")}
-                    >
-                      Last 30 days
-                    </Button>
-                  </div>
-                  <div className="p-3 border-t border-slate-700 flex justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs text-slate-400"
-                      onClick={() => setDateRange({ from: undefined, to: undefined })}
-                    >
-                      Clear
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
+              <DateRangePicker
+                date={dateRange}
+                onDateChange={(range) => range && setDateRange(range)}
+                className="bg-slate-950/50 border-slate-800"
+              />
             </div>
           </div>
           
