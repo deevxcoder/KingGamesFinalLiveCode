@@ -343,9 +343,15 @@ export default function SatamatkaGame() {
     const newSelections = new Map(selectedNumbers);
     
     if (newSelections.has(num)) {
-      // If already selected, add the quickBetAmount to the current amount
-      const currentAmount = newSelections.get(num) || 0;
-      newSelections.set(num, currentAmount + quickBetAmount);
+      // Different behavior based on game mode
+      if (selectedGameMode === "crossing") {
+        // For crossing game type, clicking an already selected number deselects it
+        newSelections.delete(num);
+      } else {
+        // For jodi and other game types, add the quickBetAmount to the current amount
+        const currentAmount = newSelections.get(num) || 0;
+        newSelections.set(num, currentAmount + quickBetAmount);
+      }
     } else {
       // If not selected, add with current bet amount
       newSelections.set(num, quickBetAmount);
