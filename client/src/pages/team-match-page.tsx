@@ -346,15 +346,19 @@ function TeamMatchBetting({ match, onClose }: { match: TeamMatch, onClose: () =>
               </Button>
               <div className="flex-1 relative">
                 <Input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Custom amount"
                   className="text-center pr-16"
-                  min={0}
-                  step={100}
-                  value={betAmount > 0 ? betAmount / 100 : ''}
+                  value={betAmount > 0 ? (betAmount / 100).toString() : ''}
                   onChange={(e) => {
-                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
-                    handleBetAmountSelect(Math.max(0, value * 100));
+                    // Only allow numbers and decimal point
+                    const value = e.target.value.replace(/[^0-9.]/g, '');
+                    if (value === '' || value === '.') {
+                      handleBetAmountSelect(0);
+                    } else {
+                      handleBetAmountSelect(Math.max(0, parseFloat(value) * 100));
+                    }
                   }}
                 />
                 <span className="absolute right-2 top-[9px] text-gray-400">₹</span>
