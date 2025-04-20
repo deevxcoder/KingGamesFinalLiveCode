@@ -1025,6 +1025,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a team match
+  app.patch("/api/team-matches/:id", requireRole(UserRole.ADMIN), async (req, res, next) => {
+    try {
+      const matchId = Number(req.params.id);
+      
+      // Verify match exists
+      const match = await storage.getTeamMatch(matchId);
+      if (!match) {
+        return res.status(404).json({ message: "Match not found" });
+      }
+      
+      // Extract update data from request body
+      const { teamA, teamB, category, description, matchTime, oddTeamA, oddTeamB, oddDraw, coverImage } = req.body;
+      
+      // Prepare update data
+      const updateData: Partial<InsertTeamMatch> = {};
+      if (teamA) updateData.teamA = teamA;
+      if (teamB) updateData.teamB = teamB;
+      if (category) updateData.category = category;
+      if (description !== undefined) updateData.description = description;
+      if (matchTime) updateData.matchTime = new Date(matchTime);
+      if (oddTeamA !== undefined) updateData.oddTeamA = oddTeamA;
+      if (oddTeamB !== undefined) updateData.oddTeamB = oddTeamB;
+      if (oddDraw !== undefined) updateData.oddDraw = oddDraw;
+      if (coverImage) updateData.coverImage = coverImage;
+      
+      // Update the match
+      const updatedMatch = await storage.updateTeamMatch(matchId, updateData);
+      
+      return res.json(updatedMatch);
+    } catch (err) {
+      next(err);
+    }
+  });
+
   // Place a bet on a team match
   app.post("/api/team-matches/:id/play", async (req, res, next) => {
     try {
