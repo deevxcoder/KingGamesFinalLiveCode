@@ -330,19 +330,23 @@ export default function GameHistoryPage() {
             <StatsCard winRate={stats?.winRate || 0} totalBets={stats?.totalBets || 0} showFullWidth />
           </div>
           
-          {/* Quick Filter Tabs */}
+          {/* Quick Filter Tabs - Improved Mobile Layout */}
           <Tabs defaultValue="all" value={activePreset} className="mb-6" onValueChange={handlePresetChange}>
-            <TabsList className="grid grid-cols-2 md:grid-cols-4 mb-2">
-              <TabsTrigger value="all">All Games</TabsTrigger>
-              <TabsTrigger value="today">Today</TabsTrigger>
-              <TabsTrigger value="last7days">Last 7 Days</TabsTrigger>
-              <TabsTrigger value="last30days">Last 30 Days</TabsTrigger>
-            </TabsList>
-            <TabsList className="grid grid-cols-3 md:grid-cols-3">
-              <TabsTrigger value="coinflip">Coin Flip Only</TabsTrigger>
-              <TabsTrigger value="wins">Wins Only</TabsTrigger>
-              <TabsTrigger value="losses">Losses Only</TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto pb-1 -mx-1 px-1 flex">
+              <TabsList className="flex flex-nowrap w-auto mb-2 h-auto">
+                <TabsTrigger value="all" className="whitespace-nowrap px-3 h-9">All Games</TabsTrigger>
+                <TabsTrigger value="today" className="whitespace-nowrap px-3 h-9">Today</TabsTrigger>
+                <TabsTrigger value="last7days" className="whitespace-nowrap px-3 h-9">Last 7 Days</TabsTrigger>
+                <TabsTrigger value="last30days" className="whitespace-nowrap px-3 h-9">Last 30 Days</TabsTrigger>
+              </TabsList>
+            </div>
+            <div className="overflow-x-auto pb-1 -mx-1 px-1 flex">
+              <TabsList className="flex flex-nowrap w-auto h-auto">
+                <TabsTrigger value="coinflip" className="whitespace-nowrap px-3 h-9">Coin Flip Only</TabsTrigger>
+                <TabsTrigger value="wins" className="whitespace-nowrap px-3 h-9">Wins Only</TabsTrigger>
+                <TabsTrigger value="losses" className="whitespace-nowrap px-3 h-9">Losses Only</TabsTrigger>
+              </TabsList>
+            </div>
           </Tabs>
           
           {/* Filter Controls */}
