@@ -5,6 +5,7 @@ import DashboardLayout from "@/components/dashboard-layout";
 import GameHistoryTable from "@/components/game-history-table";
 import StatsCard from "@/components/stats-card";
 import { format, subDays, isWithinInterval, parseISO } from "date-fns";
+import { DateRange } from "react-day-picker";
 import {
   Card,
   CardContent,
@@ -33,6 +34,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DateRangePicker } from "@/components/date-range-picker";
 import { Search, Filter, X, Calendar, ArrowDownUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -52,12 +54,6 @@ interface UserStats {
   totalBets: number;
   winRate: number;
 }
-
-// Define date range type
-type DateRange = {
-  from: Date | undefined;
-  to: Date | undefined;
-};
 
 export default function GameHistoryPage() {
   const { user } = useAuth();
@@ -108,7 +104,13 @@ export default function GameHistoryPage() {
   };
   
   // Get unique game types from the data
-  const gameTypes = [...new Set(games.map(game => game.gameType))];
+  const uniqueGameTypes: string[] = [];
+  games.forEach(game => {
+    if (!uniqueGameTypes.includes(game.gameType)) {
+      uniqueGameTypes.push(game.gameType);
+    }
+  });
+  const gameTypes = uniqueGameTypes;
   
   // Apply filters to games
   const filteredGames = games.filter(game => {
@@ -354,7 +356,7 @@ export default function GameHistoryPage() {
             {/* Date Range Picker */}
             <DateRangePicker
               date={dateRange}
-              onDateChange={setDateRange}
+              onDateChange={(range) => range && setDateRange(range)}
               className="bg-slate-950/50 border-slate-800"
             />
           </div>
