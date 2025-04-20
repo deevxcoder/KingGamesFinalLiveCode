@@ -73,6 +73,7 @@ export interface IStorage {
   getTeamMatch(id: number): Promise<TeamMatch | undefined>;
   getAllTeamMatches(): Promise<TeamMatch[]>;
   getActiveTeamMatches(): Promise<TeamMatch[]>;
+  updateTeamMatch(id: number, data: Partial<InsertTeamMatch>): Promise<TeamMatch | undefined>;
   updateTeamMatchResult(id: number, result: string): Promise<TeamMatch | undefined>;
   updateTeamMatchStatus(id: number, status: string): Promise<TeamMatch | undefined>;
   getTeamMatchesByCategory(category: string): Promise<TeamMatch[]>; 
@@ -776,6 +777,16 @@ export class DatabaseStorage implements IStorage {
         )
       )
       .orderBy(teamMatches.matchTime);
+  }
+
+  async updateTeamMatch(id: number, data: Partial<InsertTeamMatch>): Promise<TeamMatch | undefined> {
+    const [match] = await db
+      .update(teamMatches)
+      .set(data)
+      .where(eq(teamMatches.id, id))
+      .returning();
+    
+    return match;
   }
 
   async updateTeamMatchResult(id: number, result: string): Promise<TeamMatch | undefined> {
