@@ -1458,72 +1458,7 @@ export default function SatamatkaGame() {
                   {/* Form fields will render dynamically based on game mode */}
                   {renderNumberGrid()}
                   
-                  {/* Only show manual bet form if no number is selected via the grid */}
-                  {selectedNumbers.size === 0 && !selectedNumber && (
-                    <>
-                      <FormField
-                        control={form.control}
-                        name="prediction"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Prediction</FormLabel>
-                            <FormControl>
-                              <Input placeholder="Enter your prediction" {...field} />
-                            </FormControl>
-                            <FormDescription>
-                              {selectedGameMode === "jodi"
-                                ? "Enter a 2-digit number (00-99)"
-                                : selectedGameMode === "harf"
-                                ? "Enter single digit with position (e.g., L5 for left 5)"
-                                : selectedGameMode === "crossing"
-                                ? "Enter multiple digits (e.g., 1,2,3)"
-                                : "Enter 'odd' or 'even'"}
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="betAmount"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Bet Amount</FormLabel>
-                            <FormControl>
-                              <div className="flex items-center">
-                                <span className="mr-2 text-muted-foreground">₹</span>
-                                <Input
-                                  type="number"
-                                  placeholder="Enter bet amount"
-                                  {...field}
-                                />
-                              </div>
-                            </FormControl>
-                            <FormDescription>
-                              Minimum bet amount is ₹10, maximum is ₹10,000
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full"
-                        disabled={form.formState.isSubmitting}
-                      >
-                        {form.formState.isSubmitting ? (
-                          <>
-                            <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                            Placing Bet...
-                          </>
-                        ) : (
-                          "Place Bet"
-                        )}
-                      </Button>
-                    </>
-                  )}
+                  {/* Manual bet form removed as requested */}
                 </CardContent>
               </Card>
             </form>
@@ -1581,10 +1516,11 @@ export default function SatamatkaGame() {
                     <TableCell>
                       <Badge
                         variant={
-                          bet.status === "win" ? "success" : 
+                          bet.status === "win" ? "default" : 
                           bet.status === "loss" ? "destructive" : 
                           bet.status === "pending" ? "secondary" : "outline"
                         }
+                        className={bet.status === "win" ? "bg-green-600 hover:bg-green-700" : ""}
                       >
                         {bet.status === "pending" ? "Pending" : 
                          bet.status === "win" ? "Won" : 
