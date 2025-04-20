@@ -222,6 +222,7 @@ export default function SatamatkaGame() {
     onSuccess: () => {
       // Show success toast
       toast({
+        variant: "success",
         title: "Bet placed successfully!",
         description: "Your bet has been placed on the selected market.",
       });
@@ -266,11 +267,13 @@ export default function SatamatkaGame() {
       // Execute all bets in parallel
       return Promise.all(betPromises);
     },
-    onSuccess: () => {
-      // Show success toast
+    onSuccess: (results) => {
+      // Show success toast with accurate count
+      const successCount = results?.length || 0;
       toast({
+        variant: "success",
         title: "All bets placed successfully!",
-        description: `${selectedNumbers.size} bets have been placed on the selected market.`,
+        description: `${successCount} bets have been placed on the selected market.`,
       });
 
       // Invalidate relevant queries and refetch data
@@ -380,9 +383,9 @@ export default function SatamatkaGame() {
   const placeBetsForAllSelections = async () => {
     if (selectedNumbers.size === 0) {
       toast({
+        variant: "destructive",
         title: "No numbers selected",
-        description: "Please select at least one number to place a bet.",
-        variant: "destructive"
+        description: "Please select at least one number to place a bet."
       });
       return;
     }
