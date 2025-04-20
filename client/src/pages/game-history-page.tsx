@@ -142,12 +142,33 @@ export default function GameHistoryPage() {
     // Date range filter
     if (dateRange.from && dateRange.to) {
       try {
+        // Parse the game date
         const gameDate = new Date(game.createdAt);
-        // Set time to end of day for "to" date to include the entire day
-        const toDate = new Date(dateRange.to);
-        toDate.setHours(23, 59, 59, 999);
         
-        if (!isWithinInterval(gameDate, { start: dateRange.from, end: toDate })) {
+        // Get game date components
+        const gameYear = gameDate.getFullYear();
+        const gameMonth = gameDate.getMonth();
+        const gameDay = gameDate.getDate();
+        
+        // Get from date components
+        const fromYear = dateRange.from.getFullYear();
+        const fromMonth = dateRange.from.getMonth();
+        const fromDay = dateRange.from.getDate();
+        
+        // Get to date components
+        const toYear = dateRange.to.getFullYear();
+        const toMonth = dateRange.to.getMonth();
+        const toDay = dateRange.to.getDate();
+        
+        // Convert to timestamps for start of days
+        const gameTimestamp = new Date(gameYear, gameMonth, gameDay).getTime();
+        const fromTimestamp = new Date(fromYear, fromMonth, fromDay).getTime();
+        const toTimestamp = new Date(toYear, toMonth, toDay).getTime();
+        
+        // Compare dates by day only (ignoring time)
+        const isInRange = gameTimestamp >= fromTimestamp && gameTimestamp <= toTimestamp;
+        
+        if (!isInRange) {
           return false;
         }
       } catch (e) {
@@ -194,15 +215,29 @@ export default function GameHistoryPage() {
     setActivePreset(preset);
     
     if (preset === "today") {
-      const today = new Date();
+      // Get current date in the correct format
+      const currentDate = new Date();
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const day = currentDate.getDate();
+      
+      // Create start of today (midnight)
+      const startOfToday = new Date(year, month, day, 0, 0, 0);
+      
+      // Create end of today (23:59:59)
+      const endOfToday = new Date(year, month, day, 23, 59, 59, 999);
+      
       setDateRange({
-        from: today,
-        to: today
+        from: startOfToday,
+        to: endOfToday
       });
+      console.log('Setting today date range:', { startOfToday, endOfToday });
       setGameTypeFilter("all");
       setResultFilter("all");
     } else if (preset === "yesterday") {
       const yesterday = subDays(new Date(), 1);
+      yesterday.setHours(0, 0, 0, 0);  // Set to start of day
+      
       setDateRange({
         from: yesterday,
         to: yesterday
@@ -210,16 +245,28 @@ export default function GameHistoryPage() {
       setGameTypeFilter("all");
       setResultFilter("all");
     } else if (preset === "last7days") {
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);  // Set to end of day
+      
+      const weekAgo = subDays(new Date(), 7);
+      weekAgo.setHours(0, 0, 0, 0);  // Set to start of day
+      
       setDateRange({
-        from: subDays(new Date(), 7),
-        to: new Date()
+        from: weekAgo,
+        to: today
       });
       setGameTypeFilter("all");
       setResultFilter("all");
     } else if (preset === "last30days") {
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);  // Set to end of day
+      
+      const monthAgo = subDays(new Date(), 30);
+      monthAgo.setHours(0, 0, 0, 0);  // Set to start of day
+      
       setDateRange({
-        from: subDays(new Date(), 30),
-        to: new Date()
+        from: monthAgo,
+        to: today
       });
       setGameTypeFilter("all");
       setResultFilter("all");
@@ -354,11 +401,82 @@ export default function GameHistoryPage() {
             </Select>
             
             {/* Date Range Picker */}
-            <DateRangePicker
-              date={dateRange}
-              onDateChange={(range) => range && setDateRange(range)}
-              className="bg-slate-950/50 border-slate-800"
-            />
+            <div>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="date"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal bg-slate-950/50 border-slate-800",
+                      !dateRange.from && "text-muted-foreground"
+                    )}
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {dateRange.from ? (
+                      dateRange.to ? (
+                        <>
+                          {format(dateRange.from, "MMM dd, y")} 
+                          {dateRange.from.getTime() !== dateRange.to.getTime() && (
+                            <> - {format(dateRange.to, "MMM dd, y")}</>
+                          )}
+                        </>
+                      ) : (
+                        format(dateRange.from, "MMM dd, y")
+                      )
+                    ) : (
+                      <span>Date Range Filter</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange.from}
+                    selected={dateRange}
+                    onSelect={(range) => range && setDateRange(range)}
+                    numberOfMonths={2}
+                  />
+                  <div className="p-3 border-t border-slate-700 flex justify-between gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs border-slate-700"
+                      onClick={() => handlePresetChange("today")}
+                    >
+                      Today
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs border-slate-700"
+                      onClick={() => handlePresetChange("last7days")}
+                    >
+                      Last 7 days
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs border-slate-700"
+                      onClick={() => handlePresetChange("last30days")}
+                    >
+                      Last 30 days
+                    </Button>
+                  </div>
+                  <div className="p-3 border-t border-slate-700 flex justify-end">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs text-slate-400"
+                      onClick={() => setDateRange({ from: undefined, to: undefined })}
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
           
           {/* Sort and Reset */}
