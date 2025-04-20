@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Calendar, Clock, Trophy } from "lucide-react";
 import { IoFootball, IoBasketball } from "react-icons/io5";
 import { GiCricketBat } from "react-icons/gi";
@@ -301,27 +302,82 @@ function TeamMatchBetting({ match, onClose }: { match: TeamMatch, onClose: () =>
           </div>
           <div className="mt-4">
             <label className="text-sm text-gray-400 mb-2 block">Bet Amount</label>
-            <div className="flex gap-2">
+            <div className="grid grid-cols-2 gap-2 mb-2">
               <Button 
                 variant="outline" 
-                className={`flex-1 ${betAmount === 10000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
+                className={`${betAmount === 10000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
                 onClick={() => handleBetAmountSelect(10000)}
               >
                 ₹100
               </Button>
               <Button 
                 variant="outline" 
-                className={`flex-1 ${betAmount === 50000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
+                className={`${betAmount === 50000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
                 onClick={() => handleBetAmountSelect(50000)}
               >
                 ₹500
               </Button>
               <Button 
                 variant="outline" 
-                className={`flex-1 ${betAmount === 100000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
+                className={`${betAmount === 100000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
                 onClick={() => handleBetAmountSelect(100000)}
               >
-                ₹1000
+                ₹1,000
+              </Button>
+              <Button 
+                variant="outline" 
+                className={`${betAmount === 500000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
+                onClick={() => handleBetAmountSelect(500000)}
+              >
+                ₹5,000
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                className="h-9 w-12 p-0"
+                onClick={() => {
+                  if (betAmount > 0) {
+                    handleBetAmountSelect(Math.max(0, betAmount - 5000));
+                  }
+                }}
+              >
+                -
+              </Button>
+              <div className="flex-1 relative">
+                <Input
+                  type="number"
+                  placeholder="Custom amount"
+                  className="text-center pr-16"
+                  min={0}
+                  step={100}
+                  value={betAmount > 0 ? betAmount / 100 : ''}
+                  onChange={(e) => {
+                    const value = e.target.value === '' ? 0 : parseFloat(e.target.value);
+                    handleBetAmountSelect(Math.max(0, value * 100));
+                  }}
+                />
+                <span className="absolute right-2 top-[9px] text-gray-400">₹</span>
+              </div>
+              <Button
+                variant="outline"
+                className="h-9 w-12 p-0"
+                onClick={() => {
+                  handleBetAmountSelect(betAmount + 5000);
+                }}
+              >
+                +
+              </Button>
+              <Button
+                variant="outline"
+                className="h-9 px-2"
+                onClick={() => {
+                  if (user && user.balance > 0) {
+                    handleBetAmountSelect(user.balance);
+                  }
+                }}
+              >
+                MAX
               </Button>
             </div>
           </div>
