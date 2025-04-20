@@ -164,7 +164,7 @@ export default function AdminTeamMatchPage() {
   // Mutations for team match operations
   const updateMatchStatus = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      return apiRequest(`/api/team-matches/${id}/status`, "PATCH", { status });
+      return apiRequest("PATCH", `/api/team-matches/${id}/status`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team-matches"] });
@@ -184,7 +184,7 @@ export default function AdminTeamMatchPage() {
 
   const updateMatchResult = useMutation({
     mutationFn: async ({ id, result }: { id: number; result: string }) => {
-      return apiRequest(`/api/team-matches/${id}/results`, "PATCH", { result });
+      return apiRequest("PATCH", `/api/team-matches/${id}/results`, { result });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team-matches"] });
@@ -206,7 +206,7 @@ export default function AdminTeamMatchPage() {
 
   const createMatch = useMutation({
     mutationFn: async (data: z.infer<typeof matchFormSchema>) => {
-      return apiRequest("/api/team-matches", "POST", data);
+      return apiRequest("POST", "/api/team-matches", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team-matches"] });
@@ -228,7 +228,7 @@ export default function AdminTeamMatchPage() {
 
   const updateMatch = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: z.infer<typeof matchFormSchema> }) => {
-      return apiRequest(`/api/team-matches/${id}`, "PATCH", data);
+      return apiRequest("PATCH", `/api/team-matches/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team-matches"] });
