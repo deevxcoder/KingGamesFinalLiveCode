@@ -184,7 +184,7 @@ export default function AdminTeamMatchPage() {
 
   const updateMatchResult = useMutation({
     mutationFn: async ({ id, result }: { id: number; result: string }) => {
-      return apiRequest("PATCH", `/api/team-matches/${id}/results`, { result });
+      return apiRequest("PATCH", `/api/team-matches/${id}/result`, { result });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/team-matches"] });
