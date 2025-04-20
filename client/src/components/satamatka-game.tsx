@@ -398,26 +398,8 @@ export default function SatamatkaGame() {
           <div className="p-2 mb-4 bg-muted/30 rounded-lg">
             <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
             <div className="space-y-2">
-              {/* First row: 1, 5, 10, 50 */}
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 5, 10, 50].map((amount) => (
-                  <Button
-                    key={amount}
-                    variant={quickBetAmount === amount ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setQuickBetAmount(amount)}
-                    className={`${
-                      quickBetAmount === amount 
-                        ? "bg-primary/90 text-primary-foreground" 
-                        : "hover:bg-primary/20"
-                    }`}
-                  >
-                    ₹{amount}
-                  </Button>
-                ))}
-              </div>
-              {/* Second row: 100, 500, 1000, 5000 */}
-              <div className="grid grid-cols-4 gap-2">
+              {/* Preset amounts */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
                 {[100, 500, 1000, 5000].map((amount) => (
                   <Button
                     key={amount}
@@ -430,9 +412,66 @@ export default function SatamatkaGame() {
                         : "hover:bg-primary/20"
                     }`}
                   >
-                    ₹{amount}
+                    ₹{amount.toLocaleString()}
                   </Button>
                 ))}
+              </div>
+              
+              {/* Custom amount input with increment/decrement */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-12 p-0"
+                  onClick={() => {
+                    if (quickBetAmount > 100) {
+                      setQuickBetAmount(Math.max(100, quickBetAmount - 100));
+                    }
+                  }}
+                >
+                  -
+                </Button>
+                <div className="flex-1 relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={quickBetAmount}
+                    className="text-center pr-10"
+                    onChange={(e) => {
+                      // Only allow numbers
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      if (value === '') {
+                        setQuickBetAmount(0);
+                      } else {
+                        setQuickBetAmount(parseInt(value));
+                      }
+                    }}
+                  />
+                  <span className="absolute right-2 top-[9px] text-gray-400">₹</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-12 p-0"
+                  onClick={() => {
+                    setQuickBetAmount(quickBetAmount + 100);
+                  }}
+                >
+                  +
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-2"
+                  onClick={() => {
+                    if (user && user.balance > 0) {
+                      // Use the user's balance converted from paisa to rupees
+                      setQuickBetAmount(Math.min(10000, Math.floor(user.balance / 100)));
+                    }
+                  }}
+                >
+                  MAX
+                </Button>
               </div>
             </div>
           </div>
@@ -497,43 +536,85 @@ export default function SatamatkaGame() {
       // Create improved Harf bet type UI with left digit, right digit selection
       return (
         <div className="space-y-4">
-          <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
-          <div className="space-y-2 mb-4">
-            {/* First row: 1, 5, 10, 50 */}
-            <div className="grid grid-cols-4 gap-2">
-              {[1, 5, 10, 50].map((amount) => (
+          {/* Quick bet amount buttons */}
+          <div className="p-2 mb-4 bg-muted/30 rounded-lg">
+            <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
+            <div className="space-y-2">
+              {/* Preset amounts */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
+                {[100, 500, 1000, 5000].map((amount) => (
+                  <Button
+                    key={amount}
+                    variant={quickBetAmount === amount ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setQuickBetAmount(amount)}
+                    className={`${
+                      quickBetAmount === amount 
+                        ? "bg-primary/90 text-primary-foreground" 
+                        : "hover:bg-primary/20"
+                    }`}
+                  >
+                    ₹{amount.toLocaleString()}
+                  </Button>
+                ))}
+              </div>
+              
+              {/* Custom amount input with increment/decrement */}
+              <div className="flex items-center gap-2">
                 <Button
-                  key={amount}
-                  variant={quickBetAmount === amount ? "default" : "outline"}
+                  variant="outline"
                   size="sm"
-                  onClick={() => setQuickBetAmount(amount)}
-                  className={`${
-                    quickBetAmount === amount 
-                      ? "bg-primary/90 text-primary-foreground" 
-                      : "hover:bg-primary/20"
-                  }`}
+                  className="h-9 w-12 p-0"
+                  onClick={() => {
+                    if (quickBetAmount > 100) {
+                      setQuickBetAmount(Math.max(100, quickBetAmount - 100));
+                    }
+                  }}
                 >
-                  ₹{amount}
+                  -
                 </Button>
-              ))}
-            </div>
-            {/* Second row: 100, 500, 1000, 5000 */}
-            <div className="grid grid-cols-4 gap-2">
-              {[100, 500, 1000, 5000].map((amount) => (
+                <div className="flex-1 relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={quickBetAmount}
+                    className="text-center pr-10"
+                    onChange={(e) => {
+                      // Only allow numbers
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      if (value === '') {
+                        setQuickBetAmount(0);
+                      } else {
+                        setQuickBetAmount(parseInt(value));
+                      }
+                    }}
+                  />
+                  <span className="absolute right-2 top-[9px] text-gray-400">₹</span>
+                </div>
                 <Button
-                  key={amount}
-                  variant={quickBetAmount === amount ? "default" : "outline"}
+                  variant="outline"
                   size="sm"
-                  onClick={() => setQuickBetAmount(amount)}
-                  className={`${
-                    quickBetAmount === amount 
-                      ? "bg-primary/90 text-primary-foreground" 
-                      : "hover:bg-primary/20"
-                  }`}
+                  className="h-9 w-12 p-0"
+                  onClick={() => {
+                    setQuickBetAmount(quickBetAmount + 100);
+                  }}
                 >
-                  ₹{amount}
+                  +
                 </Button>
-              ))}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-2"
+                  onClick={() => {
+                    if (user && user.balance > 0) {
+                      // Use the user's balance converted from paisa to rupees
+                      setQuickBetAmount(Math.min(10000, Math.floor(user.balance / 100)));
+                    }
+                  }}
+                >
+                  MAX
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -663,26 +744,8 @@ export default function SatamatkaGame() {
           <div className="p-2 mb-2 bg-muted/30 rounded-lg">
             <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
             <div className="space-y-2">
-              {/* First row: 1, 5, 10, 50 */}
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 5, 10, 50].map((amount) => (
-                  <Button
-                    key={amount}
-                    variant={quickBetAmount === amount ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setQuickBetAmount(amount)}
-                    className={`${
-                      quickBetAmount === amount 
-                        ? "bg-primary/90 text-primary-foreground" 
-                        : "hover:bg-primary/20"
-                    }`}
-                  >
-                    ₹{amount}
-                  </Button>
-                ))}
-              </div>
-              {/* Second row: 100, 500, 1000, 5000 */}
-              <div className="grid grid-cols-4 gap-2">
+              {/* Preset amounts */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
                 {[100, 500, 1000, 5000].map((amount) => (
                   <Button
                     key={amount}
@@ -695,9 +758,66 @@ export default function SatamatkaGame() {
                         : "hover:bg-primary/20"
                     }`}
                   >
-                    ₹{amount}
+                    ₹{amount.toLocaleString()}
                   </Button>
                 ))}
+              </div>
+              
+              {/* Custom amount input with increment/decrement */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-12 p-0"
+                  onClick={() => {
+                    if (quickBetAmount > 100) {
+                      setQuickBetAmount(Math.max(100, quickBetAmount - 100));
+                    }
+                  }}
+                >
+                  -
+                </Button>
+                <div className="flex-1 relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={quickBetAmount}
+                    className="text-center pr-10"
+                    onChange={(e) => {
+                      // Only allow numbers
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      if (value === '') {
+                        setQuickBetAmount(0);
+                      } else {
+                        setQuickBetAmount(parseInt(value));
+                      }
+                    }}
+                  />
+                  <span className="absolute right-2 top-[9px] text-gray-400">₹</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-12 p-0"
+                  onClick={() => {
+                    setQuickBetAmount(quickBetAmount + 100);
+                  }}
+                >
+                  +
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-2"
+                  onClick={() => {
+                    if (user && user.balance > 0) {
+                      // Use the user's balance converted from paisa to rupees
+                      setQuickBetAmount(Math.min(10000, Math.floor(user.balance / 100)));
+                    }
+                  }}
+                >
+                  MAX
+                </Button>
               </div>
             </div>
           </div>
@@ -822,26 +942,8 @@ export default function SatamatkaGame() {
           <div className="p-3 bg-muted/30 rounded-lg">
             <div className="text-sm font-medium mb-2">Quick Bet Amount</div>
             <div className="space-y-2">
-              {/* First row: 1, 5, 10, 50 */}
-              <div className="grid grid-cols-4 gap-2">
-                {[1, 5, 10, 50].map((amount) => (
-                  <Button
-                    key={amount}
-                    variant={quickBetAmount === amount ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setQuickBetAmount(amount)}
-                    className={`${
-                      quickBetAmount === amount 
-                        ? "bg-primary/90 text-primary-foreground" 
-                        : "hover:bg-primary/20"
-                    }`}
-                  >
-                    ₹{amount}
-                  </Button>
-                ))}
-              </div>
-              {/* Second row: 100, 500, 1000, 5000 */}
-              <div className="grid grid-cols-4 gap-2">
+              {/* Preset amounts */}
+              <div className="grid grid-cols-2 gap-2 mb-2">
                 {[100, 500, 1000, 5000].map((amount) => (
                   <Button
                     key={amount}
@@ -854,9 +956,66 @@ export default function SatamatkaGame() {
                         : "hover:bg-primary/20"
                     }`}
                   >
-                    ₹{amount}
+                    ₹{amount.toLocaleString()}
                   </Button>
                 ))}
+              </div>
+              
+              {/* Custom amount input with increment/decrement */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-12 p-0"
+                  onClick={() => {
+                    if (quickBetAmount > 100) {
+                      setQuickBetAmount(Math.max(100, quickBetAmount - 100));
+                    }
+                  }}
+                >
+                  -
+                </Button>
+                <div className="flex-1 relative">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={quickBetAmount}
+                    className="text-center pr-10"
+                    onChange={(e) => {
+                      // Only allow numbers
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      if (value === '') {
+                        setQuickBetAmount(0);
+                      } else {
+                        setQuickBetAmount(parseInt(value));
+                      }
+                    }}
+                  />
+                  <span className="absolute right-2 top-[9px] text-gray-400">₹</span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-12 p-0"
+                  onClick={() => {
+                    setQuickBetAmount(quickBetAmount + 100);
+                  }}
+                >
+                  +
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-2"
+                  onClick={() => {
+                    if (user && user.balance > 0) {
+                      // Use the user's balance converted from paisa to rupees
+                      setQuickBetAmount(Math.min(10000, Math.floor(user.balance / 100)));
+                    }
+                  }}
+                >
+                  MAX
+                </Button>
               </div>
             </div>
           </div>
