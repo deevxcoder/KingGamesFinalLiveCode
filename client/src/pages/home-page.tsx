@@ -358,7 +358,7 @@ export default function HomePage() {
             <Button 
               variant="outline"
               className="py-8 text-lg border-slate-700 text-emerald-300 hover:bg-slate-800/50 hover:text-emerald-200"
-              onClick={() => setLocation("/history")}
+              onClick={() => setLocation("/game-history")}
             >
               <BarChart2 className="h-5 w-5 mr-2" />
               Game History

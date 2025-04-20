@@ -41,7 +41,7 @@ const allGames = [
     title: "Coin Flip",
     description: "Classic heads or tails betting with 50/50 odds for instant wins.",
     imageBg: "linear-gradient(to right, #1e293b, #3b5cb8)",
-    path: "/game",
+    path: "/coinflip",
     popularity: "high" as const,
     winRate: 50,
     gameType: "coinflip" as const // Using game type for automatic image selection
