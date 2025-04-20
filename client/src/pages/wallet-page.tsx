@@ -208,8 +208,14 @@ export default function WalletPage() {
   // Handle deposit form submission
   const handleDepositSubmit = async (values: DepositFormValues) => {
     try {
-      // Validate if proof image is uploaded for deposits
-      if (!proofImage) {
+      // Filter out undefined values from payment details
+      const paymentDetails: Record<string, string> = {};
+      Object.entries(values.paymentDetails).forEach(([key, value]) => {
+        if (value) paymentDetails[key] = value;
+      });
+
+      // Only require proof image for non-cash payment methods
+      if (values.paymentMode !== "cash" && !proofImage) {
         toast({
           title: "Error",
           description: "Please upload proof of payment",
@@ -218,34 +224,36 @@ export default function WalletPage() {
         return;
       }
 
-      // Upload proof image first
-      try {
-        const imageUrl = await uploadProofImage(proofImage);
-        
-        // Filter out undefined values from payment details
-        const paymentDetails: Record<string, string> = {};
-        Object.entries(values.paymentDetails).forEach(([key, value]) => {
-          if (value) paymentDetails[key] = value;
-        });
-
-        // Create deposit request
-        await createRequestMutation.mutateAsync({
-          amount: values.amount,
-          requestType: RequestType.DEPOSIT,
-          paymentMode: values.paymentMode as PaymentMode,
-          paymentDetails,
-          proofImageUrl: imageUrl,
-          notes: values.notes,
-        });
-        
-      } catch (uploadError) {
-        console.error("Image upload error:", uploadError);
-        toast({
-          title: "Upload Failed",
-          description: "Failed to upload payment proof. Please try again.",
-          variant: "destructive",
-        });
+      let imageUrl = undefined;
+      
+      // Upload proof image if provided (required for UPI and bank, optional for cash)
+      if (proofImage) {
+        try {
+          imageUrl = await uploadProofImage(proofImage);
+        } catch (uploadError) {
+          console.error("Image upload error:", uploadError);
+          
+          // Only block submission for non-cash payments if upload fails
+          if (values.paymentMode !== "cash") {
+            toast({
+              title: "Upload Failed",
+              description: "Failed to upload payment proof. Please try again.",
+              variant: "destructive",
+            });
+            return;
+          }
+        }
       }
+
+      // Create deposit request
+      await createRequestMutation.mutateAsync({
+        amount: values.amount,
+        requestType: RequestType.DEPOSIT,
+        paymentMode: values.paymentMode as PaymentMode,
+        paymentDetails,
+        proofImageUrl: imageUrl,
+        notes: values.notes,
+      });
     } catch (error: any) {
       console.error("Deposit error:", error);
       toast({
