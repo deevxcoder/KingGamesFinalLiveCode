@@ -63,7 +63,8 @@ import {
   History,
   FileText,
   UserPlus,
-  Loader2
+  Loader2,
+  MessageSquare
 } from "lucide-react";
 
 export default function UserManagementPage() {
@@ -539,22 +540,42 @@ export default function UserManagementPage() {
               Remove funds from {selectedUser?.username}'s account
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <div className="flex items-center gap-2">
-              <IndianRupee className="h-5 w-5 text-muted-foreground" />
-              <Input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                placeholder="Amount in rupees"
-                min="0"
-                max={selectedUser ? selectedUser.balance / 100 : 0}
-                step="1"
-              />
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="remove-amount">Amount</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <IndianRupee className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="remove-amount"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  placeholder="Amount in rupees"
+                  min="0"
+                  max={selectedUser ? selectedUser.balance / 100 : 0}
+                  step="1"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="remove-remark">Remark (Optional)</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="remove-remark"
+                  type="text"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  placeholder="Add a remark for this transaction"
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsRemoveFundsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsRemoveFundsDialogOpen(false);
+              setRemark("");
+            }}>
               Cancel
             </Button>
             <Button 
