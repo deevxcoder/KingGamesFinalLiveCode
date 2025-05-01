@@ -71,6 +71,7 @@ export default function UserManagementPage() {
   const { toast } = useToast();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [amount, setAmount] = useState<number>(0);
+  const [remark, setRemark] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isAddFundsDialogOpen, setIsAddFundsDialogOpen] = useState(false);
@@ -174,13 +175,14 @@ export default function UserManagementPage() {
 
   // Update balance mutation
   const updateBalanceMutation = useMutation({
-    mutationFn: async ({ userId, amount }: { userId: number; amount: number }) => {
-      const res = await apiRequest("PATCH", `/api/users/${userId}/balance`, { amount });
+    mutationFn: async ({ userId, amount, description }: { userId: number; amount: number; description?: string }) => {
+      const res = await apiRequest("PATCH", `/api/users/${userId}/balance`, { amount, description });
       return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
       setAmount(0);
+      setRemark("");
       setIsAddFundsDialogOpen(false);
       setIsRemoveFundsDialogOpen(false);
       toast({
@@ -260,13 +262,21 @@ export default function UserManagementPage() {
   const handleAddFunds = () => {
     if (!selectedUser || amount <= 0) return;
     // Convert dollar amount to cents (multiply by 100)
-    updateBalanceMutation.mutate({ userId: selectedUser.id, amount: amount * 100 });
+    updateBalanceMutation.mutate({ 
+      userId: selectedUser.id, 
+      amount: amount * 100,
+      description: remark ? remark : `Funds added by ${user?.username}`
+    });
   };
 
   const handleRemoveFunds = () => {
     if (!selectedUser || amount <= 0) return;
     // Convert dollar amount to cents (multiply by 100)
-    updateBalanceMutation.mutate({ userId: selectedUser.id, amount: -amount * 100 });
+    updateBalanceMutation.mutate({ 
+      userId: selectedUser.id, 
+      amount: -amount * 100,
+      description: remark ? remark : `Funds deducted by ${user?.username}`
+    });
   };
 
   const handleEditUser = () => {
@@ -476,21 +486,41 @@ export default function UserManagementPage() {
               Add funds to {selectedUser?.username}'s account
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <div className="flex items-center gap-2">
-              <IndianRupee className="h-5 w-5 text-muted-foreground" />
-              <Input
-                type="number"
-                value={amount}
-                onChange={(e) => setAmount(Number(e.target.value))}
-                placeholder="Amount in rupees"
-                min="0"
-                step="1"
-              />
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="amount">Amount</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <IndianRupee className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="amount"
+                  type="number"
+                  value={amount}
+                  onChange={(e) => setAmount(Number(e.target.value))}
+                  placeholder="Amount in rupees"
+                  min="0"
+                  step="1"
+                />
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="remark">Remark (Optional)</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <MessageSquare className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="remark"
+                  type="text"
+                  value={remark}
+                  onChange={(e) => setRemark(e.target.value)}
+                  placeholder="Add a remark for this transaction"
+                />
+              </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddFundsDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setIsAddFundsDialogOpen(false);
+              setRemark("");
+            }}>
               Cancel
             </Button>
             <Button onClick={handleAddFunds} disabled={amount <= 0 || updateBalanceMutation.isPending}>

@@ -230,6 +230,7 @@ export const transactions = pgTable("transactions", {
   performedBy: integer("performed_by")
     .notNull()
     .references(() => users.id), // ID of admin/subadmin who performed this action
+  description: text("description"), // Remark or description for the transaction
   requestId: integer("request_id").references(() => walletRequests.id), // Reference to the wallet request if applicable
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -240,9 +241,11 @@ export const insertTransactionSchema = createInsertSchema(transactions)
     userId: true,
     amount: true,
     performedBy: true,
+    description: true,
     requestId: true,
   })
   .partial({
+    description: true,
     requestId: true,
   });
 

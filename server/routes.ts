@@ -351,7 +351,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch("/api/users/:id/balance", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
       const userId = Number(req.params.id);
-      const { amount } = req.body;
+      const { amount, description } = req.body;
 
       if (typeof amount !== 'number') {
         return res.status(400).json({ message: "Invalid amount" });
@@ -379,11 +379,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
+      // Determine a default description if none provided
+      const transactionDesc = description || (amount > 0 
+        ? `Funds added by ${req.user!.username}` 
+        : `Funds deducted by ${req.user!.username}`);
+
       // Record transaction
       await storage.createTransaction({
         userId,
         amount,
         performedBy: req.user!.id,
+        description: transactionDesc
       });
 
       // Remove password from response
