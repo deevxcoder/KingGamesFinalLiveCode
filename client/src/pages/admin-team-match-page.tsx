@@ -143,7 +143,7 @@ export default function AdminTeamMatchPage() {
     defaultValues: {
       teamA: "",
       teamB: "",
-      category: "cricket",
+      category: "football",
       description: "",
       matchDate: format(new Date(), "yyyy-MM-dd"),
       matchTime: "12:00",
@@ -338,7 +338,7 @@ export default function AdminTeamMatchPage() {
     matchForm.reset({
       teamA: "",
       teamB: "",
-      category: "cricket",
+      category: "football",
       description: "",
       matchDate: format(new Date(), "yyyy-MM-dd"),
       matchTime: "12:00",
@@ -468,14 +468,6 @@ export default function AdminTeamMatchPage() {
                 All Categories
               </Button>
               <Button 
-                variant={activeCategory === "cricket" ? "default" : "ghost"} 
-                className="w-full justify-start"
-                onClick={() => setActiveCategory("cricket")}
-              >
-                <GiCricketBat className="h-4 w-4 mr-2" />
-                Cricket
-              </Button>
-              <Button 
                 variant={activeCategory === "football" ? "default" : "ghost"} 
                 className="w-full justify-start"
                 onClick={() => setActiveCategory("football")}
@@ -498,6 +490,14 @@ export default function AdminTeamMatchPage() {
               >
                 <Trophy className="h-4 w-4 mr-2" />
                 Other
+              </Button>
+              <Button 
+                variant={activeCategory === "cricket" ? "default" : "ghost"} 
+                className="w-full justify-start"
+                onClick={() => setActiveCategory("cricket")}
+              >
+                <GiCricketBat className="h-4 w-4 mr-2" />
+                Cricket
               </Button>
             </div>
           </PopoverContent>
@@ -822,7 +822,6 @@ export default function AdminTeamMatchPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="cricket">Cricket</SelectItem>
                           <SelectItem value="football">Football</SelectItem>
                           <SelectItem value="basketball">Basketball</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
