@@ -64,7 +64,8 @@ import {
   FileText,
   UserPlus,
   Loader2,
-  MessageSquare
+  MessageSquare,
+  Percent
 } from "lucide-react";
 
 export default function UserManagementPage() {
@@ -80,7 +81,10 @@ export default function UserManagementPage() {
   const [isEditUserDialogOpen, setIsEditUserDialogOpen] = useState(false);
   const [isUserDetailsDialogOpen, setIsUserDetailsDialogOpen] = useState(false);
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
+  const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState("transactions");
+  const [commissionRate, setCommissionRate] = useState<number>(0);
+  const [selectedGameType, setSelectedGameType] = useState<string>("satamatka_jodi");
   
   // Define the schema for creating a new user
   const createUserSchema = z.object({
@@ -128,6 +132,29 @@ export default function UserManagementPage() {
       return await res.json();
     },
     enabled: !!selectedUser && isUserDetailsDialogOpen && (detailsTab === "bets" || detailsTab === "active-bets"),
+  });
+  
+  // Fetch user commissions (for subadmins) or discounts (for players)
+  const { data: userCommissions = [], isLoading: isLoadingCommissions } = useQuery({
+    queryKey: ["/api/commissions", selectedUser?.id, selectedUser?.role],
+    queryFn: async () => {
+      if (!selectedUser) return [];
+      
+      // If the selected user is a subadmin, get their commission rates
+      if (selectedUser.role === UserRole.SUBADMIN) {
+        const res = await apiRequest("GET", `/api/commissions/subadmin/${selectedUser.id}`);
+        return await res.json();
+      }
+      
+      // If the selected user is a player and current user is a subadmin, get player discounts
+      if (selectedUser.role === UserRole.PLAYER && user?.role === UserRole.SUBADMIN) {
+        const res = await apiRequest("GET", `/api/discounts/user/${selectedUser.id}`);
+        return await res.json();
+      }
+      
+      return [];
+    },
+    enabled: !!selectedUser && isCommissionDialogOpen,
   });
 
   // Block user mutation
@@ -246,6 +273,55 @@ export default function UserManagementPage() {
     onError: (error: Error) => {
       toast({
         title: "Error Creating User",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Set commission/discount mutation
+  const setCommissionMutation = useMutation({
+    mutationFn: async ({ 
+      userId, 
+      gameType, 
+      rate, 
+      isSubadmin 
+    }: { 
+      userId: number; 
+      gameType: string; 
+      rate: number;
+      isSubadmin: boolean;
+    }) => {
+      // For subadmins, use the commission endpoint
+      if (isSubadmin) {
+        const res = await apiRequest("POST", "/api/commissions/subadmin", {
+          subadminId: userId,
+          gameType,
+          commissionRate: Math.round(rate * 100) // Convert percentage to basis points (5% = 500)
+        });
+        return await res.json();
+      }
+      
+      // For players, use the discount endpoint
+      const res = await apiRequest("POST", "/api/discounts/user", {
+        userId,
+        gameType,
+        discountRate: Math.round(rate * 100) // Convert percentage to basis points (5% = 500)
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/commissions", selectedUser?.id, selectedUser?.role] });
+      setIsCommissionDialogOpen(false);
+      setCommissionRate(0);
+      toast({
+        title: selectedUser?.role === UserRole.SUBADMIN ? "Commission Updated" : "Discount Updated",
+        description: `${selectedUser?.role === UserRole.SUBADMIN ? "Commission" : "Discount"} rate has been updated successfully`,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: `Failed to update ${selectedUser?.role === UserRole.SUBADMIN ? "commission" : "discount"}`,
         description: error.message,
         variant: "destructive",
       });
