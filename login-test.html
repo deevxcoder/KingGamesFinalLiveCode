@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login Test</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f1f1f1;
+      border-radius: 5px;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+  <h1>Login Test</h1>
+  
+  <div class="form-group">
+    <label for="username">Username:</label>
+    <input type="text" id="username" value="admin" />
+  </div>
+  
+  <div class="form-group">
+    <label for="password">Password:</label>
+    <input type="password" id="password" value="admin123" />
+  </div>
+  
+  <button onclick="login()">Login</button>
+  <button onclick="checkUser()">Check Current User</button>
+  <button onclick="logout()">Logout</button>
+  
+  <div id="result">Results will appear here</div>
+  
+  <script>
+    function showResult(title, data) {
+      const resultElem = document.getElementById('result');
+      resultElem.innerHTML = `<strong>${title}</strong>\n${JSON.stringify(data, null, 2)}`;
+    }
+    
+    async function login() {
+      try {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          showResult('Login Success:', data);
+        } else {
+          showResult('Login Failed:', data);
+        }
+      } catch (error) {
+        showResult('Error:', { message: error.message });
+      }
+    }
+    
+    async function checkUser() {
+      try {
+        const response = await fetch('/api/user', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          showResult('Current User:', data);
+        } else {
+          showResult('Not Logged In:', { 
+            status: response.status, 
+            message: response.statusText 
+          });
+        }
+      } catch (error) {
+        showResult('Error:', { message: error.message });
+      }
+    }
+    
+    async function logout() {
+      try {
+        const response = await fetch('/api/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          showResult('Logout Success:', { message: 'You have been logged out' });
+        } else {
+          showResult('Logout Failed:', { 
+            status: response.status, 
+            message: response.statusText 
+          });
+        }
+      } catch (error) {
+        showResult('Error:', { message: error.message });
+      }
+    }
+  </script>
+</body>
+</html>

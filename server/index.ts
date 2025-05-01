@@ -6,6 +6,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
+// Route to serve the login test page
+app.get('/login-test', (req, res) => {
+  res.sendFile('login-test.html', { root: process.cwd() });
+});
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
