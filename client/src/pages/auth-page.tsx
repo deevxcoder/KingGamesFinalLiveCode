@@ -62,7 +62,16 @@ export default function AuthPage() {
   }, [user, setLocation]);
 
   const onLogin = (data: z.infer<typeof loginSchema>) => {
-    loginMutation.mutate(data);
+    console.log("Login attempt with:", data);
+    loginMutation.mutate(data, {
+      onSuccess: (userData) => {
+        console.log("Login success:", userData);
+        setLocation("/dashboard");
+      },
+      onError: (error) => {
+        console.error("Login error:", error);
+      }
+    });
   };
 
   const onRegister = (data: z.infer<typeof registerSchema>) => {
