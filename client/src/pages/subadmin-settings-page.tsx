@@ -33,7 +33,8 @@ const createUserSchema = z.object({
 export default function SubadminSettingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState("odds");
+  // We only have one tab now, so we keep it fixed to "odds"
+  const activeTab = "odds";
   const [location] = useLocation();
   
   // Create user dialog state
@@ -46,8 +47,7 @@ export default function SubadminSettingsPage() {
   // Determine if this page is being viewed by an admin for a specific subadmin
   const isAdminViewingSubadmin = user?.role === UserRole.ADMIN && subadminIdFromUrl !== null;
 
-  // User selectors
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+
   
   // Game Odds
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.90");
@@ -248,35 +248,7 @@ export default function SubadminSettingsPage() {
     createUserMutation.mutate(userData);
   };
   
-  // Get users assigned to this subadmin
-  const { isLoading: isLoadingUsers, data: assignedUsers = [] } = useQuery({
-    queryKey: ['/api/users'],
-    queryFn: () => apiRequest('GET', '/api/users'),
-    enabled: !!user?.id && user?.role === UserRole.SUBADMIN,
-    select: (data: any) => data.filter((u: any) => u.role === UserRole.PLAYER),
-  });
 
-  // Load user discounts when a user is selected
-  useQuery({
-    queryKey: ['/api/discounts/user', selectedUserId],
-    queryFn: () => apiRequest('GET', `/api/discounts/user/${selectedUserId}`),
-    enabled: !!selectedUserId,
-    onSuccess: (data) => {
-      if (data && data.length > 0) {
-        const updatedDiscounts = { ...discountRates };
-        
-        data.forEach((discount: any) => {
-          const gameType = discount.gameType;
-          if (updatedDiscounts.hasOwnProperty(gameType)) {
-            updatedDiscounts[gameType as keyof typeof updatedDiscounts] = 
-              (discount.discountRate / 100).toFixed(1);
-          }
-        });
-        
-        setDiscountRates(updatedDiscounts);
-      }
-    }
-  });
 
   // Save subadmin odds mutation
   const saveOddsMutation = useMutation({
@@ -297,24 +269,7 @@ export default function SubadminSettingsPage() {
     }
   });
 
-  // Save user discount mutation
-  const saveDiscountMutation = useMutation({
-    mutationFn: (discount: any) => apiRequest('/api/discounts/user', 'POST', discount),
-    onSuccess: () => {
-      toast({
-        title: "User Discount Saved",
-        description: "The discount rates for this user have been saved successfully.",
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/discounts/user'] });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Error Saving Discount",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
+
   
   // Save commission rate mutation (used by admin to set subadmin commissions)
   const saveCommissionMutation = useMutation({
@@ -386,27 +341,7 @@ export default function SubadminSettingsPage() {
     });
   };
 
-  // Handle user discount save
-  const handleSaveUserDiscount = () => {
-    if (!selectedUserId) {
-      toast({
-        title: "No User Selected",
-        description: "Please select a user to apply the discount rates.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    // Save discount rates for each game type
-    Object.entries(discountRates).forEach(([gameType, rateStr]) => {
-      const discountRate = Math.round(parseFloat(rateStr) * 100);
-      saveDiscountMutation.mutate({
-        userId: selectedUserId,
-        gameType,
-        discountRate
-      });
-    });
-  };
+
   
   // Handle admin saving commission rates for a subadmin
   const handleSaveCommissionRates = () => {
@@ -601,13 +536,11 @@ export default function SubadminSettingsPage() {
         </Card>
       ) : (
         <Tabs 
-          value={activeTab} 
-          onValueChange={setActiveTab}
+          value={activeTab}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-1">
             <TabsTrigger value="odds">Game Odds</TabsTrigger>
-            <TabsTrigger value="discounts">User Discounts</TabsTrigger>
           </TabsList>
           
           {/* Game Odds Tab */}
@@ -746,175 +679,7 @@ export default function SubadminSettingsPage() {
           </Card>
         </TabsContent>
         
-        {/* User Discounts Tab */}
-        <TabsContent value="discounts">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <CardTitle>User Discount Settings</CardTitle>
-                  <CardDescription>
-                    Set special discount rates for specific users. These discounts improve their winning payouts.
-                  </CardDescription>
-                </div>
-                {user?.role === UserRole.SUBADMIN && (
-                  <Button
-                    onClick={() => setIsCreateUserDialogOpen(true)}
-                    className="flex items-center gap-1 whitespace-nowrap ml-auto"
-                  >
-                    <UserPlus className="h-4 w-4" />
-                    Add User
-                  </Button>
-                )}
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="user-select">Select User</Label>
-                  <div className="mt-2">
-                    <Select
-                      value={selectedUserId?.toString() || ""}
-                      onValueChange={(value) => setSelectedUserId(Number(value))}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select a user" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {isLoadingUsers ? (
-                          <div className="flex justify-center p-2">
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          </div>
-                        ) : assignedUsers.length === 0 ? (
-                          <div className="p-3 text-center text-sm text-muted-foreground">
-                            No users assigned to you. Add a user first.
-                          </div>
-                        ) : (
-                          assignedUsers.map((user: any) => (
-                            <SelectItem key={user.id} value={user.id.toString()}>
-                              {user.username}
-                            </SelectItem>
-                          ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                {selectedUserId ? (
-                  <>
-                    <Separator className="my-4" />
-                    
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                      <div className="space-y-2">
-                        <Label htmlFor="discount-coin-flip">Coin Flip Discount</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="discount-coin-flip" 
-                            value={discountRates.coin_flip} 
-                            onChange={(e) => setDiscountRates({...discountRates, coin_flip: e.target.value})} 
-                            placeholder="1.0"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="discount-satamatka-jodi">Satamatka Jodi Discount</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="discount-satamatka-jodi" 
-                            value={discountRates.satamatka_jodi} 
-                            onChange={(e) => setDiscountRates({...discountRates, satamatka_jodi: e.target.value})} 
-                            placeholder="1.5"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="discount-satamatka-harf">Satamatka Harf Discount</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="discount-satamatka-harf" 
-                            value={discountRates.satamatka_harf} 
-                            onChange={(e) => setDiscountRates({...discountRates, satamatka_harf: e.target.value})} 
-                            placeholder="2.0"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="discount-satamatka-crossing">Satamatka Crossing Discount</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="discount-satamatka-crossing" 
-                            value={discountRates.satamatka_crossing} 
-                            onChange={(e) => setDiscountRates({...discountRates, satamatka_crossing: e.target.value})} 
-                            placeholder="1.5"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="discount-satamatka-odd-even">Satamatka Odd/Even Discount</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="discount-satamatka-odd-even" 
-                            value={discountRates.satamatka_odd_even} 
-                            onChange={(e) => setDiscountRates({...discountRates, satamatka_odd_even: e.target.value})} 
-                            placeholder="1.0"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="discount-team-match">Team Match Discount</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="discount-team-match" 
-                            value={discountRates.team_match} 
-                            onChange={(e) => setDiscountRates({...discountRates, team_match: e.target.value})} 
-                            placeholder="1.5"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-6">
-                      <p className="text-sm text-muted-foreground">
-                        <strong>Note:</strong> Discounts give users better payouts which will reduce your profit margin. Use discounts strategically for your valuable players.
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <div className="bg-secondary/30 p-6 rounded-md text-center">
-                    <p>Please select a user to configure discount rates</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button 
-                onClick={handleSaveUserDiscount} 
-                disabled={!selectedUserId || saveDiscountMutation.isPending}
-              >
-                {saveDiscountMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Discount Rates
-              </Button>
-            </CardFooter>
-          </Card>
-        </TabsContent>
+
       </Tabs>
       )}
     </DashboardLayout>
