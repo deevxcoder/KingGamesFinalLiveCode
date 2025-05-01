@@ -631,8 +631,38 @@ export class DatabaseStorage implements IStorage {
 
   // Satamatka Market methods
   async createSatamatkaMarket(market: InsertSatamatkaMarket): Promise<SatamatkaMarket> {
+    // If this is a recurring market, compute the next cycle times
+    if (market.isRecurring) {
+      // Validate that we have both open and close times
+      if (!market.openTime || !market.closeTime) {
+        throw new Error("Recurring markets must have both openTime and closeTime");
+      }
+      
+      // Set nextOpenTime and nextCloseTime if not provided
+      if (!market.nextOpenTime || !market.nextCloseTime) {
+        // Use the current open/close times for the first cycle
+        market.nextOpenTime = new Date(market.openTime);
+        market.nextCloseTime = new Date(market.closeTime);
+      }
+    }
+    
     const [createdMarket] = await db.insert(satamatkaMarkets).values(market).returning();
     return createdMarket;
+  }
+  
+  /**
+   * Create a recurring Satamatka market that will automatically cycle
+   */
+  async createRecurringSatamatkaMarket(market: InsertSatamatkaMarket): Promise<SatamatkaMarket> {
+    // Ensure this is set as a recurring market
+    market.isRecurring = true;
+    
+    // If recurrence pattern is not specified, default to daily
+    if (!market.recurrencePattern) {
+      market.recurrencePattern = RecurrencePattern.DAILY;
+    }
+    
+    return this.createSatamatkaMarket(market);
   }
 
   async getSatamatkaMarket(id: number): Promise<SatamatkaMarket | undefined> {
@@ -741,7 +771,8 @@ export class DatabaseStorage implements IStorage {
     
     // If close result is being set, automatically update status to "resulted"
     if (closeResult !== undefined) {
-      updateData.status = "resulted";
+      updateData.status = MarketStatus.RESULTED;
+      updateData.lastResultedDate = new Date();
     }
     
     const [market] = await db
@@ -750,7 +781,91 @@ export class DatabaseStorage implements IStorage {
       .where(eq(satamatkaMarkets.id, id))
       .returning();
     
+    // If this is a recurring market and has both results, prepare it for the next cycle
+    if (market && market.isRecurring && market.openResult && market.closeResult) {
+      await this.prepareMarketForNextCycle(market);
+    }
+    
     return market;
+  }
+  
+  /**
+   * Prepare a recurring market for the next cycle by calculating next open/close times
+   * and resetting the results
+   */
+  private async prepareMarketForNextCycle(market: SatamatkaMarket): Promise<SatamatkaMarket | undefined> {
+    if (!market.isRecurring) return market;
+    
+    const updateData: any = {
+      openResult: null,
+      closeResult: null,
+      status: MarketStatus.OPEN
+    };
+    
+    // Calculate next cycle dates based on recurrence pattern
+    const { nextOpenTime, nextCloseTime } = this.calculateNextCycleDates(market);
+    updateData.openTime = nextOpenTime;
+    updateData.closeTime = nextCloseTime;
+    
+    // Update the market with new cycle information
+    const [updatedMarket] = await db
+      .update(satamatkaMarkets)
+      .set(updateData)
+      .where(eq(satamatkaMarkets.id, market.id))
+      .returning();
+    
+    return updatedMarket;
+  }
+  
+  /**
+   * Calculate the next open and close times for a recurring market
+   * based on its recurrence pattern
+   */
+  private calculateNextCycleDates(market: SatamatkaMarket): { nextOpenTime: Date, nextCloseTime: Date } {
+    const now = new Date();
+    const openTime = new Date(market.openTime);
+    const closeTime = new Date(market.closeTime);
+    
+    // Get time parts from current open/close times
+    const openHours = openTime.getHours();
+    const openMinutes = openTime.getMinutes();
+    const closeHours = closeTime.getHours();
+    const closeMinutes = closeTime.getMinutes();
+    
+    // Create next day dates with same time
+    const nextOpenTime = new Date(now);
+    nextOpenTime.setDate(nextOpenTime.getDate() + 1);
+    nextOpenTime.setHours(openHours, openMinutes, 0, 0);
+    
+    const nextCloseTime = new Date(now);
+    nextCloseTime.setDate(nextCloseTime.getDate() + 1);
+    nextCloseTime.setHours(closeHours, closeMinutes, 0, 0);
+    
+    // Apply pattern-specific adjustments
+    switch (market.recurrencePattern) {
+      case RecurrencePattern.DAILY:
+        // Already set for next day
+        break;
+        
+      case RecurrencePattern.WEEKDAYS:
+        // Skip weekends
+        while (nextOpenTime.getDay() === 0 || nextOpenTime.getDay() === 6) {
+          nextOpenTime.setDate(nextOpenTime.getDate() + 1);
+          nextCloseTime.setDate(nextCloseTime.getDate() + 1);
+        }
+        break;
+        
+      case RecurrencePattern.WEEKLY:
+        // Same day next week
+        nextOpenTime.setDate(nextOpenTime.getDate() + 6); // +7 days from tomorrow
+        nextCloseTime.setDate(nextCloseTime.getDate() + 6); // +7 days from tomorrow
+        break;
+        
+      // For CUSTOM pattern, we'll use the default next day for now
+      // but this could be enhanced to support more complex scheduling
+    }
+    
+    return { nextOpenTime, nextCloseTime };
   }
 
   async updateSatamatkaMarketStatus(id: number, status: string): Promise<SatamatkaMarket | undefined> {

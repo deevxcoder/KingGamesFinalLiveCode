@@ -95,6 +95,8 @@ const marketFormSchema = z.object({
   openTime: z.string().min(5, "Open time is required"),
   closeTime: z.string().min(5, "Close time is required"),
   resultTime: z.string().min(5, "Result time is required"),
+  isRecurring: z.boolean().default(false),
+  recurrencePattern: z.string().optional(),
 });
 
 export default function AdminMarketManagementPage() {
@@ -125,6 +127,8 @@ export default function AdminMarketManagementPage() {
       openTime: "",
       closeTime: "",
       resultTime: "",
+      isRecurring: false,
+      recurrencePattern: "daily",
     },
   });
 
@@ -261,6 +265,8 @@ export default function AdminMarketManagementPage() {
       openTime: format(parseISO(market.openTime), "HH:mm"),
       closeTime: format(parseISO(market.closeTime), "HH:mm"),
       resultTime: market.resultTime ? format(parseISO(market.resultTime), "HH:mm") : format(parseISO(market.closeTime), "HH:mm"),
+      isRecurring: market.isRecurring || false,
+      recurrencePattern: market.recurrencePattern || "daily",
     });
   };
 

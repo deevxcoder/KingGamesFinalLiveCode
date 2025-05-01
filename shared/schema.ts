@@ -172,6 +172,24 @@ export const insertGameSchema = createInsertSchema(games)
 export type InsertGame = z.infer<typeof insertGameSchema>;
 export type Game = typeof games.$inferSelect;
 
+export const RecurrencePattern = {
+  DAILY: "daily",
+  WEEKDAYS: "weekdays",
+  WEEKLY: "weekly",
+  CUSTOM: "custom",
+} as const;
+
+export type RecurrencePatternValue = typeof RecurrencePattern[keyof typeof RecurrencePattern];
+
+export const MarketStatus = {
+  OPEN: "open",        // Open for betting
+  CLOSED: "closed",    // Closed for betting, awaiting results
+  RESULTED: "resulted", // Results published
+  SETTLED: "settled",  // Bets have been settled
+} as const;
+
+export type MarketStatusValue = typeof MarketStatus[keyof typeof MarketStatus];
+
 export const satamatkaMarkets = pgTable("satamatka_markets", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -180,7 +198,12 @@ export const satamatkaMarkets = pgTable("satamatka_markets", {
   closeTime: timestamp("close_time").notNull(),
   openResult: text("open_result"),
   closeResult: text("close_result"),
-  status: text("status").notNull().default("open"), // open, closed, resulted
+  status: text("status").notNull().default(MarketStatus.OPEN),
+  isRecurring: boolean("is_recurring").notNull().default(false),
+  recurrencePattern: text("recurrence_pattern").default(RecurrencePattern.DAILY),
+  lastResultedDate: timestamp("last_resulted_date"),
+  nextOpenTime: timestamp("next_open_time"), 
+  nextCloseTime: timestamp("next_close_time"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -193,11 +216,31 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
     openResult: true,
     closeResult: true,
     status: true,
+    isRecurring: true,
+    recurrencePattern: true,
+    nextOpenTime: true,
+    nextCloseTime: true,
   })
   .extend({
     type: z.enum([MarketType.DISHAWAR, MarketType.GALI, MarketType.MUMBAI, MarketType.KALYAN]),
     coverImage: z.string().optional(),
-    status: z.enum(["open", "closed", "resulted"]).default("open"),
+    status: z.enum([MarketStatus.OPEN, MarketStatus.CLOSED, MarketStatus.RESULTED, MarketStatus.SETTLED]).default(MarketStatus.OPEN),
+    isRecurring: z.boolean().default(false),
+    recurrencePattern: z.enum([
+      RecurrencePattern.DAILY,
+      RecurrencePattern.WEEKDAYS,
+      RecurrencePattern.WEEKLY,
+      RecurrencePattern.CUSTOM
+    ]).default(RecurrencePattern.DAILY).optional(),
+    nextOpenTime: z.date().optional(),
+    nextCloseTime: z.date().optional(),
+  })
+  .partial({
+    openResult: true,
+    closeResult: true,
+    recurrencePattern: true,
+    nextOpenTime: true,
+    nextCloseTime: true,
   });
 
 export type InsertSatamatkaMarket = z.infer<typeof insertSatamatkaMarketSchema>;

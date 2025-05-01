@@ -735,7 +735,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/satamatka/markets", requireRole([UserRole.ADMIN]), async (req, res, next) => {
     try {
       const marketData = insertSatamatkaMarketSchema.parse(req.body);
-      const market = await storage.createSatamatkaMarket(marketData);
+      
+      // Handle recurring market flag
+      if (marketData.isRecurring) {
+        const market = await storage.createRecurringSatamatkaMarket(marketData);
+        res.status(201).json(market);
+      } else {
+        const market = await storage.createSatamatkaMarket(marketData);
+        res.status(201).json(market);
+      }
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Create a recurring market (new API endpoint)
+  app.post("/api/satamatka/markets/recurring", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const marketData = insertSatamatkaMarketSchema.parse(req.body);
+      
+      // Force this to be a recurring market
+      marketData.isRecurring = true;
+      
+      const market = await storage.createRecurringSatamatkaMarket(marketData);
       res.status(201).json(market);
     } catch (err) {
       next(err);
