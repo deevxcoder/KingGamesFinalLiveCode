@@ -7,6 +7,7 @@ import {
   subadminCommissions,
   userDiscounts,
   gameOdds,
+  transactions,
   User, 
   InsertUser, 
   Game, 
@@ -23,13 +24,10 @@ import {
   UserDiscount,
   InsertUserDiscount,
   GameOdd,
-  InsertGameOdd
+  InsertGameOdd,
+  Transaction,
+  InsertTransaction
 } from "@shared/schema";
-
-// Temporary solution until we update the schema
-const transactions = { id: 0 };
-type Transaction = any;
-type InsertTransaction = any;
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
