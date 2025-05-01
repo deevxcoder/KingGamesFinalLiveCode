@@ -58,15 +58,6 @@ export default function SubadminSettingsPage() {
     odd_even: "1.90",
   });
 
-  // User Discounts
-  const [discountRates, setDiscountRates] = useState({
-    coin_flip: "1.0",
-    satamatka_jodi: "1.5",
-    satamatka_harf: "2.0",
-    satamatka_crossing: "1.5",
-    satamatka_odd_even: "1.0",
-    team_match: "1.5"
-  });
 
   // Commission rates - viewed from admin or edited by admin for subadmin
   const [adminCommissionRates, setAdminCommissionRates] = useState({
