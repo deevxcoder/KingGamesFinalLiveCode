@@ -866,7 +866,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check user balance
       const user = await storage.getUser(req.user!.id);
-      if (!user || user.balance < betAmount) {
+      
+      // Convert bet amount to paisa for balance comparison (user.balance is in paisa)
+      const betAmountInPaisa = betAmount * 100;
+      if (!user || user.balance < betAmountInPaisa) {
         return res.status(400).json({ message: "Insufficient balance" });
       }
 
@@ -875,9 +878,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // For simplicity, we'll use a placeholder for the result
       const result = "pending";
       const payout = 0; // Will be calculated when results are published
-      
-      // Convert bet amount to paisa (multiply by 100) for storage and balance deduction
-      const betAmountInPaisa = betAmount * 100;
       
       // Update user balance (deduct bet amount in paisa)
       const newBalance = user.balance - betAmountInPaisa;
