@@ -489,10 +489,13 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async blockUser(userId: number): Promise<User | undefined> {
+  async blockUser(userId: number, blockedById: number): Promise<User | undefined> {
     const [user] = await db
       .update(users)
-      .set({ isBlocked: true })
+      .set({ 
+        isBlocked: true,
+        blockedBy: blockedById
+      })
       .where(eq(users.id, userId))
       .returning();
     return user;
@@ -501,10 +504,18 @@ export class DatabaseStorage implements IStorage {
   async unblockUser(userId: number): Promise<User | undefined> {
     const [user] = await db
       .update(users)
-      .set({ isBlocked: false })
+      .set({ 
+        isBlocked: false,
+        blockedBy: null
+      })
       .where(eq(users.id, userId))
       .returning();
     return user;
+  }
+  
+  async getBlockedByUser(userId: number): Promise<number | null> {
+    const user = await this.getUser(userId);
+    return user?.blockedBy || null;
   }
 
   async assignUserToAdmin(userId: number, adminId: number): Promise<User | undefined> {

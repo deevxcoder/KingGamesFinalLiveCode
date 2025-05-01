@@ -306,8 +306,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You don't have permission to modify this user" });
       }
 
-      // Block user
-      const updatedUser = await storage.blockUser(userId);
+      // Block user and store who blocked them
+      const updatedUser = await storage.blockUser(userId, req.user!.id);
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }
@@ -329,9 +329,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // Check permissions
-      if (req.user!.role === UserRole.SUBADMIN && user.assignedTo !== req.user!.id) {
-        return res.status(403).json({ message: "You don't have permission to modify this user" });
+      // Check if user was blocked by an admin when a subadmin is trying to unblock
+      if (req.user!.role === UserRole.SUBADMIN) {
+        if (user.blockedBy) {
+          const blockedByUser = await storage.getUser(user.blockedBy);
+          if (blockedByUser && blockedByUser.role === UserRole.ADMIN) {
+            return res.status(403).json({ 
+              message: "This user was blocked by an admin. Please contact your admin to unblock this user." 
+            });
+          }
+        }
+        
+        // Also check assignments for subadmins
+        if (user.assignedTo !== req.user!.id) {
+          return res.status(403).json({ message: "You don't have permission to modify this user" });
+        }
       }
 
       // Unblock user

@@ -103,6 +103,7 @@ export const users = pgTable("users", {
   balance: integer("balance").notNull().default(0),
   assignedTo: integer("assigned_to").references(() => users.id),
   isBlocked: boolean("is_blocked").notNull().default(false),
+  blockedBy: integer("blocked_by").references(() => users.id),
 });
 
 export const insertUserSchema = createInsertSchema(users)
