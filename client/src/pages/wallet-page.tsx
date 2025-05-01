@@ -205,9 +205,12 @@ export default function WalletPage() {
       // Refetch user data to update balance
       queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       
+      // Refetch transactions data
+      refetchRequests();
+      refetchTransactions();
+      
       // Switch to history tab
       setActiveTab("history");
-      refetchRequests();
     },
     onError: (error: Error) => {
       toast({
@@ -1223,76 +1226,248 @@ export default function WalletPage() {
         {/* History Tab */}
         <TabsContent value="history">
           <Card>
-            <CardHeader>
-              <CardTitle>Transaction History</CardTitle>
-              <CardDescription>
-                All your wallet transactions
-              </CardDescription>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div>
+                <CardTitle>Transaction History</CardTitle>
+                <CardDescription>
+                  All your wallet transactions
+                </CardDescription>
+              </div>
+              <Tabs defaultValue="all" className="w-full max-w-[400px]">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="transfers">Fund Transfers</TabsTrigger>
+                  <TabsTrigger value="requests">Deposit/Withdraw</TabsTrigger>
+                </TabsList>
+              </Tabs>
             </CardHeader>
-            <CardContent>
-              {loadingRequests ? (
+            
+            <CardContent className="pt-4">
+              {(loadingRequests || loadingTransactions) ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ) : walletRequests.length === 0 ? (
+              ) : (walletRequests.length === 0 && transactions.length === 0) ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <p>No transaction history found.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {walletRequests.map((request) => {
-                    const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
-                    const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
-                    
-                    return (
-                      <div key={request.id} className="border rounded-lg overflow-hidden">
-                        <div className="flex items-center justify-between p-4">
-                          <div className="flex items-center">
-                            <div className="mr-4">
-                              {typeIcon}
+                <>
+                  {/* All Transactions Tab */}
+                  <TabsContent value="all" className="mt-0">
+                    <div className="space-y-4">
+                      {/* Direct Fund Transfers from admin/subadmin */}
+                      {transactions.map((transaction) => (
+                        <div key={`tx-${transaction.id}`} className="border rounded-lg overflow-hidden">
+                          <div className="flex items-center justify-between p-4">
+                            <div className="flex items-center">
+                              <div className="mr-4">
+                                {transaction.amount > 0 ? (
+                                  <ArrowDown className="h-5 w-5 text-green-600" />
+                                ) : (
+                                  <ArrowUp className="h-5 w-5 text-red-600" />
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="font-medium">
+                                  {transaction.amount > 0 ? "Fund Credit" : "Fund Debit"} - 
+                                  <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
+                                    {transaction.amount > 0 ? " +" : " "}
+                                    ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
+                                  </span>
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatDate(transaction.createdAt)}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-medium">{title} - ₹{request.amount.toFixed(2)}</h4>
-                              <p className="text-sm text-muted-foreground">
-                                {formatDate(request.createdAt)}
-                              </p>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
+                                <div className="flex items-center gap-1">
+                                  <CreditCard className="h-3 w-3" />
+                                  {transaction.performer?.username || `Admin #${transaction.performedBy}`}
+                                </div>
+                              </Badge>
                             </div>
                           </div>
-                          <div className={`px-3 py-1 rounded-full flex items-center ${bgColor}`}>
-                            {icon}
-                            <span className={`ml-1 text-sm font-medium ${color}`}>
-                              {request.status}
-                            </span>
-                          </div>
+                          
+                          {transaction.description && (
+                            <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
+                              <p className="mt-2"><strong>Description:</strong> {transaction.description}</p>
+                            </div>
+                          )}
                         </div>
+                      ))}
+                      
+                      {/* Wallet Requests (deposits/withdrawals) */}
+                      {walletRequests.map((request) => {
+                        const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
+                        const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
+                        
+                        return (
+                          <div key={`req-${request.id}`} className="border rounded-lg overflow-hidden">
+                            <div className="flex items-center justify-between p-4">
+                              <div className="flex items-center">
+                                <div className="mr-4">
+                                  {typeIcon}
+                                </div>
+                                <div>
+                                  <h4 className="font-medium">{title} Request - ₹{request.amount.toFixed(2)}</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {formatDate(request.createdAt)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className={`px-3 py-1 rounded-full flex items-center ${bgColor}`}>
+                                {icon}
+                                <span className={`ml-1 text-sm font-medium ${color}`}>
+                                  {request.status}
+                                </span>
+                              </div>
+                            </div>
 
-                        <div className="px-4 pb-4 text-sm">
-                          <p><strong>Payment Method:</strong> {request.paymentMode}</p>
+                            <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
+                              <p><strong>Payment Method:</strong> {request.paymentMode}</p>
+                              
+                              {/* Payment details based on payment mode */}
+                              {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
+                                <p><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
+                              )}
+                              
+                              {request.paymentMode === PaymentMode.BANK && (
+                                <>
+                                  {request.paymentDetails.bankName && 
+                                    <p><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
+                                  {request.paymentDetails.accountNumber && 
+                                    <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
+                                </>
+                              )}
+                              
+                              {request.status === RequestStatus.REJECTED && request.notes && (
+                                <p className="mt-2 text-red-600">
+                                  <strong>Reason:</strong> {request.notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </TabsContent>
+                  
+                  {/* Fund Transfers Tab */}
+                  <TabsContent value="transfers" className="mt-0">
+                    <div className="space-y-4">
+                      {transactions.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No fund transfers found.</p>
+                        </div>
+                      ) : transactions.map((transaction) => (
+                        <div key={`tx-only-${transaction.id}`} className="border rounded-lg overflow-hidden">
+                          <div className="flex items-center justify-between p-4">
+                            <div className="flex items-center">
+                              <div className="mr-4">
+                                {transaction.amount > 0 ? (
+                                  <ArrowDown className="h-5 w-5 text-green-600" />
+                                ) : (
+                                  <ArrowUp className="h-5 w-5 text-red-600" />
+                                )}
+                              </div>
+                              <div>
+                                <h4 className="font-medium">
+                                  {transaction.amount > 0 ? "Fund Credit" : "Fund Debit"} - 
+                                  <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
+                                    {transaction.amount > 0 ? " +" : " "}
+                                    ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
+                                  </span>
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatDate(transaction.createdAt)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
+                                <div className="flex items-center gap-1">
+                                  <CreditCard className="h-3 w-3" />
+                                  {transaction.performer?.username || `Admin #${transaction.performedBy}`}
+                                </div>
+                              </Badge>
+                            </div>
+                          </div>
                           
-                          {/* Payment details based on payment mode */}
-                          {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
-                            <p><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
-                          )}
-                          
-                          {request.paymentMode === PaymentMode.BANK && (
-                            <>
-                              {request.paymentDetails.bankName && 
-                                <p><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
-                              {request.paymentDetails.accountNumber && 
-                                <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
-                            </>
-                          )}
-                          
-                          {request.status === RequestStatus.REJECTED && request.notes && (
-                            <p className="mt-2 text-red-600">
-                              <strong>Reason:</strong> {request.notes}
-                            </p>
+                          {transaction.description && (
+                            <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
+                              <p className="mt-2"><strong>Description:</strong> {transaction.description}</p>
+                            </div>
                           )}
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                  
+                  {/* Deposit/Withdraw Requests Tab */}
+                  <TabsContent value="requests" className="mt-0">
+                    <div className="space-y-4">
+                      {walletRequests.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <p>No deposit/withdrawal requests found.</p>
+                        </div>
+                      ) : walletRequests.map((request) => {
+                        const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
+                        const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
+                        
+                        return (
+                          <div key={`req-only-${request.id}`} className="border rounded-lg overflow-hidden">
+                            <div className="flex items-center justify-between p-4">
+                              <div className="flex items-center">
+                                <div className="mr-4">
+                                  {typeIcon}
+                                </div>
+                                <div>
+                                  <h4 className="font-medium">{title} Request - ₹{request.amount.toFixed(2)}</h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {formatDate(request.createdAt)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className={`px-3 py-1 rounded-full flex items-center ${bgColor}`}>
+                                {icon}
+                                <span className={`ml-1 text-sm font-medium ${color}`}>
+                                  {request.status}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
+                              <p><strong>Payment Method:</strong> {request.paymentMode}</p>
+                              
+                              {/* Payment details based on payment mode */}
+                              {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
+                                <p><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
+                              )}
+                              
+                              {request.paymentMode === PaymentMode.BANK && (
+                                <>
+                                  {request.paymentDetails.bankName && 
+                                    <p><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
+                                  {request.paymentDetails.accountNumber && 
+                                    <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
+                                </>
+                              )}
+                              
+                              {request.status === RequestStatus.REJECTED && request.notes && (
+                                <p className="mt-2 text-red-600">
+                                  <strong>Reason:</strong> {request.notes}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </TabsContent>
+                </>
               )}
             </CardContent>
           </Card>
