@@ -45,7 +45,6 @@ export default function SubadminSettingsPage() {
   const isAdminViewingSubadmin = user?.role === UserRole.ADMIN && subadminIdFromUrl !== null;
 
   // Game Odds
-  const [coinFlipOdds, setCoinFlipOdds] = useState("1.90");
   const [satamatkaOdds, setSatamatkaOdds] = useState({
     jodi: "85.00",
     harf: "50.00",
@@ -92,15 +91,7 @@ export default function SubadminSettingsPage() {
       };
     },
     onSuccess: (data: any) => {
-      if (data.coinFlip && data.coinFlip.length > 0) {
-        // Find the admin-set odds (setByAdmin = true)
-        const adminOdds = data.coinFlip.find((odd: any) => odd.setByAdmin);
-        if (adminOdds) {
-          // Convert integer odds to decimal (250 -> "2.50")
-          const oddValueDecimal = (adminOdds.oddValue / 100).toFixed(2);
-          setCoinFlipOdds(oddValueDecimal);
-        }
-      }
+      // Coin flip odds removed
       
       const updatedSatamatkaOdds = { ...satamatkaOdds };
       
@@ -144,11 +135,6 @@ export default function SubadminSettingsPage() {
     onSuccess: (data: any) => {
       if (data && data.length > 0) {
         // Process each game type
-        const coinFlipOdd = data.find((odd: any) => odd.gameType === 'coin_flip');
-        if (coinFlipOdd) {
-          setCoinFlipOdds((coinFlipOdd.oddValue / 100).toFixed(2));
-        }
-        
         const jodiOdd = data.find((odd: any) => odd.gameType === 'satamatka_jodi');
         const harfOdd = data.find((odd: any) => odd.gameType === 'satamatka_harf');
         const crossingOdd = data.find((odd: any) => odd.gameType === 'satamatka_crossing');
@@ -286,15 +272,6 @@ export default function SubadminSettingsPage() {
   // Handle game odds save
   const handleSaveGameOdds = () => {
     if (!user) return;
-    
-    // Save Coin Flip odds
-    const coinFlipOddValue = Math.round(parseFloat(coinFlipOdds) * 100);
-    saveOddsMutation.mutate({
-      gameType: "coin_flip",
-      oddValue: coinFlipOddValue,
-      setByAdmin: false,
-      subadminId: user.id
-    });
     
     // Save Satamatka odds - Jodi
     const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 100);
@@ -539,24 +516,6 @@ export default function SubadminSettingsPage() {
                     
                     <Separator className="my-4" />
                     
-                    <div>
-                      <h3 className="text-lg font-medium">Coin Flip</h3>
-                      <Separator className="my-2" />
-                      <div className="space-y-2">
-                        <Label htmlFor="coinFlipOdds">Win Multiplier</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="coinFlipOdds" 
-                            value={coinFlipOdds} 
-                            onChange={(e) => setCoinFlipOdds(e.target.value)} 
-                            placeholder="1.90"
-                            className="max-w-[120px]"
-                          />
-                          <span>times the bet amount</span>
-                        </div>
-                      </div>
-                    </div>
-
                     <div>
                       <h3 className="text-lg font-medium">Satamatka</h3>
                       <Separator className="my-2" />
