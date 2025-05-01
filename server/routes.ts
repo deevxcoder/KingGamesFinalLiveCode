@@ -379,13 +379,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "You don't have permission to modify this user" });
       }
 
-      // Prevent negative balance
+      // For subadmins adding funds to players, check if subadmin has enough balance
+      if (req.user!.role === UserRole.SUBADMIN && amount > 0) {
+        const subadmin = await storage.getUser(req.user!.id);
+        if (!subadmin || subadmin.balance < amount) {
+          return res.status(400).json({ 
+            message: "Insufficient balance in your account. Please make a deposit request to add funds to your wallet first."
+          });
+        }
+        
+        // Deduct the amount from subadmin's balance
+        await storage.updateUserBalance(subadmin.id, subadmin.balance - amount);
+        
+        // Record transaction for subadmin (negative amount = deduction)
+        await storage.createTransaction({
+          userId: subadmin.id,
+          amount: -amount,
+          performedBy: subadmin.id,
+          description: `Funds transferred to ${user.username}`,
+        });
+      }
+
+      // Prevent negative balance for the player
       const newBalance = user.balance + amount;
       if (newBalance < 0) {
         return res.status(400).json({ message: "Cannot reduce balance below zero" });
       }
 
-      // Update balance
+      // Update player's balance
       const updatedUser = await storage.updateUserBalance(userId, newBalance);
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
@@ -396,7 +417,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ? `Funds added by ${req.user!.username}` 
         : `Funds deducted by ${req.user!.username}`);
 
-      // Record transaction
+      // Record transaction for the player
       await storage.createTransaction({
         userId,
         amount,
