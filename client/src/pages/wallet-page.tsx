@@ -13,8 +13,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee, Wallet, History, Ban, CheckCircle2, CircleDollarSign, Landmark, Banknote } from "lucide-react";
+import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee, Wallet, History, Ban, CheckCircle2, CircleDollarSign, Landmark, Banknote, RefreshCw, CreditCard, User } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { formatDistance } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
 import DashboardLayout from "@/components/dashboard-layout";
@@ -111,7 +114,17 @@ export default function WalletPage() {
     refetch: refetchRequests
   } = useQuery<WalletRequest[]>({
     queryKey: ["/api/wallet/my-requests"],
-    enabled: activeTab === "history",
+    enabled: activeTab === "history" || activeTab === "balance",
+  });
+  
+  // Fetch user's direct transactions (fund transfers, etc.)
+  const {
+    data: transactions = [],
+    isLoading: loadingTransactions,
+    refetch: refetchTransactions
+  } = useQuery<any[]>({
+    queryKey: ["/api/transactions"],
+    enabled: activeTab === "history" || activeTab === "balance",
   });
 
   // File upload handler
@@ -811,22 +824,64 @@ export default function WalletPage() {
               <CardDescription>Your most recent wallet activities</CardDescription>
             </CardHeader>
             <CardContent>
-              {loadingRequests ? (
+              {(loadingRequests || loadingTransactions) ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-8 w-8 animate-spin text-primary" />
                 </div>
-              ) : walletRequests.length === 0 ? (
+              ) : (walletRequests.length === 0 && transactions.length === 0) ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <p>No recent transactions found.</p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {walletRequests.slice(0, 5).map((request) => {
+                  {/* Direct transactions from admin/subadmin */}
+                  {transactions.slice(0, 3).map((transaction) => (
+                    <div key={`tx-${transaction.id}`} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center">
+                        <div className="mr-4">
+                          {transaction.amount > 0 ? (
+                            <ArrowDown className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <ArrowUp className="h-5 w-5 text-red-600" />
+                          )}
+                        </div>
+                        <div>
+                          <h4 className="font-medium">
+                            {transaction.amount > 0 ? "Fund Credit" : "Fund Debit"}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <User className="h-3 w-3" /> 
+                              By {transaction.performer?.username || `Admin #${transaction.performedBy}`}
+                              <span className="mx-1">•</span>
+                              {formatDate(transaction.createdAt)}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={`font-semibold ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
+                          {transaction.amount > 0 ? "+" : ""}
+                          ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
+                        </span>
+                        <div className={`p-1 rounded-full ${transaction.amount > 0 ? "bg-green-100" : "bg-red-100"}`}>
+                          {transaction.amount > 0 ? (
+                            <CheckCircle className="h-5 w-5 text-green-600" />
+                          ) : (
+                            <Ban className="h-5 w-5 text-red-600" />
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  {/* Deposit/Withdrawal requests */}
+                  {walletRequests.slice(0, 3).map((request) => {
                     const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
                     const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
                     
                     return (
-                      <div key={request.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div key={`req-${request.id}`} className="flex items-center justify-between p-4 border rounded-lg">
                         <div className="flex items-center">
                           <div className="mr-4">
                             {typeIcon}
