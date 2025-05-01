@@ -589,7 +589,8 @@ export class DatabaseStorage implements IStorage {
         userId: insertTransaction.userId,
         amount: insertTransaction.amount,
         performedBy: insertTransaction.performedBy,
-        requestId: insertTransaction.requestId
+        requestId: insertTransaction.requestId,
+        description: insertTransaction.description
       }).returning();
       return transaction;
     } catch (error) {
