@@ -118,6 +118,18 @@ export default function RiskManagementPage() {
     enabled: !!user && (isAdmin || isSubadmin),
   });
 
+  // Query for cricket toss statistics
+  const { data: cricketTossStats, isLoading: cricketLoading } = useQuery<TeamMatchStats[]>({
+    queryKey: ["/api/cricket-toss/stats", isAdmin ? "admin" : `subadmin-${user?.id}`],
+    enabled: !!user && (isAdmin || isSubadmin),
+  });
+
+  // Query for sports match statistics
+  const { data: sportsStats, isLoading: sportsLoading } = useQuery<TeamMatchStats[]>({
+    queryKey: ["/api/sports/stats", isAdmin ? "admin" : `subadmin-${user?.id}`],
+    enabled: !!user && (isAdmin || isSubadmin),
+  });
+
   // Function to format currency amounts
   const formatAmount = (amount: number) => {
     return "₹" + (amount / 100).toFixed(2);
@@ -164,112 +176,110 @@ export default function RiskManagementPage() {
       .slice(0, 100); // Get top 100 results
   };
 
-  // Extract cricket toss data (simplified mock for now)
+  // Process cricket toss data from API
   const processCricketTossData = () => {
-    // This would be replaced with real API data
-    return [
-      {
-        teamName: "India",
-        totalBets: 145,
-        totalAmount: 145000,
-        potentialWinAmount: 261000,
-        uniqueUsers: 85
-      },
-      {
-        teamName: "Australia",
-        totalBets: 120,
-        totalAmount: 120000,
-        potentialWinAmount: 216000,
-        uniqueUsers: 72
-      },
-      {
-        teamName: "England",
-        totalBets: 110,
-        totalAmount: 110000,
-        potentialWinAmount: 198000,
-        uniqueUsers: 65
-      },
-      {
-        teamName: "New Zealand",
-        totalBets: 92,
-        totalAmount: 92000,
-        potentialWinAmount: 165600,
-        uniqueUsers: 54
-      },
-      {
-        teamName: "South Africa",
-        totalBets: 88,
-        totalAmount: 88000,
-        potentialWinAmount: 158400,
-        uniqueUsers: 51
+    if (!cricketTossStats || cricketTossStats.length === 0) {
+      // If no cricket toss data, show demo data if in development
+      if (process.env.NODE_ENV === 'development') {
+        return [
+          {
+            teamName: "India",
+            totalBets: 0,
+            totalAmount: 0,
+            potentialWinAmount: 0,
+            uniqueUsers: 0
+          },
+          {
+            teamName: "Australia",
+            totalBets: 0,
+            totalAmount: 0,
+            potentialWinAmount: 0,
+            uniqueUsers: 0
+          }
+        ];
       }
-    ].filter(team => {
-      if (!searchTerm) return true;
-      return team.teamName.toLowerCase().includes(searchTerm.toLowerCase());
-    }).sort((a, b) => {
-      const aValue = a[sortColumn as keyof TeamBettingStats];
-      const bValue = b[sortColumn as keyof TeamBettingStats];
-      
-      if (sortDirection === 'asc') {
-        return (aValue as number) - (bValue as number);
-      } else {
-        return (bValue as number) - (aValue as number);
-      }
+      return [];
+    }
+    
+    // Flatten all teams from all matches
+    const allTeams: TeamBettingStats[] = [];
+    
+    cricketTossStats.forEach(match => {
+      match.teams.forEach(team => {
+        allTeams.push(team);
+      });
     });
+    
+    // Filter and sort the teams
+    return allTeams
+      .filter(team => {
+        if (!searchTerm) return true;
+        return team.teamName.toLowerCase().includes(searchTerm.toLowerCase());
+      })
+      .sort((a, b) => {
+        const aValue = a[sortColumn as keyof TeamBettingStats];
+        const bValue = b[sortColumn as keyof TeamBettingStats];
+        
+        if (sortDirection === 'asc') {
+          return (aValue as number) - (bValue as number);
+        } else {
+          return (bValue as number) - (aValue as number);
+        }
+      })
+      .slice(0, 100); // Get top 100 results
   };
 
-  // Extract sports match data (simplified mock for now)
+  // Process sports match data from API
   const processSportsData = () => {
-    // This would be replaced with real API data
-    return [
-      {
-        teamName: "Mumbai Indians",
-        totalBets: 178,
-        totalAmount: 178000,
-        potentialWinAmount: 320400,
-        uniqueUsers: 95
-      },
-      {
-        teamName: "Chennai Super Kings",
-        totalBets: 165,
-        totalAmount: 165000,
-        potentialWinAmount: 297000,
-        uniqueUsers: 89
-      },
-      {
-        teamName: "Royal Challengers Bangalore",
-        totalBets: 142,
-        totalAmount: 142000,
-        potentialWinAmount: 255600,
-        uniqueUsers: 78
-      },
-      {
-        teamName: "Kolkata Knight Riders",
-        totalBets: 136,
-        totalAmount: 136000,
-        potentialWinAmount: 244800,
-        uniqueUsers: 74
-      },
-      {
-        teamName: "Delhi Capitals",
-        totalBets: 125,
-        totalAmount: 125000,
-        potentialWinAmount: 225000,
-        uniqueUsers: 68
+    if (!sportsStats || sportsStats.length === 0) {
+      // If no sports data, show demo data if in development
+      if (process.env.NODE_ENV === 'development') {
+        return [
+          {
+            teamName: "Mumbai Indians",
+            totalBets: 0,
+            totalAmount: 0,
+            potentialWinAmount: 0,
+            uniqueUsers: 0
+          },
+          {
+            teamName: "Chennai Super Kings",
+            totalBets: 0,
+            totalAmount: 0,
+            potentialWinAmount: 0,
+            uniqueUsers: 0
+          }
+        ];
       }
-    ].filter(team => {
-      if (!searchTerm) return true;
-      return team.teamName.toLowerCase().includes(searchTerm.toLowerCase());
-    }).sort((a, b) => {
-      const aValue = a[sortColumn as keyof TeamBettingStats];
-      const bValue = b[sortColumn as keyof TeamBettingStats];
-      
-      if (sortDirection === 'asc') {
-        return (aValue as number) - (bValue as number);
-      } else {
-        return (bValue as number) - (aValue as number);
-      }
+      return [];
+    }
+    
+    // Flatten all teams from all matches
+    const allTeams: TeamBettingStats[] = [];
+    
+    sportsStats.forEach(match => {
+      match.teams.forEach(team => {
+        allTeams.push(team);
+      });
     });
+    
+    // Filter and sort the teams
+    return allTeams
+      .filter(team => {
+        if (!searchTerm) return true;
+        return team.teamName.toLowerCase().includes(searchTerm.toLowerCase());
+      })
+      .sort((a, b) => {
+        const aValue = a[sortColumn as keyof TeamBettingStats];
+        const bValue = b[sortColumn as keyof TeamBettingStats];
+        
+        if (sortDirection === 'asc') {
+          return (aValue as number) - (bValue as number);
+        } else {
+          return (bValue as number) - (aValue as number);
+        }
+      })
+      .slice(0, 100); // Get top 100 results
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

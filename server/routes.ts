@@ -1172,6 +1172,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Cricket Toss Betting Statistics
+  app.get("/api/cricket-toss/stats", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      // Get active cricket toss matches
+      const matches = await storage.getActiveTeamMatches();
+      
+      // Filter matches for cricket category
+      const cricketMatches = matches.filter(match => match.category === "cricket");
+      
+      // For each match, get games and calculate stats
+      const matchStats = await Promise.all(cricketMatches.map(async (match) => {
+        const games = await storage.getTeamMatchGamesByMatchId(match.id);
+        
+        // If subadmin, filter only their assigned users' games
+        let filteredGames = games;
+        if (req.user?.role === UserRole.SUBADMIN) {
+          const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
+          const assignedUserIds = assignedUsers.map(user => user.id);
+          filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
+        }
+        
+        // Count games for each team
+        const teamA = match.teamA;
+        const teamB = match.teamB;
+        
+        const teamAGames = filteredGames.filter(game => game.prediction === teamA);
+        const teamBGames = filteredGames.filter(game => game.prediction === teamB);
+        
+        // Get unique users
+        const teamAUniqueUsers = new Set(teamAGames.map(game => game.userId)).size;
+        const teamBUniqueUsers = new Set(teamBGames.map(game => game.userId)).size;
+        
+        // Calculate totals
+        const teamATotalBets = teamAGames.length;
+        const teamBTotalBets = teamBGames.length;
+        
+        const teamATotalAmount = teamAGames.reduce((sum, game) => sum + game.betAmount, 0);
+        const teamBTotalAmount = teamBGames.reduce((sum, game) => sum + game.betAmount, 0);
+        
+        const teamAPotentialWinAmount = teamAGames.reduce((sum, game) => sum + (game.payout || 0), 0);
+        const teamBPotentialWinAmount = teamBGames.reduce((sum, game) => sum + (game.payout || 0), 0);
+        
+        return {
+          matchId: match.id,
+          matchName: `${match.teamA} vs ${match.teamB}`,
+          startTime: match.matchTime,
+          teams: [
+            {
+              teamName: match.teamA,
+              totalBets: teamATotalBets,
+              totalAmount: teamATotalAmount,
+              potentialWinAmount: teamAPotentialWinAmount,
+              uniqueUsers: teamAUniqueUsers
+            },
+            {
+              teamName: match.teamB,
+              totalBets: teamBTotalBets,
+              totalAmount: teamBTotalAmount,
+              potentialWinAmount: teamBPotentialWinAmount,
+              uniqueUsers: teamBUniqueUsers
+            }
+          ]
+        };
+      }));
+      
+      res.json(matchStats);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Sports Match Betting Statistics
+  app.get("/api/sports/stats", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      // Get active team matches for sports
+      const matches = await storage.getActiveTeamMatches();
+      
+      // Filter matches for sports categories (e.g., "football", "basketball", "ipl")
+      const sportsMatches = matches.filter(match => 
+        match.category !== "cricket" && match.category !== undefined
+      );
+      
+      // For each match, get games and calculate stats
+      const matchStats = await Promise.all(sportsMatches.map(async (match) => {
+        const games = await storage.getTeamMatchGamesByMatchId(match.id);
+        
+        // If subadmin, filter only their assigned users' games
+        let filteredGames = games;
+        if (req.user?.role === UserRole.SUBADMIN) {
+          const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
+          const assignedUserIds = assignedUsers.map(user => user.id);
+          filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
+        }
+        
+        // Count games for each team
+        const teamA = match.teamA;
+        const teamB = match.teamB;
+        
+        const teamAGames = filteredGames.filter(game => game.prediction === teamA);
+        const teamBGames = filteredGames.filter(game => game.prediction === teamB);
+        
+        // Get unique users
+        const teamAUniqueUsers = new Set(teamAGames.map(game => game.userId)).size;
+        const teamBUniqueUsers = new Set(teamBGames.map(game => game.userId)).size;
+        
+        // Calculate totals
+        const teamATotalBets = teamAGames.length;
+        const teamBTotalBets = teamBGames.length;
+        
+        const teamATotalAmount = teamAGames.reduce((sum, game) => sum + game.betAmount, 0);
+        const teamBTotalAmount = teamBGames.reduce((sum, game) => sum + game.betAmount, 0);
+        
+        const teamAPotentialWinAmount = teamAGames.reduce((sum, game) => sum + (game.payout || 0), 0);
+        const teamBPotentialWinAmount = teamBGames.reduce((sum, game) => sum + (game.payout || 0), 0);
+        
+        return {
+          matchId: match.id,
+          matchName: `${match.teamA} vs ${match.teamB}`,
+          category: match.category,
+          startTime: match.matchTime,
+          teams: [
+            {
+              teamName: match.teamA,
+              totalBets: teamATotalBets,
+              totalAmount: teamATotalAmount,
+              potentialWinAmount: teamAPotentialWinAmount,
+              uniqueUsers: teamAUniqueUsers
+            },
+            {
+              teamName: match.teamB,
+              totalBets: teamBTotalBets,
+              totalAmount: teamBTotalAmount,
+              potentialWinAmount: teamBPotentialWinAmount,
+              uniqueUsers: teamBUniqueUsers
+            }
+          ]
+        };
+      }));
+      
+      res.json(matchStats);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
   // Jantri Management Routes
   app.get("/api/jantri/stats", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
@@ -1188,7 +1333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If subadmin, filter only their assigned users' games
         let filteredGames = games;
         if (req.user?.role === UserRole.SUBADMIN) {
-          const assignedUsers = await storage.getUsersByAssignedTo(req.user.id);
+          const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
           const assignedUserIds = assignedUsers.map(user => user.id);
           filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
         }
