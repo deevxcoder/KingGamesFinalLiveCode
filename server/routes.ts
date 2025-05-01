@@ -1187,7 +1187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // If subadmin, filter only their assigned users' games
         let filteredGames = games;
-        if (req.user?.role === "subadmin") {
+        if (req.user?.role === UserRole.SUBADMIN) {
           const assignedUsers = await storage.getUsersByAssignedTo(req.user.id);
           const assignedUserIds = assignedUsers.map(user => user.id);
           filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
