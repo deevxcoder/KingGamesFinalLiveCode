@@ -876,15 +876,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = "pending";
       const payout = 0; // Will be calculated when results are published
       
-      // Update user balance (deduct bet amount)
-      const newBalance = user.balance - betAmount;
+      // Convert bet amount to paisa (multiply by 100) for storage and balance deduction
+      const betAmountInPaisa = betAmount * 100;
+      
+      // Update user balance (deduct bet amount in paisa)
+      const newBalance = user.balance - betAmountInPaisa;
       await storage.updateUserBalance(user.id, newBalance);
 
-      // Record the game
+      // Record the game, storing the bet amount in paisa for consistency
       const game = await storage.createGame({
         userId: user.id,
         gameType: GameType.SATAMATKA,
-        betAmount,
+        betAmount: betAmountInPaisa,  // Store in paisa like other game types
         prediction,
         result,
         payout,
@@ -894,7 +897,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Return game info with updated user balance
       res.json({
-        game,
+        game: {
+          ...game,
+          // For frontend display, return the bet amount in rupees
+          betAmount: betAmount
+        },
         user: {
           ...user,
           balance: newBalance,
