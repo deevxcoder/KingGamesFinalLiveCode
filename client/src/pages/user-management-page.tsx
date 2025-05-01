@@ -402,6 +402,24 @@ export default function UserManagementPage() {
     setIsUserDetailsDialogOpen(true);
   };
   
+  const openCommissionDialog = (user: any) => {
+    setSelectedUser(user);
+    setCommissionRate(0);
+    setSelectedGameType("satamatka_jodi");
+    setIsCommissionDialogOpen(true);
+  };
+  
+  const handleSetCommission = () => {
+    if (!selectedUser || commissionRate < 0) return;
+    
+    setCommissionMutation.mutate({
+      userId: selectedUser.id,
+      gameType: selectedGameType,
+      rate: commissionRate,
+      isSubadmin: selectedUser.role === UserRole.SUBADMIN
+    });
+  };
+  
   // Handle create user form submission
   const handleCreateUser = (data: z.infer<typeof createUserSchema>) => {
     const { confirmPassword, ...userData } = data;
@@ -521,6 +539,18 @@ export default function UserManagementPage() {
                             >
                               <Info className="h-4 w-4" />
                             </Button>
+                            {/* Only show commission button for subadmins and players */}
+                            {(user.role === UserRole.SUBADMIN || user.role === UserRole.PLAYER) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openCommissionDialog(user)}
+                                title={user.role === UserRole.SUBADMIN ? "Set Commission" : "Set Discount"}
+                                className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
+                              >
+                                <Percent className="h-4 w-4" />
+                              </Button>
+                            )}
                             {user.isBlocked ? (
                               <Button
                                 variant="outline"
@@ -780,6 +810,88 @@ export default function UserManagementPage() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Commission Dialog */}
+      <Dialog open={isCommissionDialogOpen} onOpenChange={setIsCommissionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {selectedUser?.role === UserRole.SUBADMIN ? "Set Commission Rate" : "Set Discount Rate"}
+            </DialogTitle>
+            <DialogDescription>
+              {selectedUser?.role === UserRole.SUBADMIN 
+                ? `Set commission rates for ${selectedUser?.username}` 
+                : `Set discount rates for ${selectedUser?.username}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="game-type">Game Type</Label>
+              <Select value={selectedGameType} onValueChange={setSelectedGameType}>
+                <SelectTrigger className="w-full mt-2">
+                  <SelectValue placeholder="Select game type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="satamatka_jodi">Satamatka - Jodi</SelectItem>
+                  <SelectItem value="satamatka_single">Satamatka - Single</SelectItem>
+                  <SelectItem value="satamatka_patti">Satamatka - Patti</SelectItem>
+                  <SelectItem value="cricket_toss">Cricket Toss</SelectItem>
+                  <SelectItem value="team_match">Team Match</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="commission-rate">
+                {selectedUser?.role === UserRole.SUBADMIN ? "Commission Rate (%)" : "Discount Rate (%)"}
+              </Label>
+              <div className="flex items-center gap-2 mt-2">
+                <Percent className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="commission-rate"
+                  type="number"
+                  value={commissionRate}
+                  onChange={(e) => setCommissionRate(Number(e.target.value))}
+                  placeholder="Rate in percentage"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {selectedUser?.role === UserRole.SUBADMIN 
+                  ? "Commission is calculated as a percentage of player's betting amount."
+                  : "Discount reduces the player's betting amount, increasing potential winnings."}
+              </p>
+            </div>
+            
+            {/* Display existing commission/discount rates if available */}
+            {!isLoadingCommissions && userCommissions.length > 0 && (
+              <div className="mt-4">
+                <h4 className="text-sm font-medium mb-2">Current Rates:</h4>
+                <div className="space-y-1">
+                  {userCommissions.map((commission: any) => (
+                    <div key={commission.id} className="flex justify-between text-sm">
+                      <span>{commission.gameType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                      <span className="font-medium">{(commission.commissionRate / 100).toFixed(2)}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCommissionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSetCommission} 
+              disabled={commissionRate < 0 || commissionRate > 100 || setCommissionMutation.isPending}
+            >
+              {setCommissionMutation.isPending ? "Processing..." : "Save Rate"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       
