@@ -79,10 +79,15 @@ export function setupAuth(app: Express) {
         return res.status(400).send("Username already exists");
       }
 
-      // Set default role to player if not specified or if non-admin tries to create other roles
+      // Set default role to player 
       let role = UserRole.PLAYER;
+      
+      // Only admins can create users with different roles
       if (req.isAuthenticated() && req.user?.role === UserRole.ADMIN) {
         role = req.body.role || UserRole.PLAYER;
+      } else if (req.isAuthenticated() && req.user?.role === UserRole.SUBADMIN) {
+        // Subadmins can ONLY create players, override any role passed
+        role = UserRole.PLAYER;
       }
 
       // Assign users to admins/subadmins by default
