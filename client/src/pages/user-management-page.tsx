@@ -842,8 +842,9 @@ export default function UserManagementPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="satamatka_jodi">Satamatka - Jodi</SelectItem>
-                  <SelectItem value="satamatka_single">Satamatka - Single</SelectItem>
-                  <SelectItem value="satamatka_patti">Satamatka - Patti</SelectItem>
+                  <SelectItem value="satamatka_harf">Satamatka - Harf</SelectItem>
+                  <SelectItem value="satamatka_crossing">Satamatka - Crossing</SelectItem>
+                  <SelectItem value="satamatka_odd_even">Satamatka - Odd Even</SelectItem>
                   <SelectItem value="cricket_toss">Cricket Toss</SelectItem>
                   <SelectItem value="team_match">Team Match</SelectItem>
                 </SelectContent>
