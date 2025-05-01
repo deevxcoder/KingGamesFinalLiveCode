@@ -496,7 +496,13 @@ export default function RiskManagementPage() {
               {data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-4">
-                    No data available
+                    {cricketLoading ? (
+                      <div className="flex justify-center items-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      </div>
+                    ) : (
+                      "No data available"
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -505,10 +511,10 @@ export default function RiskManagementPage() {
                   let riskLevel = "Low";
                   let riskColor = "bg-green-100 text-green-800";
                   
-                  if (item.potentialWinAmount > 250000) {
+                  if (item.potentialWinAmount > 50000) {
                     riskLevel = "High";
                     riskColor = "bg-red-100 text-red-800";
-                  } else if (item.potentialWinAmount > 150000) {
+                  } else if (item.potentialWinAmount > 20000) {
                     riskLevel = "Medium";
                     riskColor = "bg-yellow-100 text-yellow-800";
                   }
@@ -531,7 +537,7 @@ export default function RiskManagementPage() {
           </Table>
         </ScrollArea>
       );
-    } else {
+    } else if (activeTab === "sports") {
       const data = processSportsData();
       
       return (
@@ -591,7 +597,13 @@ export default function RiskManagementPage() {
               {data.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-4">
-                    No data available
+                    {sportsLoading ? (
+                      <div className="flex justify-center items-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                      </div>
+                    ) : (
+                      "No data available"
+                    )}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -600,10 +612,10 @@ export default function RiskManagementPage() {
                   let riskLevel = "Low";
                   let riskColor = "bg-green-100 text-green-800";
                   
-                  if (item.potentialWinAmount > 300000) {
+                  if (item.potentialWinAmount > 50000) {
                     riskLevel = "High";
                     riskColor = "bg-red-100 text-red-800";
-                  } else if (item.potentialWinAmount > 200000) {
+                  } else if (item.potentialWinAmount > 20000) {
                     riskLevel = "Medium";
                     riskColor = "bg-yellow-100 text-yellow-800";
                   }
@@ -631,141 +643,144 @@ export default function RiskManagementPage() {
 
   return (
     <DashboardLayout title="Risk Management">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold">Jantri Risk Management</h1>
-        <p className="text-muted-foreground">
-          Monitor betting patterns and identify high-risk bets for your assigned users
-        </p>
-      </div>
-      
-      {/* Summary Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <Card className="border border-primary/10 shadow-md bg-gradient-to-br from-primary/5 to-primary/10">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Active Bets</p>
-                <p className="text-2xl font-bold text-foreground">{summary.totalBets}</p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-                <Calculator className="h-6 w-6" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm text-primary">
-              <Activity className="h-4 w-4 mr-1" />
-              <span className="font-medium">Active betting activity</span>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="space-y-6">
+        {/* Summary statistics cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Bets
+              </CardTitle>
+              <Calculator className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary.totalBets}</div>
+              <p className="text-xs text-muted-foreground">
+                Across all {activeTab} games
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Bet Amount
+              </CardTitle>
+              <Coins className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{formatAmount(summary.totalAmount)}</div>
+              <p className="text-xs text-muted-foreground">
+                Across all {activeTab} games
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Potential Payout
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{formatAmount(summary.totalPotentialWin)}</div>
+              <p className="text-xs text-muted-foreground">
+                Maximum liability
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Active Players
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{summary.totalUniqueUsers}</div>
+              <p className="text-xs text-muted-foreground">
+                Unique players with active bets
+              </p>
+            </CardContent>
+          </Card>
+        </div>
         
-        <Card className="border border-green-500/10 shadow-md bg-gradient-to-br from-green-500/5 to-green-500/10">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total Bet Amount</p>
-                <p className="text-2xl font-bold text-foreground">{formatAmount(summary.totalAmount)}</p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-green-500/20 flex items-center justify-center text-green-500">
-                <DollarSign className="h-6 w-6" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm text-green-500">
-              <TrendingUp className="h-4 w-4 mr-1" />
-              <span className="font-medium">Total wagers placed</span>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border border-red-500/10 shadow-md bg-gradient-to-br from-red-500/5 to-red-500/10">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Potential Payout</p>
-                <p className="text-2xl font-bold text-foreground">{formatAmount(summary.totalPotentialWin)}</p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-red-500/20 flex items-center justify-center text-red-500">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm text-red-500">
-              <ShieldAlert className="h-4 w-4 mr-1" />
-              <span className="font-medium">Maximum liability</span>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="border border-blue-500/10 shadow-md bg-gradient-to-br from-blue-500/5 to-blue-500/10">
-          <CardContent className="pt-6">
-            <div className="flex justify-between items-center">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Unique Users</p>
-                <p className="text-2xl font-bold text-foreground">{summary.totalUniqueUsers}</p>
-              </div>
-              <div className="h-12 w-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500">
-                <Users className="h-6 w-6" />
-              </div>
-            </div>
-            <div className="mt-4 flex items-center text-sm text-blue-500">
-              <Info className="h-4 w-4 mr-1" />
-              <span className="font-medium">Distinct players betting</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
+        {/* Tabs for different game types */}
+        <Card>
+          <CardHeader>
+            <div className="flex flex-row justify-between items-center">
               <CardTitle>Betting Analysis</CardTitle>
-              <CardDescription>
-                Top 100 most betted items with their betting statistics
-              </CardDescription>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              <div className="relative w-full md:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="text"
-                  placeholder="Search..."
-                  className="pl-8 w-full"
-                  value={searchTerm}
-                  onChange={handleSearchChange}
-                />
+              <div className="flex space-x-2">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    type="search"
+                    placeholder="Search..."
+                    className="pl-8 w-[200px]"
+                    value={searchTerm}
+                    onChange={handleSearchChange}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="satamatka" value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="satamatka">Satamatka</TabsTrigger>
-              <TabsTrigger value="cricket">Cricket Toss</TabsTrigger>
-              <TabsTrigger value="sports">Sports Match</TabsTrigger>
-            </TabsList>
-            <TabsContent value="satamatka">
-              {renderTable()}
-            </TabsContent>
-            <TabsContent value="cricket">
-              {renderTable()}
-            </TabsContent>
-            <TabsContent value="sports">
-              {renderTable()}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-        <CardFooter className="border-t px-6 py-3">
-          <div className="flex items-center justify-between w-full text-xs text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <BarChart className="h-4 w-4" />
-              <span>Only showing data for users assigned to you</span>
+            <CardDescription>
+              Monitor and analyze betting patterns to manage risk effectively.
+              <div className="mt-2 flex space-x-4">
+                <div className="flex items-center space-x-1">
+                  <Badge className="bg-green-100 text-green-800">Low</Badge>
+                  <span className="text-xs">Up to ₹200</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>
+                  <span className="text-xs">₹200-₹500</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Badge className="bg-red-100 text-red-800">High</Badge>
+                  <span className="text-xs">Over ₹500</span>
+                </div>
+              </div>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="satamatka" value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="satamatka" className="flex items-center space-x-2">
+                  <Dices className="h-4 w-4" /> 
+                  <span>Satamatka</span>
+                </TabsTrigger>
+                <TabsTrigger value="cricket" className="flex items-center space-x-2">
+                  <Activity className="h-4 w-4" /> 
+                  <span>Cricket Toss</span>
+                </TabsTrigger>
+                <TabsTrigger value="sports" className="flex items-center space-x-2">
+                  <BarChart className="h-4 w-4" /> 
+                  <span>Sports</span>
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="satamatka" className="mt-4">
+                {renderTable()}
+              </TabsContent>
+              <TabsContent value="cricket" className="mt-4">
+                {renderTable()}
+              </TabsContent>
+              <TabsContent value="sports" className="mt-4">
+                {renderTable()}
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+          <CardFooter className="flex justify-between border-t px-6 py-4">
+            <p className="text-sm text-muted-foreground">
+              Showing top 100 results by {sortColumn === 'totalBets' ? 'number of bets' : 
+                sortColumn === 'totalAmount' ? 'bet amount' : 
+                sortColumn === 'potentialWinAmount' ? 'potential win amount' : 
+                'unique users'}
+            </p>
+            <div className="flex items-center space-x-2">
+              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+              <span className="text-sm text-muted-foreground">High risk items require attention</span>
             </div>
-            <div>
-              Updated {new Date().toLocaleTimeString()}
-            </div>
-          </div>
-        </CardFooter>
-      </Card>
+          </CardFooter>
+        </Card>
+      </div>
     </DashboardLayout>
   );
 }
