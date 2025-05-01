@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import DashboardLayout from "@/components/dashboard-layout";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,8 +32,6 @@ const createUserSchema = z.object({
 export default function SubadminSettingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
-  // We only have one tab now, so we keep it fixed to "odds"
-  const activeTab = "odds";
   const [location] = useLocation();
   
   // Create user dialog state
@@ -47,8 +44,6 @@ export default function SubadminSettingsPage() {
   // Determine if this page is being viewed by an admin for a specific subadmin
   const isAdminViewingSubadmin = user?.role === UserRole.ADMIN && subadminIdFromUrl !== null;
 
-
-  
   // Game Odds
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.90");
   const [satamatkaOdds, setSatamatkaOdds] = useState({
@@ -57,7 +52,6 @@ export default function SubadminSettingsPage() {
     crossing: "95.00",
     odd_even: "1.90",
   });
-
 
   // Commission rates - viewed from admin or edited by admin for subadmin
   const [adminCommissionRates, setAdminCommissionRates] = useState({
@@ -249,7 +243,6 @@ export default function SubadminSettingsPage() {
   };
   
 
-
   // Save subadmin odds mutation
   const saveOddsMutation = useMutation({
     mutationFn: (odds: any) => apiRequest('/api/game-odds', 'POST', odds),
@@ -268,7 +261,6 @@ export default function SubadminSettingsPage() {
       });
     }
   });
-
 
   
   // Save commission rate mutation (used by admin to set subadmin commissions)
@@ -340,7 +332,6 @@ export default function SubadminSettingsPage() {
       subadminId: user.id
     });
   };
-
 
   
   // Handle admin saving commission rates for a subadmin
@@ -457,32 +448,23 @@ export default function SubadminSettingsPage() {
           <CardHeader>
             <div className="flex justify-between items-center">
               <div>
-                <CardTitle>Subadmin Commission Settings</CardTitle>
+                <CardTitle>Subadmin Commission Rates</CardTitle>
                 <CardDescription>
-                  Set commission percentages for this subadmin
+                  Set the commission rates for this subadmin. These rates determine how much commission they earn from player bets.
                 </CardDescription>
               </div>
               {!isEditingCommissions ? (
-                <Button
-                  onClick={() => setIsEditingCommissions(true)}
-                  variant="outline"
-                >
-                  Edit Commission Rates
+                <Button onClick={() => setIsEditingCommissions(true)} className="whitespace-nowrap">
+                  Edit Rates
                 </Button>
               ) : (
                 <div className="flex gap-2">
-                  <Button
-                    onClick={() => setIsEditingCommissions(false)}
-                    variant="outline"
-                  >
+                  <Button variant="outline" onClick={() => setIsEditingCommissions(false)}>
                     Cancel
                   </Button>
-                  <Button
-                    onClick={handleSaveCommissionRates}
-                    disabled={saveCommissionMutation.isPending}
-                  >
+                  <Button onClick={handleSaveCommissionRates} disabled={saveCommissionMutation.isPending}>
                     {saveCommissionMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Save Commission Rates
+                    Save Changes
                   </Button>
                 </div>
               )}
@@ -494,58 +476,34 @@ export default function SubadminSettingsPage() {
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {Object.entries(adminCommissionRates).map(([gameType, rate]) => (
-                    <div key={gameType} className="space-y-2">
-                      <Label htmlFor={`commission-${gameType}`}>
-                        {gameType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        {isEditingCommissions ? (
-                          <Input 
-                            id={`commission-${gameType}`}
-                            value={rate}
-                            onChange={(e) => {
-                              const newRates = {...adminCommissionRates};
-                              newRates[gameType as keyof typeof adminCommissionRates] = e.target.value;
-                              setAdminCommissionRates(newRates);
-                            }}
-                            placeholder="2.0"
-                            className="max-w-[100px]"
-                          />
-                        ) : (
-                          <div className="bg-secondary/50 px-3 py-2 rounded-md max-w-[100px] text-center">
-                            {rate}
-                          </div>
-                        )}
-                        <span>%</span>
-                      </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {Object.entries(adminCommissionRates).map(([gameType, rate]) => (
+                  <div key={gameType} className="space-y-2">
+                    <Label htmlFor={`commission-${gameType}`} className="capitalize">
+                      {gameType.replace(/_/g, ' ')}
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <Input 
+                        id={`commission-${gameType}`} 
+                        value={rate} 
+                        onChange={(e) => setAdminCommissionRates({
+                          ...adminCommissionRates,
+                          [gameType]: e.target.value
+                        })} 
+                        placeholder="0.0"
+                        className="max-w-[100px]"
+                        disabled={!isEditingCommissions}
+                      />
+                      <span>%</span>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="mt-6">
-                  <p className="text-sm text-muted-foreground">
-                    <strong>Note:</strong> These commission rates determine how much the subadmin earns from player bets on different game types.
-                  </p>
-                </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
         </Card>
       ) : (
-        <Tabs 
-          value={activeTab}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-1">
-            <TabsTrigger value="odds">Game Odds</TabsTrigger>
-          </TabsList>
-          
-          {/* Game Odds Tab */}
-        <TabsContent value="odds">
-          <Card>
+        <Card>
             <CardHeader>
               <CardTitle>Custom Game Odds</CardTitle>
               <CardDescription>
@@ -677,10 +635,6 @@ export default function SubadminSettingsPage() {
               </Button>
             </CardFooter>
           </Card>
-        </TabsContent>
-        
-
-      </Tabs>
       )}
     </DashboardLayout>
   );
