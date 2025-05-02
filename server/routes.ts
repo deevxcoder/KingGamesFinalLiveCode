@@ -1732,6 +1732,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   await import('./wallet-system').then(({ setupWalletRoutes }) => {
     setupWalletRoutes(app);
   });
+  
+  // Serve login test page for debugging
+  app.get("/login-test", (_req, res) => {
+    res.sendFile("login-test.html", { root: process.cwd() });
+  });
 
   const httpServer = createServer(app);
   return httpServer;
