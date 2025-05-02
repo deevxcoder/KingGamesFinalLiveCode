@@ -91,6 +91,7 @@ export default function SubadminCommissionManagementPage() {
   // Update commission mutation
   const updateCommissionMutation = useMutation({
     mutationFn: async (values: Commission) => {
+      console.log('Sending commission values:', values);
       return apiRequest('/api/commissions/subadmin/' + subadminId, {
         method: 'POST',
         data: {
@@ -142,24 +143,29 @@ export default function SubadminCommissionManagementPage() {
         satamatkaOther: 0,
       };
 
+      // Log commission data to debug
+      console.log('Commission data received:', commissions);
+
       commissions.forEach((commission: any) => {
         if (commission.gameType === 'team_match') {
-          formValues.teamMatch = commission.commissionRate / 100;
+          formValues.teamMatch = commission.commissionRate;
         } else if (commission.gameType === 'cricket_toss') {
-          formValues.cricketToss = commission.commissionRate / 100;
+          formValues.cricketToss = commission.commissionRate;
         } else if (commission.gameType === 'coin_flip') {
-          formValues.coinFlip = commission.commissionRate / 100;
+          formValues.coinFlip = commission.commissionRate;
         } else if (commission.gameType === 'satamatka_jodi') {
-          formValues.satamatkaJodi = commission.commissionRate / 100;
+          formValues.satamatkaJodi = commission.commissionRate;
         } else if (commission.gameType === 'satamatka_harf') {
-          formValues.satamatkaHarf = commission.commissionRate / 100;
+          formValues.satamatkaHarf = commission.commissionRate;
         } else if (commission.gameType === 'satamatka_odd_even') {
-          formValues.satamatkaOddEven = commission.commissionRate / 100;
+          formValues.satamatkaOddEven = commission.commissionRate;
         } else if (commission.gameType === 'satamatka_other') {
-          formValues.satamatkaOther = commission.commissionRate / 100;
+          formValues.satamatkaOther = commission.commissionRate;
         }
       });
 
+      // Log form values for debugging 
+      console.log('Setting form values to:', formValues);
       form.reset(formValues);
     }
   }, [commissions, form]);
