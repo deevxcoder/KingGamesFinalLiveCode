@@ -17,6 +17,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
+import { formatCurrency, formatProfitLoss } from "@/lib/format-utils";
 
 interface Game {
   id: number;
@@ -250,9 +251,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                         {getMarketOrMatchInfo(game)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm text-slate-300">
-                        ₹{(game.gameType === 'coin_flip' || game.gameType === 'team_match' ? 
-                            game.betAmount >= 10000 ? (game.betAmount / 100).toFixed(2) : game.betAmount.toFixed(2) 
-                            : game.betAmount.toFixed(2))}
+                        {formatCurrency(game.betAmount, game.gameType)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap">
                         <Badge variant="outline" className={getBadgeClass(game.prediction, game.gameType)}>
@@ -273,12 +272,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                       <TableCell className={`whitespace-nowrap text-sm ${
                         isWin ? "text-teal-400" : "text-slate-400"
                       }`}>
-                        {isWin ? "+" : ""}₹{(game.gameType === 'coin_flip' || game.gameType === 'team_match'
-                          ? (game.betAmount >= 10000 
-                            ? (isWin ? game.payout - game.betAmount : -game.betAmount) / 100 
-                            : (isWin ? game.payout - game.betAmount : -game.betAmount))
-                          : (isWin ? game.payout - game.betAmount : -game.betAmount)
-                        ).toFixed(2)}
+                        {formatProfitLoss(game.betAmount, game.payout, game.gameType)}
                       </TableCell>
                     </TableRow>
                   );
