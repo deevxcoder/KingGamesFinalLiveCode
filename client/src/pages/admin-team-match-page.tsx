@@ -818,11 +818,68 @@ export default function AdminTeamMatchPage() {
                     <FormLabel>Cover Banner Image (Optional)</FormLabel>
                     <div className="grid gap-2">
                       <FormControl>
-                        <Input 
-                          type="url" 
-                          {...field} 
-                          placeholder="Enter image URL (e.g., https://example.com/banner.jpg)" 
-                        />
+                        <div className="flex flex-col gap-2">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            className="cursor-pointer"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                // Create form data to send the file
+                                const formData = new FormData();
+                                formData.append('matchBannerImage', file);
+                                
+                                try {
+                                  // Upload the file using the API
+                                  const response = await fetch('/api/upload/match-banner', {
+                                    method: 'POST',
+                                    body: formData,
+                                    // No need to set Content-Type header, browser will set it automatically with boundary
+                                  });
+                                  
+                                  if (response.ok) {
+                                    const data = await response.json();
+                                    if (data.success) {
+                                      // Set the field value to the returned URL
+                                      field.onChange(data.imageUrl);
+                                      toast({
+                                        title: "Image uploaded successfully",
+                                        variant: "success",
+                                        duration: 2000,
+                                      });
+                                    } else {
+                                      throw new Error('Upload failed');
+                                    }
+                                  } else {
+                                    throw new Error('Upload failed');
+                                  }
+                                } catch (error) {
+                                  console.error('Error uploading banner:', error);
+                                  toast({
+                                    title: "Image upload failed",
+                                    description: "Please try again later",
+                                    variant: "destructive",
+                                    duration: 3000,
+                                  });
+                                }
+                              }
+                            }}
+                          />
+                          {field.value && (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => field.onChange('')}
+                              >
+                                Clear
+                              </Button>
+                              <span className="text-xs text-muted-foreground truncate">{field.value}</span>
+                            </div>
+                          )}
+                        </div>
                       </FormControl>
                       
                       {field.value && (
@@ -832,14 +889,14 @@ export default function AdminTeamMatchPage() {
                             alt="Cover preview" 
                             className="w-full h-40 object-cover rounded-md"
                             onError={(e) => {
-                              (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Invalid+Image+URL";
+                              (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Preview+Unavailable";
                             }}
                           />
                         </div>
                       )}
                       
                       <FormDescription>
-                        Recommended size: 1200×400 pixels. Use a URL from any image hosting service.
+                        Recommended size: 1200×400 pixels. Select an image file from your device.
                       </FormDescription>
                     </div>
                     <FormMessage />
