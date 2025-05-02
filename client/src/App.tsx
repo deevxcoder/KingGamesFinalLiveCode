@@ -28,6 +28,7 @@ import JantriManagementPage from "@/pages/jantri-management-page";
 import WalletPage from "@/pages/wallet-page";
 import AdminSettingsPage from "@/pages/admin-settings-page";
 import SubadminSettingsPage from "@/pages/subadmin-settings-page";
+import SubadminCommissionManagementPage from "@/pages/subadmin-commission-management-page";
 import FundManagementPage from "@/pages/fund-management-page";
 import LeaderboardPage from "@/pages/leaderboard-page";
 
@@ -107,6 +108,11 @@ function Router() {
         path="/settings/subadmin" 
         component={SubadminSettingsPage} 
         allowedRoles={[UserRole.SUBADMIN]}
+      />
+      <ProtectedRoute 
+        path="/subadmin-commission-management" 
+        component={SubadminCommissionManagementPage} 
+        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
       />
       
       {/* Game routes - only for normal players */}

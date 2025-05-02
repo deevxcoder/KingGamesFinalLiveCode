@@ -309,7 +309,7 @@ export default function SubadminManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.location.href = `/subadmin-settings?id=${subadmin.id}`}
+                                onClick={() => window.location.href = `/subadmin-commission-management?id=${subadmin.id}`}
                                 className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
                               >
                                 <Settings className="h-4 w-4 mr-2" />
@@ -416,7 +416,7 @@ export default function SubadminManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.location.href = `/subadmin-settings?userId=${player.id}`}
+                                onClick={() => window.location.href = `/subadmin-commission-management?userId=${player.id}`}
                                 className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
                               >
                                 <Settings className="h-4 w-4 mr-2" />
