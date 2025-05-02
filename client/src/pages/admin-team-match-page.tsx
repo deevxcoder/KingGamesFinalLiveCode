@@ -340,13 +340,14 @@ export default function AdminTeamMatchPage() {
     const combinedDateTime = `${matchDate}T${matchTime}:00`;
     
     // Create the data object to send to the API
-    // The backend expects matchTime as a Date object
+    // Since the backend schema now handles string-to-date conversion
+    // we can send the ISO string directly
     const apiData = {
       teamA: restData.teamA,
       teamB: restData.teamB,
       category: restData.category,
       description: restData.description,
-      matchTime: new Date(combinedDateTime),
+      matchTime: combinedDateTime, // Send as ISO string
       oddTeamA: restData.oddTeamA,
       oddTeamB: restData.oddTeamB,
       oddDraw: restData.oddDraw,
