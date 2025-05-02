@@ -284,7 +284,7 @@ export default function AdminTeamMatchPage() {
   // Handle opening edit match dialog
   const handleEditMatch = (match: TeamMatch) => {
     setEditingMatch(match);
-    const matchDate = parseISO(match.matchTime);
+    const matchDate = match.matchTime ? parseISO(match.matchTime) : new Date();
     matchForm.reset({
       teamA: match.teamA,
       teamB: match.teamB,
@@ -318,11 +318,11 @@ export default function AdminTeamMatchPage() {
     const { matchDate, matchTime, ...restData } = formData;
     const combinedDateTime = `${matchDate}T${matchTime}:00`;
     
-    // Create the data object with combined date/time
+    // Create the data object with combined date/time but don't include matchDate
+    // since the backend only expects matchTime
     const data = {
       ...restData,
-      matchDate, // Include matchDate in the data object
-      matchTime: combinedDateTime,
+      matchTime: new Date(combinedDateTime).toISOString(),
     };
     
     if (editingMatch) {
