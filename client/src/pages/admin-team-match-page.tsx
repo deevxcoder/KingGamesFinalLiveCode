@@ -143,7 +143,7 @@ export default function AdminTeamMatchPage() {
     defaultValues: {
       teamA: "",
       teamB: "",
-      category: "football",
+      category: "cricket",
       description: "",
       matchDate: format(new Date(), "yyyy-MM-dd"),
       matchTime: "12:00",
@@ -338,7 +338,7 @@ export default function AdminTeamMatchPage() {
     matchForm.reset({
       teamA: "",
       teamB: "",
-      category: "football",
+      category: "cricket",
       description: "",
       matchDate: format(new Date(), "yyyy-MM-dd"),
       matchTime: "12:00",
@@ -718,6 +718,7 @@ export default function AdminTeamMatchPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
+                          <SelectItem value="cricket">Cricket</SelectItem>
                           <SelectItem value="football">Football</SelectItem>
                           <SelectItem value="basketball">Basketball</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
