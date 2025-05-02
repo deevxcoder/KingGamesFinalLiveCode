@@ -340,7 +340,6 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
     teamB: true,
     category: true,
     description: true,
-    matchTime: true,
     result: true,
     oddTeamA: true,
     oddTeamB: true,
@@ -348,6 +347,10 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
     status: true,
   })
   .extend({
+    matchTime: z.union([
+      z.string().transform((val) => new Date(val)),
+      z.date()
+    ]),
     category: z.enum([
       MatchCategory.CRICKET,
       MatchCategory.FOOTBALL,

@@ -991,16 +991,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new team match (admin only)
   app.post("/api/team-matches", requireRole(UserRole.ADMIN), async (req, res, next) => {
     try {
-      const matchData = insertTeamMatchSchema.parse({
-        teamA: req.body.teamA,
-        teamB: req.body.teamB,
-        category: req.body.category,
-        description: req.body.description,
-        matchTime: req.body.matchTime,
-        oddTeamA: req.body.oddTeamA,
-        oddTeamB: req.body.oddTeamB,
-        oddDraw: req.body.oddDraw,
-      });
+      // Parse and validate the input data directly from req.body
+      const matchData = insertTeamMatchSchema.parse(req.body);
       
       const match = await storage.createTeamMatch(matchData);
       res.status(201).json(match);
@@ -1104,20 +1096,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Match not found" });
       }
       
-      // Extract update data from request body
-      const { teamA, teamB, category, description, matchTime, oddTeamA, oddTeamB, oddDraw, coverImage } = req.body;
+      // Create a partial schema for updates
+      const updateMatchSchema = insertTeamMatchSchema.partial();
       
-      // Prepare update data
-      const updateData: Partial<InsertTeamMatch> = {};
-      if (teamA) updateData.teamA = teamA;
-      if (teamB) updateData.teamB = teamB;
-      if (category) updateData.category = category;
-      if (description !== undefined) updateData.description = description;
-      if (matchTime) updateData.matchTime = new Date(matchTime);
-      if (oddTeamA !== undefined) updateData.oddTeamA = oddTeamA;
-      if (oddTeamB !== undefined) updateData.oddTeamB = oddTeamB;
-      if (oddDraw !== undefined) updateData.oddDraw = oddDraw;
-      if (coverImage) updateData.coverImage = coverImage;
+      // Validate and transform the update data
+      const updateData = updateMatchSchema.parse(req.body);
       
       // Update the match
       const updatedMatch = await storage.updateTeamMatch(matchId, updateData);
