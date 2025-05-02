@@ -227,7 +227,7 @@ export default function AdminTeamMatchPage() {
   });
 
   const updateMatch = useMutation({
-    mutationFn: async ({ id, data }: { id: number; data: z.infer<typeof matchFormSchema> }) => {
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
       return apiRequest("PATCH", `/api/team-matches/${id}`, data);
     },
     onSuccess: () => {
@@ -319,10 +319,10 @@ export default function AdminTeamMatchPage() {
     const combinedDateTime = `${matchDate}T${matchTime}:00`;
     
     // Create the data object with combined date/time but don't include matchDate
-    // since the backend only expects matchTime
+    // The backend expects matchTime as a Date object, not a string
     const data = {
       ...restData,
-      matchTime: new Date(combinedDateTime).toISOString(),
+      matchTime: new Date(combinedDateTime),
     };
     
     if (editingMatch) {
