@@ -938,7 +938,7 @@ export default function SatamatkaGame() {
                   setConfirmDialogOpen(true);
                 }}
               >
-                Place Bets on {totalCombinations} Combinations (₹{totalCombinations * quickBetAmount})
+                Place Bets on {totalCombinations} Combinations ({formatCurrency(totalCombinations * quickBetAmount, 'satamatka')})
               </Button>
             </div>
           )}
@@ -1094,7 +1094,7 @@ export default function SatamatkaGame() {
                   </div>
                   <div className="text-sm">
                     <span className="text-muted-foreground">Amount:</span>
-                    <span className="font-medium ml-2">₹{calculateTotalBetAmount()}</span>
+                    <span className="font-medium ml-2">{formatCurrency(calculateTotalBetAmount(), 'satamatka')}</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -1105,7 +1105,7 @@ export default function SatamatkaGame() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Potential Win:</span>
                     <span className="font-medium ml-2 text-amber-500">
-                      ₹{calculatePotentialWin(selectedGameMode, calculateTotalBetAmount())}
+                      {formatCurrency(calculatePotentialWin(selectedGameMode, calculateTotalBetAmount()), 'satamatka')}
                     </span>
                   </div>
                 </div>
@@ -1262,9 +1262,9 @@ export default function SatamatkaGame() {
                   return (
                     <TableRow key={num}>
                       <TableCell className="font-medium">{displayNum}</TableCell>
-                      <TableCell>₹{amount}</TableCell>
+                      <TableCell>{formatCurrency(amount, 'satamatka')}</TableCell>
                       <TableCell className="text-amber-500">
-                        ₹{calculatePotentialWin(selectedGameMode, amount)}
+                        {formatCurrency(calculatePotentialWin(selectedGameMode, amount), 'satamatka')}
                       </TableCell>
                       <TableCell>
                         <Button
