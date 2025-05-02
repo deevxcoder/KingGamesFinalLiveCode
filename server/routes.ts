@@ -991,12 +991,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new team match (admin only)
   app.post("/api/team-matches", requireRole(UserRole.ADMIN), async (req, res, next) => {
     try {
+      console.log("Received match data:", JSON.stringify(req.body));
+      
       // Parse and validate the input data directly from req.body
       const matchData = insertTeamMatchSchema.parse(req.body);
+      console.log("Parsed match data:", JSON.stringify(matchData));
       
       const match = await storage.createTeamMatch(matchData);
       res.status(201).json(match);
     } catch (err) {
+      console.error("Error creating match:", err);
       next(err);
     }
   });

@@ -340,6 +340,7 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
     teamB: true,
     category: true,
     description: true,
+    matchTime: true, // Make sure matchTime is included here
     result: true,
     oddTeamA: true,
     oddTeamB: true,
