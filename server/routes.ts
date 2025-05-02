@@ -1628,6 +1628,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update multiple commission settings for a subadmin at once
+  app.post("/api/commissions/subadmin/:subadminId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const subadminId = parseInt(req.params.subadminId);
+      const { commissions } = req.body;
+      
+      if (!Array.isArray(commissions)) {
+        return res.status(400).json({ message: "commissions must be an array of commission settings" });
+      }
+
+      // Check if the user is authorized to access this resource
+      if (req.user.role === UserRole.SUBADMIN && req.user.id !== subadminId) {
+        return res.status(403).json({ message: "Unauthorized: You can only update your own commission settings" });
+      }
+      
+      // Verify the subadmin exists and is actually a subadmin
+      const subadmin = await storage.getUser(subadminId);
+      if (!subadmin || subadmin.role !== UserRole.SUBADMIN) {
+        return res.status(400).json({ message: "Invalid subadmin ID" });
+      }
+      
+      const results = await Promise.all(
+        commissions.map(async (commission) => {
+          if (!commission.gameType || commission.commissionRate === undefined) {
+            return { error: "gameType and commissionRate are required", gameType: commission.gameType };
+          }
+          
+          // Convert rate to integer (store as integer for precision)
+          const rateAsInt = Math.round(parseFloat(commission.commissionRate) * 100);
+          
+          return storage.upsertSubadminCommission(
+            subadminId,
+            commission.gameType,
+            rateAsInt
+          );
+        })
+      );
+      
+      res.json({ 
+        success: true, 
+        message: "Commission settings updated successfully",
+        results 
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+  
   // User Discount routes
   app.get("/api/discounts/user/:userId", requireRole([UserRole.SUBADMIN]), async (req, res, next) => {
     try {
