@@ -1516,7 +1516,7 @@ export default function SatamatkaGame() {
                         bet.gameType}
                     </TableCell>
                     <TableCell>{bet.prediction}</TableCell>
-                    <TableCell>₹{bet.betAmount}</TableCell>
+                    <TableCell>{formatCurrency(bet.betAmount, bet.gameType)}</TableCell>
                     <TableCell>
                       <Badge
                         variant={
@@ -1572,12 +1572,12 @@ export default function SatamatkaGame() {
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-medium">Bet Amount</h4>
-                <p className="text-sm text-muted-foreground">₹{betDetails?.betAmount}</p>
+                <p className="text-sm text-muted-foreground">{betDetails ? formatCurrency(betDetails.betAmount, 'satamatka') : ''}</p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-medium">Potential Win</h4>
                 <p className="text-sm text-muted-foreground">
-                  ₹{betDetails ? calculatePotentialWin(selectedGameMode, betDetails.betAmount) : 0}
+                  {betDetails ? formatCurrency(calculatePotentialWin(selectedGameMode, betDetails.betAmount), 'satamatka') : ''}
                 </p>
               </div>
             </div>
