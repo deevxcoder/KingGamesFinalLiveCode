@@ -309,7 +309,12 @@ export default function SubadminManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.location.href = `/subadmin-commission-management?id=${subadmin.id}`}
+                                onClick={() => {
+                                  const url = `/subadmin-commission-management?id=${subadmin.id}`;
+                                  // Use history.push for better SPA navigation without full page reload
+                                  window.history.pushState({}, '', url);
+                                  window.dispatchEvent(new PopStateEvent('popstate'));
+                                }}
                                 className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
                               >
                                 <Settings className="h-4 w-4 mr-2" />
@@ -416,7 +421,12 @@ export default function SubadminManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => window.location.href = `/subadmin-commission-management?userId=${player.id}`}
+                                onClick={() => {
+                                  const url = `/subadmin-commission-management?userId=${player.id}`;
+                                  // Use history.push for better SPA navigation without full page reload
+                                  window.history.pushState({}, '', url);
+                                  window.dispatchEvent(new PopStateEvent('popstate'));
+                                }}
                                 className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
                               >
                                 <Settings className="h-4 w-4 mr-2" />

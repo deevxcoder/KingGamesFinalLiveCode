@@ -67,9 +67,9 @@ export default function SubadminCommissionManagementPage() {
     enabled: !!subadminId,
   });
 
-  // Get commission settings
+  // Get commission settings - need to use the API endpoint with proper params format
   const { data: commissions, isLoading: isLoadingCommissions } = useQuery({
-    queryKey: ['/api/commissions/subadmin', subadminId],
+    queryKey: [`/api/commissions/subadmin/${subadminId}`],
     queryFn: getQueryFn,
     enabled: !!subadminId,
   });
@@ -107,7 +107,7 @@ export default function SubadminCommissionManagementPage() {
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/commissions/subadmin', subadminId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/commissions/subadmin/${subadminId}`] });
       toast({
         title: "Commission settings updated",
         variant: "success",
