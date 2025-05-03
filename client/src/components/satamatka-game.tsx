@@ -949,7 +949,9 @@ export default function SatamatkaGame() {
                   setConfirmDialogOpen(true);
                 }}
               >
-                Place Bets on {totalCombinations} Combinations ({formatCurrency(totalCombinations * quickBetAmount, 'satamatka')})
+                Place Bets on {totalCombinations} Combinations ({selectedGameMode === "crossing" 
+                  ? `₹${(totalCombinations * quickBetAmount).toFixed(2)}` 
+                  : formatCurrency(totalCombinations * quickBetAmount, 'satamatka')})
               </Button>
             </div>
           )}
@@ -1600,12 +1602,22 @@ export default function SatamatkaGame() {
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-medium">Bet Amount</h4>
-                <p className="text-sm text-muted-foreground">{betDetails ? formatCurrency(betDetails.betAmount, 'satamatka') : ''}</p>
+                <p className="text-sm text-muted-foreground">
+                  {betDetails ? 
+                    (selectedGameMode === "crossing" 
+                      ? `₹${betDetails.betAmount.toFixed(2)}`
+                      : formatCurrency(betDetails.betAmount, 'satamatka')) 
+                    : ''}
+                </p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-medium">Potential Win</h4>
                 <p className="text-sm text-muted-foreground">
-                  {betDetails ? formatCurrency(calculatePotentialWin(selectedGameMode, betDetails.betAmount), 'satamatka') : ''}
+                  {betDetails ? 
+                    (selectedGameMode === "crossing"
+                      ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount) / 100).toFixed(2)}`
+                      : formatCurrency(calculatePotentialWin(selectedGameMode, betDetails.betAmount), 'satamatka')) 
+                    : ''}
                 </p>
               </div>
             </div>
