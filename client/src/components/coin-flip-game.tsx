@@ -61,9 +61,13 @@ export default function CoinFlipGame() {
         
         // Prepare result data
         const isWin = data.game.payout > 0;
+        
+        // For win popup, display the amount won (not dividing by 100)
+        const winAmount = isWin ? betAmount * 0.95 : betAmount;
+        
         setLastResult({
           isWin,
-          amount: data.game.payout / 100, // Convert to rupees from paise
+          amount: winAmount,  // Use the direct bet amount value (already in rupees)
           prediction: selectedPrediction!,
           result: data.game.result
         });
@@ -349,7 +353,7 @@ export default function CoinFlipGame() {
                   Potential Win:
                 </span>
                 <div className="flex items-center text-green-500 font-medium">
-                  {formatCurrency(betAmount * 1.95, 'coin_flip')}
+                  ₹{(betAmount * 1.95).toFixed(2)}
                   <span className="text-xs text-muted-foreground ml-1">(1.95x)</span>
                 </div>
               </div>
@@ -398,7 +402,7 @@ export default function CoinFlipGame() {
                 <div className="flex items-center justify-center mb-3">
                   <Trophy className="h-12 w-12 text-amber-500 mr-2" />
                   <div className="flex items-center text-3xl font-bold text-green-500">
-                    {formatCurrency(lastResult.amount, 'coin_flip')}
+                    ₹{lastResult.amount}
                   </div>
                 </div>
                 
@@ -449,8 +453,8 @@ export default function CoinFlipGame() {
               <div className="my-5 text-center">
                 <div className="flex items-center justify-center mb-3">
                   <div className="flex items-center text-2xl font-bold text-red-500">
-                    <span>- </span>
-                    {formatCurrency(betAmount, 'coin_flip', false)}
+                    <span>- ₹</span>
+                    {betAmount}
                   </div>
                 </div>
                 
