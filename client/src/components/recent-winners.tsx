@@ -28,30 +28,35 @@ export default function RecentWinners({ winners }: RecentWinnersProps) {
         <CardHeader>
           <CardTitle className="text-xl flex items-center text-slate-200">
             <Trophy className="w-5 h-5 text-blue-400 mr-2" />
-            Recent Winners
+            Top Winners
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-6">
             <Award className="h-12 w-12 text-slate-700 mb-2" />
-            <p className="text-slate-500 text-sm">No recent winners yet</p>
+            <p className="text-slate-500 text-sm">No winners yet</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  // Sort winners by highest profit (payout - amount) and take top 10
+  const topWinners = [...winners]
+    .sort((a, b) => (b.payout - b.amount) - (a.payout - a.amount))
+    .slice(0, 10);
+
   return (
     <Card className="bg-slate-900/70 border-slate-800">
       <CardHeader>
         <CardTitle className="text-xl flex items-center text-slate-200">
           <Trophy className="w-5 h-5 text-blue-400 mr-2" />
-          Recent Winners
+          Top Winners
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         <div className="space-y-1">
-          {winners.map((winner) => {
+          {topWinners.map((winner) => {
             const profit = (winner.payout - winner.amount) / 100;
             const formattedProfit = profit.toFixed(2);
             const timeAgo = formatDistanceToNow(new Date(winner.createdAt), { addSuffix: true });
