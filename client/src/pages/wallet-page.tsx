@@ -95,10 +95,6 @@ export default function WalletPage() {
           accountNumber: systemPaymentDetails.bank.accountNumber,
           ifscCode: systemPaymentDetails.bank.ifscCode,
           bankName: systemPaymentDetails.bank.name
-        } : undefined,
-        cashDetails: systemPaymentDetails.cash ? {
-          handlerName: systemPaymentDetails.cash.instructions,
-          contactNumber: systemPaymentDetails.cash.contact || undefined
         } : undefined
       };
       
@@ -563,8 +559,6 @@ export default function WalletPage() {
           </>
         );
       
-
-      
       default:
         return null;
     }
@@ -966,25 +960,23 @@ export default function WalletPage() {
 
                   {renderDepositPaymentFields()}
 
-                  {depositForm.watch("paymentMode") !== "cash" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="proofImage">Payment Proof Image</Label>
-                      <Input
-                        id="proofImage"
-                        type="file"
-                        accept="image/*"
-                        onChange={handleProofImageChange}
-                        className="cursor-pointer"
-                      />
-                      {proofImage && (
-                        <div className="mt-2">
-                          <p className="text-sm text-green-600">
-                            Image selected: {proofImage.name}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="proofImage">Payment Proof Image</Label>
+                    <Input
+                      id="proofImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProofImageChange}
+                      className="cursor-pointer"
+                    />
+                    {proofImage && (
+                      <div className="mt-2">
+                        <p className="text-sm text-green-600">
+                          Image selected: {proofImage.name}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   <FormField
                     control={depositForm.control}

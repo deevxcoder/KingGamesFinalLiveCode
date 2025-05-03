@@ -110,8 +110,7 @@ export interface TeamMatch {
 // Wallet system types
 export enum PaymentMode {
   UPI = "upi",
-  BANK = "bank",
-  CASH = "cash"
+  BANK = "bank"
 }
 
 export enum RequestStatus {
@@ -169,9 +168,5 @@ export interface PaymentDetails {
     accountNumber: string;
     ifscCode: string;
     bankName: string;
-  };
-  cashDetails?: {
-    handlerName: string;
-    contactNumber?: string;
   };
 }
