@@ -72,7 +72,8 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
     if (isCricketTossGame(match)) {
       return `/api/cricket-toss-games/${match.id}/play`;
     } else {
-      return `/api/cricket-toss/${match.id}/play`;
+      // For team matches, we need to use the team-match endpoint
+      return `/api/team-matches/${match.id}/play-toss`;
     }
   };
 

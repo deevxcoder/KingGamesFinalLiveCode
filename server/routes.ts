@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth, requireRole } from "./auth";
 import { storage } from "./storage";
 import { db } from "./db";
+import { z } from "zod";
 import { 
   GameOutcome, 
   GameType,
@@ -1206,6 +1207,110 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(games);
     } catch (err) {
       next(err);
+    }
+  });
+  
+  // Play toss on a team match
+  app.post("/api/team-matches/:id/play-toss", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (req.user!.isBlocked) {
+        return res.status(403).json({ message: "Your account is blocked" });
+      }
+
+      const matchId = Number(req.params.id);
+      
+      // Validate request body
+      const playSchema = z.object({
+        betAmount: z.number().min(10, "Minimum bet amount is 10"),
+        betOn: z.enum([TeamMatchResult.TEAM_A, TeamMatchResult.TEAM_B], {
+          errorMap: () => ({ message: "Bet must be on either team_a or team_b" })
+        })
+      });
+      
+      // Handle potential parsing errors (client may send string instead of number)
+      const parsedBody = {
+        ...req.body,
+        betAmount: typeof req.body.betAmount === 'string' 
+          ? parseInt(req.body.betAmount, 10)
+          : req.body.betAmount
+      };
+      
+      const validationResult = playSchema.safeParse(parsedBody);
+      
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: "Invalid bet amount or prediction" 
+        });
+      }
+      
+      const { betAmount, betOn } = validationResult.data;
+      
+      // Get the team match
+      const match = await storage.getTeamMatch(matchId);
+      
+      if (!match) {
+        return res.status(404).json({ message: "Team match not found" });
+      }
+      
+      if (match.status !== 'open') {
+        return res.status(400).json({ message: "Match is not open for betting" });
+      }
+      
+      // Check if user has sufficient balance
+      const user = await storage.getUser(req.user!.id);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      if (user.balance < betAmount) {
+        return res.status(400).json({ message: "Insufficient balance" });
+      }
+      
+      // Deduct the bet amount from user's balance
+      await storage.updateUserBalance(user.id, user.balance - betAmount);
+      
+      // Calculate potential payout based on odds
+      const odds = betOn === TeamMatchResult.TEAM_A ? match.oddTeamA : match.oddTeamB;
+      const potentialPayout = Math.floor((betAmount * odds) / 100);
+      
+      // Create a new game entry for this user's bet
+      const userBet = {
+        userId: user.id,
+        gameType: GameType.CRICKET_TOSS,
+        matchId: match.id,
+        betAmount,
+        prediction: betOn,
+        gameData: {
+          teamA: match.teamA,
+          teamB: match.teamB,
+          matchId: match.id,
+          oddTeamA: match.oddTeamA,
+          oddTeamB: match.oddTeamB,
+          matchTime: match.matchTime,
+          status: 'pending'
+        },
+        result: "pending",
+        payout: potentialPayout
+      };
+      
+      const createdBet = await storage.createGame(userBet);
+      
+      res.status(201).json({
+        message: "Bet placed successfully",
+        game: createdBet,
+        user: {
+          ...user,
+          balance: user.balance - betAmount,
+          password: undefined,
+        }
+      });
+    } catch (error) {
+      next(error);
     }
   });
   
