@@ -1666,9 +1666,9 @@ function calculatePotentialWin(gameMode: string, betAmount: number): number {
       break;
   }
   
-  // For odd_even, bet display is in rupees but stored as paisa
+  // For these game modes, bet display is in rupees but stored as paisa
   // Need to convert betAmount to paisa first, then multiple by ratio
-  if (gameMode === "odd_even") {
+  if (gameMode === "odd_even" || gameMode === "crossing") {
     return Math.floor(betAmount * payoutRatio * 100);
   }
   
