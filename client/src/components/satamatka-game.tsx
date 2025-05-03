@@ -1317,20 +1317,16 @@ export default function SatamatkaGame() {
             <div className="flex justify-between mb-2">
               <span className="text-sm font-medium">Total Bet Amount:</span>
               <span className="font-bold">
-                {(selectedGameMode === "crossing" || selectedGameMode === "odd_even")
-                  ? `₹${typeof calculateTotalBetAmount() === 'number' ? 
-                     (calculateTotalBetAmount() as number).toFixed(2) : 
-                     Number(calculateTotalBetAmount()).toFixed(2)}` 
-                  : formatCurrency(Number(calculateTotalBetAmount()), 'satamatka')}
+                ₹{Number(calculateTotalBetAmount()).toFixed(2)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm font-medium">Potential Win:</span>
               <span className="font-bold text-amber-500">
-                {formatCurrency(Array.from(selectedNumbers.values()).reduce(
-                  (total, amount) => total + calculatePotentialWin(selectedGameMode, amount),
+                ₹{Array.from(selectedNumbers.values()).reduce(
+                  (total, amount) => total + calculatePotentialWin(selectedGameMode, amount) / 100,
                   0
-                ), 'satamatka')}
+                ).toFixed(2)}
               </span>
             </div>
           </div>
@@ -1391,18 +1387,14 @@ export default function SatamatkaGame() {
             <div className="flex justify-between items-center">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Bet Amount</p>
-                <p className="text-lg font-bold">{betDetails ? 
-                  ((selectedGameMode === "crossing" || selectedGameMode === "odd_even") 
-                    ? `₹${(betDetails.betAmount * 100 / 100).toFixed(2)}` 
-                    : formatCurrency(betDetails.betAmount, 'satamatka')) : ''}</p>
+                <p className="text-lg font-bold">
+                  {betDetails ? `₹${betDetails.betAmount.toFixed(2)}` : ''}
+                </p>
               </div>
               <div className="text-right space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Potential Win</p>
                 <p className="text-lg font-bold text-amber-500">
-                  {betDetails && selectedGameMode === "crossing" ? 
-                    `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount) / 100).toFixed(2)}` :
-                    (betDetails ? 
-                      formatCurrency(calculatePotentialWin(selectedGameMode, betDetails.betAmount), 'satamatka', true, selectedGameMode) : '')}
+                  {betDetails ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount) / 100).toFixed(2)}` : ''}
                 </p>
               </div>
             </div>
@@ -1615,20 +1607,13 @@ export default function SatamatkaGame() {
               <div className="space-y-1">
                 <h4 className="text-sm font-medium">Bet Amount</h4>
                 <p className="text-sm text-muted-foreground">
-                  {betDetails ? 
-                    ((selectedGameMode === "crossing" || selectedGameMode === "odd_even")
-                      ? `₹${(betDetails.betAmount * 100 / 100).toFixed(2)}`
-                      : formatCurrency(betDetails.betAmount, 'satamatka')) 
-                    : ''}
+                  {betDetails ? `₹${betDetails.betAmount.toFixed(2)}` : ''}
                 </p>
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-medium">Potential Win</h4>
                 <p className="text-sm text-muted-foreground">
-                  {betDetails && selectedGameMode === "crossing" ? 
-                    `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount) / 100).toFixed(2)}` :
-                    (betDetails ? 
-                      formatCurrency(calculatePotentialWin(selectedGameMode, betDetails.betAmount), 'satamatka', true, selectedGameMode) : '')}
+                  {betDetails ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount) / 100).toFixed(2)}` : ''}
                 </p>
               </div>
             </div>
