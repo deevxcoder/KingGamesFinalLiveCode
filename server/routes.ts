@@ -935,6 +935,140 @@ export async function registerRoutes(app: Express): Promise<Server> {
       next(err);
     }
   });
+  
+  // Play multiple Satamatka bets at once (bulk betting)
+  app.post("/api/satamatka/play-multiple", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      if (req.user!.isBlocked) {
+        return res.status(403).json({ message: "Your account is blocked" });
+      }
+
+      const { marketId, gameMode, bets } = req.body;
+      
+      // Validate input
+      if (!marketId || !gameMode || !bets || !Array.isArray(bets) || bets.length === 0) {
+        return res.status(400).json({ message: "Invalid input parameters" });
+      }
+
+      // Validate game mode
+      if (!Object.values(SatamatkaGameMode).includes(gameMode)) {
+        return res.status(400).json({ message: "Invalid game mode" });
+      }
+
+      // Check if market exists and is open
+      const market = await storage.getSatamatkaMarket(marketId);
+      if (!market) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+
+      if (market.status !== "open") {
+        return res.status(400).json({ message: "Market is closed for betting" });
+      }
+      
+      // Validate each bet and calculate total amount
+      let totalBetAmount = 0;
+      const validatedBets = [];
+      
+      for (const bet of bets) {
+        const { prediction, betAmount } = bet;
+        
+        if (!prediction || !betAmount || betAmount <= 0) {
+          return res.status(400).json({ 
+            message: "Invalid bet parameters", 
+            detail: `Bet on ${prediction} with amount ${betAmount} is invalid`
+          });
+        }
+        
+        // Validate prediction based on game mode
+        const isValidPrediction = (() => {
+          switch (gameMode) {
+            case SatamatkaGameMode.JODI:
+              return /^[0-9]{2}$/.test(prediction);
+            case SatamatkaGameMode.HARF:
+              return /^[0-9]$/.test(prediction) || 
+                     /^L[0-9]$/.test(prediction) || 
+                     /^R[0-9]$/.test(prediction);
+            case SatamatkaGameMode.CROSSING:
+              return /^[0-9]$/.test(prediction) || 
+                     /^[0-9]+(,[0-9]+)+$/.test(prediction) || 
+                     /^Combinations of [0-9,]+$/.test(prediction) || 
+                     /^[0-9]+ digits \([0-9]+ combinations\)$/.test(prediction);
+            case SatamatkaGameMode.ODD_EVEN:
+              return prediction === "odd" || prediction === "even";
+            default:
+              return false;
+          }
+        })();
+        
+        if (!isValidPrediction) {
+          return res.status(400).json({ 
+            message: "Invalid prediction for selected game mode",
+            detail: `Prediction '${prediction}' is not valid for game mode '${gameMode}'`
+          });
+        }
+        
+        // Add bet amount to total (in paisa)
+        totalBetAmount += betAmount;
+        validatedBets.push({ prediction, betAmount });
+      }
+      
+      // Convert total bet amount to paisa for balance comparison
+      const totalBetAmountInPaisa = totalBetAmount * 100;
+      
+      // Check user balance against the TOTAL amount for all bets
+      const user = await storage.getUser(req.user!.id);
+      if (!user || user.balance < totalBetAmountInPaisa) {
+        return res.status(400).json({ 
+          message: "Insufficient balance",
+          detail: `Total bet amount ₹${totalBetAmount} exceeds available balance ₹${user?.balance ? user.balance / 100 : 0}`
+        });
+      }
+      
+      // Update user balance (deduct TOTAL bet amount in paisa)
+      const newBalance = user.balance - totalBetAmountInPaisa;
+      await storage.updateUserBalance(user.id, newBalance);
+      
+      // Record each game
+      const createdGames = [];
+      for (const bet of validatedBets) {
+        const betAmountInPaisa = bet.betAmount * 100;
+        
+        const game = await storage.createGame({
+          userId: user.id,
+          gameType: GameType.SATAMATKA,
+          betAmount: betAmountInPaisa,  // Store in paisa like other game types
+          prediction: bet.prediction,
+          result: "pending",
+          payout: 0,  // Will be calculated when results are published
+          marketId,
+          gameMode,
+        });
+        
+        // Add to list of created games (for response)
+        createdGames.push({
+          ...game,
+          betAmount: bet.betAmount  // Return bet amount in rupees for display
+        });
+      }
+      
+      // Return all games with updated user balance
+      res.json({
+        games: createdGames,
+        user: {
+          ...user,
+          balance: newBalance,
+          password: undefined,
+        },
+        totalBetAmount: totalBetAmount  // In rupees
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Team Match Routes
 

@@ -255,26 +255,25 @@ export default function SatamatkaGame() {
   // Mutation for placing multiple bets
   const placeMultipleBetsMutation = useMutation({
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
-      // Create a promise array for all bets
-      const betPromises = bets.map(bet => {
-        return apiRequest("POST", "/api/satamatka/play", {
-          marketId: marketId,
-          gameMode: selectedGameMode,
+      // Use the new bulk betting endpoint
+      return apiRequest("POST", "/api/satamatka/play-multiple", {
+        marketId: marketId,
+        gameMode: selectedGameMode,
+        bets: bets.map(bet => ({
           prediction: bet.number,
           betAmount: bet.amount,
-        });
+        }))
       });
-      
-      // Execute all bets in parallel
-      return Promise.all(betPromises);
     },
-    onSuccess: (results) => {
-      // Show success toast with accurate count
-      const successCount = results?.length || 0;
+    onSuccess: (result) => {
+      // Get the number of successful bets from the response
+      const successCount = result?.games?.length || 0;
+      const totalAmount = result?.totalBetAmount || 0;
+      
       toast({
         variant: "success",
         title: "All bets placed successfully!",
-        description: `${successCount} bets have been placed on the selected market.`,
+        description: `${successCount} bets (₹${totalAmount}) have been placed on the selected market.`,
       });
 
       // Invalidate relevant queries and refetch data
