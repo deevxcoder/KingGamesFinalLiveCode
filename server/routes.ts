@@ -20,6 +20,7 @@ import {
   games
 } from "@shared/schema";
 import { eq, and, gte, desc } from "drizzle-orm";
+import * as schema from "@shared/schema";
 import { setupCricketTossRoutes } from "./cricket-toss";
 import { setupCricketTossApiRoutes } from "./cricket-toss-api";
 import { setupWalletRoutes } from "./wallet-system";

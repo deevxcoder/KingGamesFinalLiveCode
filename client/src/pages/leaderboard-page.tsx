@@ -263,15 +263,31 @@ export default function LeaderboardPage() {
   const [timeFrame, setTimeFrame] = useState("all-time");
   const [sortBy, setSortBy] = useState("totalWinnings");
 
-  // In a real app, we'd use the timeFrame and sortBy for API queries
-  // For this demo, we're using sample data
-  const leaderboardData = sampleLeaderboardData.sort((a, b) => {
-    if (sortBy === "totalWinnings") {
-      return b.totalWinnings - a.totalWinnings;
-    } else if (sortBy === "winRate") {
-      return b.winRate - a.winRate;
-    } else {
-      return b.totalWins - a.totalWins;
+  // Fetch leaderboard data from API
+  const { 
+    data: leaderboardData = [], 
+    isLoading: isLoadingLeaderboard,
+    error: leaderboardError
+  } = useQuery({
+    queryKey: ['/api/leaderboard', timeFrame, sortBy],
+    queryFn: async () => {
+      const response = await fetch(`/api/leaderboard?timeFrame=${timeFrame}&sortBy=${sortBy}`);
+      if (!response.ok) throw new Error('Failed to fetch leaderboard data');
+      return response.json();
+    }
+  });
+
+  // Fetch recent big wins data
+  const {
+    data: recentWinsData = [],
+    isLoading: isLoadingRecentWins,
+    error: recentWinsError
+  } = useQuery({
+    queryKey: ['/api/games/top-winners'],
+    queryFn: async () => {
+      const response = await fetch('/api/games/top-winners');
+      if (!response.ok) throw new Error('Failed to fetch recent wins data');
+      return response.json();
     }
   });
 
@@ -372,61 +388,76 @@ export default function LeaderboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[80px]">Rank</TableHead>
-                      <TableHead>Player</TableHead>
-                      <TableHead className="text-right">Bets</TableHead>
-                      <TableHead className="text-right">Wins</TableHead>
-                      <TableHead className="text-right">Win Rate</TableHead>
-                      <TableHead className="text-right">Total Winnings</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {leaderboardData.map((player, index) => (
-                      <TableRow key={player.id} className={index < 3 ? "bg-slate-800/30" : ""}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center justify-center">
-                            {index === 0 ? (
-                              <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center">
-                                <Trophy className="h-4 w-4 text-amber-400" />
-                              </div>
-                            ) : index === 1 ? (
-                              <div className="h-8 w-8 rounded-full bg-slate-400/20 flex items-center justify-center">
-                                <Medal className="h-4 w-4 text-slate-300" />
-                              </div>
-                            ) : index === 2 ? (
-                              <div className="h-8 w-8 rounded-full bg-amber-700/20 flex items-center justify-center">
-                                <Award className="h-4 w-4 text-amber-700" />
-                              </div>
-                            ) : (
-                              <span className="text-slate-400">{index + 1}</span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
-                              <img 
-                                src={player.avatar} 
-                                alt={player.username}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <span className={index < 3 ? "font-medium" : ""}>{player.username}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">{player.totalBets}</TableCell>
-                        <TableCell className="text-right">{player.totalWins}</TableCell>
-                        <TableCell className="text-right">{player.winRate}%</TableCell>
-                        <TableCell className="text-right font-medium">
-                          {formatCurrency(player.totalWinnings)}
-                        </TableCell>
+                {isLoadingLeaderboard ? (
+                  <div className="py-12 flex justify-center">
+                    <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"></div>
+                  </div>
+                ) : leaderboardError ? (
+                  <div className="py-12 text-center text-red-400">
+                    <p>Failed to load leaderboard data. Please try again later.</p>
+                  </div>
+                ) : leaderboardData.length === 0 ? (
+                  <div className="py-12 text-center text-slate-400">
+                    <p>No leaderboard data available for the selected time period.</p>
+                    <p className="text-sm mt-2">Try selecting a different time period or check back later.</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[80px]">Rank</TableHead>
+                        <TableHead>Player</TableHead>
+                        <TableHead className="text-right">Bets</TableHead>
+                        <TableHead className="text-right">Wins</TableHead>
+                        <TableHead className="text-right">Win Rate</TableHead>
+                        <TableHead className="text-right">Total Winnings</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {leaderboardData.map((player, index) => (
+                        <TableRow key={player.userId} className={index < 3 ? "bg-slate-800/30" : ""}>
+                          <TableCell className="font-medium">
+                            <div className="flex items-center justify-center">
+                              {index === 0 ? (
+                                <div className="h-8 w-8 rounded-full bg-amber-500/20 flex items-center justify-center">
+                                  <Trophy className="h-4 w-4 text-amber-400" />
+                                </div>
+                              ) : index === 1 ? (
+                                <div className="h-8 w-8 rounded-full bg-slate-400/20 flex items-center justify-center">
+                                  <Medal className="h-4 w-4 text-slate-300" />
+                                </div>
+                              ) : index === 2 ? (
+                                <div className="h-8 w-8 rounded-full bg-amber-700/20 flex items-center justify-center">
+                                  <Award className="h-4 w-4 text-amber-700" />
+                                </div>
+                              ) : (
+                                <span className="text-slate-400">{index + 1}</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
+                                <img 
+                                  src={player.avatar} 
+                                  alt={player.username}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <span className={index < 3 ? "font-medium" : ""}>{player.username}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">{player.totalBets}</TableCell>
+                          <TableCell className="text-right">{player.totalWins}</TableCell>
+                          <TableCell className="text-right">{player.winRate}%</TableCell>
+                          <TableCell className="text-right font-medium">
+                            {formatCurrency(player.totalWinnings)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -634,45 +665,60 @@ export default function LeaderboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Player</TableHead>
-                      <TableHead>Game</TableHead>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead className="text-right">Bet Amount</TableHead>
-                      <TableHead className="text-right">Win Amount</TableHead>
-                      <TableHead className="text-right">Multiplier</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {sampleRecentBigWins.map((win) => (
-                      <TableRow key={win.id}>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
-                              <img 
-                                src={win.avatar} 
-                                alt={win.username}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <span>{win.username}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{win.game}</TableCell>
-                        <TableCell>{formatDate(win.date)}</TableCell>
-                        <TableCell className="text-right">{formatCurrency(win.betAmount)}</TableCell>
-                        <TableCell className="text-right font-medium text-emerald-400">
-                          {formatCurrency(win.winAmount)}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {(win.winAmount / win.betAmount).toFixed(1)}x
-                        </TableCell>
+                {isLoadingRecentWins ? (
+                  <div className="py-12 flex justify-center">
+                    <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"></div>
+                  </div>
+                ) : recentWinsError ? (
+                  <div className="py-12 text-center text-red-400">
+                    <p>Failed to load recent wins data. Please try again later.</p>
+                  </div>
+                ) : recentWinsData.length === 0 ? (
+                  <div className="py-12 text-center text-slate-400">
+                    <p>No recent big wins available yet.</p>
+                    <p className="text-sm mt-2">Check back later as more players win big!</p>
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Player</TableHead>
+                        <TableHead>Game</TableHead>
+                        <TableHead>Date & Time</TableHead>
+                        <TableHead className="text-right">Bet Amount</TableHead>
+                        <TableHead className="text-right">Win Amount</TableHead>
+                        <TableHead className="text-right">Multiplier</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {recentWinsData.map((win) => (
+                        <TableRow key={win.id}>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
+                                <img 
+                                  src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${win.username}`} 
+                                  alt={win.username}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <span>{win.username}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>{win.game}</TableCell>
+                          <TableCell>{formatDate(win.createdAt)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(win.amount)}</TableCell>
+                          <TableCell className="text-right font-medium text-emerald-400">
+                            {formatCurrency(win.payout)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {(win.payout / win.amount).toFixed(1)}x
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
               </CardContent>
             </Card>
             
