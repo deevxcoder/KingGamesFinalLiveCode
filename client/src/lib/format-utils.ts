@@ -5,7 +5,7 @@
 /**
  * Game types that store amounts in paisa (1 rupee = 100 paisa)
  */
-export const PAISA_BASED_GAMES = ['coin_flip', 'team_match', 'cricket_toss'];
+export const PAISA_BASED_GAMES = ['coin_flip', 'team_match', 'cricket_toss', 'satamatka'];
 
 /**
  * Threshold for amount to be considered in paisa
