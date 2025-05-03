@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { GameOutcome } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
+import { formatCurrency, formatProfitLoss } from "@/lib/format-utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Card, 
@@ -308,7 +309,7 @@ export default function CoinFlipGame() {
                   disabled={isFlipping || 1000 > (user?.balance || 0)}
                   className="text-xs h-7"
                 >
-                  ₹10
+                  {formatCurrency(10, 'coin_flip')}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -317,7 +318,7 @@ export default function CoinFlipGame() {
                   disabled={isFlipping || 5000 > (user?.balance || 0)}
                   className="text-xs h-7"
                 >
-                  ₹50
+                  {formatCurrency(50, 'coin_flip')}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -326,7 +327,7 @@ export default function CoinFlipGame() {
                   disabled={isFlipping || 10000 > (user?.balance || 0)}
                   className="text-xs h-7"
                 >
-                  ₹100
+                  {formatCurrency(100, 'coin_flip')}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -347,8 +348,7 @@ export default function CoinFlipGame() {
                   Potential Win:
                 </span>
                 <div className="flex items-center text-green-500 font-medium">
-                  <IndianRupee className="h-3 w-3 mr-0.5" />
-                  {(betAmount * 1.95).toFixed(2)}
+                  {formatCurrency(betAmount * 1.95, 'coin_flip')}
                   <span className="text-xs text-muted-foreground ml-1">(1.95x)</span>
                 </div>
               </div>
@@ -397,8 +397,7 @@ export default function CoinFlipGame() {
                 <div className="flex items-center justify-center mb-3">
                   <Trophy className="h-12 w-12 text-amber-500 mr-2" />
                   <div className="flex items-center text-3xl font-bold text-green-500">
-                    <IndianRupee className="h-8 w-8 mr-1 text-green-500" /> 
-                    <span>{lastResult.amount.toFixed(2)}</span>
+                    {formatCurrency(lastResult.amount, 'coin_flip')}
                   </div>
                 </div>
                 
@@ -450,8 +449,7 @@ export default function CoinFlipGame() {
                 <div className="flex items-center justify-center mb-3">
                   <div className="flex items-center text-2xl font-bold text-red-500">
                     <span>- </span>
-                    <IndianRupee className="h-6 w-6 mr-0.5 text-red-500" /> 
-                    <span>{betAmount.toFixed(2)}</span>
+                    {formatCurrency(betAmount, 'coin_flip', false)}
                   </div>
                 </div>
                 
