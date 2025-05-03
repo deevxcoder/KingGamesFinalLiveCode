@@ -284,7 +284,7 @@ export default function SatamatkaGame() {
       toast({
         variant: "success",
         title: "All bets placed successfully!",
-        description: `${successCount} bets (₹${totalAmount}) have been placed on the selected market.`,
+        description: `${successCount} bets (₹${totalAmount/100}) have been placed on the selected market.`,
       });
 
       // Invalidate relevant queries and refetch data
@@ -1664,6 +1664,12 @@ function calculatePotentialWin(gameMode: string, betAmount: number): number {
     case "odd_even":
       payoutRatio = 1.8;
       break;
+  }
+  
+  // For odd_even, bet display is in rupees but stored as paisa
+  // Need to convert betAmount to paisa first, then multiple by ratio
+  if (gameMode === "odd_even") {
+    return Math.floor(betAmount * payoutRatio * 100);
   }
   
   return Math.floor(betAmount * payoutRatio);

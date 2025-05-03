@@ -35,6 +35,8 @@ export function formatCurrency(
   
   // Always convert for known paisa-based games regardless of amount size
   if (gameType && PAISA_BASED_GAMES.includes(gameType)) {
+    // Special case for satamatka odd_even game mode with potential win
+    // Potential win amounts need to show in rupees (e.g., ₹180) instead of paisa
     convertedAmount = amount / 100;
   } 
   // If no game type but amount looks like paisa (for backward compatibility)
