@@ -17,6 +17,15 @@ import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, In
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { 
+  Pagination, 
+  PaginationContent, 
+  PaginationEllipsis, 
+  PaginationItem, 
+  PaginationLink, 
+  PaginationNext, 
+  PaginationPrevious 
+} from "@/components/ui/pagination";
 import { formatDistance } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -73,6 +82,8 @@ export default function WalletPage() {
   const [activeTab, setActiveTab] = useState("balance");
   const [proofImage, setProofImage] = useState<File | null>(null);
   const [paymentModeDetails, setPaymentModeDetails] = useState<PaymentDetails | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
 
   // Fetch payment details from the system
   const { data: systemPaymentDetails, isLoading: loadingPaymentDetails } = useQuery<SystemPaymentDetails>({
@@ -1170,13 +1181,6 @@ export default function WalletPage() {
                   All your wallet transactions
                 </CardDescription>
               </div>
-              <Tabs defaultValue="all" className="w-full max-w-[400px]">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="all">All</TabsTrigger>
-                  <TabsTrigger value="transfers">Fund Transfers</TabsTrigger>
-                  <TabsTrigger value="requests">Deposit/Withdraw</TabsTrigger>
-                </TabsList>
-              </Tabs>
             </CardHeader>
             
             <CardContent className="pt-4">
@@ -1190,220 +1194,248 @@ export default function WalletPage() {
                 </div>
               ) : (
                 <>
-                  {/* All Transactions Tab */}
-                  <TabsContent value="all" className="mt-0">
-                    <div className="space-y-4">
-                      {/* Direct Fund Transfers from admin/subadmin */}
-                      {transactions.map((transaction) => (
-                        <div key={`tx-${transaction.id}`} className="border rounded-lg overflow-hidden">
-                          <div className="flex items-center justify-between p-4">
-                            <div className="flex items-center">
-                              <div className="mr-4">
-                                {transaction.amount > 0 ? (
-                                  <ArrowDown className="h-5 w-5 text-green-600" />
-                                ) : (
-                                  <ArrowUp className="h-5 w-5 text-red-600" />
-                                )}
-                              </div>
-                              <div>
-                                <h4 className="font-medium">
-                                  {transaction.amount > 0 ? "Fund Credit" : "Fund Debit"} - 
-                                  <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
-                                    {transaction.amount > 0 ? " +" : " "}
-                                    ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
-                                  </span>
-                                </h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {formatDate(transaction.createdAt)}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
-                                <div className="flex items-center gap-1">
-                                  <CreditCard className="h-3 w-3" />
-                                  {transaction.performer?.username || `Admin #${transaction.performedBy}`}
-                                </div>
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          {transaction.description && (
-                            <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
-                              <p className="mt-2"><strong>Description:</strong> {transaction.description}</p>
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                  <div className="space-y-4">
+                    {/* Create a combined array of all transactions for unified view */}
+                    {(() => {
+                      // Define types for our combined transactions
+                      type RequestTransaction = {
+                        id: string;
+                        isRequest: true;
+                        createdAt: string;
+                        requestData: WalletRequest;
+                      };
                       
-                      {/* Wallet Requests (deposits/withdrawals) */}
-                      {walletRequests.map((request) => {
-                        const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
-                        const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
-                        
-                        return (
-                          <div key={`req-${request.id}`} className="border rounded-lg overflow-hidden">
-                            <div className="flex items-center justify-between p-4">
-                              <div className="flex items-center">
-                                <div className="mr-4">
-                                  {typeIcon}
-                                </div>
-                                <div>
-                                  <h4 className="font-medium">{title} Request - ₹{request.amount.toFixed(2)}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    {formatDate(request.createdAt)}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className={`px-3 py-1 rounded-full flex items-center ${bgColor}`}>
-                                {icon}
-                                <span className={`ml-1 text-sm font-medium ${color}`}>
-                                  {request.status}
-                                </span>
-                              </div>
-                            </div>
+                      type DirectTransaction = {
+                        id: string;
+                        isRequest: false;
+                        createdAt: string;
+                        transactionData: any;
+                      };
+                      
+                      type CombinedTransaction = RequestTransaction | DirectTransaction;
+                      
+                      // Create transaction-like objects from wallet requests for unified sorting
+                      const requestTransactions: RequestTransaction[] = walletRequests.map(request => ({
+                        id: `req-${request.id}`,
+                        isRequest: true,
+                        createdAt: request.createdAt,
+                        requestData: request
+                      }));
+                      
+                      // Mark direct transactions
+                      const directTransactions: DirectTransaction[] = transactions.map(tx => ({
+                        id: `tx-${tx.id}`,
+                        isRequest: false,
+                        createdAt: tx.createdAt,
+                        transactionData: tx
+                      }));
+                      
+                      // Combine and sort by date (newest first)
+                      const allTransactions: CombinedTransaction[] = [...requestTransactions, ...directTransactions]
+                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                      
+                      // Pagination calculation
+                      const totalItems = allTransactions.length;
+                      const totalPages = Math.ceil(totalItems / itemsPerPage);
+                      const startIndex = (currentPage - 1) * itemsPerPage;
+                      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+                      const currentItems = allTransactions.slice(startIndex, endIndex);
+                      
+                      return (
+                        <>
+                          {/* Render each transaction or request */}
+                          {currentItems.map(item => {
+                            if (item.isRequest) {
+                              // It's a wallet request
+                              const request = item.requestData;
+                              const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
+                              const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
+                              
+                              return (
+                                <div key={item.id} className="border rounded-lg overflow-hidden">
+                                  <div className="flex items-center justify-between p-4">
+                                    <div className="flex items-center">
+                                      <div className="mr-4">
+                                        {typeIcon}
+                                      </div>
+                                      <div>
+                                        <h4 className="font-medium">{title} Request - ₹{request.amount.toFixed(2)}</h4>
+                                        <p className="text-sm text-muted-foreground">
+                                          {formatDate(request.createdAt)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className={`px-3 py-1 rounded-full flex items-center ${bgColor}`}>
+                                      {icon}
+                                      <span className={`ml-1 text-sm font-medium ${color}`}>
+                                        {request.status}
+                                      </span>
+                                    </div>
+                                  </div>
 
-                            <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
-                              <p><strong>Payment Method:</strong> {request.paymentMode}</p>
-                              
-                              {/* Payment details based on payment mode */}
-                              {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
-                                <p><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
-                              )}
-                              
-                              {request.paymentMode === PaymentMode.BANK && (
-                                <>
-                                  {request.paymentDetails.bankName && 
-                                    <p><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
-                                  {request.paymentDetails.accountNumber && 
-                                    <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
-                                </>
-                              )}
-                              
-                              {request.status === RequestStatus.REJECTED && request.notes && (
-                                <p className="mt-2 text-red-600">
-                                  <strong>Reason:</strong> {request.notes}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </TabsContent>
-                  
-                  {/* Fund Transfers Tab */}
-                  <TabsContent value="transfers" className="mt-0">
-                    <div className="space-y-4">
-                      {transactions.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <p>No fund transfers found.</p>
-                        </div>
-                      ) : transactions.map((transaction) => (
-                        <div key={`tx-only-${transaction.id}`} className="border rounded-lg overflow-hidden">
-                          <div className="flex items-center justify-between p-4">
-                            <div className="flex items-center">
-                              <div className="mr-4">
-                                {transaction.amount > 0 ? (
-                                  <ArrowDown className="h-5 w-5 text-green-600" />
-                                ) : (
-                                  <ArrowUp className="h-5 w-5 text-red-600" />
-                                )}
-                              </div>
-                              <div>
-                                <h4 className="font-medium">
-                                  {transaction.amount > 0 ? "Fund Credit" : "Fund Debit"} - 
-                                  <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
-                                    {transaction.amount > 0 ? " +" : " "}
-                                    ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
-                                  </span>
-                                </h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {formatDate(transaction.createdAt)}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
-                                <div className="flex items-center gap-1">
-                                  <CreditCard className="h-3 w-3" />
-                                  {transaction.performer?.username || `Admin #${transaction.performedBy}`}
+                                  <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
+                                    <p><strong>Payment Method:</strong> {request.paymentMode}</p>
+                                    
+                                    {/* Payment details based on payment mode */}
+                                    {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
+                                      <p><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
+                                    )}
+                                    
+                                    {request.paymentMode === PaymentMode.BANK && (
+                                      <>
+                                        {request.paymentDetails.bankName && 
+                                          <p><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
+                                        {request.paymentDetails.accountNumber && 
+                                          <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
+                                      </>
+                                    )}
+                                    
+                                    {request.status === RequestStatus.REJECTED && request.notes && (
+                                      <p className="mt-2 text-red-600">
+                                        <strong>Reason:</strong> {request.notes}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
-                              </Badge>
-                            </div>
-                          </div>
+                              );
+                            } else {
+                              // It's a direct transaction
+                              const transaction = item.transactionData;
+                              return (
+                                <div key={item.id} className="border rounded-lg overflow-hidden">
+                                  <div className="flex items-center justify-between p-4">
+                                    <div className="flex items-center">
+                                      <div className="mr-4">
+                                        {transaction.amount > 0 ? (
+                                          <ArrowDown className="h-5 w-5 text-green-600" />
+                                        ) : (
+                                          <ArrowUp className="h-5 w-5 text-red-600" />
+                                        )}
+                                      </div>
+                                      <div>
+                                        <h4 className="font-medium">
+                                          {transaction.amount > 0 ? "Fund Credit" : "Fund Debit"} - 
+                                          <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
+                                            {transaction.amount > 0 ? " +" : " "}
+                                            ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
+                                          </span>
+                                        </h4>
+                                        <p className="text-sm text-muted-foreground">
+                                          {formatDate(transaction.createdAt)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
+                                        <div className="flex items-center gap-1">
+                                          <CreditCard className="h-3 w-3" />
+                                          {transaction.performer?.username || `Admin #${transaction.performedBy}`}
+                                        </div>
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  
+                                  {transaction.description && (
+                                    <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
+                                      <p className="mt-2"><strong>Description:</strong> {transaction.description}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            }
+                          })}
                           
-                          {transaction.description && (
-                            <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
-                              <p className="mt-2"><strong>Description:</strong> {transaction.description}</p>
+                          {/* Pagination controls */}
+                          {totalItems > itemsPerPage && (
+                            <div className="mt-6 flex flex-col items-center space-y-4">
+                              <Pagination>
+                                <PaginationContent>
+                                  <PaginationItem>
+                                    <PaginationPrevious 
+                                      href="#"
+                                      onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                                        e.preventDefault();
+                                        if (currentPage > 1) setCurrentPage(currentPage - 1);
+                                      }}
+                                      className={currentPage === 1 ? "cursor-not-allowed opacity-50" : ""}
+                                    />
+                                  </PaginationItem>
+                                  
+                                  {/* Page numbers */}
+                                  {[...Array(Math.min(5, totalPages))].map((_, i) => {
+                                    let pageNum = i + 1;
+                                    
+                                    if (totalPages > 5) {
+                                      if (currentPage <= 3) {
+                                        // Show first 5 pages
+                                        pageNum = i + 1;
+                                      } else if (currentPage >= totalPages - 2) {
+                                        // Show last 5 pages
+                                        pageNum = totalPages - 4 + i;
+                                      } else {
+                                        // Show current page in middle
+                                        pageNum = currentPage - 2 + i;
+                                      }
+                                    }
+                                    
+                                    return (
+                                      <PaginationItem key={pageNum}>
+                                        <PaginationLink
+                                          href="#"
+                                          onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                                            e.preventDefault();
+                                            setCurrentPage(pageNum);
+                                          }}
+                                          isActive={currentPage === pageNum}
+                                        >
+                                          {pageNum}
+                                        </PaginationLink>
+                                      </PaginationItem>
+                                    );
+                                  })}
+                                  
+                                  <PaginationItem>
+                                    <PaginationNext 
+                                      href="#"
+                                      onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
+                                        e.preventDefault();
+                                        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                                      }}
+                                      className={currentPage === totalPages ? "cursor-not-allowed opacity-50" : ""}
+                                    />
+                                  </PaginationItem>
+                                </PaginationContent>
+                              </Pagination>
+                              
+                              {/* Items per page selector */}
+                              <div className="flex items-center gap-2">
+                                <Label htmlFor="items-per-page" className="text-sm text-muted-foreground">
+                                  Items per page:
+                                </Label>
+                                <Select 
+                                  value={itemsPerPage.toString()} 
+                                  onValueChange={(value) => {
+                                    setItemsPerPage(parseInt(value));
+                                    setCurrentPage(1); // Reset to first page when changing items per page
+                                  }}
+                                >
+                                  <SelectTrigger id="items-per-page" className="w-[80px]">
+                                    <SelectValue placeholder="20" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="10">10</SelectItem>
+                                    <SelectItem value="20">20</SelectItem>
+                                    <SelectItem value="50">50</SelectItem>
+                                    <SelectItem value="100">100</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
                             </div>
                           )}
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                  
-                  {/* Deposit/Withdraw Requests Tab */}
-                  <TabsContent value="requests" className="mt-0">
-                    <div className="space-y-4">
-                      {walletRequests.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          <p>No deposit/withdrawal requests found.</p>
-                        </div>
-                      ) : walletRequests.map((request) => {
-                        const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
-                        const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
-                        
-                        return (
-                          <div key={`req-only-${request.id}`} className="border rounded-lg overflow-hidden">
-                            <div className="flex items-center justify-between p-4">
-                              <div className="flex items-center">
-                                <div className="mr-4">
-                                  {typeIcon}
-                                </div>
-                                <div>
-                                  <h4 className="font-medium">{title} Request - ₹{request.amount.toFixed(2)}</h4>
-                                  <p className="text-sm text-muted-foreground">
-                                    {formatDate(request.createdAt)}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className={`px-3 py-1 rounded-full flex items-center ${bgColor}`}>
-                                {icon}
-                                <span className={`ml-1 text-sm font-medium ${color}`}>
-                                  {request.status}
-                                </span>
-                              </div>
-                            </div>
-
-                            <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
-                              <p><strong>Payment Method:</strong> {request.paymentMode}</p>
-                              
-                              {/* Payment details based on payment mode */}
-                              {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
-                                <p><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
-                              )}
-                              
-                              {request.paymentMode === PaymentMode.BANK && (
-                                <>
-                                  {request.paymentDetails.bankName && 
-                                    <p><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
-                                  {request.paymentDetails.accountNumber && 
-                                    <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
-                                </>
-                              )}
-                              
-                              {request.status === RequestStatus.REJECTED && request.notes && (
-                                <p className="mt-2 text-red-600">
-                                  <strong>Reason:</strong> {request.notes}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </TabsContent>
+                        </>
+                      );
+                    })()}
+                  </div>
                 </>
               )}
             </CardContent>
