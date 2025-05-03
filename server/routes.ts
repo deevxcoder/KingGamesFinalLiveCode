@@ -1016,15 +1016,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         validatedBets.push({ prediction, betAmount });
       }
       
-      // Convert total bet amount to paisa for balance comparison
-      const totalBetAmountInPaisa = totalBetAmount * 100;
+      // For total bet amount, we need to make sure we're using paisa consistently
+      // For bet amounts already in paisa, don't convert
+      const totalBetAmountInPaisa = totalBetAmount;
       
       // Check user balance against the TOTAL amount for all bets
       const user = await storage.getUser(req.user!.id);
       if (!user || user.balance < totalBetAmountInPaisa) {
         return res.status(400).json({ 
           message: "Insufficient balance",
-          detail: `Total bet amount ₹${totalBetAmount} exceeds available balance ₹${user?.balance ? user.balance / 100 : 0}`
+          detail: `Total bet amount ₹${totalBetAmount / 100} exceeds available balance ₹${user?.balance ? user.balance / 100 : 0}`
         });
       }
       
@@ -1035,7 +1036,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Record each game
       const createdGames = [];
       for (const bet of validatedBets) {
-        const betAmountInPaisa = bet.betAmount * 100;
+        // Bet amounts are already in paisa from the client side
+        const betAmountInPaisa = bet.betAmount;
         
         const game = await storage.createGame({
           userId: user.id,
