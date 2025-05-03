@@ -26,7 +26,7 @@ import { PaymentMode, RequestType, RequestStatus, WalletRequest, PaymentDetails 
 // Form schemas
 const depositFormSchema = z.object({
   amount: z.coerce.number().min(100, "Minimum deposit amount is ₹100").max(100000, "Maximum deposit amount is ₹100,000"),
-  paymentMode: z.enum(["upi", "bank", "cash"]),
+  paymentMode: z.enum(["upi", "bank"]),
   paymentDetails: z.object({
     upiId: z.string().optional(),
     transactionId: z.string().optional(),
@@ -230,8 +230,8 @@ export default function WalletPage() {
         if (value) paymentDetails[key] = value;
       });
 
-      // Only require proof image for non-cash payment methods
-      if (values.paymentMode !== "cash" && !proofImage) {
+      // Proof image is required for all payment methods
+      if (!proofImage) {
         toast({
           title: "Error",
           description: "Please upload proof of payment",
@@ -242,22 +242,18 @@ export default function WalletPage() {
 
       let imageUrl = undefined;
       
-      // Upload proof image if provided (required for UPI and bank, optional for cash)
+      // Upload proof image
       if (proofImage) {
         try {
           imageUrl = await uploadProofImage(proofImage);
         } catch (uploadError) {
           console.error("Image upload error:", uploadError);
-          
-          // Only block submission for non-cash payments if upload fails
-          if (values.paymentMode !== "cash") {
-            toast({
-              title: "Upload Failed",
-              description: "Failed to upload payment proof. Please try again.",
-              variant: "destructive",
-            });
-            return;
-          }
+          toast({
+            title: "Upload Failed",
+            description: "Failed to upload payment proof. Please try again.",
+            variant: "destructive",
+          });
+          return;
         }
       }
 
@@ -567,47 +563,7 @@ export default function WalletPage() {
           </>
         );
       
-      case "cash":
-        return (
-          <>
-            <FormField
-              control={depositForm.control}
-              name="paymentDetails.handlerName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Handler Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter handler's name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
-            {/* Display system cash handler details */}
-            {paymentModeDetails?.cashDetails && (
-              <div className="mt-4 p-4 rounded-lg bg-slate-900/70 border border-slate-800 text-slate-300">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="p-2 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-600">
-                    <FileCheck className="h-4 w-4 text-white" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-fuchsia-300">Cash Handler Details</h3>
-                </div>
-                <div className="pl-9">
-                  <div className="mt-2">
-                    <p className="text-slate-300"><strong className="text-slate-200">Handler Name:</strong> {paymentModeDetails.cashDetails.handlerName}</p>
-                  </div>
-                  
-                  {paymentModeDetails?.cashDetails?.contactNumber && (
-                    <div className="mt-1">
-                      <p className="text-slate-300"><strong className="text-slate-200">Contact:</strong> {paymentModeDetails.cashDetails.contactNumber}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </>
-        );
       
       default:
         return null;
@@ -955,7 +911,7 @@ export default function WalletPage() {
                       <FormItem>
                         <FormLabel>Payment Method</FormLabel>
                         <FormControl>
-                          <div className="grid grid-cols-3 gap-3">
+                          <div className="grid grid-cols-2 gap-3">
                             <div 
                               className={`p-4 rounded-lg border cursor-pointer transition-all ${
                                 field.value === "upi" 
@@ -999,29 +955,6 @@ export default function WalletPage() {
                                 <span className={`font-medium ${
                                   field.value === "bank" ? "text-primary" : "text-slate-300"
                                 }`}>Bank</span>
-                              </div>
-                            </div>
-                            
-                            <div 
-                              className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                                field.value === "cash" 
-                                  ? "bg-slate-900/90 border-primary shadow-md" 
-                                  : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
-                              }`}
-                              onClick={() => depositForm.setValue("paymentMode", "cash")}
-                            >
-
-                              <div className="flex flex-col items-center justify-center text-center">
-                                <div className={`p-3 rounded-full mb-2 ${
-                                  field.value === "cash" 
-                                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
-                                    : "bg-slate-800"
-                                }`}>
-                                  <Banknote className="w-5 h-5 text-white" />
-                                </div>
-                                <span className={`font-medium ${
-                                  field.value === "cash" ? "text-primary" : "text-slate-300"
-                                }`}>Cash</span>
                               </div>
                             </div>
                           </div>
