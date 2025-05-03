@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { Trophy, Award, User, Sparkles } from "lucide-react";
+import { Trophy, Award, Medal, User, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { 
   Card, 
@@ -29,7 +29,7 @@ export default function RecentWinners({ winners }: RecentWinnersProps) {
         <CardHeader>
           <CardTitle className="text-xl flex items-center text-slate-200">
             <Trophy className="w-5 h-5 text-blue-400 mr-2" />
-            Top Winners
+            Leaderboard
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -52,12 +52,12 @@ export default function RecentWinners({ winners }: RecentWinnersProps) {
       <CardHeader>
         <CardTitle className="text-xl flex items-center text-slate-200">
           <Trophy className="w-5 h-5 text-blue-400 mr-2" />
-          Top Winners
+          Leaderboard
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0">
         <div className="space-y-1">
-          {topWinners.map((winner) => {
+          {topWinners.map((winner, index) => {
             const profit = (winner.payout - winner.amount) / 100;
             const formattedProfit = profit.toFixed(2);
             const timeAgo = formatDistanceToNow(new Date(winner.createdAt), { addSuffix: true });
@@ -68,9 +68,23 @@ export default function RecentWinners({ winners }: RecentWinnersProps) {
                 className="flex items-center px-6 py-2 hover:bg-slate-800/50 transition-colors cursor-default"
               >
                 <div className="flex-shrink-0 mr-3">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-r from-violet-600 to-purple-600 flex items-center justify-center">
-                    <User className="h-5 w-5 text-white" />
-                  </div>
+                  {index === 0 ? (
+                    <div className="w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-400/30">
+                      <Trophy className="h-5 w-5 text-amber-400" />
+                    </div>
+                  ) : index === 1 ? (
+                    <div className="w-9 h-9 rounded-full bg-slate-400/20 flex items-center justify-center border border-slate-400/30">
+                      <Medal className="h-5 w-5 text-slate-300" />
+                    </div>
+                  ) : index === 2 ? (
+                    <div className="w-9 h-9 rounded-full bg-amber-700/20 flex items-center justify-center border border-amber-700/30">
+                      <Award className="h-5 w-5 text-amber-700" />
+                    </div>
+                  ) : (
+                    <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700">
+                      <span className="text-sm text-slate-400 font-medium">{index + 1}</span>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex-grow min-w-0">
