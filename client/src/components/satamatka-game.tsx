@@ -391,6 +391,11 @@ export default function SatamatkaGame() {
     return total;
   };
   
+  // Helper function to format total bet amount for display
+  const getFormattedTotalBetAmount = () => {
+    return (calculateTotalBetAmount() * 100 / 100).toFixed(2);
+  };
+  
   // Place bets for all selected numbers
   const placeBetsForAllSelections = async () => {
     if (selectedNumbers.size === 0) {
