@@ -383,17 +383,18 @@ export default function SatamatkaGame() {
   };
   
   // Calculate total bet amount across all selections
-  const calculateTotalBetAmount = () => {
+  const calculateTotalBetAmount = (formatted = false) => {
     let total = 0;
     selectedNumbers.forEach(amount => {
       total += amount;
     });
+    
+    // Return formatted amount for display if requested
+    if (formatted) {
+      return (total / 100).toFixed(2);
+    }
+    
     return total;
-  };
-  
-  // Helper function to format total bet amount for display
-  const getFormattedTotalBetAmount = () => {
-    return (calculateTotalBetAmount() * 100 / 100).toFixed(2);
   };
   
   // Place bets for all selected numbers
@@ -524,7 +525,7 @@ export default function SatamatkaGame() {
                     >
                       <span className="text-base font-medium">{num}</span>
                       {isSelected && (
-                        <span className="text-xs mt-1">₹{(betAmount * 100 / 100).toFixed(2)}</span>
+                        <span className="text-xs mt-1">₹{(betAmount / 100).toFixed(2)}</span>
                       )}
                     </Button>
                     {isSelected && (
@@ -552,7 +553,7 @@ export default function SatamatkaGame() {
                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg transition-all duration-200"
                 onClick={() => setShowBetSlip(true)}
               >
-                View Bet Slip ({selectedNumbers.size} numbers, ₹{calculateTotalBetAmount()})
+                View Bet Slip ({selectedNumbers.size} numbers, ₹{calculateTotalBetAmount(true)})
               </Button>
             </div>
           )}
@@ -744,7 +745,7 @@ export default function SatamatkaGame() {
                 className="w-full bg-gradient-to-r from-purple-600 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 shadow-lg transition-all duration-200"
                 onClick={() => setShowBetSlip(true)}
               >
-                View Bet Slip ({selectedNumbers.size} numbers, ₹{calculateTotalBetAmount()})
+                View Bet Slip ({selectedNumbers.size} numbers, ₹{calculateTotalBetAmount(true)})
               </Button>
             </div>
           )}
