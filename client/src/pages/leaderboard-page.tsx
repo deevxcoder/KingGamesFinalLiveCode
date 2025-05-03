@@ -277,6 +277,59 @@ export default function LeaderboardPage() {
     }
   });
 
+  // Fetch game-specific leaderboard data
+  const { 
+    data: coinflipLeaderboardData = [], 
+    isLoading: isLoadingCoinflipLeaderboard,
+    error: coinflipLeaderboardError
+  } = useQuery({
+    queryKey: ['/api/leaderboard', timeFrame, sortBy, 'coin_flip'],
+    queryFn: async () => {
+      const response = await fetch(`/api/leaderboard?timeFrame=${timeFrame}&sortBy=${sortBy}&gameType=coin_flip`);
+      if (!response.ok) throw new Error('Failed to fetch coin flip leaderboard data');
+      return response.json();
+    }
+  });
+
+  const { 
+    data: cricketTossLeaderboardData = [], 
+    isLoading: isLoadingCricketTossLeaderboard,
+    error: cricketTossLeaderboardError
+  } = useQuery({
+    queryKey: ['/api/leaderboard', timeFrame, sortBy, 'cricket_toss'],
+    queryFn: async () => {
+      const response = await fetch(`/api/leaderboard?timeFrame=${timeFrame}&sortBy=${sortBy}&gameType=cricket_toss`);
+      if (!response.ok) throw new Error('Failed to fetch cricket toss leaderboard data');
+      return response.json();
+    }
+  });
+
+  const { 
+    data: satamatkaLeaderboardData = [], 
+    isLoading: isLoadingSatamatkaLeaderboard,
+    error: satamatkaLeaderboardError
+  } = useQuery({
+    queryKey: ['/api/leaderboard', timeFrame, sortBy, 'satamatka'],
+    queryFn: async () => {
+      const response = await fetch(`/api/leaderboard?timeFrame=${timeFrame}&sortBy=${sortBy}&gameType=satamatka`);
+      if (!response.ok) throw new Error('Failed to fetch satamatka leaderboard data');
+      return response.json();
+    }
+  });
+
+  const { 
+    data: teamMatchLeaderboardData = [], 
+    isLoading: isLoadingTeamMatchLeaderboard,
+    error: teamMatchLeaderboardError
+  } = useQuery({
+    queryKey: ['/api/leaderboard', timeFrame, sortBy, 'team_match'],
+    queryFn: async () => {
+      const response = await fetch(`/api/leaderboard?timeFrame=${timeFrame}&sortBy=${sortBy}&gameType=team_match`);
+      if (!response.ok) throw new Error('Failed to fetch team match leaderboard data');
+      return response.json();
+    }
+  });
+
   // Fetch recent big wins data
   const {
     data: recentWinsData = [],
@@ -475,40 +528,54 @@ export default function LeaderboardPage() {
                   <CardDescription>Top players in our coin flip game</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {sampleGameTypeLeaders["coinflip"].map((player, index) => (
-                    <div 
-                      key={player.id}
-                      className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
-                    >
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
-                          {index === 0 ? (
-                            <Trophy className="h-4 w-4 text-amber-400" />
-                          ) : index === 1 ? (
-                            <Medal className="h-4 w-4 text-slate-300" />
-                          ) : (
-                            <Award className="h-4 w-4 text-amber-700" />
-                          )}
-                        </div>
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
-                            <img 
-                              src={player.avatar} 
-                              alt={player.username}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{player.username}</p>
-                            <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right font-medium">
-                        {formatCurrency(player.totalWinnings)}
-                      </div>
+                  {isLoadingCoinflipLeaderboard ? (
+                    <div className="py-12 flex justify-center">
+                      <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"></div>
                     </div>
-                  ))}
+                  ) : coinflipLeaderboardError ? (
+                    <div className="py-6 text-center text-red-400">
+                      <p>Failed to load coin flip leaderboard data.</p>
+                    </div>
+                  ) : coinflipLeaderboardData.length === 0 ? (
+                    <div className="py-6 text-center text-slate-400">
+                      <p>No coin flip leaderboard data available.</p>
+                    </div>
+                  ) : (
+                    coinflipLeaderboardData.slice(0, 3).map((player, index) => (
+                      <div 
+                        key={player.userId}
+                        className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
+                      >
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
+                            {index === 0 ? (
+                              <Trophy className="h-4 w-4 text-amber-400" />
+                            ) : index === 1 ? (
+                              <Medal className="h-4 w-4 text-slate-300" />
+                            ) : (
+                              <Award className="h-4 w-4 text-amber-700" />
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
+                              <img 
+                                src={player.avatar} 
+                                alt={player.username}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{player.username}</p>
+                              <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right font-medium">
+                          {formatCurrency(player.totalWinnings)}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </CardContent>
               </Card>
               
@@ -522,40 +589,54 @@ export default function LeaderboardPage() {
                   <CardDescription>Top players in cricket toss betting</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {sampleGameTypeLeaders["cricket-toss"].map((player, index) => (
-                    <div 
-                      key={player.id}
-                      className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
-                    >
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
-                          {index === 0 ? (
-                            <Trophy className="h-4 w-4 text-amber-400" />
-                          ) : index === 1 ? (
-                            <Medal className="h-4 w-4 text-slate-300" />
-                          ) : (
-                            <Award className="h-4 w-4 text-amber-700" />
-                          )}
-                        </div>
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
-                            <img 
-                              src={player.avatar} 
-                              alt={player.username}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{player.username}</p>
-                            <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right font-medium">
-                        {formatCurrency(player.totalWinnings)}
-                      </div>
+                  {isLoadingCricketTossLeaderboard ? (
+                    <div className="py-12 flex justify-center">
+                      <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"></div>
                     </div>
-                  ))}
+                  ) : cricketTossLeaderboardError ? (
+                    <div className="py-6 text-center text-red-400">
+                      <p>Failed to load cricket toss leaderboard data.</p>
+                    </div>
+                  ) : cricketTossLeaderboardData.length === 0 ? (
+                    <div className="py-6 text-center text-slate-400">
+                      <p>No cricket toss leaderboard data available.</p>
+                    </div>
+                  ) : (
+                    cricketTossLeaderboardData.slice(0, 3).map((player, index) => (
+                      <div 
+                        key={player.userId}
+                        className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
+                      >
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
+                            {index === 0 ? (
+                              <Trophy className="h-4 w-4 text-amber-400" />
+                            ) : index === 1 ? (
+                              <Medal className="h-4 w-4 text-slate-300" />
+                            ) : (
+                              <Award className="h-4 w-4 text-amber-700" />
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
+                              <img 
+                                src={player.avatar} 
+                                alt={player.username}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{player.username}</p>
+                              <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right font-medium">
+                          {formatCurrency(player.totalWinnings)}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </CardContent>
               </Card>
               
@@ -569,40 +650,54 @@ export default function LeaderboardPage() {
                   <CardDescription>Top players in market betting games</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {sampleGameTypeLeaders["market-games"].map((player, index) => (
-                    <div 
-                      key={player.id}
-                      className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
-                    >
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
-                          {index === 0 ? (
-                            <Trophy className="h-4 w-4 text-amber-400" />
-                          ) : index === 1 ? (
-                            <Medal className="h-4 w-4 text-slate-300" />
-                          ) : (
-                            <Award className="h-4 w-4 text-amber-700" />
-                          )}
-                        </div>
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
-                            <img 
-                              src={player.avatar} 
-                              alt={player.username}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{player.username}</p>
-                            <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right font-medium">
-                        {formatCurrency(player.totalWinnings)}
-                      </div>
+                  {isLoadingSatamatkaLeaderboard ? (
+                    <div className="py-12 flex justify-center">
+                      <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"></div>
                     </div>
-                  ))}
+                  ) : satamatkaLeaderboardError ? (
+                    <div className="py-6 text-center text-red-400">
+                      <p>Failed to load satamatka leaderboard data.</p>
+                    </div>
+                  ) : satamatkaLeaderboardData.length === 0 ? (
+                    <div className="py-6 text-center text-slate-400">
+                      <p>No market game leaderboard data available.</p>
+                    </div>
+                  ) : (
+                    satamatkaLeaderboardData.slice(0, 3).map((player, index) => (
+                      <div 
+                        key={player.userId}
+                        className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
+                      >
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
+                            {index === 0 ? (
+                              <Trophy className="h-4 w-4 text-amber-400" />
+                            ) : index === 1 ? (
+                              <Medal className="h-4 w-4 text-slate-300" />
+                            ) : (
+                              <Award className="h-4 w-4 text-amber-700" />
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
+                              <img 
+                                src={player.avatar} 
+                                alt={player.username}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{player.username}</p>
+                              <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right font-medium">
+                          {formatCurrency(player.totalWinnings)}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </CardContent>
               </Card>
               
@@ -616,40 +711,54 @@ export default function LeaderboardPage() {
                   <CardDescription>Top players in sports betting</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {sampleGameTypeLeaders["sports-betting"].map((player, index) => (
-                    <div 
-                      key={player.id}
-                      className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
-                    >
-                      <div className="flex items-center">
-                        <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
-                          {index === 0 ? (
-                            <Trophy className="h-4 w-4 text-amber-400" />
-                          ) : index === 1 ? (
-                            <Medal className="h-4 w-4 text-slate-300" />
-                          ) : (
-                            <Award className="h-4 w-4 text-amber-700" />
-                          )}
-                        </div>
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
-                            <img 
-                              src={player.avatar} 
-                              alt={player.username}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                          <div>
-                            <p className="font-medium">{player.username}</p>
-                            <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right font-medium">
-                        {formatCurrency(player.totalWinnings)}
-                      </div>
+                  {isLoadingTeamMatchLeaderboard ? (
+                    <div className="py-12 flex justify-center">
+                      <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"></div>
                     </div>
-                  ))}
+                  ) : teamMatchLeaderboardError ? (
+                    <div className="py-6 text-center text-red-400">
+                      <p>Failed to load sports betting leaderboard data.</p>
+                    </div>
+                  ) : teamMatchLeaderboardData.length === 0 ? (
+                    <div className="py-6 text-center text-slate-400">
+                      <p>No sports betting leaderboard data available.</p>
+                    </div>
+                  ) : (
+                    teamMatchLeaderboardData.slice(0, 3).map((player, index) => (
+                      <div 
+                        key={player.userId}
+                        className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
+                      >
+                        <div className="flex items-center">
+                          <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
+                            {index === 0 ? (
+                              <Trophy className="h-4 w-4 text-amber-400" />
+                            ) : index === 1 ? (
+                              <Medal className="h-4 w-4 text-slate-300" />
+                            ) : (
+                              <Award className="h-4 w-4 text-amber-700" />
+                            )}
+                          </div>
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
+                              <img 
+                                src={player.avatar} 
+                                alt={player.username}
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div>
+                              <p className="font-medium">{player.username}</p>
+                              <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right font-medium">
+                          {formatCurrency(player.totalWinnings)}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </CardContent>
               </Card>
             </div>
