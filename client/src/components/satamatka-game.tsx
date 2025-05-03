@@ -255,13 +255,13 @@ export default function SatamatkaGame() {
   // Mutation for placing multiple bets
   const placeMultipleBetsMutation = useMutation({
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
-      // Convert bet amounts to paisa (100 paisa = 1 rupee) for server
+      // Process bet amounts for the server
       const serverBets = bets.map(bet => {
-        // All bet amounts should be converted to paisa for consistency with the server
-        const betAmount = bet.amount * 100;
+        // For satamatka games, the stored amounts are already in rupees
+        // The server expects paisa, so we need to multiply by 100
         return {
           prediction: bet.number,
-          betAmount: betAmount,
+          betAmount: bet.amount * 100,
         };
       });
       
@@ -390,8 +390,9 @@ export default function SatamatkaGame() {
     });
     
     // Return formatted amount for display if requested
+    // For jodi and harf, the bet amounts are already in rupees
     if (formatted) {
-      return (total / 100).toFixed(2);
+      return total.toFixed(2);
     }
     
     return total;
@@ -525,7 +526,7 @@ export default function SatamatkaGame() {
                     >
                       <span className="text-base font-medium">{num}</span>
                       {isSelected && (
-                        <span className="text-xs mt-1">₹{(betAmount / 100).toFixed(2)}</span>
+                        <span className="text-xs mt-1">₹{betAmount.toFixed(2)}</span>
                       )}
                     </Button>
                     {isSelected && (
