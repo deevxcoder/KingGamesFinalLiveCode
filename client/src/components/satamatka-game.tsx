@@ -1126,9 +1126,7 @@ export default function SatamatkaGame() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Potential Win:</span>
                     <span className="font-medium ml-2 text-amber-500">
-                      {selectedGameMode === "odd_even"
-                        ? `₹${(calculatePotentialWin(selectedGameMode, calculateTotalBetAmount()) / 100).toFixed(2)}`
-                        : formatCurrency(calculatePotentialWin(selectedGameMode, calculateTotalBetAmount()), 'satamatka')}
+                      {formatCurrency(calculatePotentialWin(selectedGameMode, calculateTotalBetAmount()), 'satamatka')}
                     </span>
                   </div>
                 </div>
@@ -1289,11 +1287,7 @@ export default function SatamatkaGame() {
                         ? `₹${amount.toFixed(2)}` 
                         : formatCurrency(amount, 'satamatka')}</TableCell>
                       <TableCell className="text-amber-500">
-                        {selectedGameMode === "crossing"
-                          ? `₹${(calculatePotentialWin(selectedGameMode, amount) / 100).toFixed(2)}`
-                          : selectedGameMode === "odd_even"
-                            ? `₹${calculatePotentialWin(selectedGameMode, amount).toFixed(2)}`
-                          : formatCurrency(calculatePotentialWin(selectedGameMode, amount), 'satamatka')}
+                        {formatCurrency(calculatePotentialWin(selectedGameMode, amount), 'satamatka')}
                       </TableCell>
                       <TableCell>
                         <Button
