@@ -4,6 +4,7 @@ import { setupAuth, requireRole } from "./auth";
 import { storage } from "./storage";
 import { db } from "./db";
 import { z } from "zod";
+
 import { 
   GameOutcome, 
   GameType,
@@ -218,6 +219,110 @@ app.get("/api/games/top-winners", async (req, res, next) => {
     }));
     
     res.json(winners);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Endpoint to get leaderboard data
+app.get("/api/leaderboard", async (req, res, next) => {
+  try {
+    // This endpoint is public - no authentication required
+    
+    // Get query parameters
+    const timeFrame = req.query.timeFrame as string || 'all-time';
+    const sortBy = req.query.sortBy as string || 'totalWinnings';
+    const gameType = req.query.gameType as string || null;
+    
+    // Define time range based on timeFrame
+    let startDate: Date | null = null;
+    const now = new Date();
+    
+    if (timeFrame === 'today') {
+      startDate = new Date(now.setHours(0, 0, 0, 0));
+    } else if (timeFrame === 'this-week') {
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+      startDate = new Date(now.setDate(diff));
+      startDate.setHours(0, 0, 0, 0);
+    } else if (timeFrame === 'this-month') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+    
+    // Get all games with appropriate filters
+    let gamesQuery = db.select({
+      userId: schema.games.userId,
+      username: schema.users.username,
+      betAmount: schema.games.betAmount,
+      payout: schema.games.payout,
+      gameType: schema.games.gameType,
+      result: schema.games.result,
+      createdAt: schema.games.createdAt
+    })
+    .from(schema.games)
+    .innerJoin(schema.users, eq(schema.games.userId, schema.users.id));
+    
+    if (startDate) {
+      gamesQuery = gamesQuery.where(gte(schema.games.createdAt, startDate));
+    }
+    
+    if (gameType) {
+      gamesQuery = gamesQuery.where(eq(schema.games.gameType, gameType));
+    }
+    
+    const games = await gamesQuery;
+    
+    // Aggregate data by user
+    const userStats: Record<number, {
+      userId: number,
+      username: string,
+      totalBets: number,
+      totalWins: number,
+      winRate: number,
+      totalWinnings: number,
+      avatar: string
+    }> = {};
+    
+    games.forEach(game => {
+      if (!userStats[game.userId]) {
+        userStats[game.userId] = {
+          userId: game.userId,
+          username: game.username,
+          totalBets: 0,
+          totalWins: 0,
+          winRate: 0,
+          totalWinnings: 0,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${game.username}`
+        };
+      }
+      
+      userStats[game.userId].totalBets += 1;
+      
+      if (game.payout > 0) {
+        userStats[game.userId].totalWins += 1;
+        userStats[game.userId].totalWinnings += (game.payout - game.betAmount);
+      }
+    });
+    
+    // Calculate win rates
+    Object.values(userStats).forEach(user => {
+      user.winRate = user.totalBets > 0 ? parseFloat(((user.totalWins / user.totalBets) * 100).toFixed(1)) : 0;
+    });
+    
+    // Sort according to the requested parameter
+    let leaderboardData = Object.values(userStats);
+
+    if (sortBy === 'totalWinnings') {
+      leaderboardData = leaderboardData.sort((a, b) => b.totalWinnings - a.totalWinnings);
+    } else if (sortBy === 'winRate') {
+      leaderboardData = leaderboardData.sort((a, b) => b.winRate - a.winRate);
+    } else {
+      leaderboardData = leaderboardData.sort((a, b) => b.totalWins - a.totalWins);
+    }
+    
+    // Return only the top 10 users
+    res.json(leaderboardData.slice(0, 10));
+    
   } catch (err) {
     next(err);
   }
