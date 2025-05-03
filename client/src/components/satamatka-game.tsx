@@ -255,18 +255,12 @@ export default function SatamatkaGame() {
   // Mutation for placing multiple bets
   const placeMultipleBetsMutation = useMutation({
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
-      // Calculate bet amounts properly for the server (in paisa)
+      // Note: For crossing game mode, the amount is already in paisa in the server
+      // No need to multiply again as we already did that in the UI
       const serverBets = bets.map(bet => {
-        let betAmount = bet.amount;
-        
-        // For crossing game mode, multiply by 100 to convert to paisa
-        if (selectedGameMode === "crossing") {
-          betAmount = betAmount * 100;
-        }
-        
         return {
           prediction: bet.number,
-          betAmount: betAmount,
+          betAmount: bet.amount,
         };
       });
       
@@ -373,7 +367,9 @@ export default function SatamatkaGame() {
       }
     } else {
       // If not selected, add with current bet amount
-      newSelections.set(num, quickBetAmount);
+      // For crossing game mode, we'll multiply by 100 (convert to paisa) to ensure consistency with server
+      const amount = selectedGameMode === "crossing" ? quickBetAmount * 100 : quickBetAmount;
+      newSelections.set(num, amount);
     }
     
     setSelectedNumbers(newSelections);
