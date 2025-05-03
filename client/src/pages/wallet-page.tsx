@@ -1252,7 +1252,7 @@ export default function WalletPage() {
                               const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
                               
                               return (
-                                <div key={item.id} className="border rounded-lg overflow-hidden">
+                                <div key={item.id} className="border border-slate-800 rounded-lg overflow-hidden">
                                   <div className="flex items-center justify-between p-4">
                                     <div className="flex items-center">
                                       <div className="mr-4">
@@ -1273,7 +1273,7 @@ export default function WalletPage() {
                                     </div>
                                   </div>
 
-                                  <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
+                                  <div className="px-4 pb-4 text-sm border-t border-slate-800 bg-slate-950/50">
                                     <p><strong>Payment Method:</strong> {request.paymentMode}</p>
                                     
                                     {/* Payment details based on payment mode */}
@@ -1302,7 +1302,7 @@ export default function WalletPage() {
                               // It's a direct transaction
                               const transaction = item.transactionData;
                               return (
-                                <div key={item.id} className="border rounded-lg overflow-hidden">
+                                <div key={item.id} className="border border-slate-800 rounded-lg overflow-hidden">
                                   <div className="flex items-center justify-between p-4">
                                     <div className="flex items-center">
                                       <div className="mr-4">
@@ -1336,7 +1336,7 @@ export default function WalletPage() {
                                   </div>
                                   
                                   {transaction.description && (
-                                    <div className="px-4 pb-4 text-sm border-t bg-slate-50 dark:bg-slate-900/40">
+                                    <div className="px-4 pb-4 text-sm border-t border-slate-800 bg-slate-950/50">
                                       <p className="mt-2"><strong>Description:</strong> {transaction.description}</p>
                                     </div>
                                   )}
