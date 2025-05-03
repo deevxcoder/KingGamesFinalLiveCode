@@ -519,7 +519,7 @@ export default function SatamatkaGame() {
                     >
                       <span className="text-base font-medium">{num}</span>
                       {isSelected && (
-                        <span className="text-xs mt-1">₹{betAmount}</span>
+                        <span className="text-xs mt-1">₹{(betAmount * 100 / 100).toFixed(2)}</span>
                       )}
                     </Button>
                     {isSelected && (
@@ -1669,9 +1669,10 @@ function calculatePotentialWin(gameMode: string, betAmount: number): number {
       break;
   }
   
-  // For these game modes, bet display is in rupees but stored as paisa
+  // For all game modes in Satamatka, bet display is in rupees but stored as paisa
   // Need to convert betAmount to paisa first, then multiple by ratio
-  if (gameMode === "odd_even" || gameMode === "crossing") {
+  // This ensures consistent display across all game types
+  if (gameMode === "jodi" || gameMode === "harf" || gameMode === "crossing" || gameMode === "odd_even") {
     return Math.floor(betAmount * payoutRatio * 100);
   }
   
