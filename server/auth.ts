@@ -17,10 +17,13 @@ export async function hashPassword(password: string) {
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  // Check if it's a bcrypt hash (starts with $2b$)
-  if (stored.startsWith('$2b$')) {
+  // Check if it's a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+  if (stored.startsWith('$2a$') || stored.startsWith('$2b$') || stored.startsWith('$2y$')) {
     return bcrypt.compare(supplied, stored);
-  } 
+  }
+  
+  // For debugging
+  console.log('Password format not recognized:', stored.substring(0, 4));
   
   // Fallback for old-style passwords if needed in the future
   return false;
