@@ -257,10 +257,12 @@ export default function SatamatkaGame() {
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
       // Convert bet amounts to paisa (100 paisa = 1 rupee) for server
       const serverBets = bets.map(bet => {
-        // Multiply by 100 to convert UI rupee amount to paisa for storage
+        // For Crossing bet type, we're already showing rupees in the UI
+        // so we don't need to multiply by 100 again
+        const betAmount = selectedGameMode === "crossing" ? bet.amount : bet.amount * 100;
         return {
           prediction: bet.number,
-          betAmount: bet.amount * 100,
+          betAmount: betAmount,
         };
       });
       
