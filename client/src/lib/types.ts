@@ -135,8 +135,6 @@ export interface WalletRequest {
     bankName?: string;
     accountNumber?: string;
     ifscCode?: string;
-    handlerName?: string;
-    handlerId?: string;
     utrNumber?: string;
     transactionId?: string;
   };

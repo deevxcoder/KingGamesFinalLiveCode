@@ -353,8 +353,6 @@ export default function FundManagementPage() {
         return "UPI";
       case PaymentMode.BANK:
         return "Bank Transfer";
-      case PaymentMode.CASH:
-        return "Cash";
       default:
         return mode;
     }
