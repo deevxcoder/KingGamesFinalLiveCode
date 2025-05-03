@@ -74,7 +74,6 @@ export type SatamatkaGameModeValue = typeof SatamatkaGameMode[keyof typeof Satam
 export const PaymentMode = {
   UPI: 'upi',
   BANK: 'bank',
-  CASH: 'cash',
 } as const;
 
 export type PaymentModeType = typeof PaymentMode[keyof typeof PaymentMode];
@@ -254,7 +253,7 @@ export const walletRequests = pgTable("wallet_requests", {
     .references(() => users.id),
   amount: integer("amount").notNull(), // in cents
   requestType: text("request_type").notNull(), // 'deposit' or 'withdrawal'
-  paymentMode: text("payment_mode").notNull(), // 'upi', 'bank', 'cash'
+  paymentMode: text("payment_mode").notNull(), // 'upi', 'bank'
   paymentDetails: json("payment_details").notNull(),
   status: text("status").notNull().default(RequestStatus.PENDING), // 'pending', 'approved', 'rejected'
   proofImageUrl: text("proof_image_url"),
@@ -305,7 +304,7 @@ export const insertWalletRequestSchema = createInsertSchema(walletRequests)
   })
   .extend({
     requestType: z.enum([RequestType.DEPOSIT, RequestType.WITHDRAWAL]),
-    paymentMode: z.enum([PaymentMode.UPI, PaymentMode.BANK, PaymentMode.CASH]),
+    paymentMode: z.enum([PaymentMode.UPI, PaymentMode.BANK]),
   })
   .partial({
     proofImageUrl: true,
