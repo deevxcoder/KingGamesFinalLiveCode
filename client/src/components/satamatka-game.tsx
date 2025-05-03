@@ -255,14 +255,26 @@ export default function SatamatkaGame() {
   // Mutation for placing multiple bets
   const placeMultipleBetsMutation = useMutation({
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
+      // Calculate bet amounts properly for the server (in paisa)
+      const serverBets = bets.map(bet => {
+        let betAmount = bet.amount;
+        
+        // For crossing game mode, multiply by 100 to convert to paisa
+        if (selectedGameMode === "crossing") {
+          betAmount = betAmount * 100;
+        }
+        
+        return {
+          prediction: bet.number,
+          betAmount: betAmount,
+        };
+      });
+      
       // Use the new bulk betting endpoint
       const response = await apiRequest("POST", "/api/satamatka/play-multiple", {
         marketId: marketId,
         gameMode: selectedGameMode,
-        bets: bets.map(bet => ({
-          prediction: bet.number,
-          betAmount: bet.amount,
-        }))
+        bets: serverBets
       });
       
       // Parse the response JSON
@@ -852,15 +864,15 @@ export default function SatamatkaGame() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Bet per combination:</span>
-                  <span className="font-medium">{formatCurrency(quickBetAmount, 'satamatka')}</span>
+                  <span className="font-medium">{formatCurrency(quickBetAmount * 100, 'satamatka')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total bet amount:</span>
-                  <span className="font-medium">{formatCurrency(totalCombinations * quickBetAmount, 'satamatka')}</span>
+                  <span className="font-medium">{formatCurrency(totalCombinations * quickBetAmount * 100, 'satamatka')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Potential win (max):</span>
-                  <span className="font-medium text-amber-500">{formatCurrency(calculatePotentialWin(selectedGameMode, quickBetAmount) * totalCombinations, 'satamatka')}</span>
+                  <span className="font-medium text-amber-500">{formatCurrency(calculatePotentialWin(selectedGameMode, quickBetAmount * 100) * totalCombinations, 'satamatka')}</span>
                 </div>
               </div>
             </div>
@@ -932,16 +944,17 @@ export default function SatamatkaGame() {
                     : `Combinations of ${selectedDigits.join(",")}`;
                   
                   // Set bet details for confirmation dialog
+                  // Multiply by 100 to convert to paisa for consistent storage
                   setBetDetails({
                     prediction: combinationsText,
-                    betAmount: totalCombinations * quickBetAmount
+                    betAmount: totalCombinations * quickBetAmount * 100
                   });
                   
                   // Open confirmation dialog
                   setConfirmDialogOpen(true);
                 }}
               >
-                Place Bets on {totalCombinations} Combinations ({formatCurrency(totalCombinations * quickBetAmount, 'satamatka')})
+                Place Bets on {totalCombinations} Combinations ({formatCurrency(totalCombinations * quickBetAmount * 100, 'satamatka')})
               </Button>
             </div>
           )}
