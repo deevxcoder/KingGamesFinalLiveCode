@@ -430,10 +430,7 @@ export function setupWalletRoutes(app: express.Express) {
             accountNumber: accountNumberSettings?.settingValue || 'Account Number',
             ifscCode: ifscCodeSettings?.settingValue || 'IFSC Code',
             accountHolder: accountHolderSettings?.settingValue || 'Account Holder',
-          },
-          cash: {
-            instructions: 'Contact administrator for cash payment',
-          },
+          }
         });
       }
       

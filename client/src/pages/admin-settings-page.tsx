@@ -412,9 +412,6 @@ export default function AdminSettingsPage() {
         accountNumber: accountNumber,
         ifscCode: ifscCode,
         accountHolder: accountName
-      },
-      cash: {
-        instructions: "Contact administrator for cash payment"
       }
     });
   };

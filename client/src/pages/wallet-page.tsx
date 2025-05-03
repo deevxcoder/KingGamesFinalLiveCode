@@ -23,6 +23,20 @@ import { useAuth } from "@/hooks/use-auth";
 import DashboardLayout from "@/components/dashboard-layout";
 import { PaymentMode, RequestType, RequestStatus, WalletRequest, PaymentDetails } from "@/lib/types";
 
+// API response type for payment details
+interface SystemPaymentDetails {
+  upi?: {
+    id: string;
+    qrCode: string | null;
+  };
+  bank?: {
+    name: string;
+    accountNumber: string;
+    ifscCode: string;
+    accountHolder: string;
+  };
+}
+
 // Form schemas
 const depositFormSchema = z.object({
   amount: z.coerce.number().min(100, "Minimum deposit amount is ₹100").max(100000, "Maximum deposit amount is ₹100,000"),
@@ -34,8 +48,6 @@ const depositFormSchema = z.object({
     bankName: z.string().optional(),
     accountNumber: z.string().optional(),
     ifscCode: z.string().optional(),
-    handlerName: z.string().optional(),
-    handlerId: z.string().optional(),
   }),
   notes: z.string().optional(),
 });
@@ -63,7 +75,7 @@ export default function WalletPage() {
   const [paymentModeDetails, setPaymentModeDetails] = useState<PaymentDetails | null>(null);
 
   // Fetch payment details from the system
-  const { data: systemPaymentDetails, isLoading: loadingPaymentDetails } = useQuery<PaymentDetails>({
+  const { data: systemPaymentDetails, isLoading: loadingPaymentDetails } = useQuery<SystemPaymentDetails>({
     queryKey: ["/api/wallet/payment-details"],
     queryFn: async ({ queryKey }) => {
       console.log("Fetching payment details from API...");
