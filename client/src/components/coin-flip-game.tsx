@@ -98,6 +98,7 @@ export default function CoinFlipGame() {
     }
   };
 
+  // Set bet amount with values that match display (10, 50, 100)
   const handleQuickAmount = (amount: number) => {
     setBetAmount(amount);
   };
@@ -309,7 +310,7 @@ export default function CoinFlipGame() {
                   disabled={isFlipping || 1000 > (user?.balance || 0)}
                   className="text-xs h-7"
                 >
-                  {formatCurrency(10, 'coin_flip')}
+                  ₹10
                 </Button>
                 <Button 
                   variant="outline" 
@@ -318,7 +319,7 @@ export default function CoinFlipGame() {
                   disabled={isFlipping || 5000 > (user?.balance || 0)}
                   className="text-xs h-7"
                 >
-                  {formatCurrency(50, 'coin_flip')}
+                  ₹50
                 </Button>
                 <Button 
                   variant="outline" 
@@ -327,7 +328,7 @@ export default function CoinFlipGame() {
                   disabled={isFlipping || 10000 > (user?.balance || 0)}
                   className="text-xs h-7"
                 >
-                  {formatCurrency(100, 'coin_flip')}
+                  ₹100
                 </Button>
                 <Button 
                   variant="outline" 
