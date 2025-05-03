@@ -257,11 +257,8 @@ export default function SatamatkaGame() {
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
       // Convert bet amounts to paisa (100 paisa = 1 rupee) for server
       const serverBets = bets.map(bet => {
-        // For Crossing and Odd-Even bet types, we're already showing rupees in the UI
-        // so we don't need to multiply by 100 again
-        const betAmount = (selectedGameMode === "crossing" || selectedGameMode === "odd_even") 
-          ? bet.amount 
-          : bet.amount * 100;
+        // All bet amounts should be converted to paisa for consistency with the server
+        const betAmount = bet.amount * 100;
         return {
           prediction: bet.number,
           betAmount: betAmount,
@@ -1063,7 +1060,7 @@ export default function SatamatkaGame() {
                 {selectedNumbers.has("odd") && (
                   <div className="mt-3 flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
                     <div className="h-4 w-4 mr-1 text-green-600">✓</div>
-                    <span className="text-sm font-medium">Selected</span>
+                    <span className="text-sm font-medium">₹{selectedNumbers.get("odd")}</span>
                   </div>
                 )}
               </CardContent>
@@ -1083,7 +1080,7 @@ export default function SatamatkaGame() {
                 {selectedNumbers.has("even") && (
                   <div className="mt-3 flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
                     <div className="h-4 w-4 mr-1 text-green-600">✓</div>
-                    <span className="text-sm font-medium">Selected</span>
+                    <span className="text-sm font-medium">₹{selectedNumbers.get("even")}</span>
                   </div>
                 )}
               </CardContent>
