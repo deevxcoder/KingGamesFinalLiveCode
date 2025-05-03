@@ -852,15 +852,15 @@ export default function SatamatkaGame() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Bet per combination:</span>
-                  <span className="font-medium">₹{quickBetAmount}</span>
+                  <span className="font-medium">{formatCurrency(quickBetAmount, 'satamatka')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Total bet amount:</span>
-                  <span className="font-medium">₹{totalCombinations * quickBetAmount}</span>
+                  <span className="font-medium">{formatCurrency(totalCombinations * quickBetAmount, 'satamatka')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Potential win (max):</span>
-                  <span className="font-medium text-amber-500">₹{calculatePotentialWin(selectedGameMode, quickBetAmount) * totalCombinations}</span>
+                  <span className="font-medium text-amber-500">{formatCurrency(calculatePotentialWin(selectedGameMode, quickBetAmount) * totalCombinations, 'satamatka')}</span>
                 </div>
               </div>
             </div>
