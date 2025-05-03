@@ -1011,13 +1011,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
         
-        // Add bet amount to total (in paisa)
+        // Add bet amount to total (ensuring all amounts are in paisa)
         totalBetAmount += betAmount;
         validatedBets.push({ prediction, betAmount });
       }
       
       // For total bet amount, we need to make sure we're using paisa consistently
-      // For bet amounts already in paisa, don't convert
       const totalBetAmountInPaisa = totalBetAmount;
       
       // Check user balance against the TOTAL amount for all bets
@@ -1025,7 +1024,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user || user.balance < totalBetAmountInPaisa) {
         return res.status(400).json({ 
           message: "Insufficient balance",
-          detail: `Total bet amount ₹${totalBetAmount / 100} exceeds available balance ₹${user?.balance ? user.balance / 100 : 0}`
+          detail: `Total bet amount ₹${totalBetAmountInPaisa / 100} exceeds available balance ₹${user?.balance ? user.balance / 100 : 0}`
         });
       }
       
@@ -1053,7 +1052,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Add to list of created games (for response)
         createdGames.push({
           ...game,
-          betAmount: bet.betAmount  // Return bet amount in rupees for display
+          betAmount: betAmountInPaisa  // Return bet amount in paisa for consistency
         });
       }
       
@@ -1065,7 +1064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           balance: newBalance,
           password: undefined,
         },
-        totalBetAmount: totalBetAmount  // In rupees
+        totalBetAmount: totalBetAmountInPaisa  // In paisa for consistency
       });
     } catch (err) {
       next(err);

@@ -19,9 +19,15 @@ export const PAISA_THRESHOLD = 10000;
  * @param amount - The amount to format
  * @param gameType - The type of game (used to determine if amount is in paisa)
  * @param includeSymbol - Whether to include the ₹ symbol
+ * @param gameMode - Optional game mode for special cases like odd_even
  * @returns Formatted amount string
  */
-export function formatCurrency(amount: number, gameType?: string, includeSymbol = true): string {
+export function formatCurrency(
+  amount: number, 
+  gameType?: string, 
+  includeSymbol = true, 
+  gameMode?: string
+): string {
   if (!amount && amount !== 0) return includeSymbol ? '₹0.00' : '0.00';
   
   // Determine if we need to convert from paisa to rupees
