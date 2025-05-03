@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { 
   Card, 
@@ -263,6 +264,12 @@ const gameCards = [
 export default function PublicHomePage() {
   const [_, setLocation] = useLocation();
   const { user } = useAuth();
+  
+  // Fetch real winners data from API
+  const { data: realWinners = [], isLoading: isLoadingWinners } = useQuery({
+    queryKey: ['/api/games/top-winners'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
   useEffect(() => {
     // If user is logged in, redirect to dashboard
@@ -512,7 +519,13 @@ export default function PublicHomePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <RecentWinners winners={sampleRecentWinners} />
+                {isLoadingWinners ? (
+                  <div className="py-8 flex justify-center">
+                    <div className="animate-spin h-6 w-6 border-2 border-primary rounded-full border-t-transparent"></div>
+                  </div>
+                ) : (
+                  <RecentWinners winners={realWinners} />
+                )}
               </CardContent>
             </Card>
           </div>

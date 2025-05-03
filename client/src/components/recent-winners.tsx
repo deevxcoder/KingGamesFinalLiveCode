@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import { Trophy, Award, User, Sparkles } from "lucide-react";
+import { Link } from "wouter";
 import { 
   Card, 
   CardContent, 
@@ -102,6 +103,17 @@ export default function RecentWinners({ winners }: RecentWinnersProps) {
               </div>
             );
           })}
+          
+          {/* Link to full leaderboard */}
+          <div className="pt-2 pb-1 px-6 text-center">
+            <Link 
+              to="/leaderboard" 
+              className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center justify-center"
+            >
+              <Trophy className="h-3 w-3 mr-1" />
+              View Full Leaderboard
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>
