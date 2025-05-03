@@ -27,12 +27,12 @@ export function formatCurrency(amount: number, gameType?: string, includeSymbol 
   // Determine if we need to convert from paisa to rupees
   let convertedAmount = amount;
   
-  // For known paisa-based games OR when amount is suspiciously large
-  if (
-    (gameType && PAISA_BASED_GAMES.includes(gameType) && amount >= PAISA_THRESHOLD) ||
-    // If no game type but amount looks like paisa
-    (!gameType && amount >= PAISA_THRESHOLD)
-  ) {
+  // Always convert for known paisa-based games regardless of amount size
+  if (gameType && PAISA_BASED_GAMES.includes(gameType)) {
+    convertedAmount = amount / 100;
+  } 
+  // If no game type but amount looks like paisa (for backward compatibility)
+  else if (!gameType && amount >= PAISA_THRESHOLD) {
     convertedAmount = amount / 100;
   }
   
@@ -51,13 +51,18 @@ export function formatCurrency(amount: number, gameType?: string, includeSymbol 
  */
 export function formatProfitLoss(betAmount: number, payout: number, gameType?: string): string {
   const isPaisaBased = gameType && PAISA_BASED_GAMES.includes(gameType);
-  const isLargeBet = betAmount >= PAISA_THRESHOLD;
   
   // Convert to rupees if needed
   let normalizedBet = betAmount;
   let normalizedPayout = payout;
   
-  if (isPaisaBased && isLargeBet) {
+  // Always convert for paisa-based games
+  if (isPaisaBased) {
+    normalizedBet = betAmount / 100;
+    normalizedPayout = payout / 100;
+  }
+  // For backward compatibility with non-typed amounts
+  else if (!gameType && betAmount >= PAISA_THRESHOLD) {
     normalizedBet = betAmount / 100;
     normalizedPayout = payout / 100;
   }
@@ -79,9 +84,13 @@ export function formatBetAmountForInput(amount: number, gameType?: string): stri
   if (!amount) return '';
   
   const isPaisaBased = gameType && PAISA_BASED_GAMES.includes(gameType);
-  const isLargeBet = amount >= PAISA_THRESHOLD;
   
-  if (isPaisaBased && isLargeBet) {
+  // Always convert for paisa-based games
+  if (isPaisaBased) {
+    return (amount / 100).toString();
+  }
+  // For backward compatibility
+  else if (!gameType && amount >= PAISA_THRESHOLD) {
     return (amount / 100).toString();
   }
   
