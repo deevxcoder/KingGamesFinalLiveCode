@@ -1273,9 +1273,13 @@ export default function SatamatkaGame() {
                   return (
                     <TableRow key={num}>
                       <TableCell className="font-medium">{displayNum}</TableCell>
-                      <TableCell>{formatCurrency(amount, 'satamatka')}</TableCell>
+                      <TableCell>{selectedGameMode === "crossing" 
+                        ? `₹${amount.toFixed(2)}` 
+                        : formatCurrency(amount, 'satamatka')}</TableCell>
                       <TableCell className="text-amber-500">
-                        {formatCurrency(calculatePotentialWin(selectedGameMode, amount), 'satamatka')}
+                        {selectedGameMode === "crossing"
+                          ? `₹${(calculatePotentialWin(selectedGameMode, amount) / 100).toFixed(2)}`
+                          : formatCurrency(calculatePotentialWin(selectedGameMode, amount), 'satamatka')}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -1297,15 +1301,24 @@ export default function SatamatkaGame() {
           <div className="bg-muted/30 p-3 rounded-lg">
             <div className="flex justify-between mb-2">
               <span className="text-sm font-medium">Total Bet Amount:</span>
-              <span className="font-bold">{formatCurrency(calculateTotalBetAmount(), 'satamatka')}</span>
+              <span className="font-bold">
+                {selectedGameMode === "crossing" 
+                  ? `₹${calculateTotalBetAmount().toFixed(2)}` 
+                  : formatCurrency(calculateTotalBetAmount(), 'satamatka')}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm font-medium">Potential Win:</span>
               <span className="font-bold text-amber-500">
-                {formatCurrency(Array.from(selectedNumbers.values()).reduce(
-                  (total, amount) => total + calculatePotentialWin(selectedGameMode, amount),
-                  0
-                ), 'satamatka')}
+                {selectedGameMode === "crossing"
+                  ? `₹${(Array.from(selectedNumbers.values()).reduce(
+                      (total, amount) => total + calculatePotentialWin(selectedGameMode, amount),
+                      0
+                    ) / 100).toFixed(2)}`
+                  : formatCurrency(Array.from(selectedNumbers.values()).reduce(
+                      (total, amount) => total + calculatePotentialWin(selectedGameMode, amount),
+                      0
+                    ), 'satamatka')}
               </span>
             </div>
           </div>
@@ -1366,12 +1379,16 @@ export default function SatamatkaGame() {
             <div className="flex justify-between items-center">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Bet Amount</p>
-                <p className="text-lg font-bold">{betDetails ? formatCurrency(betDetails.betAmount, 'satamatka') : ''}</p>
+                <p className="text-lg font-bold">{betDetails ? 
+                  (selectedGameMode === "crossing" ? `₹${betDetails.betAmount.toFixed(2)}` : formatCurrency(betDetails.betAmount, 'satamatka')) : ''}</p>
               </div>
               <div className="text-right space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Potential Win</p>
                 <p className="text-lg font-bold text-amber-500">
-                  {betDetails ? formatCurrency(calculatePotentialWin(selectedGameMode, betDetails.betAmount), 'satamatka') : ''}
+                  {betDetails ? 
+                    (selectedGameMode === "crossing" 
+                      ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount) / 100).toFixed(2)}` 
+                      : formatCurrency(calculatePotentialWin(selectedGameMode, betDetails.betAmount), 'satamatka')) : ''}
                 </p>
               </div>
             </div>
