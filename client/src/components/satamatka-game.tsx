@@ -868,7 +868,7 @@ export default function SatamatkaGame() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Potential win (max):</span>
-                  <span className="font-medium text-amber-500">{formatCurrency(calculatePotentialWin(selectedGameMode, quickBetAmount * 100) * totalCombinations, 'satamatka')}</span>
+                  <span className="font-medium text-amber-500">{formatCurrency(calculatePotentialWin(selectedGameMode, quickBetAmount) * totalCombinations, 'satamatka')}</span>
                 </div>
               </div>
             </div>
