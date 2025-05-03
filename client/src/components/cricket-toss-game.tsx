@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
+import { formatCurrency } from '@/lib/format-utils';
 import { ChevronRight, RefreshCw } from "lucide-react";
 import { GiCricketBat } from "react-icons/gi";
 import { Badge } from '@/components/ui/badge';
@@ -116,7 +117,7 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
       
       toast({
         title: "Bet placed successfully!",
-        description: `You placed ₹${betAmount/100} on ${getPredictionLabel(prediction || '')}. Good luck!`,
+        description: `You placed ${formatCurrency(betAmount, 'cricket_toss')} on ${getPredictionLabel(prediction || '')}. Good luck!`,
         variant: "default",
       });
       
@@ -263,21 +264,21 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
               className={`${betAmount === 10000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
               onClick={() => handleQuickAmount(100)}
             >
-              ₹100
+              {formatCurrency(100, 'cricket_toss')}
             </Button>
             <Button
               variant="outline"
               className={`${betAmount === 50000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
               onClick={() => handleQuickAmount(500)}
             >
-              ₹500
+              {formatCurrency(500, 'cricket_toss')}
             </Button>
             <Button
               variant="outline"
               className={`${betAmount === 100000 ? 'bg-indigo-900/50 border-indigo-500' : ''}`}
               onClick={() => handleQuickAmount(1000)}
             >
-              ₹1000
+              {formatCurrency(1000, 'cricket_toss')}
             </Button>
           </div>
           
@@ -289,17 +290,17 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
             min={10}
             max={10000}
           />
-          <p className="text-xs text-gray-400">Min: ₹10, Max: ₹10,000</p>
+          <p className="text-xs text-gray-400">Min: {formatCurrency(10, 'cricket_toss')}, Max: {formatCurrency(10000, 'cricket_toss')}</p>
         </div>
         
         <div className="bg-gray-800 p-3 rounded-md space-y-2">
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Potential win:</span>
-            <span className="text-indigo-400 font-bold">₹{(potentialWin/100).toFixed(2)}</span>
+            <span className="text-indigo-400 font-bold">{formatCurrency(potentialWin, 'cricket_toss')}</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Your balance:</span>
-            <span>{user?.balance !== undefined ? `₹${(user.balance/100).toFixed(2)}` : '-'}</span>
+            <span>{user?.balance !== undefined ? formatCurrency(user.balance, 'cricket_toss') : '-'}</span>
           </div>
         </div>
       </CardContent>

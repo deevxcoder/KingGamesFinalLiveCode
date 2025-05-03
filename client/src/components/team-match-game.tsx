@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { format } from 'date-fns';
 import { useAuth } from '@/hooks/use-auth';
 import { apiRequest } from '@/lib/queryClient';
+import { formatCurrency } from '@/lib/format-utils';
 import { Trophy } from "lucide-react";
 import { IoFootball } from "react-icons/io5";
 import { GiCricketBat } from "react-icons/gi";
