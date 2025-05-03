@@ -1292,11 +1292,9 @@ export default function SatamatkaGame() {
                   return (
                     <TableRow key={num}>
                       <TableCell className="font-medium">{displayNum}</TableCell>
-                      <TableCell>{(selectedGameMode === "crossing" || selectedGameMode === "odd_even")
-                        ? `₹${amount.toFixed(2)}` 
-                        : formatCurrency(amount, 'satamatka')}</TableCell>
+                      <TableCell>₹{amount.toFixed(2)}</TableCell>
                       <TableCell className="text-amber-500">
-                        {formatCurrency(calculatePotentialWin(selectedGameMode, amount), 'satamatka', true, selectedGameMode)}
+                        ₹{calculatePotentialWin(selectedGameMode, amount) / 100}
                       </TableCell>
                       <TableCell>
                         <Button
