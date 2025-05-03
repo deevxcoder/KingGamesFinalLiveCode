@@ -347,7 +347,7 @@ export default function FundManagementPage() {
   };
 
   // Get payment mode display
-  const getPaymentModeDisplay = (mode: string) => {
+  const getPaymentModeDisplay = (mode: PaymentMode) => {
     switch (mode) {
       case PaymentMode.UPI:
         return "UPI";
@@ -878,18 +878,7 @@ export default function FundManagementPage() {
                       </>
                     )}
                     
-                    {selectedRequest.paymentMode === PaymentMode.ONLINE_WALLET && (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Handler Name:</span>
-                          <span>{selectedRequest.paymentDetails.handlerName || "—"}</span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Handler ID:</span>
-                          <span>{selectedRequest.paymentDetails.handlerId || "—"}</span>
-                        </div>
-                      </>
-                    )}
+
                     
                     <div className="flex items-center justify-between">
                       <span className="text-sm text-muted-foreground">Transaction/UTR ID:</span>
