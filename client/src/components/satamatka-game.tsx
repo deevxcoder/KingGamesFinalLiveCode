@@ -1121,7 +1121,12 @@ export default function SatamatkaGame() {
                 <div className="grid grid-cols-2 gap-2">
                   <div className="text-sm">
                     <span className="text-muted-foreground">Payout Ratio:</span>
-                    <span className="font-medium ml-2">1.8x</span>
+                    <span className="font-medium ml-2">
+                      {selectedGameMode === "jodi" ? "90x" : 
+                       selectedGameMode === "harf" ? "9x" : 
+                       selectedGameMode === "crossing" ? "4.5x" : 
+                       selectedGameMode === "odd_even" ? "1.8x" : "1x"}
+                    </span>
                   </div>
                   <div className="text-sm">
                     <span className="text-muted-foreground">Potential Win:</span>
