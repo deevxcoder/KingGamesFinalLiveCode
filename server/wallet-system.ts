@@ -8,7 +8,6 @@ import { eq, desc, and } from 'drizzle-orm';
 export const PaymentMode = {
   UPI: 'upi',
   BANK: 'bank',
-  CASH: 'cash',
 } as const;
 
 // Request Status
@@ -29,14 +28,12 @@ export const walletRequestSchema = z.object({
   userId: z.number(),
   amount: z.number().positive(),
   requestType: z.enum([RequestType.DEPOSIT, RequestType.WITHDRAWAL]),
-  paymentMode: z.enum([PaymentMode.UPI, PaymentMode.BANK, PaymentMode.CASH]),
+  paymentMode: z.enum([PaymentMode.UPI, PaymentMode.BANK]),
   paymentDetails: z.object({
     upiId: z.string().optional(),
     bankName: z.string().optional(),
     accountNumber: z.string().optional(),
     ifscCode: z.string().optional(),
-    handlerName: z.string().optional(),
-    handlerId: z.string().optional(),
     utrNumber: z.string().optional(),
     transactionId: z.string().optional(),
   }),
@@ -61,8 +58,6 @@ export type WalletRequest = {
     bankName?: string;
     accountNumber?: string;
     ifscCode?: string;
-    handlerName?: string;
-    handlerId?: string;
     utrNumber?: string;
     transactionId?: string;
   };
