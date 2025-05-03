@@ -256,7 +256,7 @@ export default function SatamatkaGame() {
   const placeMultipleBetsMutation = useMutation({
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
       // Use the new bulk betting endpoint
-      return apiRequest("POST", "/api/satamatka/play-multiple", {
+      const response = await apiRequest("POST", "/api/satamatka/play-multiple", {
         marketId: marketId,
         gameMode: selectedGameMode,
         bets: bets.map(bet => ({
@@ -264,9 +264,13 @@ export default function SatamatkaGame() {
           betAmount: bet.amount,
         }))
       });
+      
+      // Parse the response JSON
+      return await response.json();
     },
     onSuccess: (result) => {
       // Get the number of successful bets from the response
+      console.log("Multiple bets response:", result);
       const successCount = result?.games?.length || 0;
       const totalAmount = result?.totalBetAmount || 0;
       
