@@ -383,7 +383,7 @@ export default function SatamatkaGame() {
   };
   
   // Calculate total bet amount across all selections
-  const calculateTotalBetAmount = (formatted = false) => {
+  const calculateTotalBetAmount = (formatted = false): number | string => {
     let total = 0;
     selectedNumbers.forEach(amount => {
       total += amount;
@@ -411,7 +411,7 @@ export default function SatamatkaGame() {
     // Set bet details for confirmation dialog
     setBetDetails({
       prediction: Array.from(selectedNumbers.keys()).join(", "),
-      betAmount: calculateTotalBetAmount()
+      betAmount: Number(calculateTotalBetAmount())
     });
     setConfirmDialogOpen(true);
   };
@@ -1116,8 +1116,8 @@ export default function SatamatkaGame() {
                     <span className="text-muted-foreground">Amount:</span>
                     <span className="font-medium ml-2">
                       {selectedGameMode === "odd_even" 
-                        ? `₹${calculateTotalBetAmount().toFixed(2)}` 
-                        : formatCurrency(calculateTotalBetAmount(), 'satamatka')}
+                        ? `₹${calculateTotalBetAmount(true)}` 
+                        : formatCurrency(Number(calculateTotalBetAmount()), 'satamatka')}
                     </span>
                   </div>
                 </div>
@@ -1134,7 +1134,7 @@ export default function SatamatkaGame() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Potential Win:</span>
                     <span className="font-medium ml-2 text-amber-500">
-                      {formatCurrency(calculatePotentialWin(selectedGameMode, calculateTotalBetAmount()), 'satamatka')}
+                      {formatCurrency(calculatePotentialWin(selectedGameMode, Number(calculateTotalBetAmount())), 'satamatka')}
                     </span>
                   </div>
                 </div>
@@ -1319,8 +1319,10 @@ export default function SatamatkaGame() {
               <span className="text-sm font-medium">Total Bet Amount:</span>
               <span className="font-bold">
                 {(selectedGameMode === "crossing" || selectedGameMode === "odd_even")
-                  ? `₹${calculateTotalBetAmount().toFixed(2)}` 
-                  : formatCurrency(calculateTotalBetAmount(), 'satamatka')}
+                  ? `₹${typeof calculateTotalBetAmount() === 'number' ? 
+                     (calculateTotalBetAmount() as number).toFixed(2) : 
+                     Number(calculateTotalBetAmount()).toFixed(2)}` 
+                  : formatCurrency(Number(calculateTotalBetAmount()), 'satamatka')}
               </span>
             </div>
             <div className="flex justify-between">
