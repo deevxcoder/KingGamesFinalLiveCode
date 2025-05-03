@@ -26,6 +26,7 @@ export default function CoinFlipGame() {
   const [result, setResult] = useState<string | null>(null);
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [showLosePopup, setShowLosePopup] = useState(false);
+  const [walletUpdating, setWalletUpdating] = useState(false);
   const [lastResult, setLastResult] = useState<{
     isWin: boolean;
     amount: number;
@@ -44,15 +45,15 @@ export default function CoinFlipGame() {
       return await res.json();
     },
     onSuccess: (data) => {
-      // Update user data in cache
-      queryClient.setQueryData(["/api/user"], data.user);
-      
-      // Set the result to trigger animation
+      // Store the result to trigger animation, but don't update wallet yet
       setResult(data.game.result);
+      
+      // Indicate wallet update is pending until after the animation completes
+      setWalletUpdating(true);
       
       // First let the coin flip for a while (1.4 seconds) without showing result
       // Then slow down to show the result (0.6 seconds)
-      // Then stop and show popup
+      // Then stop, update wallet, and show popup
       
       // Wait for the coin flip animation to complete (2 seconds)
       setTimeout(() => {
@@ -72,6 +73,11 @@ export default function CoinFlipGame() {
           result: data.game.result
         });
         
+        // IMPORTANT: Update user data in cache AFTER animation completes
+        // This ensures the wallet balance updates only after user sees the result
+        queryClient.setQueryData(["/api/user"], data.user);
+        setWalletUpdating(false);
+        
         // Show appropriate popup after a slight delay
         // This gives user time to see the final result before showing popup
         setTimeout(() => {
@@ -85,6 +91,7 @@ export default function CoinFlipGame() {
     },
     onError: (error: Error) => {
       setIsFlipping(false);
+      setWalletUpdating(false);
       toast({
         title: "Error",
         description: error.message,
@@ -121,6 +128,7 @@ export default function CoinFlipGame() {
     setShowLosePopup(false);
     setSelectedPrediction(null);
     setResult(null);
+    setWalletUpdating(false); // Ensure wallet updating state is reset
   };
 
   const handlePlaceBet = () => {
@@ -155,6 +163,7 @@ export default function CoinFlipGame() {
     // Start animation and play game
     setIsFlipping(true);
     setResult(null);
+    setWalletUpdating(true); // Set wallet updating state when placing bet
     
     playGameMutation.mutate({
       betAmount,
@@ -224,6 +233,20 @@ export default function CoinFlipGame() {
                   </div>
                 </motion.div>
               </motion.div>
+              
+              {/* Display message during animation */}
+              {isFlipping && (
+                <div className="text-center text-xs text-muted-foreground animate-pulse mt-2">
+                  Wallet will update after coin stops
+                </div>
+              )}
+              
+              {/* Display message during wallet update */}
+              {!isFlipping && walletUpdating && (
+                <div className="text-center text-xs text-primary mt-2 flex items-center justify-center">
+                  <span className="animate-pulse">Updating wallet...</span>
+                </div>
+              )}
             </div>
             
             <div className="text-center">
