@@ -255,12 +255,12 @@ export default function SatamatkaGame() {
   // Mutation for placing multiple bets
   const placeMultipleBetsMutation = useMutation({
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
-      // Note: For crossing game mode, the amount is already in paisa in the server
-      // No need to multiply again as we already did that in the UI
+      // Convert bet amounts to paisa (100 paisa = 1 rupee) for server
       const serverBets = bets.map(bet => {
+        // Multiply by 100 to convert UI rupee amount to paisa for storage
         return {
           prediction: bet.number,
-          betAmount: bet.amount,
+          betAmount: bet.amount * 100,
         };
       });
       
@@ -367,9 +367,8 @@ export default function SatamatkaGame() {
       }
     } else {
       // If not selected, add with current bet amount
-      // For crossing game mode, we'll multiply by 100 (convert to paisa) to ensure consistency with server
-      const amount = selectedGameMode === "crossing" ? quickBetAmount * 100 : quickBetAmount;
-      newSelections.set(num, amount);
+      // Store the actual amount without conversion - we'll handle paisa conversion later
+      newSelections.set(num, quickBetAmount);
     }
     
     setSelectedNumbers(newSelections);
@@ -939,18 +938,18 @@ export default function SatamatkaGame() {
                     ? `${selectedDigits.length} digits (${totalCombinations} combinations)`
                     : `Combinations of ${selectedDigits.join(",")}`;
                   
-                  // Set bet details for confirmation dialog
-                  // Multiply by 100 to convert to paisa for consistent storage
+                  // Set bet details for confirmation dialog 
+                  // Store amount as rupees, we'll convert to paisa in the mutation
                   setBetDetails({
                     prediction: combinationsText,
-                    betAmount: totalCombinations * quickBetAmount * 100
+                    betAmount: totalCombinations * quickBetAmount
                   });
                   
                   // Open confirmation dialog
                   setConfirmDialogOpen(true);
                 }}
               >
-                Place Bets on {totalCombinations} Combinations ({formatCurrency(totalCombinations * quickBetAmount * 100, 'satamatka')})
+                Place Bets on {totalCombinations} Combinations ({formatCurrency(totalCombinations * quickBetAmount, 'satamatka')})
               </Button>
             </div>
           )}
