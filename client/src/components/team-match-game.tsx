@@ -66,7 +66,7 @@ export default function TeamMatchGame({ match, onClose }: TeamMatchGameProps) {
       
       toast({
         title: "Bet placed successfully!",
-        description: `You placed ₹${betAmount/100} on ${getPredictionLabel(prediction || '')}. Good luck!`,
+        description: `You placed ${formatCurrency(betAmount, 'team_match')} on ${getPredictionLabel(prediction || '')}. Good luck!`,
         variant: "default",
       });
       
@@ -206,7 +206,7 @@ export default function TeamMatchGame({ match, onClose }: TeamMatchGameProps) {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="betAmount">Bet Amount (₹)</Label>
+            <Label htmlFor="betAmount">Bet Amount</Label>
             <Input
               id="betAmount"
               type="number"
@@ -218,7 +218,7 @@ export default function TeamMatchGame({ match, onClose }: TeamMatchGameProps) {
             />
             <p className="text-sm text-gray-400">
               {user?.balance !== undefined && (
-                <>Available balance: ₹{(user.balance / 100).toFixed(2)}</>
+                <>Available balance: {formatCurrency(user.balance, 'team_match')}</>
               )}
             </p>
           </div>
@@ -227,7 +227,7 @@ export default function TeamMatchGame({ match, onClose }: TeamMatchGameProps) {
             <div className="flex justify-between">
               <span className="text-gray-400">Potential win:</span>
               <span className="font-bold text-indigo-400">
-                ₹{(potentialWin / 100).toFixed(2)}
+                {formatCurrency(potentialWin, 'team_match')}
               </span>
             </div>
             <div className="flex justify-between mt-2">
