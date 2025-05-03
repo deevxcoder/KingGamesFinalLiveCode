@@ -176,11 +176,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/games/my-history", async (req, res, next) => {
-    try {
-      if (!req.isAuthenticated()) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
+  // Helper function to format game type for display
+function formatGameType(gameType: string): string {
+  switch(gameType) {
+    case 'coin_flip': return 'Coin Flip';
+    case 'satamatka': return 'Satamatka';
+    case 'team_match': return 'Team Match';
+    case 'cricket_toss': return 'Cricket Toss';
+    default: return gameType.replace(/_/g, ' ');
+  }
+}
+
+// New endpoint to get top winners from all games
+app.get("/api/games/top-winners", async (req, res, next) => {
+  try {
+    // This endpoint is public - no authentication required
+    
+    // Query games with positive payouts and join with user data
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const games = await db.query.games.findMany({
+      where: (games, { gt }) => gt(games.payout, 0),
+      with: {
+        user: {
+          columns: {
+            username: true
+          }
+        }
+      },
+      orderBy: (games, { desc }) => [desc(games.payout)],
+      limit
+    });
+    
+    // Transform into the expected format for the client
+    const winners = games.map(game => ({
+      id: game.id,
+      username: game.user.username,
+      game: formatGameType(game.gameType),
+      amount: game.betAmount,
+      payout: game.payout,
+      createdAt: game.createdAt
+    }));
+    
+    res.json(winners);
+  } catch (err) {
+    next(err);
+  }
+});
+
+app.get("/api/games/my-history", async (req, res, next) => {
+  try {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
       let games = await storage.getGamesByUserId(req.user!.id);
       

@@ -100,25 +100,7 @@ const sampleMarketResults = [
   }
 ];
 
-// Sample recent winners data
-const sampleRecentWinners = [
-  {
-    id: 1,
-    username: "lucky777",
-    game: "Coin Flip",
-    amount: 5000,
-    payout: 9500,
-    createdAt: new Date(Date.now() - 300000).toISOString(),
-  },
-  {
-    id: 2,
-    username: "betmaster",
-    game: "Market Game",
-    amount: 10000,
-    payout: 50000,
-    createdAt: new Date(Date.now() - 1800000).toISOString(),
-  }
-];
+// We'll fetch real winners data from the API
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -133,6 +115,12 @@ export default function HomePage() {
   // Fetch recent games for the user
   const { data: recentGames = [] as any[] } = useQuery({
     queryKey: ["/api/games/my-history"],
+    enabled: !!user,
+  });
+  
+  // Fetch top winners from all games
+  const { data: topWinners = [] as any } = useQuery({
+    queryKey: ["/api/games/top-winners"],
     enabled: !!user,
   });
 
@@ -331,8 +319,9 @@ export default function HomePage() {
             
             {/* Right column - winners and results */}
             <div className="space-y-6">
-              <RecentWinners winners={sampleRecentWinners} />
-              <RecentResults results={sampleMarketResults} />
+              <RecentWinners winners={topWinners} />
+              {/* We'll implement real market results later */}
+              <RecentResults results={[]} />
             </div>
           </div>
           
