@@ -617,14 +617,14 @@ export default function SubadminSettingsPage() {
                       <Info className="h-5 w-5" />
                       <AlertTitle>Game Odds</AlertTitle>
                       <AlertDescription>
-                        Game odds determine payouts for player bets. These odds apply only to players assigned to you and do not affect other subadmins or players. The base rates are set by the administrator.
+                        Game odds determine payouts for player bets. These odds apply ONLY to players assigned to you and have no effect on other subadmins or unassigned players. The platform default odds (set by the administrator) apply to all other players.
                       </AlertDescription>
                     </Alert>
                     
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <h3 className="text-lg font-medium mb-4">Admin Odds</h3>
+                          <h3 className="text-lg font-medium mb-4">Platform Default Odds</h3>
                           {adminOdds && Array.isArray(adminOdds) && adminOdds.length > 0 ? (
                             <Card className="bg-muted/30">
                               <CardContent className="pt-6">
@@ -657,7 +657,7 @@ export default function SubadminSettingsPage() {
                         </div>
                         
                         <div>
-                          <h3 className="text-lg font-medium mb-4">Your Game Odds</h3>
+                          <h3 className="text-lg font-medium mb-4">Your Players' Game Odds</h3>
                           {subadminOdds && Array.isArray(subadminOdds) && subadminOdds.length > 0 ? (
                             <Card className="bg-muted/30">
                               <CardContent className="pt-6">
@@ -694,7 +694,7 @@ export default function SubadminSettingsPage() {
                         <AlertCircle className="h-5 w-5" />
                         <AlertTitle>Note</AlertTitle>
                         <AlertDescription>
-                          These game odds only apply to players assigned to you. You cannot modify your game odds - please contact the administrator if you need your game odds adjusted.
+                          <strong>IMPORTANT:</strong> These odds ONLY affect players assigned directly to you. Players assigned to other subadmins or directly to the administrator will use the Platform Default Odds instead. You cannot modify these odds yourself - please contact the administrator if you need your game odds adjusted.
                         </AlertDescription>
                       </Alert>
                     </div>
