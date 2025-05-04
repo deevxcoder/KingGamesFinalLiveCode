@@ -690,11 +690,138 @@ export default function SubadminSettingsPage() {
                         </div>
                       </div>
                       
-                      <Alert variant="default" className="bg-muted">
+                      <div className="mt-6 border rounded-lg p-4 bg-card">
+                        <h3 className="text-lg font-medium mb-4">Edit Your Players' Game Odds</h3>
+                        <p className="text-sm text-muted-foreground mb-4">
+                          Modify the odds that apply to your assigned players. If you set odds higher than the platform defaults, any losses will be covered by your account.
+                        </p>
+                        
+                        <Form {...oddsForm}>
+                          <form onSubmit={oddsForm.handleSubmit(onSubmitOdds)} className="space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <FormField
+                                control={oddsForm.control}
+                                name="teamMatch"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Team Match</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={oddsForm.control}
+                                name="cricketToss"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Cricket Toss</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={oddsForm.control}
+                                name="coinFlip"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Coin Flip</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={oddsForm.control}
+                                name="satamatkaJodi"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Jodi (Pair)</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={oddsForm.control}
+                                name="satamatkaHarf"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Harf</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={oddsForm.control}
+                                name="satamatkaOddEven"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Odd/Even</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              
+                              <FormField
+                                control={oddsForm.control}
+                                name="satamatkaOther"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Other Market Games</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                            
+                            <div className="flex justify-end">
+                              <Button 
+                                type="submit" 
+                                disabled={updateOddsMutation.isPending}
+                                className="flex items-center gap-2"
+                              >
+                                {updateOddsMutation.isPending && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>}
+                                <Save className="h-4 w-4 mr-1" /> Save Game Odds
+                              </Button>
+                            </div>
+                          </form>
+                        </Form>
+                      </div>
+                      
+                      <Alert variant="default" className="bg-muted mt-4">
                         <AlertCircle className="h-5 w-5" />
-                        <AlertTitle>Note</AlertTitle>
+                        <AlertTitle>Important Notes</AlertTitle>
                         <AlertDescription>
-                          <strong>IMPORTANT:</strong> These odds ONLY affect players assigned directly to you. Players assigned to other subadmins or directly to the administrator will use the Platform Default Odds instead. You cannot modify these odds yourself - please contact the administrator if you need your game odds adjusted.
+                          <ul className="list-disc pl-5 space-y-1">
+                            <li><strong>IMPORTANT:</strong> These odds ONLY affect players assigned directly to you.</li>
+                            <li>Players assigned to other subadmins or directly to the administrator will use the Platform Default Odds instead.</li>
+                            <li>If you set odds higher than the platform defaults, any losses will be covered by your account balance.</li>
+                            <li>Setting odds higher than platform defaults increases player payouts but reduces your profit margin.</li>
+                          </ul>
                         </AlertDescription>
                       </Alert>
                     </div>
