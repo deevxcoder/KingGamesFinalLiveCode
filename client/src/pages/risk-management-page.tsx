@@ -460,7 +460,7 @@ export default function RiskManagementPage() {
                   onClick={() => handleSort('gameMode')}
                 >
                   <div className="flex items-center">
-                    {betTypeFilter === "all" ? "Game Mode" : (
+                    {betTypeFilter === "all" ? "All Bet Types" : (
                       <div className="flex items-center">
                         <span className="capitalize">{betTypeFilter}</span>
                         <Filter className="ml-1 h-3 w-3 text-muted-foreground" />
@@ -510,14 +510,10 @@ export default function RiskManagementPage() {
                       <TableCell>{item.uniqueUsers}</TableCell>
                       <TableCell>
                         {betTypeFilter === "all" ? (
-                          // When all bet types are shown, display the specific game mode for each entry
-                          item.gameMode ? (
-                            <Badge variant="outline" className="capitalize">
-                              {item.gameMode}
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline">Unknown</Badge>
-                          )
+                          // When all bet types are shown, display "All" for combined data
+                          <Badge variant="outline">
+                            All
+                          </Badge>
                         ) : (
                           // When a specific bet type is selected, show that type consistently
                           <Badge variant="outline" className="capitalize">
