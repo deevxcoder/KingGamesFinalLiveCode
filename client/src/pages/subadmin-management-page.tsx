@@ -1110,7 +1110,7 @@ export default function SubadminManagementPage() {
               </div>
             ) : (
               <>
-                {subadminUsers.length === 0 ? (
+                {!Array.isArray(subadminUsers) || subadminUsers.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-96 text-center">
                     <Users className="w-16 h-16 text-slate-300 mb-4" />
                     <h3 className="text-xl font-semibold mb-2">No users found</h3>
@@ -1124,7 +1124,7 @@ export default function SubadminManagementPage() {
                       <div className="flex justify-between">
                         <CardTitle>Users List</CardTitle>
                         <Badge variant="outline" className="text-primary">
-                          {subadminUsers.length} Users
+                          {Array.isArray(subadminUsers) ? subadminUsers.length : 0} Users
                         </Badge>
                       </div>
                     </CardHeader>
@@ -1141,7 +1141,7 @@ export default function SubadminManagementPage() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {subadminUsers.map((user: any) => (
+                            {Array.isArray(subadminUsers) && subadminUsers.map((user: any) => (
                               <TableRow key={user.id}>
                                 <TableCell className="font-medium">
                                   {user.username}
