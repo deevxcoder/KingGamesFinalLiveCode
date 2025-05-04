@@ -638,7 +638,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                          odd.gameType === 'satamatka_harf' ? 'Harf' : 
                                          odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                         odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                         odd.gameType === 'satamatka_other' ? 'Other Markets' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
                                       <span className="text-lg font-mono font-bold">{(odd.oddValue / 100).toFixed(2)}x</span>
@@ -671,7 +671,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                          odd.gameType === 'satamatka_harf' ? 'Harf' : 
                                          odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                         odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                         odd.gameType === 'satamatka_other' ? 'Other Markets' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
                                       <span className="text-lg font-mono font-bold">{(odd.oddValue / 100).toFixed(2)}x</span>
