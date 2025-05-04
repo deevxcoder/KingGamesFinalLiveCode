@@ -177,20 +177,30 @@ export default function RiskManagementPage() {
         return stat.number.includes(searchTerm);
       })
       .sort((a, b) => {
-        // If sorting by a column other than number, use that column
-        if (sortColumn !== "number") {
-          // Sort based on the selected column
-          const aValue = a[sortColumn as keyof BettingStats];
-          const bValue = b[sortColumn as keyof BettingStats];
+        // Handle different types of sorting based on the column
+        if (sortColumn === "number") {
+          // If sorting by number, always sort numbers from 00 to 99
+          return a.number.localeCompare(b.number);
+        } else if (sortColumn === "gameMode") {
+          // For gameMode, we need to use string comparison
+          const aMode = a.gameMode || "";
+          const bMode = b.gameMode || "";
           
           if (sortDirection === 'asc') {
-            return (aValue as number) - (bValue as number);
+            return aMode.localeCompare(bMode);
           } else {
-            return (bValue as number) - (aValue as number);
+            return bMode.localeCompare(aMode);
           }
         } else {
-          // If sorting by number or default, always sort numbers from 00 to 99
-          return a.number.localeCompare(b.number);
+          // For numerical columns, use numeric comparison
+          const aValue = a[sortColumn as keyof BettingStats] as number;
+          const bValue = b[sortColumn as keyof BettingStats] as number;
+          
+          if (sortDirection === 'asc') {
+            return aValue - bValue;
+          } else {
+            return bValue - aValue;
+          }
         }
       })
       .slice(0, 100); // Get top 100 results
@@ -418,7 +428,17 @@ export default function RiskManagementPage() {
                     )}
                   </div>
                 </TableHead>
-                <TableHead>Game Mode</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:text-primary"
+                  onClick={() => handleSort('gameMode')}
+                >
+                  <div className="flex items-center">
+                    Game Mode
+                    {sortColumn === 'gameMode' && (
+                      sortDirection === 'asc' ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead>Risk Level</TableHead>
               </TableRow>
             </TableHeader>
@@ -845,10 +865,12 @@ export default function RiskManagementPage() {
           </CardContent>
           <CardFooter className="flex justify-between border-t px-6 py-4">
             <p className="text-sm text-muted-foreground">
-              Showing top 100 results by {sortColumn === 'totalBets' ? 'number of bets' : 
+              Showing top 100 results sorted by {sortColumn === 'totalBets' ? 'number of bets' : 
                 sortColumn === 'totalAmount' ? 'bet amount' : 
                 sortColumn === 'potentialWinAmount' ? 'potential win amount' : 
-                'unique users'}
+                sortColumn === 'uniqueUsers' ? 'unique users' :
+                sortColumn === 'gameMode' ? 'game mode' :
+                'number'}
             </p>
             <div className="flex items-center space-x-2">
               <AlertTriangle className="h-4 w-4 text-yellow-600" />
