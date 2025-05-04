@@ -433,7 +433,12 @@ export default function RiskManagementPage() {
                   onClick={() => handleSort('gameMode')}
                 >
                   <div className="flex items-center">
-                    Game Mode
+                    {betTypeFilter === "all" ? "Game Mode" : (
+                      <div className="flex items-center">
+                        <span className="capitalize">{betTypeFilter}</span>
+                        <Filter className="ml-1 h-3 w-3 text-muted-foreground" />
+                      </div>
+                    )}
                     {sortColumn === 'gameMode' && (
                       sortDirection === 'asc' ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
                     )}
@@ -477,12 +482,20 @@ export default function RiskManagementPage() {
                       <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
                       <TableCell>{item.uniqueUsers}</TableCell>
                       <TableCell>
-                        {item.gameMode ? (
-                          <Badge variant="outline" className="capitalize">
-                            {item.gameMode}
-                          </Badge>
+                        {betTypeFilter === "all" ? (
+                          // When all bet types are shown, display the specific game mode for each entry
+                          item.gameMode ? (
+                            <Badge variant="outline" className="capitalize">
+                              {item.gameMode}
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline">Unknown</Badge>
+                          )
                         ) : (
-                          <Badge variant="outline">Unknown</Badge>
+                          // When a specific bet type is selected, show that type consistently
+                          <Badge variant="outline" className="capitalize">
+                            {betTypeFilter}
+                          </Badge>
                         )}
                       </TableCell>
                       <TableCell>
