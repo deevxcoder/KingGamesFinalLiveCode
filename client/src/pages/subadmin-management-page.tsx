@@ -249,8 +249,8 @@ export default function SubadminManagementPage() {
   
   // Fetch players assigned to the selected subadmin (for admin view)
   const { data: subadminUsers = [], isLoading: isLoadingSubadminUsers, refetch: refetchSubadminUsers } = useQuery({
-    queryKey: [`/api/users/subadmin/${selectedSubadminId}`],
-    queryFn: () => apiRequest("GET", `/api/users/subadmin/${selectedSubadminId}`),
+    queryKey: [`/api/users?assignedTo=${selectedSubadminId}`],
+    queryFn: () => apiRequest("GET", `/api/users?assignedTo=${selectedSubadminId}`),
     enabled: !!selectedSubadminId && isUserListDialogOpen && user?.role === UserRole.ADMIN,
     select: (data: any) => Array.isArray(data) ? data.filter((u: any) => u.role === UserRole.PLAYER) : [],
   });
@@ -1070,10 +1070,14 @@ export default function SubadminManagementPage() {
       {/* Full-Screen User List Dialog */}
       <Dialog open={isUserListDialogOpen} onOpenChange={setIsUserListDialogOpen}>
         <DialogContent className="max-w-full h-[100vh] p-0 overflow-hidden flex flex-col">
-          <div className="bg-slate-900 text-white p-6 flex items-center justify-between">
+          <DialogHeader className="bg-slate-900 text-white p-6 flex flex-row items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Users assigned to {selectedSubadminName}</h2>
-              <p className="text-slate-300 text-sm mt-1">Manage users assigned to this subadmin</p>
+              <DialogTitle className="text-2xl font-bold text-white">
+                Users assigned to {selectedSubadminName}
+              </DialogTitle>
+              <DialogDescription className="text-slate-300 text-sm mt-1">
+                Manage users assigned to this subadmin
+              </DialogDescription>
             </div>
             <Button 
               variant="ghost" 
@@ -1083,7 +1087,7 @@ export default function SubadminManagementPage() {
             >
               <X className="w-6 h-6" />
             </Button>
-          </div>
+          </DialogHeader>
           
           <div className="flex-1 overflow-auto p-6 scrollbar-thin scrollbar-thumb-primary scrollbar-track-secondary">
             {isLoadingSubadminUsers ? (
