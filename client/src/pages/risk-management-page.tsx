@@ -149,10 +149,17 @@ export default function RiskManagementPage() {
         if (!combinedData[numStat.number]) {
           combinedData[numStat.number] = { ...numStat };
         } else {
+          // Add values to existing stats
           combinedData[numStat.number].totalBets += numStat.totalBets;
           combinedData[numStat.number].totalAmount += numStat.totalAmount;
           combinedData[numStat.number].potentialWinAmount += numStat.potentialWinAmount;
           combinedData[numStat.number].uniqueUsers += numStat.uniqueUsers;
+          
+          // Update gameMode if this entry has more bets for this number than the existing one
+          // This ensures we always show the most common game mode for a number
+          if (numStat.totalBets > combinedData[numStat.number].totalBets && numStat.gameMode) {
+            combinedData[numStat.number].gameMode = numStat.gameMode;
+          }
         }
       });
     });
@@ -395,6 +402,7 @@ export default function RiskManagementPage() {
                     )}
                   </div>
                 </TableHead>
+                <TableHead>Game Mode</TableHead>
                 <TableHead>Risk Level</TableHead>
               </TableRow>
             </TableHeader>
@@ -432,6 +440,15 @@ export default function RiskManagementPage() {
                       <TableCell>{formatAmount(item.totalAmount)}</TableCell>
                       <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
                       <TableCell>{item.uniqueUsers}</TableCell>
+                      <TableCell>
+                        {item.gameMode ? (
+                          <Badge variant="outline" className="capitalize">
+                            {item.gameMode}
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Unknown</Badge>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Badge className={riskColor}>{riskLevel}</Badge>
                       </TableCell>
