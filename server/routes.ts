@@ -1790,7 +1790,19 @@ app.get("/api/games/my-history", async (req, res, next) => {
             game.prediction === number && game.gameType === "satamatka"
           );
           
-          // Get unique users
+          // Group games by gameMode
+          const gameModeGroups: Record<string, typeof numberGames> = {};
+          
+          // Default to "jodi" for backward compatibility if gameMode is not set
+          numberGames.forEach(game => {
+            const gameMode = game.gameMode || SatamatkaGameMode.JODI;
+            if (!gameModeGroups[gameMode]) {
+              gameModeGroups[gameMode] = [];
+            }
+            gameModeGroups[gameMode].push(game);
+          });
+          
+          // Get unique users across all game modes
           const uniqueUsers = new Set(numberGames.map(game => game.userId)).size;
           
           // Calculate totals
@@ -1798,12 +1810,24 @@ app.get("/api/games/my-history", async (req, res, next) => {
           const totalAmount = numberGames.reduce((sum, game) => sum + game.betAmount, 0);
           const potentialWinAmount = numberGames.reduce((sum, game) => sum + game.payout, 0);
           
+          // Determine the most common gameMode for this number
+          let dominantGameMode = SatamatkaGameMode.JODI; // Default
+          let maxGamesCount = 0;
+          
+          Object.entries(gameModeGroups).forEach(([mode, games]) => {
+            if (games.length > maxGamesCount) {
+              maxGamesCount = games.length;
+              dominantGameMode = mode;
+            }
+          });
+          
           return {
             number,
             totalBets,
             totalAmount,
             potentialWinAmount,
-            uniqueUsers
+            uniqueUsers,
+            gameMode: dominantGameMode // Add gameMode to the response
           };
         });
         
