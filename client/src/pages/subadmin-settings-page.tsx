@@ -96,7 +96,7 @@ const oddsFormSchema = z.object({
   satamatkaJodi: z.coerce.number().min(1),
   satamatkaHarf: z.coerce.number().min(1),
   satamatkaOddEven: z.coerce.number().min(1),
-  satamatkaOther: z.coerce.number().min(1),
+  satamatkaCrossing: z.coerce.number().min(1),
 });
 
 // Form schema for the discount form
@@ -107,7 +107,7 @@ const discountFormSchema = z.object({
   satamatkaJodi: z.coerce.number().min(0).max(100),
   satamatkaHarf: z.coerce.number().min(0).max(100),
   satamatkaOddEven: z.coerce.number().min(0).max(100),
-  satamatkaOther: z.coerce.number().min(0).max(100),
+  satamatkaCrossing: z.coerce.number().min(0).max(100),
 });
 
 type CommissionFormValues = z.infer<typeof commissionFormSchema>;
@@ -177,7 +177,7 @@ export default function SubadminSettingsPage() {
       satamatkaJodi: 0,
       satamatkaHarf: 0,
       satamatkaOddEven: 0,
-      satamatkaOther: 0,
+      satamatkaCrossing: 0,
     }
   });
   
@@ -191,7 +191,7 @@ export default function SubadminSettingsPage() {
       satamatkaJodi: 9,
       satamatkaHarf: 9,
       satamatkaOddEven: 1.9,
-      satamatkaOther: 9,
+      satamatkaCrossing: 9,
     }
   });
   
@@ -205,7 +205,7 @@ export default function SubadminSettingsPage() {
       satamatkaJodi: 0,
       satamatkaHarf: 0,
       satamatkaOddEven: 0,
-      satamatkaOther: 0,
+      satamatkaCrossing: 0,
     }
   });
 
@@ -225,7 +225,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', commissionRate: values.satamatkaJodi },
             { gameType: 'satamatka_harf', commissionRate: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', commissionRate: values.satamatkaOddEven },
-            { gameType: 'satamatka_other', commissionRate: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', commissionRate: values.satamatkaOther },
           ]
         }),
         credentials: 'include'
@@ -272,7 +272,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', oddValue: values.satamatkaJodi },
             { gameType: 'satamatka_harf', oddValue: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', oddValue: values.satamatkaOddEven },
-            { gameType: 'satamatka_other', oddValue: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', oddValue: values.satamatkaOther },
           ]
         }),
         credentials: 'include'
@@ -324,7 +324,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', discountRate: values.satamatkaJodi },
             { gameType: 'satamatka_harf', discountRate: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', discountRate: values.satamatkaOddEven },
-            { gameType: 'satamatka_other', discountRate: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', discountRate: values.satamatkaOther },
           ]
         }),
         credentials: 'include'
@@ -385,8 +385,8 @@ export default function SubadminSettingsPage() {
         return 'Harf';
       case 'satamatka_odd_even':
         return 'Odd/Even';
-      case 'satamatka_other':
-        return 'Other Markets';
+      case 'satamatka_crossing':
+        return 'Crossing';
       default:
         return gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
     }
@@ -427,7 +427,7 @@ export default function SubadminSettingsPage() {
         } else if (commission.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = commission.commissionRate;
         } else if (commission.gameType === 'satamatka_other') {
-          formValues.satamatkaOther = commission.commissionRate;
+          formValues.satamatkaCrossing = commission.commissionRate;
         }
       });
 
@@ -462,7 +462,7 @@ export default function SubadminSettingsPage() {
         } else if (odd.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = odd.oddValue;
         } else if (odd.gameType === 'satamatka_other') {
-          formValues.satamatkaOther = odd.oddValue;
+          formValues.satamatkaCrossing = odd.oddValue;
         }
       });
 
@@ -497,7 +497,7 @@ export default function SubadminSettingsPage() {
         } else if (discount.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = discount.discountRate;
         } else if (discount.gameType === 'satamatka_other') {
-          formValues.satamatkaOther = discount.discountRate;
+          formValues.satamatkaCrossing = discount.discountRate;
         }
       });
 
@@ -638,7 +638,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                          odd.gameType === 'satamatka_harf' ? 'Harf' : 
                                          odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                         odd.gameType === 'satamatka_other' ? 'Other Markets' : 
+                                         odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
                                       <span className="text-lg font-mono font-bold">{(odd.oddValue / 100).toFixed(2)}x</span>
@@ -671,7 +671,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                          odd.gameType === 'satamatka_harf' ? 'Harf' : 
                                          odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                         odd.gameType === 'satamatka_other' ? 'Other Markets' : 
+                                         odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
                                       <span className="text-lg font-mono font-bold">{(odd.oddValue / 100).toFixed(2)}x</span>
