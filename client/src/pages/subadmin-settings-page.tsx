@@ -386,7 +386,7 @@ export default function SubadminSettingsPage() {
       case 'satamatka_odd_even':
         return 'Odd/Even';
       case 'satamatka_other':
-        return 'Other Market Games';
+        return 'Other Markets';
       default:
         return gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
     }
@@ -572,7 +572,7 @@ export default function SubadminSettingsPage() {
                                      comm.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                      comm.gameType === 'satamatka_harf' ? 'Harf' : 
                                      comm.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                     comm.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                     comm.gameType === 'satamatka_other' ? 'Other Markets' : 
                                      comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                   </CardTitle>
                                 </CardHeader>
@@ -788,7 +788,7 @@ export default function SubadminSettingsPage() {
                                 name="satamatkaOther"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Other Market Games</FormLabel>
+                                    <FormLabel>Other Markets</FormLabel>
                                     <FormControl>
                                       <Input type="number" step="0.1" min="1.0" {...field} />
                                     </FormControl>
