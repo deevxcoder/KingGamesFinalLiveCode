@@ -1919,7 +1919,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
           // Add default odds if no admin odds are set
           adminOdds.push({
             gameType,
-            oddValue: gameType.includes('satamatka_jodi') || gameType.includes('satamatka_harf') || gameType.includes('satamatka_other') ? 9 : 1.9,
+            oddValue: gameType.includes('satamatka_jodi') || gameType.includes('satamatka_harf') || gameType.includes('satamatka_crossing') ? 9 : 1.9,
             setByAdmin: true
           });
         }
@@ -2037,7 +2037,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
             // No admin odds either, use default values
             completeOdds.push({
               gameType,
-              oddValue: gameType.includes('satamatka_jodi') || gameType.includes('satamatka_harf') || gameType.includes('satamatka_other') ? 9 : 1.9,
+              oddValue: gameType.includes('satamatka_jodi') || gameType.includes('satamatka_harf') || gameType.includes('satamatka_crossing') ? 9 : 1.9,
               setByAdmin: false,
               subadminId
             });
@@ -2141,7 +2141,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         'satamatka_jodi': 8,
         'satamatka_harf': 8,
         'satamatka_odd_even': 10,
-        'satamatka_other': 8
+        'satamatka_crossing': 8
       };
       
       for (const gameType of gameTypes) {

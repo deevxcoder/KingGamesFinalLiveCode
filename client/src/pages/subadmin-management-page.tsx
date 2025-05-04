@@ -82,7 +82,7 @@ const commissionSchema = z.object({
   satamatkaJodi: z.coerce.number().min(0).max(100),
   satamatkaHarf: z.coerce.number().min(0).max(100),
   satamatkaOddEven: z.coerce.number().min(0).max(100),
-  satamatkaOther: z.coerce.number().min(0).max(100),
+  satamatkaCrossing: z.coerce.number().min(0).max(100),
 });
 
 // Game Odds schema for subadmin
@@ -335,7 +335,7 @@ export default function SubadminManagementPage() {
       satamatkaJodi: 0,
       satamatkaHarf: 0,
       satamatkaOddEven: 0,
-      satamatkaOther: 0,
+      satamatkaCrossing: 0,
     }
   });
   
@@ -360,7 +360,7 @@ export default function SubadminManagementPage() {
           { gameType: 'satamatka_jodi', commissionRate: values.satamatkaJodi },
           { gameType: 'satamatka_harf', commissionRate: values.satamatkaHarf },
           { gameType: 'satamatka_odd_even', commissionRate: values.satamatkaOddEven },
-          { gameType: 'satamatka_other', commissionRate: values.satamatkaOther },
+          { gameType: 'satamatka_crossing', commissionRate: values.satamatkaCrossing },
         ]
       });
     },
@@ -398,7 +398,7 @@ export default function SubadminManagementPage() {
         satamatkaJodi: 0,
         satamatkaHarf: 0,
         satamatkaOddEven: 0,
-        satamatkaOther: 0,
+        satamatkaCrossing: 0,
       };
 
       commissions.forEach((commission: any) => {
@@ -414,8 +414,8 @@ export default function SubadminManagementPage() {
           formValues.satamatkaHarf = commission.commissionRate;
         } else if (commission.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = commission.commissionRate;
-        } else if (commission.gameType === 'satamatka_other') {
-          formValues.satamatkaOther = commission.commissionRate;
+        } else if (commission.gameType === 'satamatka_crossing') {
+          formValues.satamatkaCrossing = commission.commissionRate;
         }
       });
 
@@ -1178,7 +1178,7 @@ export default function SubadminManagementPage() {
                     
                     <FormField
                       control={commissionForm.control}
-                      name="satamatkaOther"
+                      name="satamatkaCrossing"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Other Games</FormLabel>
