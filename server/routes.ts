@@ -634,6 +634,11 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const userId = Number(req.params.id);
       const { username, password } = req.body;
       
+      // Subadmins can only change passwords, not usernames
+      if (req.user!.role === UserRole.SUBADMIN && username) {
+        return res.status(403).json({ message: "Subadmins can only change passwords, not usernames" });
+      }
+      
       // Verify at least one field is provided
       if (!username && !password) {
         return res.status(400).json({ message: "No updates provided" });
@@ -658,8 +663,12 @@ app.get("/api/games/my-history", async (req, res, next) => {
         }
       }
       
-      // Update the user
-      const updatedUser = await storage.updateUser(userId, { username, password });
+      // Update the user - for subadmins only pass the password
+      const updatedUser = await storage.updateUser(
+        userId, 
+        req.user!.role === UserRole.SUBADMIN ? { password } : { username, password }
+      );
+      
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }
