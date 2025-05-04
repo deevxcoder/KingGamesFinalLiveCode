@@ -242,12 +242,21 @@ export default function SubadminManagementPage() {
   // Fetch users that are players assigned to this subadmin
   const { data: assignedUsers = [], isLoading: isLoadingUsers } = useQuery({
     queryKey: ["/api/users"],
-    queryFn: () => apiRequest("GET", "/api/users"),
+    queryFn: async () => {
+      const response = await apiRequest("GET", "/api/users");
+      console.log("API Users response:", response);
+      return response;
+    },
     enabled: !!user?.id && user?.role === UserRole.SUBADMIN,
-    select: (data: any) => data.filter((u: any) => 
-      u.role === UserRole.PLAYER && 
-      u.assignedTo === user?.id
-    ),
+    select: (data: any) => {
+      console.log("Filtering users for subadmin:", user?.id);
+      const filtered = data.filter((u: any) => {
+        console.log("User:", u.username, "role:", u.role, "assignedTo:", u.assignedTo);
+        return u.role === UserRole.PLAYER && u.assignedTo === user?.id;
+      });
+      console.log("Filtered users:", filtered);
+      return filtered;
+    },
   });
   
   // Fetch players assigned to the selected subadmin (for admin view)
