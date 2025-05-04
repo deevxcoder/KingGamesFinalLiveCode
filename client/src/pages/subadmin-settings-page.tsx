@@ -396,7 +396,7 @@ export default function SubadminSettingsPage() {
   const getMaxDiscount = (gameType: string): number => {
     if (!commissions || !Array.isArray(commissions)) return 0;
     
-    const commission = (commissions as CommissionItem[]).find((c: CommissionItem) => c.gameType === gameType);
+    const commission = Array.isArray(commissions) ? commissions.find((c: CommissionItem) => c.gameType === gameType) : null;
     return commission ? commission.commissionRate : 0;
   };
 
@@ -574,7 +574,7 @@ export default function SubadminSettingsPage() {
                         
                         {commissions && Array.isArray(commissions) && commissions.length > 0 ? (
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {(commissions as CommissionItem[]).map((comm: CommissionItem) => (
+                            {Array.isArray(commissions) && commissions.map((comm: CommissionItem) => (
                               <Card key={comm.gameType} className="bg-muted/20">
                                 <CardHeader className="pb-2">
                                   <CardTitle className="text-base">
@@ -641,7 +641,7 @@ export default function SubadminSettingsPage() {
                             <Card className="bg-muted/30">
                               <CardContent className="pt-6">
                                 <div className="space-y-2">
-                                  {(adminOdds as GameOdd[]).map((odd: GameOdd) => (
+                                  {Array.isArray(adminOdds) && adminOdds.map((odd: GameOdd) => (
                                     <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
                                       <span className="font-medium">
                                         {odd.gameType === 'team_match' ? 'Team Match' : 
@@ -674,7 +674,7 @@ export default function SubadminSettingsPage() {
                             <Card className="bg-muted/30">
                               <CardContent className="pt-6">
                                 <div className="space-y-2">
-                                  {(subadminOdds as GameOdd[]).map((odd: GameOdd) => (
+                                  {Array.isArray(subadminOdds) && subadminOdds.map((odd: GameOdd) => (
                                     <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
                                       <span className="font-medium">
                                         {odd.gameType === 'team_match' ? 'Team Match' : 
