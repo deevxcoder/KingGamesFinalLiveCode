@@ -85,7 +85,7 @@ const commissionFormSchema = z.object({
   satamatkaJodi: z.coerce.number().min(0).max(100),
   satamatkaHarf: z.coerce.number().min(0).max(100),
   satamatkaOddEven: z.coerce.number().min(0).max(100),
-  satamatkaOther: z.coerce.number().min(0).max(100),
+  satamatkaCrossing: z.coerce.number().min(0).max(100),
 });
 
 // Form schema for the odds form
