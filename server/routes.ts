@@ -2001,7 +2001,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         'satamatka_jodi',
         'satamatka_harf',
         'satamatka_odd_even',
-        'satamatka_other'
+        'satamatka_crossing'
       ];
       
       // Get the subadmin odds
@@ -2124,7 +2124,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         'satamatka_jodi',
         'satamatka_harf',
         'satamatka_odd_even',
-        'satamatka_other'
+        'satamatka_crossing'
       ];
       
       // Get the subadmin commissions from the database
