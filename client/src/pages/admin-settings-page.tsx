@@ -640,7 +640,7 @@ export default function AdminSettingsPage() {
       >
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="payment">Payment Settings</TabsTrigger>
-          <TabsTrigger value="odds">Game Odds</TabsTrigger>
+          <TabsTrigger value="odds">Platform Game Odds</TabsTrigger>
           <TabsTrigger value="commission">Subadmin Commission</TabsTrigger>
           <TabsTrigger value="slider">Promo Slider</TabsTrigger>
           <TabsTrigger value="gamecards">Game Cards</TabsTrigger>
@@ -735,13 +735,13 @@ export default function AdminSettingsPage() {
           </Card>
         </TabsContent>
         
-        {/* Game Odds Tab */}
+        {/* Platform Game Odds Tab */}
         <TabsContent value="odds">
           <Card>
             <CardHeader>
-              <CardTitle>Game Odds Settings</CardTitle>
+              <CardTitle>Platform Game Odds Settings</CardTitle>
               <CardDescription>
-                Configure the odds multipliers for different games. These settings determine how much players win.
+                Configure the default odds multipliers for the entire platform. These settings serve as the base odds for all games across the platform. To set individual odds for specific subadmins, visit the Subadmin Management page.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -752,6 +752,19 @@ export default function AdminSettingsPage() {
               ) : (
                 <>
                   <div className="space-y-4">
+                    <div className="bg-blue-950/40 p-4 rounded-lg border border-blue-800 mb-6">
+                      <div className="flex items-start gap-3">
+                        <Info className="h-5 w-5 text-blue-400 mt-0.5" />
+                        <div>
+                          <h3 className="text-sm font-medium text-blue-400">Platform-Wide Default Odds</h3>
+                          <p className="text-sm text-slate-300 mt-1">
+                            These odds settings serve as the default for the entire platform and will apply to all subadmins
+                            unless they have custom odds configured. To set custom odds for specific subadmins, 
+                            please visit the Subadmin Management page.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                     <div>
                       <h3 className="text-lg font-medium">Royal Toss Game</h3>
                       <Separator className="my-2" />
@@ -838,7 +851,7 @@ export default function AdminSettingsPage() {
                 disabled={isLoadingOdds || saveOddsMutation.isPending}
               >
                 {saveOddsMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Game Odds
+                Save Platform Game Odds
               </Button>
             </CardFooter>
           </Card>
