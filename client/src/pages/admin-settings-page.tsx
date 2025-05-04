@@ -62,11 +62,12 @@ export default function AdminSettingsPage() {
   // Subadmin Commission Settings
   const [commissionRates, setCommissionRates] = useState({
     coin_flip: "2.5",
+    cricket_toss: "3.0",
+    team_match: "3.0",
     satamatka_jodi: "3.5",
     satamatka_harf: "4.0",
     satamatka_crossing: "3.0",
-    satamatka_odd_even: "2.0",
-    team_match: "3.0"
+    satamatka_odd_even: "2.0"
   });
 
   // Load payment settings
@@ -951,106 +952,163 @@ export default function AdminSettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label htmlFor="commission-coin-flip">Royal Toss Commission</Label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        id="commission-coin-flip" 
-                        value={commissionRates.coin_flip} 
-                        onChange={(e) => setCommissionRates({...commissionRates, coin_flip: e.target.value})} 
-                        placeholder="2.5"
-                        className="max-w-[120px]"
-                      />
-                      <span>%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="commission-satamatka-jodi">Satamatka Jodi Commission</Label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        id="commission-satamatka-jodi" 
-                        value={commissionRates.satamatka_jodi} 
-                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_jodi: e.target.value})} 
-                        placeholder="3.5"
-                        className="max-w-[120px]"
-                      />
-                      <span>%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="commission-satamatka-harf">Satamatka Harf Commission</Label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        id="commission-satamatka-harf" 
-                        value={commissionRates.satamatka_harf} 
-                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_harf: e.target.value})} 
-                        placeholder="4.0"
-                        className="max-w-[120px]"
-                      />
-                      <span>%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="commission-satamatka-crossing">Satamatka Crossing Commission</Label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        id="commission-satamatka-crossing" 
-                        value={commissionRates.satamatka_crossing} 
-                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_crossing: e.target.value})} 
-                        placeholder="3.0"
-                        className="max-w-[120px]"
-                      />
-                      <span>%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="commission-satamatka-odd-even">Satamatka Odd-Even Commission</Label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        id="commission-satamatka-odd-even" 
-                        value={commissionRates.satamatka_odd_even} 
-                        onChange={(e) => setCommissionRates({...commissionRates, satamatka_odd_even: e.target.value})} 
-                        placeholder="2.0"
-                        className="max-w-[120px]"
-                      />
-                      <span>%</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="commission-team-match">Team Match Commission</Label>
-                    <div className="flex items-center gap-2">
-                      <Input 
-                        id="commission-team-match" 
-                        value={commissionRates.team_match} 
-                        onChange={(e) => setCommissionRates({...commissionRates, team_match: e.target.value})} 
-                        placeholder="3.0"
-                        className="max-w-[120px]"
-                      />
-                      <span>%</span>
+              <div className="space-y-6">
+                <div className="bg-blue-950/40 p-4 rounded-lg border border-blue-800 mb-6">
+                  <div className="flex items-start gap-3">
+                    <Info className="h-5 w-5 text-blue-400 mt-0.5" />
+                    <div>
+                      <h3 className="text-sm font-medium text-blue-400">Platform-Wide Default Commission Rates</h3>
+                      <p className="text-sm text-slate-300 mt-1">
+                        These commission settings serve as the default for the entire platform. To set individual commission rates 
+                        for specific subadmins, please visit the Subadmin Management page.
+                      </p>
                     </div>
                   </div>
                 </div>
-                
-                <div className="mt-6">
-                  <p className="text-sm text-muted-foreground">
-                    Note: These commission rates apply to all subadmins. To set individual commission rates for a specific subadmin, go to the Subadmin Management page.
-                  </p>
+
+                <div className="space-y-4">
+                  {/* Royal Toss Commission */}
+                  <div>
+                    <h3 className="text-lg font-medium">Royal Toss Commission</h3>
+                    <Separator className="my-2" />
+                    <div className="space-y-2">
+                      <Label htmlFor="commission-coin-flip">Commission Rate</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          id="commission-coin-flip" 
+                          value={commissionRates.coin_flip} 
+                          onChange={(e) => setCommissionRates({...commissionRates, coin_flip: e.target.value})} 
+                          placeholder="2.5"
+                          className="max-w-[120px]"
+                        />
+                        <span>% of bet amount</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Cricket Toss Commission */}
+                  <div>
+                    <h3 className="text-lg font-medium">Cricket Toss Commission</h3>
+                    <Separator className="my-2" />
+                    <div className="space-y-2">
+                      <Label htmlFor="commission-cricket-toss">Commission Rate</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          id="commission-cricket-toss" 
+                          value={commissionRates.cricket_toss} 
+                          onChange={(e) => setCommissionRates({...commissionRates, cricket_toss: e.target.value})} 
+                          placeholder="3.0"
+                          className="max-w-[120px]"
+                        />
+                        <span>% of bet amount</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Team Match Commission */}
+                  <div>
+                    <h3 className="text-lg font-medium">Team Match Commission</h3>
+                    <Separator className="my-2" />
+                    <div className="space-y-2">
+                      <Label htmlFor="commission-team-match">Commission Rate</Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          id="commission-team-match" 
+                          value={commissionRates.team_match} 
+                          onChange={(e) => setCommissionRates({...commissionRates, team_match: e.target.value})} 
+                          placeholder="3.0"
+                          className="max-w-[120px]"
+                        />
+                        <span>% of bet amount</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Satamatka Commission */}
+                  <div>
+                    <h3 className="text-lg font-medium">Satamatka Commission</h3>
+                    <Separator className="my-2" />
+                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="commission-satamatka-jodi">Jodi (00-99)</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="commission-satamatka-jodi" 
+                            value={commissionRates.satamatka_jodi} 
+                            onChange={(e) => setCommissionRates({...commissionRates, satamatka_jodi: e.target.value})} 
+                            placeholder="3.5"
+                            className="max-w-[120px]"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="commission-satamatka-harf">Harf</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="commission-satamatka-harf" 
+                            value={commissionRates.satamatka_harf} 
+                            onChange={(e) => setCommissionRates({...commissionRates, satamatka_harf: e.target.value})} 
+                            placeholder="4.0"
+                            className="max-w-[120px]"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="commission-satamatka-crossing">Crossing</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="commission-satamatka-crossing" 
+                            value={commissionRates.satamatka_crossing} 
+                            onChange={(e) => setCommissionRates({...commissionRates, satamatka_crossing: e.target.value})} 
+                            placeholder="3.0"
+                            className="max-w-[120px]"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <Label htmlFor="commission-satamatka-odd-even">Odd-Even</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="commission-satamatka-odd-even" 
+                            value={commissionRates.satamatka_odd_even} 
+                            onChange={(e) => setCommissionRates({...commissionRates, satamatka_odd_even: e.target.value})} 
+                            placeholder="2.0"
+                            className="max-w-[120px]"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
             <CardFooter>
-              <Button onClick={() => toast({
-                title: "Commission Rates",
-                description: "To apply commission rates, please select a subadmin from the Subadmin Management page.",
-              })}>
-                Apply to All Subadmins
+              <Button 
+                onClick={() => {
+                  // Save commission rates for each game type
+                  saveCommissionMutation.mutate({
+                    defaultRates: {
+                      coin_flip: parseFloat(commissionRates.coin_flip),
+                      cricket_toss: parseFloat(commissionRates.cricket_toss),
+                      team_match: parseFloat(commissionRates.team_match),
+                      satamatka_jodi: parseFloat(commissionRates.satamatka_jodi),
+                      satamatka_harf: parseFloat(commissionRates.satamatka_harf),
+                      satamatka_crossing: parseFloat(commissionRates.satamatka_crossing),
+                      satamatka_odd_even: parseFloat(commissionRates.satamatka_odd_even)
+                    }
+                  });
+                }}
+                disabled={saveCommissionMutation.isPending}
+              >
+                {saveCommissionMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Commission Rates
               </Button>
             </CardFooter>
           </Card>
