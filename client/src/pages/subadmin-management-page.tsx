@@ -250,9 +250,20 @@ export default function SubadminManagementPage() {
   // Fetch players assigned to the selected subadmin (for admin view)
   const { data: subadminUsers = [], isLoading: isLoadingSubadminUsers, refetch: refetchSubadminUsers } = useQuery({
     queryKey: [`/api/users?assignedTo=${selectedSubadminId}`],
-    queryFn: () => apiRequest("GET", `/api/users?assignedTo=${selectedSubadminId}`),
+    queryFn: async () => {
+      // First try getting all users
+      const allUsers = await apiRequest("GET", `/api/users`);
+      
+      // When logged in as admin, manually filter for users assigned to the selected subadmin
+      if (Array.isArray(allUsers)) {
+        return allUsers.filter(u => 
+          u.role === UserRole.PLAYER && 
+          u.assignedTo === selectedSubadminId
+        );
+      }
+      return [];
+    },
     enabled: !!selectedSubadminId && isUserListDialogOpen && user?.role === UserRole.ADMIN,
-    select: (data: any) => Array.isArray(data) ? data.filter((u: any) => u.role === UserRole.PLAYER) : [],
   });
   
   // Create user mutation
