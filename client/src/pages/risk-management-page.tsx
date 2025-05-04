@@ -65,6 +65,7 @@ interface BettingStats {
   totalAmount: number;
   potentialWinAmount: number;
   uniqueUsers: number;
+  gameMode?: string; // Add gameMode to identify bet type (jodi, harf, odd-even, crossing)
 }
 
 interface JantriGameStats {
@@ -93,6 +94,7 @@ export default function RiskManagementPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState("totalAmount");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [betTypeFilter, setBetTypeFilter] = useState<string>("all"); // Filter for Satamatka bet types
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
 
