@@ -548,9 +548,6 @@ export default function SubadminSettingsPage() {
                 <TabsTrigger value="odds">
                   My Game Odds
                 </TabsTrigger>
-                <TabsTrigger value="discounts">
-                  Player Discounts & Odds
-                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="commission">
@@ -629,7 +626,7 @@ export default function SubadminSettingsPage() {
                       <Info className="h-5 w-5" />
                       <AlertTitle>Game Odds</AlertTitle>
                       <AlertDescription>
-                        Game odds determine payouts for player bets. These rates are set by the administrator.
+                        Game odds determine payouts for player bets. These odds apply only to players assigned to you and do not affect other subadmins or players. The base rates are set by the administrator.
                       </AlertDescription>
                     </Alert>
                     
@@ -706,7 +703,7 @@ export default function SubadminSettingsPage() {
                         <AlertCircle className="h-5 w-5" />
                         <AlertTitle>Note</AlertTitle>
                         <AlertDescription>
-                          You cannot modify your game odds. Please contact the administrator if you need your game odds adjusted.
+                          These game odds only apply to players assigned to you. You cannot modify your game odds - please contact the administrator if you need your game odds adjusted.
                         </AlertDescription>
                       </Alert>
                     </div>
