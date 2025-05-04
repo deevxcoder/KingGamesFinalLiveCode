@@ -1914,7 +1914,11 @@ app.get("/api/games/my-history", async (req, res, next) => {
         const adminOdd = odds.find(odd => odd.setByAdmin === true);
         
         if (adminOdd) {
-          adminOdds.push(adminOdd);
+          // Convert from integer (stored as * 100) to decimal for display
+          adminOdds.push({
+            ...adminOdd,
+            oddValue: adminOdd.oddValue / 100
+          });
         } else {
           // Add default odds if no admin odds are set
           adminOdds.push({
@@ -1958,9 +1962,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
             return { error: "gameType and oddValue are required", gameType: odd.gameType };
           }
           
+          // Convert decimal odds to integer by multiplying by 100 for storage
           return storage.upsertGameOdd(
             odd.gameType,
-            odd.oddValue,
+            odd.oddValue * 100, // Multiply by 100 to store as integer
             false, // Not set by admin, but by subadmin
             subadminId
           );
@@ -2019,17 +2024,21 @@ app.get("/api/games/my-history", async (req, res, next) => {
         const subadminOdd = subadminOddsFromDB.find(odd => odd.gameType === gameType);
         
         if (subadminOdd) {
-          // Use subadmin specific odds
-          completeOdds.push(subadminOdd);
+          // Use subadmin specific odds, but convert from integer (stored as * 100) to decimal
+          completeOdds.push({
+            ...subadminOdd,
+            oddValue: subadminOdd.oddValue / 100
+          });
         } else {
           // Try to use admin odds as fallback
           const adminOdd = adminOdds.find(odd => odd.gameType === gameType);
           
           if (adminOdd) {
             // Use admin odds, but mark it as belonging to this subadmin
+            // Convert from integer (stored as * 100) to decimal
             completeOdds.push({
               gameType: adminOdd.gameType,
-              oddValue: adminOdd.oddValue,
+              oddValue: adminOdd.oddValue / 100,
               setByAdmin: false,
               subadminId
             });
@@ -2087,9 +2096,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
         }
       }
       
+      // Convert decimal to integer by multiplying by 100 for storage
       const odds = await storage.upsertGameOdd(
         gameType, 
-        oddValue,
+        oddValue * 100, // Multiply by 100 to store as integer
         req.user.role === UserRole.ADMIN ? (setByAdmin || true) : false,
         req.user.role === UserRole.ADMIN ? subadminId : req.user.id
       );
