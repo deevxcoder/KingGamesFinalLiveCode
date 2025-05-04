@@ -366,13 +366,22 @@ export default function UserManagementPage() {
   const handleEditUser = () => {
     if (!selectedUser) return;
     const updatedFields: { username?: string; password?: string } = {};
-    if (username.trim()) updatedFields.username = username;
-    if (password.trim()) updatedFields.password = password;
+    
+    // Only admins can update usernames - subadmins can only update passwords
+    if (user?.role === UserRole.ADMIN && username.trim()) {
+      updatedFields.username = username;
+    }
+    
+    if (password.trim()) {
+      updatedFields.password = password;
+    }
     
     if (Object.keys(updatedFields).length === 0) {
       toast({
         title: "No changes made",
-        description: "Please enter a new username or password",
+        description: user?.role === UserRole.ADMIN 
+          ? "Please enter a new username or password" 
+          : "Please enter a new password",
         variant: "destructive",
       });
       return;
@@ -708,22 +717,27 @@ export default function UserManagementPage() {
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
-              Update {selectedUser?.username}'s account information
+              {user?.role === UserRole.ADMIN 
+                ? `Update ${selectedUser?.username}'s account information`
+                : `Update ${selectedUser?.username}'s password`}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-muted-foreground" />
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="New username"
-                />
+            {/* Username field - only visible to admins */}
+            {user?.role === UserRole.ADMIN && (
+              <div className="space-y-2">
+                <Label htmlFor="username">Username</Label>
+                <div className="flex items-center gap-2">
+                  <User className="h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="New username"
+                  />
+                </div>
               </div>
-            </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
               <div className="flex items-center gap-2">
@@ -744,7 +758,12 @@ export default function UserManagementPage() {
             </Button>
             <Button 
               onClick={handleEditUser} 
-              disabled={(!username.trim() && !password.trim()) || editUserMutation.isPending}
+              disabled={
+                (user?.role === UserRole.ADMIN 
+                  ? (!username.trim() && !password.trim()) 
+                  : !password.trim()
+                ) || editUserMutation.isPending
+              }
             >
               {editUserMutation.isPending ? "Processing..." : "Update User"}
             </Button>
