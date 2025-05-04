@@ -99,6 +99,12 @@ export default function RiskManagementPage() {
   const [sortColumn, setSortColumn] = useState("number");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // 'asc' for numbers to show 00-99
   const [betTypeFilter, setBetTypeFilter] = useState<string>("all"); // Filter for Satamatka bet types
+  
+  // Risk level threshold states
+  const [mediumRiskThreshold, setMediumRiskThreshold] = useState<number>(20000);
+  const [highRiskThreshold, setHighRiskThreshold] = useState<number>(50000);
+  const [showRiskSettings, setShowRiskSettings] = useState<boolean>(false);
+  
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
 
@@ -139,6 +145,22 @@ export default function RiskManagementPage() {
   // Function to format currency amounts
   const formatAmount = (amount: number) => {
     return "₹" + (amount / 100).toFixed(2);
+  };
+  
+  // Function to determine risk level based on potential win amount
+  const calculateRiskLevel = (potentialWinAmount: number) => {
+    let riskLevel = "Low";
+    let riskColor = "bg-green-100 text-green-800";
+    
+    if (potentialWinAmount > highRiskThreshold) {
+      riskLevel = "High";
+      riskColor = "bg-red-100 text-red-800";
+    } else if (potentialWinAmount > mediumRiskThreshold) {
+      riskLevel = "Medium";
+      riskColor = "bg-yellow-100 text-yellow-800";
+    }
+    
+    return { riskLevel, riskColor };
   };
 
   // Process and flatten the numbers data from all markets for table display
@@ -595,17 +617,8 @@ export default function RiskManagementPage() {
                 </TableRow>
               ) : (
                 data.map((item) => {
-                  // Calculate risk level
-                  let riskLevel = "Low";
-                  let riskColor = "bg-green-100 text-green-800";
-                  
-                  if (item.potentialWinAmount > 50000) {
-                    riskLevel = "High";
-                    riskColor = "bg-red-100 text-red-800";
-                  } else if (item.potentialWinAmount > 20000) {
-                    riskLevel = "Medium";
-                    riskColor = "bg-yellow-100 text-yellow-800";
-                  }
+                  // Calculate risk level using our helper function
+                  const { riskLevel, riskColor } = calculateRiskLevel(item.potentialWinAmount);
                   
                   return (
                     <TableRow key={item.number}>
@@ -1103,19 +1116,67 @@ export default function RiskManagementPage() {
             </div>
             <CardDescription>
               Monitor and analyze betting patterns to manage risk effectively.
-              <div className="mt-2 flex space-x-4">
-                <div className="flex items-center space-x-1">
-                  <Badge className="bg-green-100 text-green-800">Low</Badge>
-                  <span className="text-xs">Up to ₹200</span>
+              <div className="mt-2 flex flex-col space-y-3">
+                <div className="flex space-x-4">
+                  <div className="flex items-center space-x-1">
+                    <Badge className="bg-green-100 text-green-800">Low</Badge>
+                    <span className="text-xs">Up to ₹{(mediumRiskThreshold / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>
+                    <span className="text-xs">₹{(mediumRiskThreshold / 100).toFixed(2)}-₹{(highRiskThreshold / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <Badge className="bg-red-100 text-red-800">High</Badge>
+                    <span className="text-xs">Over ₹{(highRiskThreshold / 100).toFixed(2)}</span>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowRiskSettings(!showRiskSettings)}
+                    className="ml-auto text-xs flex items-center"
+                  >
+                    <Settings className="h-3 w-3 mr-1" />
+                    {showRiskSettings ? "Hide Settings" : "Customize Thresholds"}
+                  </Button>
                 </div>
-                <div className="flex items-center space-x-1">
-                  <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>
-                  <span className="text-xs">₹200-₹500</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <Badge className="bg-red-100 text-red-800">High</Badge>
-                  <span className="text-xs">Over ₹500</span>
-                </div>
+                
+                {showRiskSettings && (
+                  <div className="bg-muted/20 p-3 rounded-md space-y-3">
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <Label htmlFor="medium-threshold" className="text-xs flex items-center">
+                          <Badge className="bg-yellow-100 text-yellow-800 mr-2" size="sm">Medium</Badge> 
+                          Risk Threshold (₹{(mediumRiskThreshold / 100).toFixed(2)})
+                        </Label>
+                      </div>
+                      <Slider 
+                        id="medium-threshold"
+                        min={1000} 
+                        max={100000} 
+                        step={1000}
+                        value={[mediumRiskThreshold]} 
+                        onValueChange={(values) => setMediumRiskThreshold(values[0])}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <Label htmlFor="high-threshold" className="text-xs flex items-center">
+                          <Badge className="bg-red-100 text-red-800 mr-2" size="sm">High</Badge> 
+                          Risk Threshold (₹{(highRiskThreshold / 100).toFixed(2)})
+                        </Label>
+                      </div>
+                      <Slider 
+                        id="high-threshold"
+                        min={mediumRiskThreshold + 1000} 
+                        max={200000} 
+                        step={1000}
+                        value={[highRiskThreshold]} 
+                        onValueChange={(values) => setHighRiskThreshold(values[0])}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </CardDescription>
           </CardHeader>
