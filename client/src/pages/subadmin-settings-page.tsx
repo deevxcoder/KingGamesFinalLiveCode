@@ -52,8 +52,8 @@ interface CommissionItem {
   commissionRate: number;
 }
 
-// Commission schema
-const commissionSchema = z.object({
+// Form schema for the commission form
+const commissionFormSchema = z.object({
   teamMatch: z.coerce.number().min(0).max(100),
   cricketToss: z.coerce.number().min(0).max(100),
   coinFlip: z.coerce.number().min(0).max(100),
@@ -63,7 +63,7 @@ const commissionSchema = z.object({
   satamatkaOther: z.coerce.number().min(0).max(100),
 });
 
-type Commission = z.infer<typeof commissionSchema>;
+type CommissionFormValues = z.infer<typeof commissionFormSchema>;
 
 export default function SubadminSettingsPage() {
   const { user } = useAuth();
@@ -94,8 +94,8 @@ export default function SubadminSettingsPage() {
   });
 
   // Form for commission settings
-  const form = useForm<Commission>({
-    resolver: zodResolver(commissionSchema),
+  const form = useForm<CommissionFormValues>({
+    resolver: zodResolver(commissionFormSchema),
     defaultValues: {
       teamMatch: 0,
       cricketToss: 0,
@@ -109,7 +109,7 @@ export default function SubadminSettingsPage() {
 
   // Update commission mutation
   const updateCommissionMutation = useMutation({
-    mutationFn: async (values: Commission) => {
+    mutationFn: async (values: CommissionFormValues) => {
       const response = await fetch('/api/commissions/subadmin/' + subadminId, {
         method: 'POST',
         headers: {
@@ -155,7 +155,7 @@ export default function SubadminSettingsPage() {
   });
 
   // Handle commission form submission
-  const onSubmitCommission = (values: Commission) => {
+  const onSubmitCommission = (values: CommissionFormValues) => {
     updateCommissionMutation.mutate(values);
   };
 
