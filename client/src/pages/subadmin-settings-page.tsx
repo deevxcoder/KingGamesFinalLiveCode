@@ -36,6 +36,22 @@ import { Separator } from "@/components/ui/separator";
 import { AlertCircle, ArrowLeft, Percent, Save } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
+// Define types for the API responses
+interface Subadmin {
+  id: number;
+  username: string;
+  role: string;
+  balance: number;
+  createdAt?: string;
+}
+
+interface CommissionItem {
+  id?: number;
+  subadminId: number;
+  gameType: string;
+  commissionRate: number;
+}
+
 // Commission schema
 const commissionSchema = z.object({
   teamMatch: z.coerce.number().min(0).max(100),
@@ -53,7 +69,12 @@ export default function SubadminSettingsPage() {
   const { user } = useAuth();
   const [location] = useLocation();
   const queryParams = new URLSearchParams(location.split('?')[1] || '');
-  const subadminId = queryParams.get('id') ? parseInt(queryParams.get('id') || '0') : null;
+  
+  // If no ID is provided in the URL, use the current logged-in user's ID (for subadmin viewing their own settings)
+  const subadminId = queryParams.get('id') 
+    ? parseInt(queryParams.get('id') || '0') 
+    : user?.role === 'subadmin' ? user.id : null;
+    
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("commission");
 
@@ -63,14 +84,12 @@ export default function SubadminSettingsPage() {
   // Get subadmin details
   const { data: subadmin, isLoading: isLoadingSubadmin } = useQuery({
     queryKey: ['/api/users', subadminId],
-    queryFn: getQueryFn,
     enabled: !!subadminId,
   });
 
   // Get commission settings
   const { data: commissions, isLoading: isLoadingCommissions } = useQuery({
     queryKey: ['/api/commissions/subadmin', subadminId],
-    queryFn: getQueryFn,
     enabled: !!subadminId,
   });
 
@@ -91,9 +110,12 @@ export default function SubadminSettingsPage() {
   // Update commission mutation
   const updateCommissionMutation = useMutation({
     mutationFn: async (values: Commission) => {
-      return apiRequest('/api/commissions/subadmin/' + subadminId, {
+      const response = await fetch('/api/commissions/subadmin/' + subadminId, {
         method: 'POST',
-        data: {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           commissions: [
             { gameType: 'team_match', commissionRate: values.teamMatch },
             { gameType: 'cricket_toss', commissionRate: values.cricketToss },
@@ -103,8 +125,16 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_odd_even', commissionRate: values.satamatkaOddEven },
             { gameType: 'satamatka_other', commissionRate: values.satamatkaOther },
           ]
-        }
+        }),
+        credentials: 'include'
       });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update commission settings');
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/commissions/subadmin', subadminId] });
@@ -131,7 +161,7 @@ export default function SubadminSettingsPage() {
 
   // Set form values when commissions data is loaded
   useEffect(() => {
-    if (commissions && commissions.length > 0) {
+    if (commissions && Array.isArray(commissions) && commissions.length > 0) {
       const formValues: any = {
         teamMatch: 0,
         cricketToss: 0,
@@ -189,7 +219,7 @@ export default function SubadminSettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Settings for {subadmin.username}
+              Settings for {(subadmin as any)?.username || 'Subadmin'}
             </CardTitle>
             <CardDescription>
               {userId 

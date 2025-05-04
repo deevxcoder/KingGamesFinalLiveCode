@@ -31,6 +31,7 @@ import SubadminSettingsPage from "@/pages/subadmin-settings-page";
 import SubadminCommissionManagementPage from "@/pages/subadmin-commission-management-page";
 import FundManagementPage from "@/pages/fund-management-page";
 import LeaderboardPage from "@/pages/leaderboard-page";
+import SettingsRouter from "@/pages/settings-router";
 
 function Router() {
   return (
@@ -98,16 +99,11 @@ function Router() {
         allowedRoles={[UserRole.ADMIN]}
       />
       
-      {/* Settings routes */}
+      {/* Settings routes - uses a dedicated router component */}
       <ProtectedRoute 
         path="/settings" 
-        component={AdminSettingsPage} 
-        allowedRoles={[UserRole.ADMIN]}
-      />
-      <ProtectedRoute 
-        path="/settings" 
-        component={SubadminSettingsPage} 
-        allowedRoles={[UserRole.SUBADMIN]}
+        component={SettingsRouter} 
+        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
       />
       <ProtectedRoute 
         path="/subadmin-commission-management" 
