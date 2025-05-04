@@ -103,6 +103,7 @@ export default function RiskManagementPage() {
   const [betTypeFilter, setBetTypeFilter] = useState<string>("all"); // Filter for Satamatka bet types
   
   // Risk level threshold states
+  const [lowRiskThreshold, setLowRiskThreshold] = useState<number>(5000);
   const [mediumRiskThreshold, setMediumRiskThreshold] = useState<number>(20000);
   const [highRiskThreshold, setHighRiskThreshold] = useState<number>(50000);
   const [showRiskSettings, setShowRiskSettings] = useState<boolean>(false);
@@ -151,8 +152,8 @@ export default function RiskManagementPage() {
   
   // Function to determine risk level based on potential win amount
   const calculateRiskLevel = (potentialWinAmount: number) => {
-    let riskLevel = "Low";
-    let riskColor = "bg-green-100 text-green-800";
+    let riskLevel = "None";
+    let riskColor = "bg-gray-100 text-gray-800";
     
     if (potentialWinAmount > highRiskThreshold) {
       riskLevel = "High";
@@ -160,6 +161,9 @@ export default function RiskManagementPage() {
     } else if (potentialWinAmount > mediumRiskThreshold) {
       riskLevel = "Medium";
       riskColor = "bg-yellow-100 text-yellow-800";
+    } else if (potentialWinAmount > lowRiskThreshold) {
+      riskLevel = "Low";
+      riskColor = "bg-green-100 text-green-800";
     }
     
     return { riskLevel, riskColor };
@@ -1121,8 +1125,12 @@ export default function RiskManagementPage() {
               <div className="mt-2 flex flex-col space-y-3">
                 <div className="flex space-x-4">
                   <div className="flex items-center space-x-1">
+                    <Badge className="bg-gray-100 text-gray-800">None</Badge>
+                    <span className="text-xs">Up to ₹{(lowRiskThreshold / 100).toFixed(2)}</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
                     <Badge className="bg-green-100 text-green-800">Low</Badge>
-                    <span className="text-xs">Up to ₹{(mediumRiskThreshold / 100).toFixed(2)}</span>
+                    <span className="text-xs">₹{(lowRiskThreshold / 100).toFixed(2)}-₹{(mediumRiskThreshold / 100).toFixed(2)}</span>
                   </div>
                   <div className="flex items-center space-x-1">
                     <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>
@@ -1147,6 +1155,22 @@ export default function RiskManagementPage() {
                   <div className="bg-muted/20 p-3 rounded-md space-y-3">
                     <div className="space-y-1">
                       <div className="flex justify-between">
+                        <Label htmlFor="low-threshold" className="text-xs flex items-center">
+                          <Badge className="bg-green-100 text-green-800 mr-2 text-xs">Low</Badge> 
+                          Risk Threshold (₹{(lowRiskThreshold / 100).toFixed(2)})
+                        </Label>
+                      </div>
+                      <Slider 
+                        id="low-threshold"
+                        min={1000} 
+                        max={mediumRiskThreshold - 1000} 
+                        step={1000}
+                        value={[lowRiskThreshold]} 
+                        onValueChange={(values: number[]) => setLowRiskThreshold(values[0])}
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
                         <Label htmlFor="medium-threshold" className="text-xs flex items-center">
                           <Badge className="bg-yellow-100 text-yellow-800 mr-2 text-xs">Medium</Badge> 
                           Risk Threshold (₹{(mediumRiskThreshold / 100).toFixed(2)})
@@ -1154,11 +1178,17 @@ export default function RiskManagementPage() {
                       </div>
                       <Slider 
                         id="medium-threshold"
-                        min={1000} 
-                        max={100000} 
+                        min={lowRiskThreshold + 1000} 
+                        max={highRiskThreshold - 1000} 
                         step={1000}
                         value={[mediumRiskThreshold]} 
-                        onValueChange={(values: number[]) => setMediumRiskThreshold(values[0])}
+                        onValueChange={(values: number[]) => {
+                          setMediumRiskThreshold(values[0]);
+                          // Ensure lowRiskThreshold is at least 1000 less than mediumRiskThreshold
+                          if (lowRiskThreshold > values[0] - 1000) {
+                            setLowRiskThreshold(values[0] - 1000);
+                          }
+                        }}
                       />
                     </div>
                     <div className="space-y-1">
@@ -1174,7 +1204,13 @@ export default function RiskManagementPage() {
                         max={200000} 
                         step={1000}
                         value={[highRiskThreshold]} 
-                        onValueChange={(values: number[]) => setHighRiskThreshold(values[0])}
+                        onValueChange={(values: number[]) => {
+                          setHighRiskThreshold(values[0]);
+                          // Ensure mediumRiskThreshold is at least 1000 less than highRiskThreshold
+                          if (mediumRiskThreshold > values[0] - 1000) {
+                            setMediumRiskThreshold(values[0] - 1000);
+                          }
+                        }}
                       />
                     </div>
                   </div>
