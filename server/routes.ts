@@ -1853,6 +1853,119 @@ app.get("/api/games/my-history", async (req, res, next) => {
     }
   });
   
+  // Get admin odds endpoint
+  app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      // Get game odds where setByAdmin is true
+      const gameTypes = [
+        'team_match',
+        'cricket_toss',
+        'coin_flip',
+        'satamatka_jodi',
+        'satamatka_harf',
+        'satamatka_odd_even',
+        'satamatka_other'
+      ];
+      
+      // Fetch all admin odds
+      const adminOdds = [];
+      
+      for (const gameType of gameTypes) {
+        const odds = await storage.getGameOdds(gameType);
+        const adminOdd = odds.find(odd => odd.setByAdmin === true);
+        
+        if (adminOdd) {
+          adminOdds.push(adminOdd);
+        } else {
+          // Add default odds if no admin odds are set
+          adminOdds.push({
+            gameType,
+            oddValue: gameType.includes('satamatka_jodi') || gameType.includes('satamatka_harf') || gameType.includes('satamatka_other') ? 9 : 1.9,
+            setByAdmin: true
+          });
+        }
+      }
+      
+      res.json(adminOdds);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Get subadmin odds endpoint
+  app.get("/api/odds/subadmin/:subadminId?", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      // If subadminId is not provided in path, use the current user's ID (if subadmin)
+      let subadminId = req.params.subadminId ? Number(req.params.subadminId) : 
+                        req.user.role === UserRole.SUBADMIN ? req.user.id : null;
+                        
+      if (!subadminId) {
+        return res.status(400).json({ message: "Subadmin ID is required" });
+      }
+      
+      // Check if the user is authorized to access this resource
+      if (req.user.role === UserRole.SUBADMIN && req.user.id !== subadminId) {
+        return res.status(403).json({ message: "Unauthorized" });
+      }
+      
+      // Define default game types
+      const gameTypes = [
+        'team_match',
+        'cricket_toss',
+        'coin_flip',
+        'satamatka_jodi',
+        'satamatka_harf',
+        'satamatka_odd_even',
+        'satamatka_other'
+      ];
+      
+      // Get the subadmin odds
+      const subadminOddsFromDB = await storage.getGameOddsBySubadmin(subadminId);
+      
+      // Get admin odds for fallback
+      const adminOddsResponse = await storage.getGameOdds('');
+      const adminOdds = adminOddsResponse.filter(odd => odd.setByAdmin === true);
+      
+      // Create a complete set of odds using subadmin specific odds where available, falling back to admin odds
+      const completeOdds = [];
+      
+      for (const gameType of gameTypes) {
+        // Check if subadmin has specific odds for this game type
+        const subadminOdd = subadminOddsFromDB.find(odd => odd.gameType === gameType);
+        
+        if (subadminOdd) {
+          // Use subadmin specific odds
+          completeOdds.push(subadminOdd);
+        } else {
+          // Try to use admin odds as fallback
+          const adminOdd = adminOdds.find(odd => odd.gameType === gameType);
+          
+          if (adminOdd) {
+            // Use admin odds, but mark it as belonging to this subadmin
+            completeOdds.push({
+              gameType: adminOdd.gameType,
+              oddValue: adminOdd.oddValue,
+              setByAdmin: false,
+              subadminId
+            });
+          } else {
+            // No admin odds either, use default values
+            completeOdds.push({
+              gameType,
+              oddValue: gameType.includes('satamatka_jodi') || gameType.includes('satamatka_harf') || gameType.includes('satamatka_other') ? 9 : 1.9,
+              setByAdmin: false,
+              subadminId
+            });
+          }
+        }
+      }
+      
+      res.json(completeOdds);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
   app.get("/api/game-odds/subadmin/:subadminId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
       const subadminId = Number(req.params.subadminId);
