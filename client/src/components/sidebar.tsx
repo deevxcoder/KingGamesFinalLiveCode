@@ -191,7 +191,7 @@ export default function Sidebar() {
           </h1>
         </div>
         
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin scrollbar-thumb-primary scrollbar-track-slate-800">
           <ul>
             {menuItems.filter(item => item.visible).map((item) => (
               <li key={item.path} className="mb-1">
@@ -253,7 +253,7 @@ export default function Sidebar() {
         isMobileMenuOpen ? "block" : "hidden"
       )}>
         <div className="w-64 h-full bg-slate-900 pt-16 border-r border-slate-800">
-          <nav className="p-4">
+          <nav className="p-4 max-h-[80vh] overflow-y-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-slate-800">
             <ul className="space-y-2">
               {menuItems.filter(item => item.visible).map((item) => (
                 <li key={item.path}>
