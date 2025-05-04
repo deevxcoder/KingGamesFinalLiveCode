@@ -771,7 +771,16 @@ export default function SubadminSettingsPage() {
                             <div className="space-y-2 text-sm">
                               {adminOdds.map((odd: any) => (
                                 <div key={odd.gameType} className="flex justify-between items-center">
-                                  <span className="font-medium">{formatGameType(odd.gameType)}</span>
+                                  <span className="font-medium">
+                                    {odd.gameType === 'team_match' ? 'Team Match' : 
+                                     odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                     odd.gameType === 'coin_flip' ? 'Coin Flip' : 
+                                     odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
+                                     odd.gameType === 'satamatka_harf' ? 'Harf' : 
+                                     odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
+                                     odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                     odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </span>
                                   <span className="font-mono">{odd.oddValue}x</span>
                                 </div>
                               ))}
@@ -790,7 +799,16 @@ export default function SubadminSettingsPage() {
                             <div className="space-y-2 text-sm">
                               {commissions.map((comm: any) => (
                                 <div key={comm.gameType} className="flex justify-between items-center">
-                                  <span className="font-medium">{formatGameType(comm.gameType)}</span>
+                                  <span className="font-medium">
+                                    {comm.gameType === 'team_match' ? 'Team Match' : 
+                                     comm.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                     comm.gameType === 'coin_flip' ? 'Coin Flip' : 
+                                     comm.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
+                                     comm.gameType === 'satamatka_harf' ? 'Harf' : 
+                                     comm.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
+                                     comm.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                     comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                  </span>
                                   <span className="font-mono">{comm.commissionRate}%</span>
                                 </div>
                               ))}
