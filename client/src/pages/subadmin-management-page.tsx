@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { queryClient, apiRequest, getQueryFn } from "@/lib/queryClient";
+import { queryClient, apiRequest } from "@/lib/queryClient";
 import { UserRole } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -281,7 +281,6 @@ export default function SubadminManagementPage() {
   // Get commission settings for a selected subadmin
   const { data: commissions, isLoading: isLoadingCommissions, refetch: refetchCommissions } = useQuery({
     queryKey: [`/api/commissions/subadmin/${selectedSubadminId}`],
-    queryFn: getQueryFn,
     enabled: !!selectedSubadminId && isCommissionDialogOpen,
   });
   
@@ -434,12 +433,7 @@ export default function SubadminManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => {
-                                  const url = `/subadmin-commission-management?id=${subadmin.id}`;
-                                  // Use history.push for better SPA navigation without full page reload
-                                  window.history.pushState({}, '', url);
-                                  window.dispatchEvent(new PopStateEvent('popstate'));
-                                }}
+                                onClick={() => openCommissionDialog(subadmin)}
                                 className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
                               >
                                 <Settings className="h-4 w-4 mr-2" />
