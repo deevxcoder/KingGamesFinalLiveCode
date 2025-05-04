@@ -105,7 +105,7 @@ function Router() {
         allowedRoles={[UserRole.ADMIN]}
       />
       <ProtectedRoute 
-        path="/settings/subadmin" 
+        path="/settings" 
         component={SubadminSettingsPage} 
         allowedRoles={[UserRole.SUBADMIN]}
       />
