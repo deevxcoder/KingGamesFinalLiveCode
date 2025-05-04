@@ -26,6 +26,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -48,6 +49,7 @@ import {
   AlertTriangle,
   TrendingUp,
   ChevronUp,
+  Settings,
   ChevronDown,
   Dices,
   DollarSign,
@@ -1146,7 +1148,7 @@ export default function RiskManagementPage() {
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <Label htmlFor="medium-threshold" className="text-xs flex items-center">
-                          <Badge className="bg-yellow-100 text-yellow-800 mr-2" size="sm">Medium</Badge> 
+                          <Badge className="bg-yellow-100 text-yellow-800 mr-2 text-xs">Medium</Badge> 
                           Risk Threshold (₹{(mediumRiskThreshold / 100).toFixed(2)})
                         </Label>
                       </div>
@@ -1156,13 +1158,13 @@ export default function RiskManagementPage() {
                         max={100000} 
                         step={1000}
                         value={[mediumRiskThreshold]} 
-                        onValueChange={(values) => setMediumRiskThreshold(values[0])}
+                        onValueChange={(values: number[]) => setMediumRiskThreshold(values[0])}
                       />
                     </div>
                     <div className="space-y-1">
                       <div className="flex justify-between">
                         <Label htmlFor="high-threshold" className="text-xs flex items-center">
-                          <Badge className="bg-red-100 text-red-800 mr-2" size="sm">High</Badge> 
+                          <Badge className="bg-red-100 text-red-800 mr-2 text-xs">High</Badge> 
                           Risk Threshold (₹{(highRiskThreshold / 100).toFixed(2)})
                         </Label>
                       </div>
@@ -1172,7 +1174,7 @@ export default function RiskManagementPage() {
                         max={200000} 
                         step={1000}
                         value={[highRiskThreshold]} 
-                        onValueChange={(values) => setHighRiskThreshold(values[0])}
+                        onValueChange={(values: number[]) => setHighRiskThreshold(values[0])}
                       />
                     </div>
                   </div>
