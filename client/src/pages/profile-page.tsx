@@ -239,23 +239,25 @@ export default function ProfilePage() {
         </Card>
       </div>
       
-      {/* Activity Card */}
-      <Card className="mt-6 bg-slate-800/50 border-slate-700">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <History className="h-5 w-5 text-primary" />
-            Recent Activity
-          </CardTitle>
-          <CardDescription>
-            Your recent account activity and game history
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-8 text-muted-foreground">
-            No recent activity found
-          </div>
-        </CardContent>
-      </Card>
+      {/* Activity Card - Only shown for players */}
+      {user.role === UserRole.PLAYER && (
+        <Card className="mt-6 bg-slate-800/50 border-slate-700">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-primary" />
+              Recent Activity
+            </CardTitle>
+            <CardDescription>
+              Your recent account activity and game history
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-muted-foreground">
+              No recent activity found
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </DashboardLayout>
   );
 }
