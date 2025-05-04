@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { UserRole } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+
+// UI Components
 import {
   Table,
   TableBody,
@@ -42,12 +42,27 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Ban, CheckCircle, UserPlus, Settings, Users, Loader2, AlertCircle, Save, Percent } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
+// Icons
+import {
+  UserPlus,
+  Ban,
+  CheckCircle,
+  Settings,
+  Users,
+  X,
+  Percent,
+  Save,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
+
+// Schema for creating a new subadmin
 const createSubadminSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -70,8 +85,6 @@ const commissionSchema = z.object({
   satamatkaOther: z.coerce.number().min(0).max(100),
 });
 
-type Commission = z.infer<typeof commissionSchema>;
-
 // Schema for creating a new user (player)
 const createUserSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -81,6 +94,8 @@ const createUserSchema = z.object({
   message: "Passwords do not match",
   path: ["confirmPassword"],
 });
+
+type Commission = z.infer<typeof commissionSchema>;
 
 export default function SubadminManagementPage() {
   const { user } = useAuth();
@@ -746,19 +761,26 @@ export default function SubadminManagementPage() {
                       )}
                     />
                   </div>
-                  
-                  <p className="text-xs text-muted-foreground pt-2">
-                    These commission rates will determine how much the subadmin earns from player bets on these game types.
-                  </p>
                 </div>
               )}
               
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={createSubadminMutation.isPending}>
-                  {createSubadminMutation.isPending ? "Creating..." : "Create Subadmin"}
+              <DialogFooter className="pt-4">
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-primary to-blue-500"
+                  disabled={createSubadminMutation.isPending}
+                >
+                  {createSubadminMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Subadmin...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Create Subadmin
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </form>
@@ -766,18 +788,18 @@ export default function SubadminManagementPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Create User Dialog */}
+      {/* Create User Dialog (for subadmins) */}
       <Dialog open={isCreateUserDialogOpen} onOpenChange={setIsCreateUserDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
+            <DialogTitle>Create User</DialogTitle>
             <DialogDescription>
-              Create a new player account that will be assigned to you.
+              Create a new player account that will be assigned to you
             </DialogDescription>
           </DialogHeader>
           
           <Form {...createUserForm}>
-            <form onSubmit={createUserForm.handleSubmit(handleCreateUser)} className="space-y-4">
+            <form onSubmit={createUserForm.handleSubmit(handleCreateUser)} className="space-y-4 py-2">
               <FormField
                 control={createUserForm.control}
                 name="username"
@@ -820,13 +842,23 @@ export default function SubadminManagementPage() {
                 )}
               />
               
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsCreateUserDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={createUserMutation.isPending}>
-                  {createUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create User
+              <DialogFooter className="pt-4">
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-primary to-blue-500"
+                  disabled={createUserMutation.isPending}
+                >
+                  {createUserMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating User...
+                    </>
+                  ) : (
+                    <>
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Create User
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </form>
