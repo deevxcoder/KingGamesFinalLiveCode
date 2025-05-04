@@ -234,13 +234,6 @@ export default function CoinFlipGame() {
                 </motion.div>
               </motion.div>
               
-              {/* Display message during animation */}
-              {isFlipping && (
-                <div className="text-center text-xs text-muted-foreground animate-pulse mt-2">
-                  Wallet will update after coin stops
-                </div>
-              )}
-              
               {/* Display message during wallet update */}
               {!isFlipping && walletUpdating && (
                 <div className="text-center text-xs text-primary mt-2 flex items-center justify-center">
