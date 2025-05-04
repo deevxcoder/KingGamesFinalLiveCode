@@ -85,7 +85,7 @@ const commissionFormSchema = z.object({
   satamatkaJodi: z.coerce.number().min(0).max(100),
   satamatkaHarf: z.coerce.number().min(0).max(100),
   satamatkaOddEven: z.coerce.number().min(0).max(100),
-  satamatkaOther: z.coerce.number().min(0).max(100),
+  satamatkaCrossing: z.coerce.number().min(0).max(100),
 });
 
 // Form schema for the odds form
@@ -96,7 +96,7 @@ const oddsFormSchema = z.object({
   satamatkaJodi: z.coerce.number().min(1),
   satamatkaHarf: z.coerce.number().min(1),
   satamatkaOddEven: z.coerce.number().min(1),
-  satamatkaOther: z.coerce.number().min(1),
+  satamatkaCrossing: z.coerce.number().min(1),
 });
 
 // Form schema for the discount form
@@ -107,7 +107,7 @@ const discountFormSchema = z.object({
   satamatkaJodi: z.coerce.number().min(0).max(100),
   satamatkaHarf: z.coerce.number().min(0).max(100),
   satamatkaOddEven: z.coerce.number().min(0).max(100),
-  satamatkaOther: z.coerce.number().min(0).max(100),
+  satamatkaCrossing: z.coerce.number().min(0).max(100),
 });
 
 type CommissionFormValues = z.infer<typeof commissionFormSchema>;
@@ -177,7 +177,7 @@ export default function SubadminSettingsPage() {
       satamatkaJodi: 0,
       satamatkaHarf: 0,
       satamatkaOddEven: 0,
-      satamatkaOther: 0,
+      satamatkaCrossing: 0,
     }
   });
   
@@ -191,7 +191,7 @@ export default function SubadminSettingsPage() {
       satamatkaJodi: 9,
       satamatkaHarf: 9,
       satamatkaOddEven: 1.9,
-      satamatkaOther: 9,
+      satamatkaCrossing: 9,
     }
   });
   
@@ -205,7 +205,7 @@ export default function SubadminSettingsPage() {
       satamatkaJodi: 0,
       satamatkaHarf: 0,
       satamatkaOddEven: 0,
-      satamatkaOther: 0,
+      satamatkaCrossing: 0,
     }
   });
 
@@ -225,7 +225,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', commissionRate: values.satamatkaJodi },
             { gameType: 'satamatka_harf', commissionRate: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', commissionRate: values.satamatkaOddEven },
-            { gameType: 'satamatka_other', commissionRate: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', commissionRate: values.satamatkaCrossing },
           ]
         }),
         credentials: 'include'
@@ -272,7 +272,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', oddValue: values.satamatkaJodi },
             { gameType: 'satamatka_harf', oddValue: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', oddValue: values.satamatkaOddEven },
-            { gameType: 'satamatka_other', oddValue: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', oddValue: values.satamatkaCrossing },
           ]
         }),
         credentials: 'include'
@@ -324,7 +324,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', discountRate: values.satamatkaJodi },
             { gameType: 'satamatka_harf', discountRate: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', discountRate: values.satamatkaOddEven },
-            { gameType: 'satamatka_other', discountRate: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', discountRate: values.satamatkaCrossing },
           ]
         }),
         credentials: 'include'
@@ -385,8 +385,8 @@ export default function SubadminSettingsPage() {
         return 'Harf';
       case 'satamatka_odd_even':
         return 'Odd/Even';
-      case 'satamatka_other':
-        return 'Other Market Games';
+      case 'satamatka_crossing':
+        return 'Crossing Bet';
       default:
         return gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
     }
@@ -410,7 +410,7 @@ export default function SubadminSettingsPage() {
         satamatkaJodi: 0,
         satamatkaHarf: 0,
         satamatkaOddEven: 0,
-        satamatkaOther: 0,
+        satamatkaCrossing: 0,
       };
 
       commissions.forEach((commission: any) => {
@@ -426,8 +426,8 @@ export default function SubadminSettingsPage() {
           formValues.satamatkaHarf = commission.commissionRate;
         } else if (commission.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = commission.commissionRate;
-        } else if (commission.gameType === 'satamatka_other') {
-          formValues.satamatkaOther = commission.commissionRate;
+        } else if (commission.gameType === 'satamatka_crossing') {
+          formValues.satamatkaCrossing = commission.commissionRate;
         }
       });
 
@@ -445,7 +445,7 @@ export default function SubadminSettingsPage() {
         satamatkaJodi: 9,
         satamatkaHarf: 9,
         satamatkaOddEven: 1.9,
-        satamatkaOther: 9,
+        satamatkaCrossing: 9,
       };
 
       subadminOdds.forEach((odd: any) => {
@@ -461,8 +461,8 @@ export default function SubadminSettingsPage() {
           formValues.satamatkaHarf = odd.oddValue;
         } else if (odd.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = odd.oddValue;
-        } else if (odd.gameType === 'satamatka_other') {
-          formValues.satamatkaOther = odd.oddValue;
+        } else if (odd.gameType === 'satamatka_crossing') {
+          formValues.satamatkaCrossing = odd.oddValue;
         }
       });
 
@@ -480,7 +480,7 @@ export default function SubadminSettingsPage() {
         satamatkaJodi: 0,
         satamatkaHarf: 0,
         satamatkaOddEven: 0,
-        satamatkaOther: 0,
+        satamatkaCrossing: 0,
       };
 
       playerDiscounts.forEach((discount: any) => {
@@ -496,8 +496,8 @@ export default function SubadminSettingsPage() {
           formValues.satamatkaHarf = discount.discountRate;
         } else if (discount.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = discount.discountRate;
-        } else if (discount.gameType === 'satamatka_other') {
-          formValues.satamatkaOther = discount.discountRate;
+        } else if (discount.gameType === 'satamatka_crossing') {
+          formValues.satamatkaCrossing = discount.discountRate;
         }
       });
 
@@ -572,7 +572,7 @@ export default function SubadminSettingsPage() {
                                      comm.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                      comm.gameType === 'satamatka_harf' ? 'Harf' : 
                                      comm.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                     comm.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                     comm.gameType === 'satamatka_crossing' ? 'Crossing Bet' : 
                                      comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                   </CardTitle>
                                 </CardHeader>
@@ -638,7 +638,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                          odd.gameType === 'satamatka_harf' ? 'Harf' : 
                                          odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                         odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                         odd.gameType === 'satamatka_crossing' ? 'Crossing Bet' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
                                       <span className="text-lg font-mono font-bold">{odd.oddValue}x</span>
@@ -671,7 +671,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                          odd.gameType === 'satamatka_harf' ? 'Harf' : 
                                          odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                         odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                         odd.gameType === 'satamatka_crossing' ? 'Crossing Bet' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
                                       <span className="text-lg font-mono font-bold">{odd.oddValue}x</span>

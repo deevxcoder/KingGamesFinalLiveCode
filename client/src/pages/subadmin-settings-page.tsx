@@ -225,7 +225,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', commissionRate: values.satamatkaJodi },
             { gameType: 'satamatka_harf', commissionRate: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', commissionRate: values.satamatkaOddEven },
-            { gameType: 'satamatka_crossing', commissionRate: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', commissionRate: values.satamatkaCrossing },
           ]
         }),
         credentials: 'include'
@@ -272,7 +272,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', oddValue: values.satamatkaJodi },
             { gameType: 'satamatka_harf', oddValue: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', oddValue: values.satamatkaOddEven },
-            { gameType: 'satamatka_crossing', oddValue: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', oddValue: values.satamatkaCrossing },
           ]
         }),
         credentials: 'include'
@@ -324,7 +324,7 @@ export default function SubadminSettingsPage() {
             { gameType: 'satamatka_jodi', discountRate: values.satamatkaJodi },
             { gameType: 'satamatka_harf', discountRate: values.satamatkaHarf },
             { gameType: 'satamatka_odd_even', discountRate: values.satamatkaOddEven },
-            { gameType: 'satamatka_crossing', discountRate: values.satamatkaOther },
+            { gameType: 'satamatka_crossing', discountRate: values.satamatkaCrossing },
           ]
         }),
         credentials: 'include'
@@ -410,7 +410,7 @@ export default function SubadminSettingsPage() {
         satamatkaJodi: 0,
         satamatkaHarf: 0,
         satamatkaOddEven: 0,
-        satamatkaOther: 0,
+        satamatkaCrossing: 0,
       };
 
       commissions.forEach((commission: any) => {
@@ -445,7 +445,7 @@ export default function SubadminSettingsPage() {
         satamatkaJodi: 9,
         satamatkaHarf: 9,
         satamatkaOddEven: 1.9,
-        satamatkaOther: 9,
+        satamatkaCrossing: 9,
       };
 
       subadminOdds.forEach((odd: any) => {
@@ -480,7 +480,7 @@ export default function SubadminSettingsPage() {
         satamatkaJodi: 0,
         satamatkaHarf: 0,
         satamatkaOddEven: 0,
-        satamatkaOther: 0,
+        satamatkaCrossing: 0,
       };
 
       playerDiscounts.forEach((discount: any) => {
@@ -785,10 +785,10 @@ export default function SubadminSettingsPage() {
                               
                               <FormField
                                 control={oddsForm.control}
-                                name="satamatkaOther"
+                                name="satamatkaCrossing"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Other Markets</FormLabel>
+                                    <FormLabel>Crossing Bet</FormLabel>
                                     <FormControl>
                                       <Input type="number" step="0.1" min="1.0" {...field} />
                                     </FormControl>
