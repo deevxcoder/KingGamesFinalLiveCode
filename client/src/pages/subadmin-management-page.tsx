@@ -85,6 +85,17 @@ const commissionSchema = z.object({
   satamatkaOther: z.coerce.number().min(0).max(100),
 });
 
+// Game Odds schema for subadmin
+const gameOddsSchema = z.object({
+  teamMatch: z.coerce.number().min(0),
+  cricketToss: z.coerce.number().min(0),
+  coinFlip: z.coerce.number().min(0),
+  satamatkaJodi: z.coerce.number().min(0),
+  satamatkaHarf: z.coerce.number().min(0),
+  satamatkaOddEven: z.coerce.number().min(0),
+  satamatkaCrossing: z.coerce.number().min(0),
+});
+
 // Schema for creating a new user (player)
 const createUserSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -96,6 +107,7 @@ const createUserSchema = z.object({
 });
 
 type Commission = z.infer<typeof commissionSchema>;
+type GameOdds = z.infer<typeof gameOddsSchema>;
 
 export default function SubadminManagementPage() {
   const { user } = useAuth();
@@ -103,6 +115,7 @@ export default function SubadminManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
+  const [isGameOddsDialogOpen, setIsGameOddsDialogOpen] = useState(false);
   const [isUserListDialogOpen, setIsUserListDialogOpen] = useState(false);
   const [selectedSubadminId, setSelectedSubadminId] = useState<number | null>(null);
   const [selectedSubadminName, setSelectedSubadminName] = useState<string>("");
@@ -418,6 +431,112 @@ export default function SubadminManagementPage() {
     refetchCommissions();
   };
   
+  // Game Odds form setup
+  const gameOddsForm = useForm<GameOdds>({
+    resolver: zodResolver(gameOddsSchema),
+    defaultValues: {
+      teamMatch: 0,
+      cricketToss: 0,
+      coinFlip: 0,
+      satamatkaJodi: 0,
+      satamatkaHarf: 0,
+      satamatkaOddEven: 0,
+      satamatkaCrossing: 0,
+    }
+  });
+  
+  // Get game odds settings for a selected subadmin
+  const { data: gameOdds, isLoading: isLoadingGameOdds, refetch: refetchGameOdds } = useQuery({
+    queryKey: [`/api/game-odds/subadmin/${selectedSubadminId}`],
+    enabled: !!selectedSubadminId && isGameOddsDialogOpen,
+  });
+  
+  // Update game odds mutation
+  const updateGameOddsMutation = useMutation({
+    mutationFn: async (values: GameOdds) => {
+      if (!selectedSubadminId) {
+        throw new Error('No subadmin selected');
+      }
+      
+      return apiRequest("POST", `/api/game-odds/subadmin/${selectedSubadminId}`, {
+        odds: [
+          { gameType: 'team_match', oddValue: Math.round(values.teamMatch * 100) },
+          { gameType: 'cricket_toss', oddValue: Math.round(values.cricketToss * 100) },
+          { gameType: 'coin_flip', oddValue: Math.round(values.coinFlip * 100) },
+          { gameType: 'satamatka_jodi', oddValue: Math.round(values.satamatkaJodi * 100) },
+          { gameType: 'satamatka_harf', oddValue: Math.round(values.satamatkaHarf * 100) },
+          { gameType: 'satamatka_odd_even', oddValue: Math.round(values.satamatkaOddEven * 100) },
+          { gameType: 'satamatka_crossing', oddValue: Math.round(values.satamatkaCrossing * 100) },
+        ]
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/game-odds/subadmin/${selectedSubadminId}`] });
+      toast({
+        title: "Game Odds updated",
+        description: `Game odds for ${selectedSubadminName} have been updated successfully.`,
+        duration: 3000,
+      });
+      setIsGameOddsDialogOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update game odds",
+        description: error.message,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  });
+  
+  // Handle game odds form submission
+  const onSubmitGameOdds = (values: GameOdds) => {
+    updateGameOddsMutation.mutate(values);
+  };
+  
+  // Set form values when game odds data is loaded
+  useEffect(() => {
+    if (gameOdds && Array.isArray(gameOdds) && gameOdds.length > 0) {
+      const formValues: any = {
+        teamMatch: 0,
+        cricketToss: 0,
+        coinFlip: 0,
+        satamatkaJodi: 0,
+        satamatkaHarf: 0,
+        satamatkaOddEven: 0,
+        satamatkaCrossing: 0,
+      };
+
+      gameOdds.forEach((odd: any) => {
+        if (odd.gameType === 'team_match') {
+          formValues.teamMatch = (odd.oddValue / 100).toFixed(2);
+        } else if (odd.gameType === 'cricket_toss') {
+          formValues.cricketToss = (odd.oddValue / 100).toFixed(2);
+        } else if (odd.gameType === 'coin_flip') {
+          formValues.coinFlip = (odd.oddValue / 100).toFixed(2);
+        } else if (odd.gameType === 'satamatka_jodi') {
+          formValues.satamatkaJodi = (odd.oddValue / 100).toFixed(2);
+        } else if (odd.gameType === 'satamatka_harf') {
+          formValues.satamatkaHarf = (odd.oddValue / 100).toFixed(2);
+        } else if (odd.gameType === 'satamatka_odd_even') {
+          formValues.satamatkaOddEven = (odd.oddValue / 100).toFixed(2);
+        } else if (odd.gameType === 'satamatka_crossing') {
+          formValues.satamatkaCrossing = (odd.oddValue / 100).toFixed(2);
+        }
+      });
+
+      gameOddsForm.reset(formValues);
+    }
+  }, [gameOdds, gameOddsForm]);
+  
+  // Open game odds dialog for a specific subadmin
+  const openGameOddsDialog = (subadmin: any) => {
+    setSelectedSubadminId(subadmin.id);
+    setSelectedSubadminName(subadmin.username);
+    setIsGameOddsDialogOpen(true);
+    refetchGameOdds();
+  };
+  
   // Open user list dialog for a specific subadmin
   const openUserListDialog = (subadmin: any) => {
     setSelectedSubadminId(subadmin.id);
@@ -494,6 +613,16 @@ export default function SubadminManagementPage() {
                               >
                                 <Settings className="h-4 w-4 mr-2" />
                                 Commission
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openGameOddsDialog(subadmin)}
+                                className="text-orange-500 border-orange-500/20 hover:bg-orange-500/10"
+                              >
+                                <Percent className="h-4 w-4 mr-2" />
+                                Game Odds
                               </Button>
                               
                               <Button
