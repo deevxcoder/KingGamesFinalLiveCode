@@ -208,10 +208,11 @@ export default function HomePage() {
       {/* Admin/Subadmin message */}
       {isAdminOrSubadmin && (
         <div className="mb-8 p-6 bg-slate-800/50 border border-slate-700 rounded-lg">
-          <h2 className="text-xl font-bold mb-3 text-slate-200">Admin Panel</h2>
+          <h2 className="text-xl font-bold mb-3 text-slate-200">{isAdmin ? 'Admin' : 'Subadmin'} Panel</h2>
           <p className="text-slate-400 mb-4">
-            As an {isAdmin ? 'admin' : 'subadmin'}, you don't have permission to play games. 
-            Your role is to manage the platform and users only.
+            {isAdmin 
+              ? "As an admin, you don't have permission to play games. Your role is to manage the platform, games, and users."
+              : "As a subadmin, you don't have permission to play games. Your role is to manage users assigned to you, their risk management, and jantri settings."}
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
@@ -236,7 +237,7 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Risk Management */}
+            {/* Risk Management - Admin and Subadmin */}
             {(isAdmin || isSubadmin) && (
               <Button 
                 variant="outline"
@@ -248,7 +249,7 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Jantri Management */}
+            {/* Jantri Management - Admin and Subadmin */}
             {(isAdmin || isSubadmin) && (
               <Button 
                 variant="outline"
@@ -260,8 +261,8 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Cricket Toss Management */}
-            {(isAdmin || isSubadmin) && (
+            {/* Cricket Toss Management - Admin Only */}
+            {isAdmin && (
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-cyan-300 hover:bg-slate-800 hover:text-cyan-200"
@@ -272,8 +273,8 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Sports Management */}
-            {(isAdmin || isSubadmin) && (
+            {/* Sports Management - Admin Only */}
+            {isAdmin && (
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-indigo-300 hover:bg-slate-800 hover:text-indigo-200"
@@ -308,8 +309,8 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Fund Management */}
-            {(isAdmin || isSubadmin) && (
+            {/* Fund Management - Admin Only */}
+            {isAdmin && (
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-green-300 hover:bg-slate-800 hover:text-green-200"
