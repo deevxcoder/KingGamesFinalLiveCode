@@ -1892,6 +1892,52 @@ app.get("/api/games/my-history", async (req, res, next) => {
     }
   });
   
+  // Post endpoint for subadmin odds
+  app.post("/api/odds/subadmin/:subadminId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const subadminId = parseInt(req.params.subadminId);
+      const { odds } = req.body;
+      
+      if (!Array.isArray(odds)) {
+        return res.status(400).json({ message: "odds must be an array of odds settings" });
+      }
+
+      // Check if the user is authorized to access this resource
+      if (req.user.role === UserRole.SUBADMIN && req.user.id !== subadminId) {
+        return res.status(403).json({ message: "Unauthorized: You can only update your own odds settings" });
+      }
+      
+      // Verify the subadmin exists and is actually a subadmin
+      const subadmin = await storage.getUser(subadminId);
+      if (!subadmin || subadmin.role !== UserRole.SUBADMIN) {
+        return res.status(400).json({ message: "Invalid subadmin ID" });
+      }
+      
+      const results = await Promise.all(
+        odds.map(async (odd) => {
+          if (!odd.gameType || odd.oddValue === undefined) {
+            return { error: "gameType and oddValue are required", gameType: odd.gameType };
+          }
+          
+          return storage.upsertGameOdd(
+            odd.gameType,
+            odd.oddValue,
+            false, // Not set by admin, but by subadmin
+            subadminId
+          );
+        })
+      );
+      
+      res.json({ 
+        success: true, 
+        message: "Odds settings updated successfully",
+        results 
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+  
   // Get subadmin odds endpoint
   app.get("/api/odds/subadmin/:subadminId?", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
@@ -2016,17 +2062,67 @@ app.get("/api/games/my-history", async (req, res, next) => {
   });
   
   // Subadmin Commission routes
-  app.get("/api/commissions/subadmin/:subadminId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+  app.get("/api/commissions/subadmin/:subadminId?", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
-      const subadminId = Number(req.params.subadminId);
+      // If subadminId is not provided in path, use the current user's ID (if subadmin)
+      let subadminId = req.params.subadminId ? Number(req.params.subadminId) : 
+                        req.user.role === UserRole.SUBADMIN ? req.user.id : null;
+                        
+      if (!subadminId) {
+        return res.status(400).json({ message: "Subadmin ID is required" });
+      }
       
       // Check if the user is authorized to access this resource
       if (req.user.role === UserRole.SUBADMIN && req.user.id !== subadminId) {
         return res.status(403).json({ message: "Unauthorized" });
       }
       
-      const commissions = await storage.getSubadminCommissions(subadminId);
-      res.json(commissions);
+      // Define default game types
+      const gameTypes = [
+        'team_match',
+        'cricket_toss',
+        'coin_flip',
+        'satamatka_jodi',
+        'satamatka_harf',
+        'satamatka_odd_even',
+        'satamatka_other'
+      ];
+      
+      // Get the subadmin commissions from the database
+      const commissionsFromDB = await storage.getSubadminCommissions(subadminId);
+      
+      // Create a complete set of commissions, using defaults where needed
+      const completeCommissions = [];
+      
+      // Default commission rates by game type
+      const defaultCommissionRates = {
+        'team_match': 10,
+        'cricket_toss': 10,
+        'coin_flip': 10,
+        'satamatka_jodi': 8,
+        'satamatka_harf': 8,
+        'satamatka_odd_even': 10,
+        'satamatka_other': 8
+      };
+      
+      for (const gameType of gameTypes) {
+        // Check if subadmin has specific commission for this game type
+        const commission = commissionsFromDB.find(c => c.gameType === gameType);
+        
+        if (commission) {
+          // Use existing commission
+          completeCommissions.push(commission);
+        } else {
+          // Use default commission
+          completeCommissions.push({
+            gameType,
+            subadminId,
+            commissionRate: defaultCommissionRates[gameType] || 10
+          });
+        }
+      }
+      
+      res.json(completeCommissions);
     } catch (err) {
       next(err);
     }
