@@ -52,6 +52,31 @@ interface CommissionItem {
   commissionRate: number;
 }
 
+interface GameOdd {
+  id?: number;
+  gameType: string;
+  oddValue: number;
+  setByAdmin: boolean;
+  subadminId?: number;
+}
+
+interface UserDiscount {
+  id?: number;
+  userId: number;
+  subadminId: number;
+  gameType: string;
+  discountRate: number;
+}
+
+interface Player {
+  id: number;
+  username: string;
+  role: string;
+  balance: number;
+  assignedTo?: number;
+  createdAt?: string;
+}
+
 // Form schema for the commission form
 const commissionFormSchema = z.object({
   teamMatch: z.coerce.number().min(0).max(100),
@@ -63,7 +88,31 @@ const commissionFormSchema = z.object({
   satamatkaOther: z.coerce.number().min(0).max(100),
 });
 
+// Form schema for the odds form
+const oddsFormSchema = z.object({
+  teamMatch: z.coerce.number().min(1),
+  cricketToss: z.coerce.number().min(1),
+  coinFlip: z.coerce.number().min(1),
+  satamatkaJodi: z.coerce.number().min(1),
+  satamatkaHarf: z.coerce.number().min(1),
+  satamatkaOddEven: z.coerce.number().min(1),
+  satamatkaOther: z.coerce.number().min(1),
+});
+
+// Form schema for the discount form
+const discountFormSchema = z.object({
+  teamMatch: z.coerce.number().min(0).max(100),
+  cricketToss: z.coerce.number().min(0).max(100),
+  coinFlip: z.coerce.number().min(0).max(100),
+  satamatkaJodi: z.coerce.number().min(0).max(100),
+  satamatkaHarf: z.coerce.number().min(0).max(100),
+  satamatkaOddEven: z.coerce.number().min(0).max(100),
+  satamatkaOther: z.coerce.number().min(0).max(100),
+});
+
 type CommissionFormValues = z.infer<typeof commissionFormSchema>;
+type OddsFormValues = z.infer<typeof oddsFormSchema>;
+type DiscountFormValues = z.infer<typeof discountFormSchema>;
 
 export default function SubadminSettingsPage() {
   const { user } = useAuth();
@@ -80,6 +129,7 @@ export default function SubadminSettingsPage() {
 
   // This could be a userId for setting discounts on users under a subadmin
   const userId = queryParams.get('userId') ? parseInt(queryParams.get('userId') || '0') : null;
+  const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(userId);
 
   // Get subadmin details
   const { data: subadmin, isLoading: isLoadingSubadmin } = useQuery({
@@ -92,10 +142,62 @@ export default function SubadminSettingsPage() {
     queryKey: ['/api/commissions/subadmin', subadminId],
     enabled: !!subadminId,
   });
+  
+  // Get admin game odds
+  const { data: adminOdds, isLoading: isLoadingAdminOdds } = useQuery({
+    queryKey: ['/api/odds/admin'],
+    enabled: !!subadminId,
+  });
+  
+  // Get subadmin game odds
+  const { data: subadminOdds, isLoading: isLoadingSubadminOdds } = useQuery({
+    queryKey: ['/api/odds/subadmin', subadminId],
+    enabled: !!subadminId,
+  });
+  
+  // Get players assigned to this subadmin
+  const { data: players, isLoading: isLoadingPlayers } = useQuery({
+    queryKey: ['/api/users', { assignedTo: subadminId }],
+    enabled: !!subadminId && activeTab === "discounts",
+  });
+  
+  // Get player discounts if a player is selected
+  const { data: playerDiscounts, isLoading: isLoadingPlayerDiscounts } = useQuery({
+    queryKey: ['/api/discounts/user', selectedPlayerId, subadminId],
+    enabled: !!selectedPlayerId && !!subadminId,
+  });
 
   // Form for commission settings
-  const form = useForm<CommissionFormValues>({
+  const commissionForm = useForm<CommissionFormValues>({
     resolver: zodResolver(commissionFormSchema),
+    defaultValues: {
+      teamMatch: 0,
+      cricketToss: 0,
+      coinFlip: 0,
+      satamatkaJodi: 0,
+      satamatkaHarf: 0,
+      satamatkaOddEven: 0,
+      satamatkaOther: 0,
+    }
+  });
+  
+  // Form for game odds settings
+  const oddsForm = useForm<OddsFormValues>({
+    resolver: zodResolver(oddsFormSchema),
+    defaultValues: {
+      teamMatch: 1.9,
+      cricketToss: 1.9,
+      coinFlip: 1.9,
+      satamatkaJodi: 9,
+      satamatkaHarf: 9,
+      satamatkaOddEven: 1.9,
+      satamatkaOther: 9,
+    }
+  });
+  
+  // Form for player discount settings
+  const discountForm = useForm<DiscountFormValues>({
+    resolver: zodResolver(discountFormSchema),
     defaultValues: {
       teamMatch: 0,
       cricketToss: 0,
@@ -153,10 +255,149 @@ export default function SubadminSettingsPage() {
       });
     }
   });
+  
+  // Update game odds mutation
+  const updateOddsMutation = useMutation({
+    mutationFn: async (values: OddsFormValues) => {
+      const response = await fetch('/api/odds/subadmin/' + subadminId, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          odds: [
+            { gameType: 'team_match', oddValue: values.teamMatch },
+            { gameType: 'cricket_toss', oddValue: values.cricketToss },
+            { gameType: 'coin_flip', oddValue: values.coinFlip },
+            { gameType: 'satamatka_jodi', oddValue: values.satamatkaJodi },
+            { gameType: 'satamatka_harf', oddValue: values.satamatkaHarf },
+            { gameType: 'satamatka_odd_even', oddValue: values.satamatkaOddEven },
+            { gameType: 'satamatka_other', oddValue: values.satamatkaOther },
+          ]
+        }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update game odds settings');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/odds/subadmin', subadminId] });
+      toast({
+        title: "Game odds settings updated",
+        variant: "success",
+        duration: 3000,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update game odds settings",
+        description: error.message,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  });
+  
+  // Update player discount mutation
+  const updateDiscountMutation = useMutation({
+    mutationFn: async (values: DiscountFormValues) => {
+      if (!selectedPlayerId) {
+        throw new Error('No player selected');
+      }
+      
+      const response = await fetch(`/api/discounts/user/${selectedPlayerId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          subadminId,
+          discounts: [
+            { gameType: 'team_match', discountRate: values.teamMatch },
+            { gameType: 'cricket_toss', discountRate: values.cricketToss },
+            { gameType: 'coin_flip', discountRate: values.coinFlip },
+            { gameType: 'satamatka_jodi', discountRate: values.satamatkaJodi },
+            { gameType: 'satamatka_harf', discountRate: values.satamatkaHarf },
+            { gameType: 'satamatka_odd_even', discountRate: values.satamatkaOddEven },
+            { gameType: 'satamatka_other', discountRate: values.satamatkaOther },
+          ]
+        }),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to update player discount settings');
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/discounts/user', selectedPlayerId, subadminId] });
+      toast({
+        title: "Player discount settings updated",
+        variant: "success",
+        duration: 3000,
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update player discount settings",
+        description: error.message,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  });
 
   // Handle commission form submission
   const onSubmitCommission = (values: CommissionFormValues) => {
     updateCommissionMutation.mutate(values);
+  };
+  
+  // Handle odds form submission
+  const onSubmitOdds = (values: OddsFormValues) => {
+    updateOddsMutation.mutate(values);
+  };
+  
+  // Handle discount form submission
+  const onSubmitDiscount = (values: DiscountFormValues) => {
+    updateDiscountMutation.mutate(values);
+  };
+  
+  // Helper function to format game types for display
+  const formatGameType = (gameType: string): string => {
+    switch (gameType) {
+      case 'team_match':
+        return 'Team Match';
+      case 'cricket_toss':
+        return 'Cricket Toss';
+      case 'coin_flip':
+        return 'Coin Flip';
+      case 'satamatka_jodi':
+        return 'Jodi (Pair)';
+      case 'satamatka_harf':
+        return 'Harf';
+      case 'satamatka_odd_even':
+        return 'Odd/Even';
+      case 'satamatka_other':
+        return 'Other Market Games';
+      default:
+        return gameType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    }
+  };
+  
+  // Helper function to get maximum allowed discount based on commission percentage
+  const getMaxDiscount = (gameType: string): number => {
+    if (!commissions || !Array.isArray(commissions)) return 0;
+    
+    const commission = commissions.find(c => c.gameType === gameType);
+    return commission ? commission.commissionRate : 0;
   };
 
   // Set form values when commissions data is loaded
@@ -190,9 +431,79 @@ export default function SubadminSettingsPage() {
         }
       });
 
-      form.reset(formValues);
+      commissionForm.reset(formValues);
     }
-  }, [commissions, form]);
+  }, [commissions, commissionForm]);
+  
+  // Set form values when odds data is loaded
+  useEffect(() => {
+    if (subadminOdds && Array.isArray(subadminOdds) && subadminOdds.length > 0) {
+      const formValues: any = {
+        teamMatch: 1.9,
+        cricketToss: 1.9,
+        coinFlip: 1.9,
+        satamatkaJodi: 9,
+        satamatkaHarf: 9,
+        satamatkaOddEven: 1.9,
+        satamatkaOther: 9,
+      };
+
+      subadminOdds.forEach((odd: any) => {
+        if (odd.gameType === 'team_match') {
+          formValues.teamMatch = odd.oddValue;
+        } else if (odd.gameType === 'cricket_toss') {
+          formValues.cricketToss = odd.oddValue;
+        } else if (odd.gameType === 'coin_flip') {
+          formValues.coinFlip = odd.oddValue;
+        } else if (odd.gameType === 'satamatka_jodi') {
+          formValues.satamatkaJodi = odd.oddValue;
+        } else if (odd.gameType === 'satamatka_harf') {
+          formValues.satamatkaHarf = odd.oddValue;
+        } else if (odd.gameType === 'satamatka_odd_even') {
+          formValues.satamatkaOddEven = odd.oddValue;
+        } else if (odd.gameType === 'satamatka_other') {
+          formValues.satamatkaOther = odd.oddValue;
+        }
+      });
+
+      oddsForm.reset(formValues);
+    }
+  }, [subadminOdds, oddsForm]);
+  
+  // Set form values when player discount data is loaded
+  useEffect(() => {
+    if (playerDiscounts && Array.isArray(playerDiscounts) && playerDiscounts.length > 0 && selectedPlayerId) {
+      const formValues: any = {
+        teamMatch: 0,
+        cricketToss: 0,
+        coinFlip: 0,
+        satamatkaJodi: 0,
+        satamatkaHarf: 0,
+        satamatkaOddEven: 0,
+        satamatkaOther: 0,
+      };
+
+      playerDiscounts.forEach((discount: any) => {
+        if (discount.gameType === 'team_match') {
+          formValues.teamMatch = discount.discountRate;
+        } else if (discount.gameType === 'cricket_toss') {
+          formValues.cricketToss = discount.discountRate;
+        } else if (discount.gameType === 'coin_flip') {
+          formValues.coinFlip = discount.discountRate;
+        } else if (discount.gameType === 'satamatka_jodi') {
+          formValues.satamatkaJodi = discount.discountRate;
+        } else if (discount.gameType === 'satamatka_harf') {
+          formValues.satamatkaHarf = discount.discountRate;
+        } else if (discount.gameType === 'satamatka_odd_even') {
+          formValues.satamatkaOddEven = discount.discountRate;
+        } else if (discount.gameType === 'satamatka_other') {
+          formValues.satamatkaOther = discount.discountRate;
+        }
+      });
+
+      discountForm.reset(formValues);
+    }
+  }, [playerDiscounts, discountForm, selectedPlayerId]);
 
   return (
     <DashboardLayout>
@@ -234,7 +545,12 @@ export default function SubadminSettingsPage() {
                 <TabsTrigger value="commission">
                   Commission Settings
                 </TabsTrigger>
-                {/* Add more tabs here for other settings if needed */}
+                <TabsTrigger value="odds">
+                  Game Odds Settings
+                </TabsTrigger>
+                <TabsTrigger value="discounts">
+                  Player Discounts
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="commission">
@@ -253,13 +569,13 @@ export default function SubadminSettingsPage() {
                       </AlertDescription>
                     </Alert>
                     
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmitCommission)} className="space-y-6">
+                    <Form {...commissionForm}>
+                      <form onSubmit={commissionForm.handleSubmit(onSubmitCommission)} className="space-y-6">
                         <div>
                           <h3 className="text-lg font-medium mb-2">Sports Betting Games</h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
-                              control={form.control}
+                              control={commissionForm.control}
                               name="teamMatch"
                               render={({ field }) => (
                                 <FormItem>
@@ -279,7 +595,7 @@ export default function SubadminSettingsPage() {
                             />
                             
                             <FormField
-                              control={form.control}
+                              control={commissionForm.control}
                               name="cricketToss"
                               render={({ field }) => (
                                 <FormItem>
@@ -306,7 +622,7 @@ export default function SubadminSettingsPage() {
                           <h3 className="text-lg font-medium mb-2">Casino Games</h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
-                              control={form.control}
+                              control={commissionForm.control}
                               name="coinFlip"
                               render={({ field }) => (
                                 <FormItem>
@@ -333,7 +649,7 @@ export default function SubadminSettingsPage() {
                           <h3 className="text-lg font-medium mb-2">Market Games</h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
-                              control={form.control}
+                              control={commissionForm.control}
                               name="satamatkaJodi"
                               render={({ field }) => (
                                 <FormItem>
@@ -353,7 +669,7 @@ export default function SubadminSettingsPage() {
                             />
                             
                             <FormField
-                              control={form.control}
+                              control={commissionForm.control}
                               name="satamatkaHarf"
                               render={({ field }) => (
                                 <FormItem>
@@ -373,7 +689,7 @@ export default function SubadminSettingsPage() {
                             />
                             
                             <FormField
-                              control={form.control}
+                              control={commissionForm.control}
                               name="satamatkaOddEven"
                               render={({ field }) => (
                                 <FormItem>
@@ -393,7 +709,7 @@ export default function SubadminSettingsPage() {
                             />
                             
                             <FormField
-                              control={form.control}
+                              control={commissionForm.control}
                               name="satamatkaOther"
                               render={({ field }) => (
                                 <FormItem>
@@ -425,6 +741,401 @@ export default function SubadminSettingsPage() {
                         </div>
                       </form>
                     </Form>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="odds">
+                {isLoadingAdminOdds || isLoadingSubadminOdds ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <Alert>
+                      <AlertCircle className="h-5 w-5" />
+                      <AlertTitle>Important</AlertTitle>
+                      <AlertDescription>
+                        Game odds determine player payouts. Any odds set higher than admin rates will result in losses that the subadmin must bear.
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      {adminOdds && Array.isArray(adminOdds) && adminOdds.length > 0 && (
+                        <Card className="bg-muted/30">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base">Admin Odds</CardTitle>
+                            <CardDescription>Base rates set by admin</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2 text-sm">
+                              {adminOdds.map((odd: any) => (
+                                <div key={odd.gameType} className="flex justify-between items-center">
+                                  <span className="font-medium">{formatGameType(odd.gameType)}</span>
+                                  <span className="font-mono">{odd.oddValue}x</span>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                      
+                      {commissions && Array.isArray(commissions) && commissions.length > 0 && (
+                        <Card className="bg-muted/30">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base">Your Commission</CardTitle>
+                            <CardDescription>Your earnings from bets</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2 text-sm">
+                              {commissions.map((comm: any) => (
+                                <div key={comm.gameType} className="flex justify-between items-center">
+                                  <span className="font-medium">{formatGameType(comm.gameType)}</span>
+                                  <span className="font-mono">{comm.commissionRate}%</span>
+                                </div>
+                              ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                    
+                    <Form {...oddsForm}>
+                      <form onSubmit={oddsForm.handleSubmit(onSubmitOdds)} className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-medium mb-2">Set Your Game Odds</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={oddsForm.control}
+                              name="teamMatch"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Team Match Odds</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="number" min="1" step="0.1" />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Payout multiplier for team match games
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={oddsForm.control}
+                              name="cricketToss"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Cricket Toss Odds</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="number" min="1" step="0.1" />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Payout multiplier for cricket toss games
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={oddsForm.control}
+                              name="coinFlip"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Coin Flip Odds</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="number" min="1" step="0.1" />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Payout multiplier for coin flip games
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                        
+                        <Separator />
+                        
+                        <div>
+                          <h3 className="text-lg font-medium mb-2">Satamatka Game Odds</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                              control={oddsForm.control}
+                              name="satamatkaJodi"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Jodi (Pair) Odds</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="number" min="1" step="0.1" />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Payout multiplier for Jodi game mode
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={oddsForm.control}
+                              name="satamatkaHarf"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Harf Odds</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="number" min="1" step="0.1" />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Payout multiplier for Harf game mode
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={oddsForm.control}
+                              name="satamatkaOddEven"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Odd/Even Odds</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="number" min="1" step="0.1" />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Payout multiplier for Odd/Even game mode
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={oddsForm.control}
+                              name="satamatkaOther"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Other Market Game Odds</FormLabel>
+                                  <FormControl>
+                                    <Input {...field} type="number" min="1" step="0.1" />
+                                  </FormControl>
+                                  <FormDescription>
+                                    Payout multiplier for other Satamatka game modes
+                                  </FormDescription>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-end">
+                          <Button type="submit" disabled={updateOddsMutation.isPending}>
+                            {updateOddsMutation.isPending && (
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            )}
+                            <Save className="h-4 w-4 mr-2" />
+                            Save Game Odds Settings
+                          </Button>
+                        </div>
+                      </form>
+                    </Form>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="discounts">
+                {isLoadingPlayers ? (
+                  <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    <Alert>
+                      <AlertCircle className="h-5 w-5" />
+                      <AlertTitle>Important</AlertTitle>
+                      <AlertDescription>
+                        Player discounts cannot exceed your commission percentage. For example, if your commission on cricket toss bets is 45%, you cannot offer more than 45% discount to players.
+                      </AlertDescription>
+                    </Alert>
+                    
+                    <div className="flex flex-col space-y-4">
+                      <div>
+                        <h3 className="text-lg font-medium mb-2">Select Player</h3>
+                        <div className="grid grid-cols-1 gap-4">
+                          <div className="border rounded-md p-4">
+                            <p className="mb-2 text-sm text-muted-foreground">Choose a player to set discounts for:</p>
+                            {players && Array.isArray(players) && players.length > 0 ? (
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                {players.map((player: any) => (
+                                  <Button 
+                                    key={player.id}
+                                    type="button"
+                                    variant={selectedPlayerId === player.id ? "default" : "outline"}
+                                    className="justify-start"
+                                    onClick={() => setSelectedPlayerId(player.id)}
+                                  >
+                                    {player.username}
+                                  </Button>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-muted-foreground text-sm">No players assigned to you yet.</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {selectedPlayerId && (
+                        <div>
+                          <h3 className="text-lg font-medium mb-2">Set Discount Rates</h3>
+                          {isLoadingPlayerDiscounts ? (
+                            <div className="flex justify-center py-4">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                            </div>
+                          ) : (
+                            <Form {...discountForm}>
+                              <form onSubmit={discountForm.handleSubmit(onSubmitDiscount)} className="space-y-6">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                  <FormField
+                                    control={discountForm.control}
+                                    name="teamMatch"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Team Match Discount</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                          <FormControl>
+                                            <Input {...field} type="number" min="0" max={getMaxDiscount('team_match')} step="0.1" />
+                                          </FormControl>
+                                          <Percent className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={discountForm.control}
+                                    name="cricketToss"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Cricket Toss Discount</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                          <FormControl>
+                                            <Input {...field} type="number" min="0" max={getMaxDiscount('cricket_toss')} step="0.1" />
+                                          </FormControl>
+                                          <Percent className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={discountForm.control}
+                                    name="coinFlip"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Coin Flip Discount</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                          <FormControl>
+                                            <Input {...field} type="number" min="0" max={getMaxDiscount('coin_flip')} step="0.1" />
+                                          </FormControl>
+                                          <Percent className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={discountForm.control}
+                                    name="satamatkaJodi"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Jodi Discount</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                          <FormControl>
+                                            <Input {...field} type="number" min="0" max={getMaxDiscount('satamatka_jodi')} step="0.1" />
+                                          </FormControl>
+                                          <Percent className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={discountForm.control}
+                                    name="satamatkaHarf"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Harf Discount</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                          <FormControl>
+                                            <Input {...field} type="number" min="0" max={getMaxDiscount('satamatka_harf')} step="0.1" />
+                                          </FormControl>
+                                          <Percent className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={discountForm.control}
+                                    name="satamatkaOddEven"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Odd/Even Discount</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                          <FormControl>
+                                            <Input {...field} type="number" min="0" max={getMaxDiscount('satamatka_odd_even')} step="0.1" />
+                                          </FormControl>
+                                          <Percent className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                  
+                                  <FormField
+                                    control={discountForm.control}
+                                    name="satamatkaOther"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Other Satamatka Games Discount</FormLabel>
+                                        <div className="flex items-center gap-2">
+                                          <FormControl>
+                                            <Input {...field} type="number" min="0" max={getMaxDiscount('satamatka_other')} step="0.1" />
+                                          </FormControl>
+                                          <Percent className="h-4 w-4 text-muted-foreground" />
+                                        </div>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                                
+                                <div className="flex justify-end">
+                                  <Button type="submit" disabled={updateDiscountMutation.isPending}>
+                                    {updateDiscountMutation.isPending && (
+                                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                    )}
+                                    <Save className="h-4 w-4 mr-2" />
+                                    Save Player Discount Settings
+                                  </Button>
+                                </div>
+                              </form>
+                            </Form>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </TabsContent>
