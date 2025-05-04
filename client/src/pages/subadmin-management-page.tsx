@@ -88,6 +88,7 @@ export default function SubadminManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
+  const [isUserListDialogOpen, setIsUserListDialogOpen] = useState(false);
   const [selectedSubadminId, setSelectedSubadminId] = useState<number | null>(null);
   const [selectedSubadminName, setSelectedSubadminName] = useState<string>("");
   const [showCommissionSettings, setShowCommissionSettings] = useState(false);
@@ -231,6 +232,14 @@ export default function SubadminManagementPage() {
     select: (data: any) => data.filter((u: any) => u.role === UserRole.PLAYER),
   });
   
+  // Fetch players assigned to the selected subadmin (for admin view)
+  const { data: subadminUsers = [], isLoading: isLoadingSubadminUsers, refetch: refetchSubadminUsers } = useQuery({
+    queryKey: [`/api/users/subadmin/${selectedSubadminId}`],
+    queryFn: () => apiRequest("GET", `/api/users/subadmin/${selectedSubadminId}`),
+    enabled: !!selectedSubadminId && isUserListDialogOpen && user?.role === UserRole.ADMIN,
+    select: (data: any) => Array.isArray(data) ? data.filter((u: any) => u.role === UserRole.PLAYER) : [],
+  });
+  
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async (data: Omit<z.infer<typeof createUserSchema>, "confirmPassword">) => {
@@ -369,6 +378,14 @@ export default function SubadminManagementPage() {
     setIsCommissionDialogOpen(true);
     refetchCommissions();
   };
+  
+  // Open user list dialog for a specific subadmin
+  const openUserListDialog = (subadmin: any) => {
+    setSelectedSubadminId(subadmin.id);
+    setSelectedSubadminName(subadmin.username);
+    setIsUserListDialogOpen(true);
+    refetchSubadminUsers();
+  };
 
   return (
     <DashboardLayout title="Management">
@@ -438,6 +455,16 @@ export default function SubadminManagementPage() {
                               >
                                 <Settings className="h-4 w-4 mr-2" />
                                 Commission
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openUserListDialog(subadmin)}
+                                className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
+                              >
+                                <Users className="h-4 w-4 mr-2" />
+                                View Users
                               </Button>
                               
                               {subadmin.isBlocked ? (
@@ -1005,6 +1032,133 @@ export default function SubadminManagementPage() {
               </Form>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Full-Screen User List Dialog */}
+      <Dialog open={isUserListDialogOpen} onOpenChange={setIsUserListDialogOpen}>
+        <DialogContent className="max-w-full h-[100vh] p-0 overflow-hidden flex flex-col">
+          <div className="bg-slate-900 text-white p-6 flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold">Users assigned to {selectedSubadminName}</h2>
+              <p className="text-slate-300 text-sm mt-1">Manage users assigned to this subadmin</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full text-slate-300 hover:text-white hover:bg-slate-800"
+              onClick={() => setIsUserListDialogOpen(false)}
+            >
+              <X className="w-6 h-6" />
+            </Button>
+          </div>
+          
+          <div className="flex-1 overflow-auto p-6 scrollbar-thin scrollbar-thumb-primary scrollbar-track-secondary">
+            {isLoadingSubadminUsers ? (
+              <div className="flex justify-center items-center h-96">
+                <div className="flex flex-col items-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                  <p className="text-slate-500">Loading users...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {subadminUsers.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-96 text-center">
+                    <Users className="w-16 h-16 text-slate-300 mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">No users found</h3>
+                    <p className="text-slate-500 max-w-md">
+                      There are no players assigned to {selectedSubadminName}. Players will appear here when they are assigned.
+                    </p>
+                  </div>
+                ) : (
+                  <Card>
+                    <CardHeader>
+                      <div className="flex justify-between">
+                        <CardTitle>Users List</CardTitle>
+                        <Badge variant="outline" className="text-primary">
+                          {subadminUsers.length} Users
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Username</TableHead>
+                              <TableHead>Balance</TableHead>
+                              <TableHead>Creation Date</TableHead>
+                              <TableHead>Status</TableHead>
+                              <TableHead>Actions</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {subadminUsers.map((user: any) => (
+                              <TableRow key={user.id}>
+                                <TableCell className="font-medium">
+                                  {user.username}
+                                </TableCell>
+                                <TableCell>
+                                  ₹{user.balance?.toFixed(2) || '0.00'}
+                                </TableCell>
+                                <TableCell>
+                                  {new Date(user.createdAt).toLocaleDateString()}
+                                </TableCell>
+                                <TableCell>
+                                  {user.isBlocked ? (
+                                    <Badge variant="destructive">Blocked</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                                      Active
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  <div className="flex space-x-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
+                                    >
+                                      <Settings className="h-4 w-4 mr-2" />
+                                      Discounts
+                                    </Button>
+                                    
+                                    {user.isBlocked ? (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleUnblockSubadmin(user.id)}
+                                        className="text-green-500 border-green-500/20 hover:bg-green-500/10"
+                                      >
+                                        <CheckCircle className="h-4 w-4 mr-2" />
+                                        Unblock
+                                      </Button>
+                                    ) : (
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => handleBlockSubadmin(user.id)}
+                                        className="text-red-500 border-red-500/20 hover:bg-red-500/10"
+                                      >
+                                        <Ban className="h-4 w-4 mr-2" />
+                                        Block
+                                      </Button>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
