@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { UserRole } from "@shared/schema";
@@ -80,6 +80,9 @@ interface TeamBettingStats {
   totalAmount: number;
   potentialWinAmount: number;
   uniqueUsers: number;
+  matchId?: number;     // Added to track which match this team belongs to
+  matchName?: string;   // Added to show match name
+  opponentTeam?: string; // Added to show opponent team
 }
 
 interface TeamMatchStats {
@@ -244,43 +247,83 @@ export default function RiskManagementPage() {
             totalBets: 0,
             totalAmount: 0,
             potentialWinAmount: 0,
-            uniqueUsers: 0
+            uniqueUsers: 0,
+            matchId: 1,
+            matchName: "India vs Australia",
+            opponentTeam: "Australia"
           },
           {
             teamName: "Australia",
             totalBets: 0,
             totalAmount: 0,
             potentialWinAmount: 0,
-            uniqueUsers: 0
+            uniqueUsers: 0,
+            matchId: 1,
+            matchName: "India vs Australia",
+            opponentTeam: "India"
           }
         ];
       }
       return [];
     }
     
-    // Flatten all teams from all matches
-    const allTeams: TeamBettingStats[] = [];
+    // Enhanced teams with match information and opponents
+    const enhancedTeams: TeamBettingStats[] = [];
     
     cricketTossStats.forEach(match => {
-      match.teams.forEach(team => {
-        allTeams.push(team);
-      });
+      // Skip if there are not exactly 2 teams in a match
+      if (match.teams.length !== 2) return;
+      
+      // Prepare both teams with match information and their opponent
+      const team1 = {
+        ...match.teams[0],
+        matchId: match.matchId,
+        matchName: match.matchName,
+        opponentTeam: match.teams[1].teamName
+      };
+      
+      const team2 = {
+        ...match.teams[1],
+        matchId: match.matchId,
+        matchName: match.matchName,
+        opponentTeam: match.teams[0].teamName
+      };
+      
+      enhancedTeams.push(team1, team2);
     });
     
     // Filter and sort the teams
-    return allTeams
+    return enhancedTeams
       .filter(team => {
         if (!searchTerm) return true;
-        return team.teamName.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // Search by team name, match name, or opponent
+        return (
+          team.teamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (team.matchName && team.matchName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (team.opponentTeam && team.opponentTeam.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
       })
       .sort((a, b) => {
-        const aValue = a[sortColumn as keyof TeamBettingStats];
-        const bValue = b[sortColumn as keyof TeamBettingStats];
+        // First sort by matchId to group teams from the same match
+        if (sortColumn !== 'matchId' && a.matchId !== b.matchId) {
+          return a.matchId! - b.matchId!;
+        }
         
-        if (sortDirection === 'asc') {
-          return (aValue as number) - (bValue as number);
+        // Then apply the selected sorting
+        if (sortColumn === 'teamName' || sortColumn === 'opponentTeam' || sortColumn === 'matchName') {
+          const aStr = String(a[sortColumn as keyof TeamBettingStats] || '');
+          const bStr = String(b[sortColumn as keyof TeamBettingStats] || '');
+          return sortDirection === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
         } else {
-          return (bValue as number) - (aValue as number);
+          const aValue = a[sortColumn as keyof TeamBettingStats] as number;
+          const bValue = b[sortColumn as keyof TeamBettingStats] as number;
+          
+          if (sortDirection === 'asc') {
+            return aValue - bValue;
+          } else {
+            return bValue - aValue;
+          }
         }
       })
       .slice(0, 100); // Get top 100 results
@@ -297,43 +340,83 @@ export default function RiskManagementPage() {
             totalBets: 0,
             totalAmount: 0,
             potentialWinAmount: 0,
-            uniqueUsers: 0
+            uniqueUsers: 0,
+            matchId: 1,
+            matchName: "Mumbai Indians vs Chennai Super Kings",
+            opponentTeam: "Chennai Super Kings"
           },
           {
             teamName: "Chennai Super Kings",
             totalBets: 0,
             totalAmount: 0,
             potentialWinAmount: 0,
-            uniqueUsers: 0
+            uniqueUsers: 0,
+            matchId: 1,
+            matchName: "Mumbai Indians vs Chennai Super Kings",
+            opponentTeam: "Mumbai Indians"
           }
         ];
       }
       return [];
     }
     
-    // Flatten all teams from all matches
-    const allTeams: TeamBettingStats[] = [];
+    // Enhanced teams with match information and opponents
+    const enhancedTeams: TeamBettingStats[] = [];
     
     sportsStats.forEach(match => {
-      match.teams.forEach(team => {
-        allTeams.push(team);
-      });
+      // Skip if there are not exactly 2 teams in a match
+      if (match.teams.length !== 2) return;
+      
+      // Prepare both teams with match information and their opponent
+      const team1 = {
+        ...match.teams[0],
+        matchId: match.matchId,
+        matchName: match.matchName,
+        opponentTeam: match.teams[1].teamName
+      };
+      
+      const team2 = {
+        ...match.teams[1],
+        matchId: match.matchId,
+        matchName: match.matchName,
+        opponentTeam: match.teams[0].teamName
+      };
+      
+      enhancedTeams.push(team1, team2);
     });
     
     // Filter and sort the teams
-    return allTeams
+    return enhancedTeams
       .filter(team => {
         if (!searchTerm) return true;
-        return team.teamName.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        // Search by team name, match name, or opponent
+        return (
+          team.teamName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (team.matchName && team.matchName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (team.opponentTeam && team.opponentTeam.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
       })
       .sort((a, b) => {
-        const aValue = a[sortColumn as keyof TeamBettingStats];
-        const bValue = b[sortColumn as keyof TeamBettingStats];
+        // First sort by matchId to group teams from the same match
+        if (sortColumn !== 'matchId' && a.matchId !== b.matchId) {
+          return a.matchId! - b.matchId!;
+        }
         
-        if (sortDirection === 'asc') {
-          return (aValue as number) - (bValue as number);
+        // Then apply the selected sorting
+        if (sortColumn === 'teamName' || sortColumn === 'opponentTeam' || sortColumn === 'matchName') {
+          const aStr = String(a[sortColumn as keyof TeamBettingStats] || '');
+          const bStr = String(b[sortColumn as keyof TeamBettingStats] || '');
+          return sortDirection === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
         } else {
-          return (bValue as number) - (aValue as number);
+          const aValue = a[sortColumn as keyof TeamBettingStats] as number;
+          const bValue = b[sortColumn as keyof TeamBettingStats] as number;
+          
+          if (sortDirection === 'asc') {
+            return aValue - bValue;
+          } else {
+            return bValue - aValue;
+          }
         }
       })
       .slice(0, 100); // Get top 100 results
@@ -534,13 +617,35 @@ export default function RiskManagementPage() {
       );
     } else if (activeTab === "cricket") {
       const data = processCricketTossData();
+      let currentMatchId: number | null = null;
       
       return (
         <ScrollArea className="h-[600px]">
           <Table>
             <TableHeader className="sticky top-0 bg-background">
               <TableRow>
-                <TableHead>Team</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:text-primary"
+                  onClick={() => handleSort('teamName')}
+                >
+                  <div className="flex items-center">
+                    Team
+                    {sortColumn === 'teamName' && (
+                      sortDirection === 'asc' ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:text-primary"
+                  onClick={() => handleSort('opponentTeam')}
+                >
+                  <div className="flex items-center">
+                    Opponent
+                    {sortColumn === 'opponentTeam' && (
+                      sortDirection === 'asc' ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead 
                   className="cursor-pointer hover:text-primary"
                   onClick={() => handleSort('totalBets')}
@@ -591,7 +696,7 @@ export default function RiskManagementPage() {
             <TableBody>
               {data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4">
+                  <TableCell colSpan={7} className="text-center py-4">
                     {cricketLoading ? (
                       <div className="flex justify-center items-center py-4">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
@@ -602,7 +707,7 @@ export default function RiskManagementPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((item) => {
+                data.map((item, index) => {
                   // Calculate risk level
                   let riskLevel = "Low";
                   let riskColor = "bg-green-100 text-green-800";
@@ -615,17 +720,50 @@ export default function RiskManagementPage() {
                     riskColor = "bg-yellow-100 text-yellow-800";
                   }
                   
+                  // Determine if this is the start of a new match group
+                  const isNewMatch = currentMatchId !== item.matchId;
+                  currentMatchId = item.matchId || null;
+                  
+                  // Calculate if this is the second team in a match (for styling alternating teams)
+                  const isSecondTeamInMatch = index % 2 === 1;
+                  
                   return (
-                    <TableRow key={item.teamName}>
-                      <TableCell className="font-medium">{item.teamName}</TableCell>
-                      <TableCell>{item.totalBets}</TableCell>
-                      <TableCell>{formatAmount(item.totalAmount)}</TableCell>
-                      <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
-                      <TableCell>{item.uniqueUsers}</TableCell>
-                      <TableCell>
-                        <Badge className={riskColor}>{riskLevel}</Badge>
-                      </TableCell>
-                    </TableRow>
+                    <>
+                      {/* Show match header if this is the first team of a match */}
+                      {isNewMatch && (
+                        <TableRow 
+                          key={`match-header-${item.matchId}`} 
+                          className="bg-muted/30"
+                        >
+                          <TableCell colSpan={7} className="py-1">
+                            <div className="text-sm font-medium flex items-center">
+                              <Activity className="mr-2 h-4 w-4 text-primary" />
+                              {item.matchName || "Cricket Toss Match"}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      
+                      {/* Team row with highlight for odd/even teams */}
+                      <TableRow 
+                        key={`${item.matchId}-${item.teamName}`}
+                        className={isSecondTeamInMatch ? "bg-accent/10" : ""}
+                      >
+                        <TableCell className="font-medium">{item.teamName}</TableCell>
+                        <TableCell>
+                          {item.opponentTeam ? (
+                            <Badge variant="outline">{item.opponentTeam}</Badge>
+                          ) : "N/A"}
+                        </TableCell>
+                        <TableCell>{item.totalBets}</TableCell>
+                        <TableCell>{formatAmount(item.totalAmount)}</TableCell>
+                        <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
+                        <TableCell>{item.uniqueUsers}</TableCell>
+                        <TableCell>
+                          <Badge className={riskColor}>{riskLevel}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    </>
                   );
                 })
               )}
@@ -635,13 +773,35 @@ export default function RiskManagementPage() {
       );
     } else if (activeTab === "sports") {
       const data = processSportsData();
+      let currentMatchId: number | null = null;
       
       return (
         <ScrollArea className="h-[600px]">
           <Table>
             <TableHeader className="sticky top-0 bg-background">
               <TableRow>
-                <TableHead>Team</TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:text-primary"
+                  onClick={() => handleSort('teamName')}
+                >
+                  <div className="flex items-center">
+                    Team
+                    {sortColumn === 'teamName' && (
+                      sortDirection === 'asc' ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:text-primary"
+                  onClick={() => handleSort('opponentTeam')}
+                >
+                  <div className="flex items-center">
+                    Opponent
+                    {sortColumn === 'opponentTeam' && (
+                      sortDirection === 'asc' ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead 
                   className="cursor-pointer hover:text-primary"
                   onClick={() => handleSort('totalBets')}
@@ -692,7 +852,7 @@ export default function RiskManagementPage() {
             <TableBody>
               {data.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-4">
+                  <TableCell colSpan={7} className="text-center py-4">
                     {sportsLoading ? (
                       <div className="flex justify-center items-center py-4">
                         <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
@@ -703,7 +863,7 @@ export default function RiskManagementPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                data.map((item) => {
+                data.map((item, index) => {
                   // Calculate risk level
                   let riskLevel = "Low";
                   let riskColor = "bg-green-100 text-green-800";
@@ -716,17 +876,49 @@ export default function RiskManagementPage() {
                     riskColor = "bg-yellow-100 text-yellow-800";
                   }
                   
+                  // Determine if this is the start of a new match group
+                  const isNewMatch = currentMatchId !== item.matchId;
+                  currentMatchId = item.matchId || null;
+                  
+                  // Calculate if this is the second team in a match (for styling alternating teams)
+                  const isSecondTeamInMatch = index % 2 === 1;
+                  
                   return (
-                    <TableRow key={item.teamName}>
-                      <TableCell className="font-medium">{item.teamName}</TableCell>
-                      <TableCell>{item.totalBets}</TableCell>
-                      <TableCell>{formatAmount(item.totalAmount)}</TableCell>
-                      <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
-                      <TableCell>{item.uniqueUsers}</TableCell>
-                      <TableCell>
-                        <Badge className={riskColor}>{riskLevel}</Badge>
-                      </TableCell>
-                    </TableRow>
+                    <React.Fragment key={`${item.matchId}-${item.teamName}`}>
+                      {/* Show match header if this is the first team of a match */}
+                      {isNewMatch && (
+                        <TableRow 
+                          key={`match-header-${item.matchId}`} 
+                          className="bg-muted/30"
+                        >
+                          <TableCell colSpan={7} className="py-1">
+                            <div className="text-sm font-medium flex items-center">
+                              <BarChart className="mr-2 h-4 w-4 text-primary" />
+                              {item.matchName || "Sports Match"}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      
+                      {/* Team row with highlight for odd/even teams */}
+                      <TableRow 
+                        className={isSecondTeamInMatch ? "bg-accent/10" : ""}
+                      >
+                        <TableCell className="font-medium">{item.teamName}</TableCell>
+                        <TableCell>
+                          {item.opponentTeam ? (
+                            <Badge variant="outline">{item.opponentTeam}</Badge>
+                          ) : "N/A"}
+                        </TableCell>
+                        <TableCell>{item.totalBets}</TableCell>
+                        <TableCell>{formatAmount(item.totalAmount)}</TableCell>
+                        <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
+                        <TableCell>{item.uniqueUsers}</TableCell>
+                        <TableCell>
+                          <Badge className={riskColor}>{riskLevel}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    </React.Fragment>
                   );
                 })
               )}
