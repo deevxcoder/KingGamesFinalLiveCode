@@ -151,7 +151,7 @@ export default function SubadminSettingsPage() {
   
   // Get subadmin game odds
   const { data: subadminOdds, isLoading: isLoadingSubadminOdds } = useQuery({
-    queryKey: ['/api/odds/subadmin', subadminId],
+    queryKey: [`/api/odds/subadmin/${subadminId}`],
     enabled: !!subadminId,
   });
   
@@ -286,7 +286,7 @@ export default function SubadminSettingsPage() {
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/odds/subadmin', subadminId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/odds/subadmin/${subadminId}`] });
       toast({
         title: "Game odds settings updated",
         variant: "success",
