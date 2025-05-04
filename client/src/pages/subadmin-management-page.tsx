@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { queryClient, apiRequest } from "@/lib/queryClient";
+import { queryClient, apiRequest, getQueryFn } from "@/lib/queryClient";
 import { UserRole } from "@shared/schema";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
@@ -40,11 +40,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Badge } from "@/components/ui/badge";
-import { Ban, CheckCircle, UserPlus, Settings, Users, Loader2 } from "lucide-react";
+import { Ban, CheckCircle, UserPlus, Settings, Users, Loader2, AlertCircle, Save, Percent } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const createSubadminSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
@@ -56,6 +58,19 @@ const createSubadminSchema = z.object({
     satamatka_odd_even: z.string(),
   }).optional(),
 });
+
+// Commission schema for subadmin
+const commissionSchema = z.object({
+  teamMatch: z.coerce.number().min(0).max(100),
+  cricketToss: z.coerce.number().min(0).max(100),
+  coinFlip: z.coerce.number().min(0).max(100),
+  satamatkaJodi: z.coerce.number().min(0).max(100),
+  satamatkaHarf: z.coerce.number().min(0).max(100),
+  satamatkaOddEven: z.coerce.number().min(0).max(100),
+  satamatkaOther: z.coerce.number().min(0).max(100),
+});
+
+type Commission = z.infer<typeof commissionSchema>;
 
 // Schema for creating a new user (player)
 const createUserSchema = z.object({
@@ -72,6 +87,9 @@ export default function SubadminManagementPage() {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
+  const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
+  const [selectedSubadminId, setSelectedSubadminId] = useState<number | null>(null);
+  const [selectedSubadminName, setSelectedSubadminName] = useState<string>("");
   const [showCommissionSettings, setShowCommissionSettings] = useState(false);
   const [activeTab, setActiveTab] = useState("subadmins");
 
@@ -244,6 +262,113 @@ export default function SubadminManagementPage() {
   const handleCreateUser = (data: z.infer<typeof createUserSchema>) => {
     const { confirmPassword, ...userData } = data;
     createUserMutation.mutate(userData);
+  };
+  
+  // Commission form setup
+  const commissionForm = useForm<Commission>({
+    resolver: zodResolver(commissionSchema),
+    defaultValues: {
+      teamMatch: 0,
+      cricketToss: 0,
+      coinFlip: 0,
+      satamatkaJodi: 0,
+      satamatkaHarf: 0,
+      satamatkaOddEven: 0,
+      satamatkaOther: 0,
+    }
+  });
+  
+  // Get commission settings for a selected subadmin
+  const { data: commissions, isLoading: isLoadingCommissions, refetch: refetchCommissions } = useQuery({
+    queryKey: [`/api/commissions/subadmin/${selectedSubadminId}`],
+    queryFn: getQueryFn,
+    enabled: !!selectedSubadminId && isCommissionDialogOpen,
+  });
+  
+  // Update commission mutation
+  const updateCommissionMutation = useMutation({
+    mutationFn: async (values: Commission) => {
+      if (!selectedSubadminId) {
+        throw new Error('No subadmin selected');
+      }
+      
+      return apiRequest("POST", `/api/commissions/subadmin/${selectedSubadminId}`, {
+        commissions: [
+          { gameType: 'team_match', commissionRate: values.teamMatch },
+          { gameType: 'cricket_toss', commissionRate: values.cricketToss },
+          { gameType: 'coin_flip', commissionRate: values.coinFlip },
+          { gameType: 'satamatka_jodi', commissionRate: values.satamatkaJodi },
+          { gameType: 'satamatka_harf', commissionRate: values.satamatkaHarf },
+          { gameType: 'satamatka_odd_even', commissionRate: values.satamatkaOddEven },
+          { gameType: 'satamatka_other', commissionRate: values.satamatkaOther },
+        ]
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/commissions/subadmin/${selectedSubadminId}`] });
+      toast({
+        title: "Commission settings updated",
+        description: `Commission rates for ${selectedSubadminName} have been updated successfully.`,
+        duration: 3000,
+      });
+      setIsCommissionDialogOpen(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update commission settings",
+        description: error.message,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  });
+  
+  // Handle commission form submission
+  const onSubmitCommission = (values: Commission) => {
+    updateCommissionMutation.mutate(values);
+  };
+  
+  // Set form values when commissions data is loaded
+  useEffect(() => {
+    if (commissions && Array.isArray(commissions) && commissions.length > 0) {
+      const formValues: any = {
+        teamMatch: 0,
+        cricketToss: 0,
+        coinFlip: 0,
+        satamatkaJodi: 0,
+        satamatkaHarf: 0,
+        satamatkaOddEven: 0,
+        satamatkaOther: 0,
+      };
+
+      commissions.forEach((commission: any) => {
+        if (commission.gameType === 'team_match') {
+          formValues.teamMatch = commission.commissionRate;
+        } else if (commission.gameType === 'cricket_toss') {
+          formValues.cricketToss = commission.commissionRate;
+        } else if (commission.gameType === 'coin_flip') {
+          formValues.coinFlip = commission.commissionRate;
+        } else if (commission.gameType === 'satamatka_jodi') {
+          formValues.satamatkaJodi = commission.commissionRate;
+        } else if (commission.gameType === 'satamatka_harf') {
+          formValues.satamatkaHarf = commission.commissionRate;
+        } else if (commission.gameType === 'satamatka_odd_even') {
+          formValues.satamatkaOddEven = commission.commissionRate;
+        } else if (commission.gameType === 'satamatka_other') {
+          formValues.satamatkaOther = commission.commissionRate;
+        }
+      });
+
+      commissionForm.reset(formValues);
+    }
+  }, [commissions, commissionForm]);
+  
+  // Open commission dialog for a specific subadmin
+  const openCommissionDialog = (subadmin: any) => {
+    setSelectedSubadminId(subadmin.id);
+    setSelectedSubadminName(subadmin.username);
+    setIsCommissionDialogOpen(true);
+    refetchCommissions();
   };
 
   return (
