@@ -33,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, ArrowLeft, Percent, Save } from "lucide-react";
+import { AlertCircle, ArrowLeft, Percent, Save, Info } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Define types for the API responses
@@ -543,13 +543,13 @@ export default function SubadminSettingsPage() {
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-4">
                 <TabsTrigger value="commission">
-                  Commission Settings
+                  My Commission Rates
                 </TabsTrigger>
                 <TabsTrigger value="odds">
-                  Game Odds Settings
+                  My Game Odds
                 </TabsTrigger>
                 <TabsTrigger value="discounts">
-                  Player Discounts
+                  Player Discounts & Odds
                 </TabsTrigger>
               </TabsList>
               
@@ -561,186 +561,59 @@ export default function SubadminSettingsPage() {
                 ) : (
                   <div className="space-y-6">
                     <Alert>
-                      <AlertCircle className="h-5 w-5" />
-                      <AlertTitle>Important</AlertTitle>
+                      <Info className="h-5 w-5" />
+                      <AlertTitle>Commission Rates</AlertTitle>
                       <AlertDescription>
-                        Commission rates determine how much of the player's bets the subadmin earns.
-                        Rates are set as percentages (0-100%).
+                        Commission rates determine how much of the player's bets you earn. These rates are set by the administrator.
                       </AlertDescription>
                     </Alert>
                     
-                    <Form {...commissionForm}>
-                      <form onSubmit={commissionForm.handleSubmit(onSubmitCommission)} className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-medium mb-2">Sports Betting Games</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                              control={commissionForm.control}
-                              name="teamMatch"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Team Match Commission</FormLabel>
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input {...field} type="number" min="0" max="100" step="0.1" />
-                                    </FormControl>
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-medium mb-4">Your Commission Rates</h3>
+                        
+                        {commissions && Array.isArray(commissions) && commissions.length > 0 ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {(commissions as CommissionItem[]).map((comm: CommissionItem) => (
+                              <Card key={comm.gameType} className="bg-muted/20">
+                                <CardHeader className="pb-2">
+                                  <CardTitle className="text-base">
+                                    {comm.gameType === 'team_match' ? 'Team Match' : 
+                                     comm.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                     comm.gameType === 'coin_flip' ? 'Coin Flip' : 
+                                     comm.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
+                                     comm.gameType === 'satamatka_harf' ? 'Harf' : 
+                                     comm.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
+                                     comm.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                     comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                  </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-muted-foreground">Commission:</span>
+                                    <span className="text-xl font-bold">{comm.commissionRate}%</span>
                                   </div>
-                                  <FormDescription>
-                                    Commission for football, cricket, and other team sports
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={commissionForm.control}
-                              name="cricketToss"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Cricket Toss Commission</FormLabel>
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input {...field} type="number" min="0" max="100" step="0.1" />
-                                    </FormControl>
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <FormDescription>
-                                    Commission for cricket toss bets
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                                </CardContent>
+                              </Card>
+                            ))}
                           </div>
-                        </div>
-                        
-                        <Separator />
-                        
-                        <div>
-                          <h3 className="text-lg font-medium mb-2">Casino Games</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                              control={commissionForm.control}
-                              name="coinFlip"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Coin Flip Commission</FormLabel>
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input {...field} type="number" min="0" max="100" step="0.1" />
-                                    </FormControl>
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <FormDescription>
-                                    Commission for coin flip games
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                        ) : (
+                          <div className="p-4 border rounded-md">
+                            <p className="text-center text-muted-foreground">
+                              No commission rates have been set by the administrator yet.
+                            </p>
                           </div>
-                        </div>
-                        
-                        <Separator />
-                        
-                        <div>
-                          <h3 className="text-lg font-medium mb-2">Market Games</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                              control={commissionForm.control}
-                              name="satamatkaJodi"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Jodi (Pair) Commission</FormLabel>
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input {...field} type="number" min="0" max="100" step="0.1" />
-                                    </FormControl>
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <FormDescription>
-                                    Commission for Jodi game mode in Satamatka
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={commissionForm.control}
-                              name="satamatkaHarf"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Harf Commission</FormLabel>
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input {...field} type="number" min="0" max="100" step="0.1" />
-                                    </FormControl>
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <FormDescription>
-                                    Commission for Harf game mode in Satamatka
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={commissionForm.control}
-                              name="satamatkaOddEven"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Odd/Even Commission</FormLabel>
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input {...field} type="number" min="0" max="100" step="0.1" />
-                                    </FormControl>
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <FormDescription>
-                                    Commission for Odd/Even game mode in Satamatka
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={commissionForm.control}
-                              name="satamatkaOther"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Other Market Game Commission</FormLabel>
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input {...field} type="number" min="0" max="100" step="0.1" />
-                                    </FormControl>
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <FormDescription>
-                                    Commission for other Satamatka game modes
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-end">
-                          <Button type="submit" disabled={updateCommissionMutation.isPending}>
-                            {updateCommissionMutation.isPending && (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            )}
-                            <Save className="h-4 w-4 mr-2" />
-                            Save Commission Settings
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
+                        )}
+                      </div>
+                      
+                      <Alert variant="default" className="bg-muted">
+                        <AlertCircle className="h-5 w-5" />
+                        <AlertTitle>Note</AlertTitle>
+                        <AlertDescription>
+                          You cannot modify your commission rates. Please contact the administrator if you need your commission rates adjusted.
+                        </AlertDescription>
+                      </Alert>
+                    </div>
                   </div>
                 )}
               </TabsContent>
@@ -753,215 +626,90 @@ export default function SubadminSettingsPage() {
                 ) : (
                   <div className="space-y-6">
                     <Alert>
-                      <AlertCircle className="h-5 w-5" />
-                      <AlertTitle>Important</AlertTitle>
+                      <Info className="h-5 w-5" />
+                      <AlertTitle>Game Odds</AlertTitle>
                       <AlertDescription>
-                        Game odds determine player payouts. Any odds set higher than admin rates will result in losses that the subadmin must bear.
+                        Game odds determine payouts for player bets. These rates are set by the administrator.
                       </AlertDescription>
                     </Alert>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                      {adminOdds && Array.isArray(adminOdds) && adminOdds.length > 0 && (
-                        <Card className="bg-muted/30">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-base">Admin Odds</CardTitle>
-                            <CardDescription>Base rates set by admin</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-2 text-sm">
-                              {Array.isArray(adminOdds) && (adminOdds as GameOdd[]).map((odd: GameOdd) => (
-                                <div key={odd.gameType} className="flex justify-between items-center">
-                                  <span className="font-medium">
-                                    {odd.gameType === 'team_match' ? 'Team Match' : 
-                                     odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
-                                     odd.gameType === 'coin_flip' ? 'Coin Flip' : 
-                                     odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
-                                     odd.gameType === 'satamatka_harf' ? 'Harf' : 
-                                     odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                     odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
-                                     odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                                  </span>
-                                  <span className="font-mono">{odd.oddValue}x</span>
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h3 className="text-lg font-medium mb-4">Admin Odds</h3>
+                          {adminOdds && Array.isArray(adminOdds) && adminOdds.length > 0 ? (
+                            <Card className="bg-muted/30">
+                              <CardContent className="pt-6">
+                                <div className="space-y-2">
+                                  {(adminOdds as GameOdd[]).map((odd: GameOdd) => (
+                                    <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
+                                      <span className="font-medium">
+                                        {odd.gameType === 'team_match' ? 'Team Match' : 
+                                         odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                         odd.gameType === 'coin_flip' ? 'Coin Flip' : 
+                                         odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
+                                         odd.gameType === 'satamatka_harf' ? 'Harf' : 
+                                         odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
+                                         odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                         odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                      </span>
+                                      <span className="text-lg font-mono font-bold">{odd.oddValue}x</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
+                              </CardContent>
+                            </Card>
+                          ) : (
+                            <div className="p-4 border rounded-md">
+                              <p className="text-center text-muted-foreground">
+                                No game odds have been set by the administrator yet.
+                              </p>
                             </div>
-                          </CardContent>
-                        </Card>
-                      )}
+                          )}
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-lg font-medium mb-4">Your Game Odds</h3>
+                          {subadminOdds && Array.isArray(subadminOdds) && subadminOdds.length > 0 ? (
+                            <Card className="bg-muted/30">
+                              <CardContent className="pt-6">
+                                <div className="space-y-2">
+                                  {(subadminOdds as GameOdd[]).map((odd: GameOdd) => (
+                                    <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
+                                      <span className="font-medium">
+                                        {odd.gameType === 'team_match' ? 'Team Match' : 
+                                         odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                         odd.gameType === 'coin_flip' ? 'Coin Flip' : 
+                                         odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
+                                         odd.gameType === 'satamatka_harf' ? 'Harf' : 
+                                         odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
+                                         odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
+                                         odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                      </span>
+                                      <span className="text-lg font-mono font-bold">{odd.oddValue}x</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ) : (
+                            <div className="p-4 border rounded-md">
+                              <p className="text-center text-muted-foreground">
+                                No game odds have been set for your account yet.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                       
-                      {commissions && Array.isArray(commissions) && commissions.length > 0 && (
-                        <Card className="bg-muted/30">
-                          <CardHeader className="pb-2">
-                            <CardTitle className="text-base">Your Commission</CardTitle>
-                            <CardDescription>Your earnings from bets</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-2 text-sm">
-                              {Array.isArray(commissions) && (commissions as CommissionItem[]).map((comm: CommissionItem) => (
-                                <div key={comm.gameType} className="flex justify-between items-center">
-                                  <span className="font-medium">
-                                    {comm.gameType === 'team_match' ? 'Team Match' : 
-                                     comm.gameType === 'cricket_toss' ? 'Cricket Toss' : 
-                                     comm.gameType === 'coin_flip' ? 'Coin Flip' : 
-                                     comm.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
-                                     comm.gameType === 'satamatka_harf' ? 'Harf' : 
-                                     comm.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                     comm.gameType === 'satamatka_other' ? 'Other Market Games' : 
-                                     comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                                  </span>
-                                  <span className="font-mono">{comm.commissionRate}%</span>
-                                </div>
-                              ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )}
+                      <Alert variant="default" className="bg-muted">
+                        <AlertCircle className="h-5 w-5" />
+                        <AlertTitle>Note</AlertTitle>
+                        <AlertDescription>
+                          You cannot modify your game odds. Please contact the administrator if you need your game odds adjusted.
+                        </AlertDescription>
+                      </Alert>
                     </div>
-                    
-                    <Form {...oddsForm}>
-                      <form onSubmit={oddsForm.handleSubmit(onSubmitOdds)} className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-medium mb-2">Set Your Game Odds</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                              control={oddsForm.control}
-                              name="teamMatch"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Team Match Odds</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} type="number" min="1" step="0.1" />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Payout multiplier for team match games
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={oddsForm.control}
-                              name="cricketToss"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Cricket Toss Odds</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} type="number" min="1" step="0.1" />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Payout multiplier for cricket toss games
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={oddsForm.control}
-                              name="coinFlip"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Coin Flip Odds</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} type="number" min="1" step="0.1" />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Payout multiplier for coin flip games
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-                        
-                        <Separator />
-                        
-                        <div>
-                          <h3 className="text-lg font-medium mb-2">Satamatka Game Odds</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                              control={oddsForm.control}
-                              name="satamatkaJodi"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Jodi (Pair) Odds</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} type="number" min="1" step="0.1" />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Payout multiplier for Jodi game mode
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={oddsForm.control}
-                              name="satamatkaHarf"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Harf Odds</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} type="number" min="1" step="0.1" />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Payout multiplier for Harf game mode
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={oddsForm.control}
-                              name="satamatkaOddEven"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Odd/Even Odds</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} type="number" min="1" step="0.1" />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Payout multiplier for Odd/Even game mode
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={oddsForm.control}
-                              name="satamatkaOther"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Other Market Game Odds</FormLabel>
-                                  <FormControl>
-                                    <Input {...field} type="number" min="1" step="0.1" />
-                                  </FormControl>
-                                  <FormDescription>
-                                    Payout multiplier for other Satamatka game modes
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-end">
-                          <Button type="submit" disabled={updateOddsMutation.isPending}>
-                            {updateOddsMutation.isPending && (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                            )}
-                            <Save className="h-4 w-4 mr-2" />
-                            Save Game Odds Settings
-                          </Button>
-                        </div>
-                      </form>
-                    </Form>
                   </div>
                 )}
               </TabsContent>
@@ -974,10 +722,11 @@ export default function SubadminSettingsPage() {
                 ) : (
                   <div className="space-y-6">
                     <Alert>
-                      <AlertCircle className="h-5 w-5" />
-                      <AlertTitle>Important</AlertTitle>
+                      <Info className="h-5 w-5" />
+                      <AlertTitle>Player Discounts & Odds Management</AlertTitle>
                       <AlertDescription>
-                        Player discounts cannot exceed your commission percentage. For example, if your commission on cricket toss bets is 45%, you cannot offer more than 45% discount to players.
+                        You can set discounts for players assigned to you. Player discounts cannot exceed your commission percentage.
+                        For example, if your commission on cricket toss bets is 45%, you cannot offer more than 45% discount to players.
                       </AlertDescription>
                     </Alert>
                     
