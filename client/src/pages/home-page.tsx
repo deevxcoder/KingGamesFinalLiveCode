@@ -24,9 +24,11 @@ import {
   Target,
   Gamepad,
   Coins,
-  Activity,
   Club,
-  Award
+  Award,
+  DollarSign,
+  BarChart, 
+  Activity
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -245,6 +247,42 @@ export default function HomePage() {
               </Button>
             )}
             
+            {/* Jantri Management */}
+            {(isAdmin || isSubadmin) && (
+              <Button 
+                variant="outline"
+                className="py-6 border-slate-700 text-rose-300 hover:bg-slate-800 hover:text-rose-200"
+                onClick={() => setLocation("/manage-jantri")}
+              >
+                <Dice1 className="h-5 w-5 mr-2" />
+                Jantri Management
+              </Button>
+            )}
+            
+            {/* Cricket Toss Management */}
+            {(isAdmin || isSubadmin) && (
+              <Button 
+                variant="outline"
+                className="py-6 border-slate-700 text-cyan-300 hover:bg-slate-800 hover:text-cyan-200"
+                onClick={() => setLocation("/manage-cricket-toss")}
+              >
+                <Activity className="h-5 w-5 mr-2" />
+                Cricket Toss Management
+              </Button>
+            )}
+            
+            {/* Sports Management */}
+            {(isAdmin || isSubadmin) && (
+              <Button 
+                variant="outline"
+                className="py-6 border-slate-700 text-indigo-300 hover:bg-slate-800 hover:text-indigo-200"
+                onClick={() => setLocation("/manage-sports")}
+              >
+                <BarChart className="h-5 w-5 mr-2" />
+                Sports Management
+              </Button>
+            )}
+            
             {/* Market Management - Admin Only */}
             {isAdmin && (
               <Button 
@@ -266,6 +304,18 @@ export default function HomePage() {
               >
                 <Trophy className="h-5 w-5 mr-2" />
                 Manage Teams
+              </Button>
+            )}
+            
+            {/* Fund Management */}
+            {(isAdmin || isSubadmin) && (
+              <Button 
+                variant="outline"
+                className="py-6 border-slate-700 text-green-300 hover:bg-slate-800 hover:text-green-200"
+                onClick={() => setLocation("/fund-management")}
+              >
+                <DollarSign className="h-5 w-5 mr-2" />
+                Fund Management
               </Button>
             )}
           </div>
