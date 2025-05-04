@@ -80,9 +80,10 @@ interface TeamBettingStats {
   totalAmount: number;
   potentialWinAmount: number;
   uniqueUsers: number;
-  matchId?: number;     // Added to track which match this team belongs to
-  matchName?: string;   // Added to show match name
+  matchId?: number;      // Added to track which match this team belongs to
+  matchName?: string;    // Added to show match name
   opponentTeam?: string; // Added to show opponent team
+  isDraw?: boolean;      // Flag to identify if this is a draw option
 }
 
 interface TeamMatchStats {
@@ -354,6 +355,16 @@ export default function RiskManagementPage() {
             matchId: 1,
             matchName: "Mumbai Indians vs Chennai Super Kings",
             opponentTeam: "Mumbai Indians"
+          },
+          {
+            teamName: "Draw",
+            totalBets: 0,
+            totalAmount: 0,
+            potentialWinAmount: 0,
+            uniqueUsers: 0,
+            matchId: 1,
+            matchName: "Mumbai Indians vs Chennai Super Kings",
+            isDraw: true
           }
         ];
       }
@@ -365,7 +376,7 @@ export default function RiskManagementPage() {
     
     sportsStats.forEach(match => {
       // Skip if there are not exactly 2 teams in a match
-      if (match.teams.length !== 2) return;
+      if (match.teams.length < 2) return;
       
       // Prepare both teams with match information and their opponent
       const team1 = {
@@ -382,7 +393,19 @@ export default function RiskManagementPage() {
         opponentTeam: match.teams[0].teamName
       };
       
-      enhancedTeams.push(team1, team2);
+      // Add a draw option for sports matches
+      const drawOption: TeamBettingStats = {
+        teamName: "Draw",
+        totalBets: match.teams.length > 2 ? (match.teams[2]?.totalBets || 0) : 0,
+        totalAmount: match.teams.length > 2 ? (match.teams[2]?.totalAmount || 0) : 0,
+        potentialWinAmount: match.teams.length > 2 ? (match.teams[2]?.potentialWinAmount || 0) : 0,
+        uniqueUsers: match.teams.length > 2 ? (match.teams[2]?.uniqueUsers || 0) : 0,
+        matchId: match.matchId,
+        matchName: match.matchName,
+        isDraw: true
+      };
+      
+      enhancedTeams.push(team1, team2, drawOption);
     });
     
     // Filter and sort the teams
@@ -804,7 +827,7 @@ export default function RiskManagementPage() {
                   onClick={() => handleSort('teamName')}
                 >
                   <div className="flex items-center">
-                    Team
+                    Team/Outcome
                     {sortColumn === 'teamName' && (
                       sortDirection === 'asc' ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
                     )}
@@ -899,33 +922,82 @@ export default function RiskManagementPage() {
                   const isNewMatch = currentMatchId !== item.matchId;
                   currentMatchId = item.matchId || null;
                   
-                  // Calculate if this is the second team in a match (for styling alternating teams)
-                  const isSecondTeamInMatch = index % 2 === 1;
+                  // For regular team rows, calculate if this is the first or second team (for styling)
+                  // For draw rows, they will be the 3rd item for each match
+                  const position = index % 3;
+                  const isSecondTeam = position === 1;
+                  const isDrawOption = item.isDraw === true;
                   
                   // Use two separate returns to avoid fragment key issue
-                  return isNewMatch ? (
-                    <>
-                      {/* Match header row */}
-                      <TableRow 
-                        key={`match-header-${item.matchId}`} 
-                        className="bg-muted/30"
-                      >
-                        <TableCell colSpan={7} className="py-1">
-                          <div className="text-sm font-medium flex items-center">
-                            <BarChart className="mr-2 h-4 w-4 text-primary" />
-                            {item.matchName || "Sports Match"}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      
-                      {/* Team row with highlight for odd/even teams */}
+                  if (isNewMatch) {
+                    return (
+                      <>
+                        {/* Match header row */}
+                        <TableRow 
+                          key={`match-header-${item.matchId}`} 
+                          className="bg-muted/30"
+                        >
+                          <TableCell colSpan={7} className="py-1">
+                            <div className="text-sm font-medium flex items-center">
+                              <BarChart className="mr-2 h-4 w-4 text-primary" />
+                              {item.matchName || "Sports Match"}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        
+                        {/* Team row with formatting based on whether it's a team or draw option */}
+                        <TableRow 
+                          key={`${item.matchId}-${item.teamName}`}
+                          className={isDrawOption ? "bg-muted/20 border-t border-dashed border-muted" : ""}
+                        >
+                          <TableCell className="font-medium">
+                            {isDrawOption ? (
+                              <div className="flex items-center">
+                                <Badge variant="secondary" className="mr-2">Draw</Badge>
+                              </div>
+                            ) : (
+                              item.teamName
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {isDrawOption ? (
+                              <span className="text-sm text-muted-foreground">No Winner</span>
+                            ) : item.opponentTeam ? (
+                              <Badge variant="outline">{item.opponentTeam}</Badge>
+                            ) : "N/A"}
+                          </TableCell>
+                          <TableCell>{item.totalBets}</TableCell>
+                          <TableCell>{formatAmount(item.totalAmount)}</TableCell>
+                          <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
+                          <TableCell>{item.uniqueUsers}</TableCell>
+                          <TableCell>
+                            <Badge className={riskColor}>{riskLevel}</Badge>
+                          </TableCell>
+                        </TableRow>
+                      </>
+                    );
+                  } else {
+                    // For subsequent teams or draw options in a match
+                    return (
                       <TableRow 
                         key={`${item.matchId}-${item.teamName}`}
-                        className={isSecondTeamInMatch ? "bg-accent/10" : ""}
+                        className={isDrawOption 
+                          ? "bg-muted/20 border-t border-dashed border-muted" 
+                          : (isSecondTeam ? "bg-accent/10" : "")}
                       >
-                        <TableCell className="font-medium">{item.teamName}</TableCell>
+                        <TableCell className="font-medium">
+                          {isDrawOption ? (
+                            <div className="flex items-center">
+                              <Badge variant="secondary" className="mr-2">Draw</Badge>
+                            </div>
+                          ) : (
+                            item.teamName
+                          )}
+                        </TableCell>
                         <TableCell>
-                          {item.opponentTeam ? (
+                          {isDrawOption ? (
+                            <span className="text-sm text-muted-foreground">No Winner</span>
+                          ) : item.opponentTeam ? (
                             <Badge variant="outline">{item.opponentTeam}</Badge>
                           ) : "N/A"}
                         </TableCell>
@@ -937,28 +1009,8 @@ export default function RiskManagementPage() {
                           <Badge className={riskColor}>{riskLevel}</Badge>
                         </TableCell>
                       </TableRow>
-                    </>
-                  ) : (
-                    // Just the team row for subsequent teams in a match
-                    <TableRow 
-                      key={`${item.matchId}-${item.teamName}`}
-                      className={isSecondTeamInMatch ? "bg-accent/10" : ""}
-                    >
-                      <TableCell className="font-medium">{item.teamName}</TableCell>
-                      <TableCell>
-                        {item.opponentTeam ? (
-                          <Badge variant="outline">{item.opponentTeam}</Badge>
-                        ) : "N/A"}
-                      </TableCell>
-                      <TableCell>{item.totalBets}</TableCell>
-                      <TableCell>{formatAmount(item.totalAmount)}</TableCell>
-                      <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
-                      <TableCell>{item.uniqueUsers}</TableCell>
-                      <TableCell>
-                        <Badge className={riskColor}>{riskLevel}</Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
+                    );
+                  }
                 })
               )}
             </TableBody>
