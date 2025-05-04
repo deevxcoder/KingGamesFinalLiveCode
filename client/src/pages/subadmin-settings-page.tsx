@@ -426,7 +426,7 @@ export default function SubadminSettingsPage() {
           formValues.satamatkaHarf = commission.commissionRate;
         } else if (commission.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = commission.commissionRate;
-        } else if (commission.gameType === 'satamatka_other') {
+        } else if (commission.gameType === 'satamatka_crossing') {
           formValues.satamatkaCrossing = commission.commissionRate;
         }
       });
@@ -461,7 +461,7 @@ export default function SubadminSettingsPage() {
           formValues.satamatkaHarf = odd.oddValue;
         } else if (odd.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = odd.oddValue;
-        } else if (odd.gameType === 'satamatka_other') {
+        } else if (odd.gameType === 'satamatka_crossing') {
           formValues.satamatkaCrossing = odd.oddValue;
         }
       });
@@ -496,7 +496,7 @@ export default function SubadminSettingsPage() {
           formValues.satamatkaHarf = discount.discountRate;
         } else if (discount.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = discount.discountRate;
-        } else if (discount.gameType === 'satamatka_other') {
+        } else if (discount.gameType === 'satamatka_crossing') {
           formValues.satamatkaCrossing = discount.discountRate;
         }
       });
@@ -572,7 +572,7 @@ export default function SubadminSettingsPage() {
                                      comm.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                      comm.gameType === 'satamatka_harf' ? 'Harf' : 
                                      comm.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                     comm.gameType === 'satamatka_other' ? 'Other Markets' : 
+                                     comm.gameType === 'satamatka_crossing' ? 'Crossing' : 
                                      comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                   </CardTitle>
                                 </CardHeader>

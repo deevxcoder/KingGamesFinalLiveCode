@@ -1903,7 +1903,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         'satamatka_jodi',
         'satamatka_harf',
         'satamatka_odd_even',
-        'satamatka_other'
+        'satamatka_crossing'
       ];
       
       // Fetch all admin odds
