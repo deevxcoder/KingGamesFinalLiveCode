@@ -157,10 +157,15 @@ export default function RiskManagementPage() {
       });
     });
     
-    // Convert to array and sort
+    // Convert to array and apply filters
     return Object.values(combinedData)
       .filter(stat => {
-        // Filter by search term if present
+        // Apply bet type filter first
+        if (betTypeFilter !== "all" && stat.gameMode !== betTypeFilter) {
+          return false;
+        }
+          
+        // Then filter by search term if present
         if (!searchTerm) return true;
         return stat.number.includes(searchTerm);
       })
@@ -759,6 +764,42 @@ export default function RiskManagementPage() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="satamatka" className="mt-4">
+                <div className="flex flex-col sm:flex-row gap-2 mb-4">
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search numbers..."
+                      className="pl-8"
+                      value={searchTerm}
+                      onChange={handleSearchChange}
+                    />
+                  </div>
+                  <div className="w-full sm:w-48">
+                    <Select
+                      value={betTypeFilter}
+                      onValueChange={(value) => setBetTypeFilter(value)}
+                    >
+                      <SelectTrigger>
+                        <div className="flex items-center">
+                          <Filter className="mr-2 h-4 w-4" />
+                          <span>{betTypeFilter === "all" ? "All Bet Types" : 
+                                 betTypeFilter === "jodi" ? "Jodi" :
+                                 betTypeFilter === "harf" ? "Harf" :
+                                 betTypeFilter === "odd_even" ? "Odd-Even" : 
+                                 betTypeFilter === "crossing" ? "Crossing" : "All"}</span>
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Bet Types</SelectItem>
+                        <SelectItem value="jodi">Jodi</SelectItem>
+                        <SelectItem value="harf">Harf</SelectItem>
+                        <SelectItem value="odd_even">Odd-Even</SelectItem>
+                        <SelectItem value="crossing">Crossing</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 {renderTable()}
               </TabsContent>
               <TabsContent value="cricket" className="mt-4">
