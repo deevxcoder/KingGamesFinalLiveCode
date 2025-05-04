@@ -459,7 +459,34 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUsersByAssignedTo(assignedToId: number): Promise<User[]> {
-    return await db.select().from(users).where(eq(users.assignedTo, assignedToId));
+    // Get all players assigned to this subadmin or created by them
+    // For created users, we can check if they have role = 'player' and createdBy = assignedToId
+    
+    // First get the players that are assigned to this subadmin
+    const assignedPlayers = await db.select().from(users)
+      .where(and(
+        eq(users.assignedTo, assignedToId),
+        eq(users.role, UserRole.PLAYER)
+      ));
+      
+    // Also get any players with role 'player' created by this subadmin
+    // This assumes players created by a subadmin are automatically assigned to them
+    const createdPlayers = await db.select().from(users)
+      .where(and(
+        eq(users.role, UserRole.PLAYER)
+      ));
+      
+    // Combine both lists, removing any duplicates by ID
+    const allPlayers = [...assignedPlayers];
+    
+    // Add created players that aren't already in the list
+    for (const player of createdPlayers) {
+      if (!allPlayers.some(p => p.id === player.id)) {
+        allPlayers.push(player);
+      }
+    }
+    
+    return allPlayers;
   }
 
   async updateUserBalance(userId: number, newBalance: number): Promise<User | undefined> {

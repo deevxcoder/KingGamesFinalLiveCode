@@ -426,8 +426,14 @@ app.get("/api/games/my-history", async (req, res, next) => {
     try {
       let users;
       
-      if (req.user!.role === UserRole.ADMIN) {
-        // Admins can see all users
+      // If the assignedTo query param is provided, filter by this parameter (for showing users of a specific subadmin)
+      const assignedToId = req.query.assignedTo ? parseInt(req.query.assignedTo as string) : null;
+      
+      if (assignedToId && req.user!.role === UserRole.ADMIN) {
+        // Admin can request players assigned to a specific subadmin
+        users = await storage.getUsersByAssignedTo(assignedToId);
+      } else if (req.user!.role === UserRole.ADMIN) {
+        // Admins can see all users by default
         users = await storage.getAllUsers();
       } else {
         // Subadmins can only see users assigned to them
