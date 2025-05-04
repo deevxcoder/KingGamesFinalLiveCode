@@ -727,22 +727,21 @@ export default function RiskManagementPage() {
                   // Calculate if this is the second team in a match (for styling alternating teams)
                   const isSecondTeamInMatch = index % 2 === 1;
                   
-                  return (
+                  // Use two separate returns to avoid fragment key issue
+                  return isNewMatch ? (
                     <>
-                      {/* Show match header if this is the first team of a match */}
-                      {isNewMatch && (
-                        <TableRow 
-                          key={`match-header-${item.matchId}`} 
-                          className="bg-muted/30"
-                        >
-                          <TableCell colSpan={7} className="py-1">
-                            <div className="text-sm font-medium flex items-center">
-                              <Activity className="mr-2 h-4 w-4 text-primary" />
-                              {item.matchName || "Cricket Toss Match"}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
+                      {/* Match header row */}
+                      <TableRow 
+                        key={`match-header-${item.matchId}`} 
+                        className="bg-muted/30"
+                      >
+                        <TableCell colSpan={7} className="py-1">
+                          <div className="text-sm font-medium flex items-center">
+                            <Activity className="mr-2 h-4 w-4 text-primary" />
+                            {item.matchName || "Cricket Toss Match"}
+                          </div>
+                        </TableCell>
+                      </TableRow>
                       
                       {/* Team row with highlight for odd/even teams */}
                       <TableRow 
@@ -764,6 +763,26 @@ export default function RiskManagementPage() {
                         </TableCell>
                       </TableRow>
                     </>
+                  ) : (
+                    // Just the team row for subsequent teams in a match
+                    <TableRow 
+                      key={`${item.matchId}-${item.teamName}`}
+                      className={isSecondTeamInMatch ? "bg-accent/10" : ""}
+                    >
+                      <TableCell className="font-medium">{item.teamName}</TableCell>
+                      <TableCell>
+                        {item.opponentTeam ? (
+                          <Badge variant="outline">{item.opponentTeam}</Badge>
+                        ) : "N/A"}
+                      </TableCell>
+                      <TableCell>{item.totalBets}</TableCell>
+                      <TableCell>{formatAmount(item.totalAmount)}</TableCell>
+                      <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
+                      <TableCell>{item.uniqueUsers}</TableCell>
+                      <TableCell>
+                        <Badge className={riskColor}>{riskLevel}</Badge>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
@@ -883,25 +902,25 @@ export default function RiskManagementPage() {
                   // Calculate if this is the second team in a match (for styling alternating teams)
                   const isSecondTeamInMatch = index % 2 === 1;
                   
-                  return (
-                    <React.Fragment key={`${item.matchId}-${item.teamName}`}>
-                      {/* Show match header if this is the first team of a match */}
-                      {isNewMatch && (
-                        <TableRow 
-                          key={`match-header-${item.matchId}`} 
-                          className="bg-muted/30"
-                        >
-                          <TableCell colSpan={7} className="py-1">
-                            <div className="text-sm font-medium flex items-center">
-                              <BarChart className="mr-2 h-4 w-4 text-primary" />
-                              {item.matchName || "Sports Match"}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
+                  // Use two separate returns to avoid fragment key issue
+                  return isNewMatch ? (
+                    <>
+                      {/* Match header row */}
+                      <TableRow 
+                        key={`match-header-${item.matchId}`} 
+                        className="bg-muted/30"
+                      >
+                        <TableCell colSpan={7} className="py-1">
+                          <div className="text-sm font-medium flex items-center">
+                            <BarChart className="mr-2 h-4 w-4 text-primary" />
+                            {item.matchName || "Sports Match"}
+                          </div>
+                        </TableCell>
+                      </TableRow>
                       
                       {/* Team row with highlight for odd/even teams */}
                       <TableRow 
+                        key={`${item.matchId}-${item.teamName}`}
                         className={isSecondTeamInMatch ? "bg-accent/10" : ""}
                       >
                         <TableCell className="font-medium">{item.teamName}</TableCell>
@@ -918,7 +937,27 @@ export default function RiskManagementPage() {
                           <Badge className={riskColor}>{riskLevel}</Badge>
                         </TableCell>
                       </TableRow>
-                    </React.Fragment>
+                    </>
+                  ) : (
+                    // Just the team row for subsequent teams in a match
+                    <TableRow 
+                      key={`${item.matchId}-${item.teamName}`}
+                      className={isSecondTeamInMatch ? "bg-accent/10" : ""}
+                    >
+                      <TableCell className="font-medium">{item.teamName}</TableCell>
+                      <TableCell>
+                        {item.opponentTeam ? (
+                          <Badge variant="outline">{item.opponentTeam}</Badge>
+                        ) : "N/A"}
+                      </TableCell>
+                      <TableCell>{item.totalBets}</TableCell>
+                      <TableCell>{formatAmount(item.totalAmount)}</TableCell>
+                      <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
+                      <TableCell>{item.uniqueUsers}</TableCell>
+                      <TableCell>
+                        <Badge className={riskColor}>{riskLevel}</Badge>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
