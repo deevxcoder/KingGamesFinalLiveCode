@@ -1220,6 +1220,232 @@ export default function SubadminManagementPage() {
         </DialogContent>
       </Dialog>
       
+      {/* Game Odds Dialog */}
+      <Dialog open={isGameOddsDialogOpen} onOpenChange={setIsGameOddsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-secondary">
+          <DialogHeader>
+            <DialogTitle>Game Odds Settings</DialogTitle>
+            <DialogDescription>
+              Configure game odds for {selectedSubadminName}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {isLoadingGameOdds ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <>
+              <Alert className="my-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Important information</AlertTitle>
+                <AlertDescription>
+                  Game odds determine the payout multiplier for each game type. Higher odds mean larger potential payouts to players.
+                  These settings override platform defaults for this subadmin.
+                </AlertDescription>
+              </Alert>
+              
+              <Form {...gameOddsForm}>
+                <form onSubmit={gameOddsForm.handleSubmit(onSubmitGameOdds)} className="space-y-4 py-2">
+                  {/* Sports Games */}
+                  <div className="space-y-3 col-span-2">
+                    <h3 className="text-sm font-medium flex items-center gap-2">
+                      <Percent className="h-4 w-4" />
+                      Sports Game Odds
+                    </h3>
+                    <Separator />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={gameOddsForm.control}
+                      name="teamMatch"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Team Match Odds</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" step="0.01" {...field} />
+                            </FormControl>
+                            <span>x</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Multiplier for team match bets
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={gameOddsForm.control}
+                      name="cricketToss"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cricket Toss Odds</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" step="0.01" {...field} />
+                            </FormControl>
+                            <span>x</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Multiplier for cricket toss bets
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  {/* Royal Toss */}
+                  <div className="space-y-3 col-span-2 mt-4">
+                    <h3 className="text-sm font-medium flex items-center gap-2">
+                      <Percent className="h-4 w-4" />
+                      Royal Toss Odds
+                    </h3>
+                    <Separator />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={gameOddsForm.control}
+                      name="coinFlip"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Royal Toss Odds</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" step="0.01" {...field} />
+                            </FormControl>
+                            <span>x</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Multiplier for royal toss (coin flip) bets
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  {/* Satamatka Game Odds */}
+                  <div className="space-y-3 col-span-2 mt-4">
+                    <h3 className="text-sm font-medium flex items-center gap-2">
+                      <Percent className="h-4 w-4" />
+                      Satamatka Game Odds
+                    </h3>
+                    <Separator />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={gameOddsForm.control}
+                      name="satamatkaJodi"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jodi Odds</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" step="0.01" {...field} />
+                            </FormControl>
+                            <span>x</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Multiplier for Jodi (00-99) bets
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={gameOddsForm.control}
+                      name="satamatkaHarf"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Harf Odds</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" step="0.01" {...field} />
+                            </FormControl>
+                            <span>x</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Multiplier for Harf bets
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={gameOddsForm.control}
+                      name="satamatkaOddEven"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Odd-Even Odds</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" step="0.01" {...field} />
+                            </FormControl>
+                            <span>x</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Multiplier for Odd-Even bets
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={gameOddsForm.control}
+                      name="satamatkaCrossing"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Crossing Odds</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" step="0.01" {...field} />
+                            </FormControl>
+                            <span>x</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Multiplier for Crossing bets
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <DialogFooter className="pt-4">
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-orange-500 to-amber-500"
+                      disabled={updateGameOddsMutation.isPending}
+                    >
+                      {updateGameOddsMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Updating Game Odds...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Game Odds
+                        </>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
       {/* Full-Screen User List Dialog */}
       <Dialog open={isUserListDialogOpen} onOpenChange={setIsUserListDialogOpen}>
         <DialogContent className="max-w-full h-[100vh] p-0 overflow-hidden flex flex-col">
