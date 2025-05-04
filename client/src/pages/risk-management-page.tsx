@@ -92,8 +92,8 @@ export default function RiskManagementPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("satamatka");
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortColumn, setSortColumn] = useState("totalAmount");
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [sortColumn, setSortColumn] = useState("number");
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc'); // 'asc' for numbers to show 00-99
   const [betTypeFilter, setBetTypeFilter] = useState<string>("all"); // Filter for Satamatka bet types
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
@@ -177,14 +177,20 @@ export default function RiskManagementPage() {
         return stat.number.includes(searchTerm);
       })
       .sort((a, b) => {
-        // Sort based on the selected column
-        const aValue = a[sortColumn as keyof BettingStats];
-        const bValue = b[sortColumn as keyof BettingStats];
-        
-        if (sortDirection === 'asc') {
-          return (aValue as number) - (bValue as number);
+        // If sorting by a column other than number, use that column
+        if (sortColumn !== "number") {
+          // Sort based on the selected column
+          const aValue = a[sortColumn as keyof BettingStats];
+          const bValue = b[sortColumn as keyof BettingStats];
+          
+          if (sortDirection === 'asc') {
+            return (aValue as number) - (bValue as number);
+          } else {
+            return (bValue as number) - (aValue as number);
+          }
         } else {
-          return (bValue as number) - (aValue as number);
+          // If sorting by number or default, always sort numbers from 00 to 99
+          return a.number.localeCompare(b.number);
         }
       })
       .slice(0, 100); // Get top 100 results
@@ -357,7 +363,17 @@ export default function RiskManagementPage() {
           <Table>
             <TableHeader className="sticky top-0 bg-background">
               <TableRow>
-                <TableHead className="w-[80px]">Number</TableHead>
+                <TableHead 
+                  className="w-[80px] cursor-pointer hover:text-primary"
+                  onClick={() => handleSort('number')}
+                >
+                  <div className="flex items-center">
+                    Number
+                    {sortColumn === 'number' && (
+                      sortDirection === 'asc' ? <ChevronUp className="ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />
+                    )}
+                  </div>
+                </TableHead>
                 <TableHead 
                   className="cursor-pointer hover:text-primary"
                   onClick={() => handleSort('totalBets')}
