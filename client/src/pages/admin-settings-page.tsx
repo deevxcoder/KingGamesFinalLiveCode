@@ -50,6 +50,8 @@ export default function AdminSettingsPage() {
 
   // Game Odds Settings
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.95");
+  const [cricketTossOdds, setCricketTossOdds] = useState("1.90");
+  const [teamMatchOdds, setTeamMatchOdds] = useState("1.85");
   const [satamatkaOdds, setSatamatkaOdds] = useState({
     jodi: "90.00",
     harf: "9.00",
@@ -113,6 +115,20 @@ export default function AdminSettingsPage() {
       .then(res => res.json()),
   });
 
+  // Load cricket toss odds
+  const { data: cricketTossOddsData } = useQuery<any[]>({
+    queryKey: ['/api/game-odds', 'cricket_toss'],
+    queryFn: () => apiRequest("GET", '/api/game-odds?gameType=cricket_toss')
+      .then(res => res.json()),
+  });
+
+  // Load team match odds
+  const { data: teamMatchOddsData } = useQuery<any[]>({
+    queryKey: ['/api/game-odds', 'team_match'],
+    queryFn: () => apiRequest("GET", '/api/game-odds?gameType=team_match')
+      .then(res => res.json()),
+  });
+
   // Process coin flip odds when they load
   useEffect(() => {
     if (coinFlipOddsData && coinFlipOddsData.length > 0) {
@@ -121,6 +137,22 @@ export default function AdminSettingsPage() {
       setCoinFlipOdds(oddValueDecimal);
     }
   }, [coinFlipOddsData]);
+  
+  // Process cricket toss odds when they load
+  useEffect(() => {
+    if (cricketTossOddsData && cricketTossOddsData.length > 0) {
+      const oddValueDecimal = (cricketTossOddsData[0].oddValue / 100).toFixed(2);
+      setCricketTossOdds(oddValueDecimal);
+    }
+  }, [cricketTossOddsData]);
+  
+  // Process team match odds when they load
+  useEffect(() => {
+    if (teamMatchOddsData && teamMatchOddsData.length > 0) {
+      const oddValueDecimal = (teamMatchOddsData[0].oddValue / 100).toFixed(2);
+      setTeamMatchOdds(oddValueDecimal);
+    }
+  }, [teamMatchOddsData]);
 
   // Load satamatka odds
   const { data: satamatkaOddsData } = useQuery<any>({
@@ -423,6 +455,22 @@ export default function AdminSettingsPage() {
     saveOddsMutation.mutate({
       gameType: "coin_flip",
       oddValue: coinFlipOddValue,
+      setByAdmin: true
+    });
+    
+    // Save Cricket Toss odds
+    const cricketTossOddValue = Math.round(parseFloat(cricketTossOdds) * 100);
+    saveOddsMutation.mutate({
+      gameType: "cricket_toss",
+      oddValue: cricketTossOddValue,
+      setByAdmin: true
+    });
+    
+    // Save Team Match odds
+    const teamMatchOddValue = Math.round(parseFloat(teamMatchOdds) * 100);
+    saveOddsMutation.mutate({
+      gameType: "team_match",
+      oddValue: teamMatchOddValue,
       setByAdmin: true
     });
     
@@ -776,6 +824,42 @@ export default function AdminSettingsPage() {
                             value={coinFlipOdds} 
                             onChange={(e) => setCoinFlipOdds(e.target.value)} 
                             placeholder="1.95"
+                            className="max-w-[120px]"
+                          />
+                          <span>times the bet amount</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium">Cricket Toss Game</h3>
+                      <Separator className="my-2" />
+                      <div className="space-y-2">
+                        <Label htmlFor="cricketTossOdds">Win Multiplier</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="cricketTossOdds" 
+                            value={cricketTossOdds} 
+                            onChange={(e) => setCricketTossOdds(e.target.value)} 
+                            placeholder="1.90"
+                            className="max-w-[120px]"
+                          />
+                          <span>times the bet amount</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium">Team Match Game</h3>
+                      <Separator className="my-2" />
+                      <div className="space-y-2">
+                        <Label htmlFor="teamMatchOdds">Win Multiplier</Label>
+                        <div className="flex items-center gap-2">
+                          <Input 
+                            id="teamMatchOdds" 
+                            value={teamMatchOdds} 
+                            onChange={(e) => setTeamMatchOdds(e.target.value)} 
+                            placeholder="1.85"
                             className="max-w-[120px]"
                           />
                           <span>times the bet amount</span>
