@@ -388,7 +388,7 @@ export default function SubadminSettingsPage() {
       case 'satamatka_other':
         return 'Other Market Games';
       default:
-        return gameType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        return gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
     }
   };
   
@@ -396,7 +396,7 @@ export default function SubadminSettingsPage() {
   const getMaxDiscount = (gameType: string): number => {
     if (!commissions || !Array.isArray(commissions)) return 0;
     
-    const commission = commissions.find(c => c.gameType === gameType);
+    const commission = (commissions as CommissionItem[]).find((c: CommissionItem) => c.gameType === gameType);
     return commission ? commission.commissionRate : 0;
   };
 
@@ -769,7 +769,7 @@ export default function SubadminSettingsPage() {
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-2 text-sm">
-                              {adminOdds.map((odd: any) => (
+                              {Array.isArray(adminOdds) && (adminOdds as GameOdd[]).map((odd: GameOdd) => (
                                 <div key={odd.gameType} className="flex justify-between items-center">
                                   <span className="font-medium">
                                     {odd.gameType === 'team_match' ? 'Team Match' : 
@@ -779,7 +779,7 @@ export default function SubadminSettingsPage() {
                                      odd.gameType === 'satamatka_harf' ? 'Harf' : 
                                      odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
                                      odd.gameType === 'satamatka_other' ? 'Other Market Games' : 
-                                     odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                     odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                   </span>
                                   <span className="font-mono">{odd.oddValue}x</span>
                                 </div>
@@ -797,7 +797,7 @@ export default function SubadminSettingsPage() {
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-2 text-sm">
-                              {commissions.map((comm: any) => (
+                              {Array.isArray(commissions) && (commissions as CommissionItem[]).map((comm: CommissionItem) => (
                                 <div key={comm.gameType} className="flex justify-between items-center">
                                   <span className="font-medium">
                                     {comm.gameType === 'team_match' ? 'Team Match' : 
@@ -807,7 +807,7 @@ export default function SubadminSettingsPage() {
                                      comm.gameType === 'satamatka_harf' ? 'Harf' : 
                                      comm.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
                                      comm.gameType === 'satamatka_other' ? 'Other Market Games' : 
-                                     comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                     comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                   </span>
                                   <span className="font-mono">{comm.commissionRate}%</span>
                                 </div>
@@ -1027,7 +1027,13 @@ export default function SubadminSettingsPage() {
                                         <FormLabel>Team Match Discount</FormLabel>
                                         <div className="flex items-center gap-2">
                                           <FormControl>
-                                            <Input {...field} type="number" min="0" max={getMaxDiscount('team_match')} step="0.1" />
+                                            <Input 
+                                              {...field} 
+                                              type="number" 
+                                              min="0" 
+                                              max={getMaxDiscount('team_match')} 
+                                              step="0.1" 
+                                            />
                                           </FormControl>
                                           <Percent className="h-4 w-4 text-muted-foreground" />
                                         </div>
@@ -1044,7 +1050,13 @@ export default function SubadminSettingsPage() {
                                         <FormLabel>Cricket Toss Discount</FormLabel>
                                         <div className="flex items-center gap-2">
                                           <FormControl>
-                                            <Input {...field} type="number" min="0" max={getMaxDiscount('cricket_toss')} step="0.1" />
+                                            <Input
+                                              {...field}
+                                              type="number"
+                                              min="0"
+                                              max={getMaxDiscount('cricket_toss')}
+                                              step="0.1"
+                                            />
                                           </FormControl>
                                           <Percent className="h-4 w-4 text-muted-foreground" />
                                         </div>
@@ -1061,7 +1073,13 @@ export default function SubadminSettingsPage() {
                                         <FormLabel>Coin Flip Discount</FormLabel>
                                         <div className="flex items-center gap-2">
                                           <FormControl>
-                                            <Input {...field} type="number" min="0" max={getMaxDiscount('coin_flip')} step="0.1" />
+                                            <Input
+                                              {...field}
+                                              type="number"
+                                              min="0"
+                                              max={getMaxDiscount('coin_flip')}
+                                              step="0.1"
+                                            />
                                           </FormControl>
                                           <Percent className="h-4 w-4 text-muted-foreground" />
                                         </div>
