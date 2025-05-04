@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { GameOutcome } from "@shared/schema";
@@ -15,7 +15,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronsUp, ChevronsDown, IndianRupee, Trophy, X } from "lucide-react";
+import { ChevronsUp, ChevronsDown, IndianRupee, Trophy, X, History } from "lucide-react";
+
+// Game history type to use in the component
+interface GameHistory {
+  id: number;
+  userId: number;
+  gameType: string;
+  betAmount: number;
+  prediction: string;
+  result: string;
+  payout: number;
+  createdAt: string;
+}
 
 export default function CoinFlipGame() {
   const { user } = useAuth();
@@ -34,6 +46,12 @@ export default function CoinFlipGame() {
     result: string;
   } | null>(null);
   const coinRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch recent games for the user, filtered by coin_flip game type
+  const { data: games = [] } = useQuery<GameHistory[]>({
+    queryKey: ["/api/games/my-history"],
+    enabled: !!user,
+  });
 
   // Play game mutation
   const playGameMutation = useMutation({
@@ -76,6 +94,10 @@ export default function CoinFlipGame() {
         // IMPORTANT: Update user data in cache AFTER animation completes
         // This ensures the wallet balance updates only after user sees the result
         queryClient.setQueryData(["/api/user"], data.user);
+        
+        // Invalidate game history query to refresh the last results display
+        queryClient.invalidateQueries({ queryKey: ["/api/games/my-history"] });
+        
         setWalletUpdating(false);
         
         // Show appropriate popup after a slight delay
@@ -277,6 +299,37 @@ export default function CoinFlipGame() {
                   )}
                   <span className="text-sm sm:text-base">TAILS</span>
                 </Button>
+              </div>
+              
+              {/* Last 6 Results */}
+              <div className="mt-4">
+                <div className="flex items-center justify-center gap-1 mb-2">
+                  <History className="h-4 w-4 text-muted-foreground" />
+                  <p className="text-xs text-muted-foreground">Last Results</p>
+                </div>
+                <div className="flex justify-center space-x-2">
+                  {games
+                    .filter(game => game.gameType === "coin_flip")
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort newest first
+                    .slice(0, 6)
+                    .map((game, index) => (
+                      <div 
+                        key={game.id}
+                        className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                          game.result === GameOutcome.HEADS 
+                            ? "bg-primary text-white" 
+                            : "bg-purple-600 text-white"
+                        } ${game.payout > 0 ? 'ring-2 ring-green-500 ring-offset-1 ring-offset-background' : 'ring-1 ring-red-500/30'}`}
+                        title={`${game.result} (${game.payout > 0 ? 'Win' : 'Loss'})`}
+                      >
+                        {game.result === GameOutcome.HEADS ? 'H' : 'T'}
+                      </div>
+                    ))
+                  }
+                  {games.filter(game => game.gameType === "coin_flip").length === 0 && (
+                    <div className="text-xs text-muted-foreground">No previous results</div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
