@@ -28,7 +28,8 @@ import {
   Award,
   DollarSign,
   BarChart, 
-  Activity
+  Activity,
+  Settings
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -295,15 +296,15 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Team Management - Admin Only */}
+            {/* Settings - Admin Only */}
             {isAdmin && (
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-amber-300 hover:bg-slate-800 hover:text-amber-200"
-                onClick={() => setLocation("/manage-teams")}
+                onClick={() => setLocation("/settings")}
               >
-                <Trophy className="h-5 w-5 mr-2" />
-                Manage Teams
+                <Settings className="h-5 w-5 mr-2" />
+                Settings
               </Button>
             )}
             
