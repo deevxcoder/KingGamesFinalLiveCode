@@ -806,6 +806,207 @@ export default function SubadminManagementPage() {
           </Form>
         </DialogContent>
       </Dialog>
+      
+      {/* Commission Settings Dialog */}
+      <Dialog open={isCommissionDialogOpen} onOpenChange={setIsCommissionDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Commission Settings</DialogTitle>
+            <DialogDescription>
+              Configure commission rates for {selectedSubadminName}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {isLoadingCommissions ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <>
+              <Alert className="my-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Important information</AlertTitle>
+                <AlertDescription>
+                  Commission rates determine the percentage of bets that the subadmin will receive from player bets.
+                  These rates affect your platform's revenue.
+                </AlertDescription>
+              </Alert>
+              
+              <Form {...commissionForm}>
+                <form onSubmit={commissionForm.handleSubmit(onSubmitCommission)} className="space-y-4 py-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Sports Games */}
+                    <div className="space-y-3 col-span-2">
+                      <h3 className="text-sm font-medium flex items-center gap-2">
+                        <Percent className="h-4 w-4" />
+                        Sports Games
+                      </h3>
+                      <Separator />
+                    </div>
+                    
+                    <FormField
+                      control={commissionForm.control}
+                      name="teamMatch"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Team Match</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" max="100" step="0.1" {...field} />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Commission on team match bets
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={commissionForm.control}
+                      name="cricketToss"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Cricket Toss</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" max="100" step="0.1" {...field} />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Commission on cricket toss predictions
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={commissionForm.control}
+                      name="coinFlip"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Coin Flip</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" max="100" step="0.1" {...field} />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormDescription className="text-xs">
+                            Commission on coin flip games
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    {/* Satamatka Games */}
+                    <div className="space-y-3 col-span-2 mt-4">
+                      <h3 className="text-sm font-medium flex items-center gap-2">
+                        <Percent className="h-4 w-4" />
+                        Satamatka Games
+                      </h3>
+                      <Separator />
+                    </div>
+                    
+                    <FormField
+                      control={commissionForm.control}
+                      name="satamatkaJodi"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Jodi (Pair)</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" max="100" step="0.1" {...field} />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={commissionForm.control}
+                      name="satamatkaHarf"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Harf</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" max="100" step="0.1" {...field} />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={commissionForm.control}
+                      name="satamatkaOddEven"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Odd/Even</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" max="100" step="0.1" {...field} />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={commissionForm.control}
+                      name="satamatkaOther"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Other Games</FormLabel>
+                          <div className="flex items-center gap-2">
+                            <FormControl>
+                              <Input type="number" min="0" max="100" step="0.1" {...field} />
+                            </FormControl>
+                            <span>%</span>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  
+                  <DialogFooter className="pt-4">
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-primary to-blue-500"
+                      disabled={updateCommissionMutation.isPending}
+                    >
+                      {updateCommissionMutation.isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving changes...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          Save Commission Settings
+                        </>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
