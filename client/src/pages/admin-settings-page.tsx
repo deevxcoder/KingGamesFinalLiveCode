@@ -69,6 +69,29 @@ export default function AdminSettingsPage() {
     satamatka_crossing: "3.0",
     satamatka_odd_even: "2.0"
   });
+  
+  // Query to fetch default commission rates
+  const { isLoading: isLoadingDefaultCommissions, data: defaultCommissionData } = useQuery({
+    queryKey: ['/api/commissions/default'],
+    queryFn: () => fetch('/api/commissions/default', {
+      credentials: 'include'
+    }).then(res => res.json())
+  });
+  
+  // Update commission rates when default data is loaded
+  useEffect(() => {
+    if (defaultCommissionData) {
+      setCommissionRates({
+        coin_flip: defaultCommissionData.coin_flip?.toString() || "2.5",
+        cricket_toss: defaultCommissionData.cricket_toss?.toString() || "3.0",
+        team_match: defaultCommissionData.team_match?.toString() || "3.0",
+        satamatka_jodi: defaultCommissionData.satamatka_jodi?.toString() || "3.5",
+        satamatka_harf: defaultCommissionData.satamatka_harf?.toString() || "4.0",
+        satamatka_crossing: defaultCommissionData.satamatka_crossing?.toString() || "3.0",
+        satamatka_odd_even: defaultCommissionData.satamatka_odd_even?.toString() || "2.0"
+      });
+    }
+  }, [defaultCommissionData]);
 
   // Load payment settings
   const { data: paymentSettings, isLoading: isLoadingPayment } = useQuery<any[]>({
@@ -361,14 +384,15 @@ export default function AdminSettingsPage() {
 
   // Save commission mutation
   const saveCommissionMutation = useMutation({
-    mutationFn: (commission: any) => apiRequest("POST", '/api/commissions/subadmin', commission)
+    mutationFn: (commission: any) => apiRequest("POST", '/api/commissions/default', commission)
       .then(res => res.json()),
     onSuccess: () => {
       toast({
         title: "Commission Rates Saved",
-        description: "Commission rates have been saved successfully.",
+        description: "Platform default commission rates have been saved successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/commissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/commissions/default'] });
     },
     onError: (error: Error) => {
       toast({

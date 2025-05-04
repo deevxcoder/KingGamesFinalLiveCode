@@ -2143,8 +2143,23 @@ app.get("/api/games/my-history", async (req, res, next) => {
       // Create a complete set of commissions, using defaults where needed
       const completeCommissions = [];
       
-      // Default commission rates by game type
-      const defaultCommissionRates = {
+      // Get platform default commission rates from system settings
+      const platformDefaultSettings = await Promise.all(
+        gameTypes.map(gameType => 
+          storage.getSystemSetting('commission_default', gameType)
+        )
+      );
+      
+      // Map the settings to a more usable format
+      const platformDefaultRates: {[key: string]: number} = {};
+      platformDefaultSettings.forEach((setting, index) => {
+        if (setting) {
+          platformDefaultRates[gameTypes[index]] = parseInt(setting.settingValue);
+        }
+      });
+      
+      // Fallback default commission rates if no system settings exist
+      const fallbackDefaultRates = {
         'team_match': 10,
         'cricket_toss': 10,
         'coin_flip': 10,
@@ -2162,11 +2177,15 @@ app.get("/api/games/my-history", async (req, res, next) => {
           // Use existing commission
           completeCommissions.push(commission);
         } else {
-          // Use default commission
+          // Use platform default commission or fallback if not set
+          const defaultRate = platformDefaultRates[gameType] !== undefined
+            ? platformDefaultRates[gameType]
+            : fallbackDefaultRates[gameType as keyof typeof fallbackDefaultRates] || 10;
+            
           completeCommissions.push({
             gameType,
             subadminId,
-            commissionRate: defaultCommissionRates[gameType] || 10
+            commissionRate: defaultRate
           });
         }
       }
@@ -2258,6 +2277,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
     }
   });
   
+  // Set individual subadmin commission
   app.post("/api/commissions/subadmin", requireRole([UserRole.ADMIN]), async (req, res, next) => {
     try {
       const { subadminId, gameType, commissionRate } = req.body;
@@ -2274,6 +2294,103 @@ app.get("/api/games/my-history", async (req, res, next) => {
       
       const commission = await storage.upsertSubadminCommission(subadminId, gameType, commissionRate);
       res.json(commission);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Get platform-wide default commission rates
+  app.get("/api/commissions/default", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      // Define default game types
+      const gameTypes = [
+        'team_match',
+        'cricket_toss',
+        'coin_flip',
+        'satamatka_jodi',
+        'satamatka_harf',
+        'satamatka_odd_even',
+        'satamatka_crossing'
+      ];
+      
+      // Get platform default commission rates from system settings
+      const platformDefaultSettings = await Promise.all(
+        gameTypes.map(gameType => 
+          storage.getSystemSetting('commission_default', gameType)
+        )
+      );
+      
+      // Map the settings to a more usable format
+      const defaultRates: {[key: string]: number} = {};
+      platformDefaultSettings.forEach((setting, index) => {
+        if (setting) {
+          // Convert from integer (stored value) to decimal percentage for client display
+          defaultRates[gameTypes[index]] = parseInt(setting.settingValue) / 100;
+        }
+      });
+      
+      // Fallback default commission rates if no system settings exist
+      const fallbackDefaultRates = {
+        'team_match': 10,
+        'cricket_toss': 10,
+        'coin_flip': 10,
+        'satamatka_jodi': 8,
+        'satamatka_harf': 8,
+        'satamatka_odd_even': 10,
+        'satamatka_crossing': 8
+      };
+      
+      // Merge the found settings with fallbacks where needed
+      const completeDefaultRates: {[key: string]: number} = {};
+      
+      for (const gameType of gameTypes) {
+        completeDefaultRates[gameType] = defaultRates[gameType] !== undefined
+          ? defaultRates[gameType]
+          : fallbackDefaultRates[gameType as keyof typeof fallbackDefaultRates] / 100;
+      }
+      
+      res.json(completeDefaultRates);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Set platform-wide default commission rates for all subadmins
+  app.post("/api/commissions/default", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const { defaultRates } = req.body;
+      
+      if (!defaultRates || typeof defaultRates !== 'object') {
+        return res.status(400).json({ message: "defaultRates object is required with game types and rates" });
+      }
+      
+      const results = [];
+      
+      // Save each default commission rate as a system setting
+      for (const [gameType, rate] of Object.entries(defaultRates)) {
+        if (rate === undefined) continue;
+        
+        // Convert rate to integer (store as integer for precision)
+        const rateAsInt = Math.round(parseFloat(rate as string) * 100);
+        
+        const setting = await storage.upsertSystemSetting(
+          "commission_default", 
+          gameType,
+          rateAsInt.toString()
+        );
+        
+        results.push({
+          gameType,
+          rate: rateAsInt / 100,
+          setting
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: "Default commission rates saved successfully",
+        results 
+      });
     } catch (err) {
       next(err);
     }
