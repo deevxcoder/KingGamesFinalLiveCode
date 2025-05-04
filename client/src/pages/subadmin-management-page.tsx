@@ -244,7 +244,10 @@ export default function SubadminManagementPage() {
     queryKey: ["/api/users"],
     queryFn: () => apiRequest("GET", "/api/users"),
     enabled: !!user?.id && user?.role === UserRole.SUBADMIN,
-    select: (data: any) => data.filter((u: any) => u.role === UserRole.PLAYER),
+    select: (data: any) => data.filter((u: any) => 
+      u.role === UserRole.PLAYER && 
+      u.assignedTo === user?.id
+    ),
   });
   
   // Fetch players assigned to the selected subadmin (for admin view)
@@ -272,7 +275,8 @@ export default function SubadminManagementPage() {
       return apiRequest("POST", "/api/register", {
         username: data.username,
         password: data.password,
-        role: UserRole.PLAYER
+        role: UserRole.PLAYER,
+        assignedTo: user?.id // Ensure created players are assigned to the current subadmin
       });
     },
     onSuccess: () => {
