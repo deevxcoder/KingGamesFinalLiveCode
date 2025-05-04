@@ -144,35 +144,62 @@ export default function RiskManagementPage() {
     // Combine all numbers from all markets
     const combinedData: Record<string, BettingStats> = {};
     
+    // If we're showing a specific bet type and should display all numbers 00-99
+    if (betTypeFilter !== "all") {
+      // Create a map of all numbers 00-99 with the selected bet type
+      for (let i = 0; i < 100; i++) {
+        const numberStr = i.toString().padStart(2, "0");
+        combinedData[numberStr] = {
+          number: numberStr,
+          totalBets: 0,
+          totalAmount: 0,
+          potentialWinAmount: 0,
+          uniqueUsers: 0,
+          gameMode: betTypeFilter // Set the game mode to the selected filter
+        };
+      }
+    }
+    
     jantriStats.forEach(market => {
       market.numbers.forEach(numStat => {
-        if (!combinedData[numStat.number]) {
-          combinedData[numStat.number] = { ...numStat };
+        const number = numStat.number;
+        const gameMode = numStat.gameMode;
+        
+        // If filtering by bet type, only consider stats for the selected bet type
+        if (betTypeFilter !== "all" && gameMode !== betTypeFilter) {
+          return; // Skip this entry if it doesn't match the filter
+        }
+        
+        if (!combinedData[number]) {
+          combinedData[number] = { ...numStat };
         } else {
-          // Add values to existing stats
-          combinedData[numStat.number].totalBets += numStat.totalBets;
-          combinedData[numStat.number].totalAmount += numStat.totalAmount;
-          combinedData[numStat.number].potentialWinAmount += numStat.potentialWinAmount;
-          combinedData[numStat.number].uniqueUsers += numStat.uniqueUsers;
-          
-          // Update gameMode if this entry has more bets for this number than the existing one
-          // This ensures we always show the most common game mode for a number
-          if (numStat.totalBets > combinedData[numStat.number].totalBets && numStat.gameMode) {
-            combinedData[numStat.number].gameMode = numStat.gameMode;
+          // For "all" filter, accumulate stats across bet types
+          if (betTypeFilter === "all") {
+            // Add values to existing stats
+            combinedData[number].totalBets += numStat.totalBets;
+            combinedData[number].totalAmount += numStat.totalAmount;
+            combinedData[number].potentialWinAmount += numStat.potentialWinAmount;
+            combinedData[number].uniqueUsers += numStat.uniqueUsers;
+            
+            // Update gameMode if this entry has more bets for this number than the existing one
+            if (numStat.totalBets > combinedData[number].totalBets && gameMode) {
+              combinedData[number].gameMode = gameMode;
+            }
+          } else if (gameMode === betTypeFilter) {
+            // For specific bet type, only accumulate matching bet type stats
+            combinedData[number].totalBets += numStat.totalBets;
+            combinedData[number].totalAmount += numStat.totalAmount;
+            combinedData[number].potentialWinAmount += numStat.potentialWinAmount;
+            combinedData[number].uniqueUsers += numStat.uniqueUsers;
           }
         }
       });
     });
     
-    // Convert to array and apply filters
+    // Convert to array and apply search filter
     return Object.values(combinedData)
       .filter(stat => {
-        // Apply bet type filter first
-        if (betTypeFilter !== "all" && stat.gameMode !== betTypeFilter) {
-          return false;
-        }
-          
-        // Then filter by search term if present
+        // Filter by search term if present
         if (!searchTerm) return true;
         return stat.number.includes(searchTerm);
       })
