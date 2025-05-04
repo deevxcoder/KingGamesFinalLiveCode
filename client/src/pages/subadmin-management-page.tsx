@@ -809,7 +809,7 @@ export default function SubadminManagementPage() {
       
       {/* Commission Settings Dialog */}
       <Dialog open={isCommissionDialogOpen} onOpenChange={setIsCommissionDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-secondary">
           <DialogHeader>
             <DialogTitle>Commission Settings</DialogTitle>
             <DialogDescription>
