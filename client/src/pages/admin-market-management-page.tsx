@@ -62,7 +62,9 @@ import {
   Search,
   Filter,
   PauseCircle,
-  Play
+  Play,
+  Info,
+  Undo2
 } from "lucide-react";
 
 // Interface for market data
@@ -1143,7 +1145,9 @@ function MarketTable({
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="text-xs text-muted-foreground">Status Controls</DropdownMenuLabel>
                     
-                    {/* Waiting → Open transition */}
+                    {/* Status-specific actions */}
+                    
+                    {/* Upcoming → Active transition */}
                     {market.status === "waiting" && (
                       <DropdownMenuItem 
                         onClick={() => {
@@ -1157,7 +1161,7 @@ function MarketTable({
                       </DropdownMenuItem>
                     )}
                     
-                    {/* Open → Closed transition */}
+                    {/* Active → Closed transition */}
                     {market.status === "open" && (
                       <DropdownMenuItem 
                         onClick={() => {
@@ -1171,7 +1175,7 @@ function MarketTable({
                       </DropdownMenuItem>
                     )}
                     
-                    {/* Closed → Declare Result action */}
+                    {/* Closed → Resulted transition */}
                     {market.status === "closed" && (
                       <DropdownMenuItem 
                         onClick={() => handleDeclareResult(market)}
@@ -1182,18 +1186,44 @@ function MarketTable({
                       </DropdownMenuItem>
                     )}
                     
-                    {/* Reopen options - mainly for correction purposes */}
-                    {(market.status === "closed" || market.status === "resulted") && (
-                      <DropdownMenuItem 
-                        onClick={() => {
-                          updateMarketStatus.mutate({ id: market.id, status: "open" });
-                          setTimeout(() => setActiveTab("open"), 300); // Switch to Open tab
-                        }}
-                        className="text-green-600 font-medium"
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        Reopen for Betting
+                    {/* No actions for resulted markets */}
+                    {market.status === "resulted" && (
+                      <DropdownMenuItem disabled className="text-muted-foreground">
+                        <InfoIcon className="mr-2 h-4 w-4" />
+                        No actions available
                       </DropdownMenuItem>
+                    )}
+                    
+                    {/* Admin override options (for corrections) */}
+                    {(market.status === "closed" || market.status === "open") && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="text-xs text-muted-foreground">Advanced Controls</DropdownMenuLabel>
+                        {market.status === "closed" && (
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              updateMarketStatus.mutate({ id: market.id, status: "open" });
+                              setTimeout(() => setActiveTab("open"), 300);
+                            }}
+                            className="text-yellow-600 font-medium"
+                          >
+                            <Undo2 className="mr-2 h-4 w-4" />
+                            Revert to Active
+                          </DropdownMenuItem>
+                        )}
+                        {market.status === "open" && (
+                          <DropdownMenuItem 
+                            onClick={() => {
+                              updateMarketStatus.mutate({ id: market.id, status: "waiting" });
+                              setTimeout(() => setActiveTab("waiting"), 300);
+                            }}
+                            className="text-yellow-600 font-medium"
+                          >
+                            <Undo2 className="mr-2 h-4 w-4" />
+                            Revert to Upcoming
+                          </DropdownMenuItem>
+                        )}
+                      </>
                     )}
                     
 
