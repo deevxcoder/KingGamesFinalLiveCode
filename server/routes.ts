@@ -904,7 +904,31 @@ app.get("/api/games/my-history", async (req, res, next) => {
   // Admin routes for managing markets
   app.post("/api/satamatka/markets", requireRole([UserRole.ADMIN]), async (req, res, next) => {
     try {
-      const marketData = insertSatamatkaMarketSchema.parse(req.body);
+      // Add proper date handling for string timestamps
+      const formData = req.body;
+      
+      // Convert string dates to Date objects if they're strings
+      if (formData.openTime && typeof formData.openTime === 'string') {
+        formData.openTime = new Date(formData.openTime);
+      }
+      
+      if (formData.closeTime && typeof formData.closeTime === 'string') {
+        formData.closeTime = new Date(formData.closeTime);
+      }
+      
+      if (formData.resultTime && typeof formData.resultTime === 'string') {
+        formData.resultTime = new Date(formData.resultTime);
+      }
+      
+      // Parse with schema validation after date conversion
+      const marketData = insertSatamatkaMarketSchema.parse(formData);
+      
+      // Log data for debugging
+      console.log("Creating market with data:", {
+        ...marketData,
+        openTime: marketData.openTime ? marketData.openTime.toISOString() : null,
+        closeTime: marketData.closeTime ? marketData.closeTime.toISOString() : null
+      });
       
       // Handle recurring market flag
       if (marketData.isRecurring) {
@@ -915,6 +939,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         res.status(201).json(market);
       }
     } catch (err) {
+      console.error("Error creating market:", err);
       next(err);
     }
   });
@@ -922,14 +947,39 @@ app.get("/api/games/my-history", async (req, res, next) => {
   // Create a recurring market (new API endpoint)
   app.post("/api/satamatka/markets/recurring", requireRole([UserRole.ADMIN]), async (req, res, next) => {
     try {
-      const marketData = insertSatamatkaMarketSchema.parse(req.body);
+      // Add proper date handling for string timestamps
+      const formData = req.body;
+      
+      // Convert string dates to Date objects if they're strings
+      if (formData.openTime && typeof formData.openTime === 'string') {
+        formData.openTime = new Date(formData.openTime);
+      }
+      
+      if (formData.closeTime && typeof formData.closeTime === 'string') {
+        formData.closeTime = new Date(formData.closeTime);
+      }
+      
+      if (formData.resultTime && typeof formData.resultTime === 'string') {
+        formData.resultTime = new Date(formData.resultTime);
+      }
+      
+      // Parse with schema validation
+      const marketData = insertSatamatkaMarketSchema.parse(formData);
       
       // Force this to be a recurring market
       marketData.isRecurring = true;
       
+      // Log data for debugging
+      console.log("Creating recurring market with data:", {
+        ...marketData,
+        openTime: marketData.openTime ? marketData.openTime.toISOString() : null,
+        closeTime: marketData.closeTime ? marketData.closeTime.toISOString() : null
+      });
+      
       const market = await storage.createRecurringSatamatkaMarket(marketData);
       res.status(201).json(market);
     } catch (err) {
+      console.error("Error creating recurring market:", err);
       next(err);
     }
   });

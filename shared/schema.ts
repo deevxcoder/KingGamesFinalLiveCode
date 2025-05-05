@@ -199,6 +199,7 @@ export const satamatkaMarkets = pgTable("satamatka_markets", {
   type: text("type").notNull(), // dishawar, gali, mumbai, kalyan
   openTime: timestamp("open_time").notNull(),
   closeTime: timestamp("close_time").notNull(),
+  resultTime: timestamp("result_time"), // Added new field for result declaration time
   openResult: text("open_result"),
   closeResult: text("close_result"),
   status: text("status").notNull().default(MarketStatus.WAITING),
@@ -221,12 +222,16 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
     recurrencePattern: true,
     nextOpenTime: true,
     nextCloseTime: true,
+    resultTime: true,
   })
   .extend({
     type: z.enum([MarketType.DISHAWAR, MarketType.GALI, MarketType.MUMBAI, MarketType.KALYAN]),
     coverImage: z.string().optional(),
     openTime: z.union([z.string(), z.date()]).transform(val => typeof val === 'string' ? new Date(val) : val),
     closeTime: z.union([z.string(), z.date()]).transform(val => typeof val === 'string' ? new Date(val) : val),
+    resultTime: z.union([z.string(), z.date()]).transform(val => 
+      val ? (typeof val === 'string' ? new Date(val) : val) : undefined
+    ).optional(),
     status: z.enum([
       MarketStatus.WAITING,
       MarketStatus.OPEN, 
@@ -254,6 +259,7 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
     recurrencePattern: true,
     nextOpenTime: true,
     nextCloseTime: true,
+    resultTime: true,
   });
 
 export type InsertSatamatkaMarket = z.infer<typeof insertSatamatkaMarketSchema>;
