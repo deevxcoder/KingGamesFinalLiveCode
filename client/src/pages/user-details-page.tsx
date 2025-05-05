@@ -118,7 +118,7 @@ export default function UserDetailsPage() {
   }, [activeTab]);
   
   const handleGoBack = () => {
-    navigate("/user-management");
+    navigate("/users");
   };
 
   if (isLoadingUser) {
@@ -144,7 +144,7 @@ export default function UserDetailsPage() {
           <CardContent>
             <Button onClick={handleGoBack}>
               <ChevronLeft className="mr-2 h-4 w-4" />
-              Back to User Management
+              Back to Users
             </Button>
           </CardContent>
         </Card>
@@ -157,7 +157,7 @@ export default function UserDetailsPage() {
       <div className="mb-4">
         <Button variant="outline" onClick={handleGoBack}>
           <ChevronLeft className="mr-2 h-4 w-4" />
-          Back to User Management
+          Back to Users
         </Button>
       </div>
 
@@ -427,6 +427,7 @@ export default function UserDetailsPage() {
                               <TableHead className="whitespace-nowrap">Bet Amount</TableHead>
                               <TableHead className="whitespace-nowrap">Prediction</TableHead>
                               <TableHead className="whitespace-nowrap">Game Details</TableHead>
+                              <TableHead className="whitespace-nowrap">Potential Payout</TableHead>
                               <TableHead className="whitespace-nowrap">Status</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -480,6 +481,18 @@ export default function UserDetailsPage() {
                                     <div className="text-xs">
                                       <Badge variant="secondary">Market ID: {game.marketId}</Badge>
                                     </div>
+                                  )}
+                                </TableCell>
+                                <TableCell className="text-green-500 font-medium">
+                                  {game.gameType === 'cricket_toss' && game.gameData ? (
+                                    <>
+                                      {game.prediction === 'team_a' 
+                                        ? `₹${(game.betAmount * game.gameData.oddTeamA / 100 / 100).toFixed(2)}`
+                                        : `₹${(game.betAmount * game.gameData.oddTeamB / 100 / 100).toFixed(2)}`
+                                      }
+                                    </>
+                                  ) : (
+                                    <>₹{((game.betAmount * 1.9) / 100).toFixed(2)}</>
                                   )}
                                 </TableCell>
                                 <TableCell>
