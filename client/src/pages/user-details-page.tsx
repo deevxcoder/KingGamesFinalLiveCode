@@ -441,7 +441,15 @@ export default function UserDetailsPage() {
                                   {(game.payout || 0) > 0 ? 
                                     `+₹${(game.payout / 100).toFixed(2)}` : 
                                     game.result === null || game.result === "pending" ? 
-                                      `₹${(game.betAmount / 100).toFixed(2)}` : 
+                                      (game.gameType === 'cricket_toss' && game.gameData ?
+                                        `+₹${(game.betAmount * (
+                                          (game.prediction === 'team_a' || game.prediction === 'Team_a') ? 
+                                            game.gameData.oddTeamA : 
+                                          (game.prediction === 'team_b' || game.prediction === 'Team_b') ? 
+                                            game.gameData.oddTeamB : 
+                                          1.9
+                                        ) / 100 / 100).toFixed(2)}` :
+                                        `₹${(game.betAmount / 100).toFixed(2)}`) : 
                                       `-₹${(Math.abs(game.betAmount) / 100).toFixed(2)}`}
                                 </TableCell>
                                 <TableCell className="text-green-500">
