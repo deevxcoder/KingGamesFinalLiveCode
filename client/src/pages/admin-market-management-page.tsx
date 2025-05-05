@@ -219,11 +219,24 @@ export default function AdminMarketManagementPage() {
 
   const createMarket = useMutation({
     mutationFn: async (data: z.infer<typeof marketFormSchema>) => {
+      // Combine date and time fields into ISO strings
+      const marketDate = data.marketDate;
+      
+      // Create proper datetime strings by combining date with time
+      const openTimeISO = combineDateTime(marketDate, data.openTime);
+      const closeTimeISO = combineDateTime(marketDate, data.closeTime);
+      const resultTimeISO = combineDateTime(marketDate, data.resultTime);
+      
       // Set initial market status to "waiting" to ensure manual activation flow
       const marketData = {
         ...data,
+        openTime: openTimeISO,
+        closeTime: closeTimeISO,
+        resultTime: resultTimeISO,
         status: "waiting" // All markets start in waiting status
       };
+      
+      console.log("Submitting market data:", marketData);
       return apiRequest("POST", "/api/satamatka/markets", marketData);
     },
     onSuccess: () => {
@@ -251,7 +264,24 @@ export default function AdminMarketManagementPage() {
 
   const updateMarket = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: z.infer<typeof marketFormSchema> }) => {
-      return apiRequest("PATCH", `/api/satamatka/markets/${id}`, data);
+      // Combine date and time fields into ISO strings for updates
+      const marketDate = data.marketDate;
+      
+      // Create proper datetime strings by combining date with time
+      const openTimeISO = combineDateTime(marketDate, data.openTime);
+      const closeTimeISO = combineDateTime(marketDate, data.closeTime);
+      const resultTimeISO = combineDateTime(marketDate, data.resultTime);
+      
+      // Prepare the data with proper datetime formats
+      const marketData = {
+        ...data,
+        openTime: openTimeISO,
+        closeTime: closeTimeISO,
+        resultTime: resultTimeISO
+      };
+      
+      console.log("Updating market data:", marketData);
+      return apiRequest("PATCH", `/api/satamatka/markets/${id}`, marketData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/satamatka/markets"] });
@@ -429,6 +459,21 @@ export default function AdminMarketManagementPage() {
     );
   };
 
+  // Helper function to combine date and time strings
+  const combineDateTime = (dateStr: string, timeStr: string): string => {
+    if (!dateStr || !timeStr) return "";
+    
+    // Parse the date and time strings
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    
+    // Create a new date with the combined date and time
+    const date = new Date(year, month - 1, day, hours, minutes);
+    
+    // Return as ISO string
+    return date.toISOString();
+  };
+  
   // Get today's date for display
   const today = new Date();
   const dateString = format(today, "EEEE, MMMM d, yyyy");
