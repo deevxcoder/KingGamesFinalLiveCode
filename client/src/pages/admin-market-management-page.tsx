@@ -149,7 +149,7 @@ export default function AdminMarketManagementPage() {
   // Mutations for market operations
   const updateMarketStatus = useMutation({
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
-      return apiRequest(`/api/satamatka/markets/${id}/status`, "PATCH", { status });
+      return apiRequest("PATCH", `/api/satamatka/markets/${id}/status`, { status });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/satamatka/markets"] });
@@ -179,11 +179,11 @@ export default function AdminMarketManagementPage() {
       // If market is open, set the openResult
       // If market is closed or waiting_result, set the closeResult
       if (market.status === "open") {
-        return apiRequest(`/api/satamatka/markets/${id}/results`, "PATCH", { 
+        return apiRequest("PATCH", `/api/satamatka/markets/${id}/results`, { 
           openResult: result 
         });
       } else if (market.status === "closed" || market.status === "waiting_result") {
-        return apiRequest(`/api/satamatka/markets/${id}/results`, "PATCH", { 
+        return apiRequest("PATCH", `/api/satamatka/markets/${id}/results`, { 
           closeResult: result 
         });
       } else {
@@ -215,7 +215,7 @@ export default function AdminMarketManagementPage() {
         ...data,
         status: "waiting_result" // All markets start in waiting status
       };
-      return apiRequest("/api/satamatka/markets", "POST", marketData);
+      return apiRequest("POST", "/api/satamatka/markets", marketData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/satamatka/markets"] });
@@ -238,7 +238,7 @@ export default function AdminMarketManagementPage() {
 
   const updateMarket = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: z.infer<typeof marketFormSchema> }) => {
-      return apiRequest(`/api/satamatka/markets/${id}`, "PATCH", data);
+      return apiRequest("PATCH", `/api/satamatka/markets/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/satamatka/markets"] });
