@@ -2332,101 +2332,111 @@ app.get("/api/games/my-history", async (req, res, next) => {
     try {
       // Get active markets
       const markets = await storage.getActiveSatamatkaMarkets();
+      console.log("Number of active markets found:", markets.length);
       
       // Generate all numbers from 00 to 99
       const allNumbers = Array.from({ length: 100 }, (_, i) => i.toString().padStart(2, '0'));
       
+      let jantriStats = [];
+      
       // For each market, get games and calculate stats
-      const jantriStats = await Promise.all(markets.map(async (market) => {
-        const games = await storage.getSatamatkaGamesByMarketId(market.id);
-        
-        // If subadmin, filter only their assigned users' games
-        let filteredGames = games;
-        if (req.user?.role === UserRole.SUBADMIN) {
-          const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
-          const assignedUserIds = assignedUsers.map(user => user.id);
-          filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
-        }
-        
-        // Calculate stats for each number
-        const numberStats = allNumbers.map(number => {
-          // Find games with this number as prediction
-          console.log(`Filtering games for number ${number}...`);
+      if (markets.length > 0) {
+        jantriStats = await Promise.all(markets.map(async (market) => {
+          const games = await storage.getSatamatkaGamesByMarketId(market.id);
+          console.log(`Market ${market.id} (${market.name}): Found ${games.length} games`);
           
-          // Check if any games have gameType starting with "satamatka"
-          const satamatkaGames = filteredGames.filter(game => game.gameType.includes("satamatka"));
-          if (market.id === 16 && number === "12") {
-            console.log(`Market ${market.id}: Found ${satamatkaGames.length} total Satamatka games`);
-            console.log(`First game:`, satamatkaGames[0]);
+          // If subadmin, filter only their assigned users' games
+          let filteredGames = games;
+          if (req.user?.role === UserRole.SUBADMIN) {
+            const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
+            const assignedUserIds = assignedUsers.map(user => user.id);
+            filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
           }
           
-          // Filter games for this number
-          const numberGames = filteredGames.filter(game => {
-            const matchesPrediction = game.prediction === number;
-            const matchesGameType = game.gameType === "satamatka" || game.gameType.includes("satamatka");
+          // Calculate stats for each number
+          const numberStats = allNumbers.map(number => {
+            // Filter games for this number
+            const numberGames = filteredGames.filter(game => {
+              const matchesPrediction = game.prediction === number;
+              const matchesGameType = game.gameType === "satamatka" || game.gameType.includes("satamatka");
+              return matchesPrediction && matchesGameType;
+            });
             
-            if (market.id === 16 && number === "12" && matchesPrediction) {
-              console.log(`Found game with prediction ${number}:`, game);
-              console.log(`Game type: ${game.gameType}, Matches: ${matchesGameType}`);
-            }
+            // Group games by gameMode
+            const gameModeGroups: Record<string, typeof numberGames> = {};
             
-            return matchesPrediction && matchesGameType;
-          });
-          
-          // Group games by gameMode
-          const gameModeGroups: Record<string, typeof numberGames> = {};
-          
-          // Default to "jodi" for backward compatibility if gameMode is not set
-          numberGames.forEach(game => {
-            const gameMode = game.gameMode || SatamatkaGameMode.JODI;
-            if (!gameModeGroups[gameMode]) {
-              gameModeGroups[gameMode] = [];
-            }
-            gameModeGroups[gameMode].push(game);
-          });
-          
-          // Get unique users across all game modes
-          const uniqueUsers = new Set(numberGames.map(game => game.userId)).size;
-          
-          // Calculate totals
-          const totalBets = numberGames.length;
-          const totalAmount = numberGames.reduce((sum, game) => sum + game.betAmount, 0);
-          const potentialWinAmount = numberGames.reduce((sum, game) => sum + game.payout, 0);
-          
-          // Determine the most common gameMode for this number
-          let dominantGameMode = SatamatkaGameMode.JODI; // Default
-          let maxGamesCount = 0;
-          
-          Object.entries(gameModeGroups).forEach(([mode, games]) => {
-            if (games.length > maxGamesCount) {
-              maxGamesCount = games.length;
-              dominantGameMode = mode;
-            }
+            // Default to "jodi" for backward compatibility if gameMode is not set
+            numberGames.forEach(game => {
+              const gameMode = game.gameMode || SatamatkaGameMode.JODI;
+              if (!gameModeGroups[gameMode]) {
+                gameModeGroups[gameMode] = [];
+              }
+              gameModeGroups[gameMode].push(game);
+            });
+            
+            // Get unique users across all game modes
+            const uniqueUsers = new Set(numberGames.map(game => game.userId)).size;
+            
+            // Calculate totals
+            const totalBets = numberGames.length;
+            const totalAmount = numberGames.reduce((sum, game) => sum + game.betAmount, 0);
+            const potentialWinAmount = numberGames.reduce((sum, game) => sum + game.payout, 0);
+            
+            // Determine the most common gameMode for this number
+            let dominantGameMode = SatamatkaGameMode.JODI; // Default
+            let maxGamesCount = 0;
+            
+            Object.entries(gameModeGroups).forEach(([mode, games]) => {
+              if (games.length > maxGamesCount) {
+                maxGamesCount = games.length;
+                dominantGameMode = mode;
+              }
+            });
+            
+            return {
+              number,
+              totalBets,
+              totalAmount,
+              potentialWinAmount,
+              uniqueUsers,
+              gameMode: dominantGameMode // Add gameMode to the response
+            };
           });
           
           return {
-            number,
-            totalBets,
-            totalAmount,
-            potentialWinAmount,
-            uniqueUsers,
-            gameMode: dominantGameMode // Add gameMode to the response
+            marketId: market.id,
+            marketName: market.name,
+            numbers: numberStats
           };
-        });
+        }));
+      }
+      
+      // If there are no markets or all responses are empty, create a default response with 00-99 numbers
+      if (jantriStats.length === 0) {
+        console.log("No active markets found, creating default Jantri stats with empty values");
         
-        return {
-          marketId: market.id,
-          marketName: market.name,
-          numbers: numberStats
-        };
-      }));
+        // Create a default market with empty stats for all numbers
+        const defaultNumberStats = allNumbers.map(number => ({
+          number,
+          totalBets: 0,
+          totalAmount: 0,
+          potentialWinAmount: 0,
+          uniqueUsers: 0,
+          gameMode: SatamatkaGameMode.JODI
+        }));
+        
+        jantriStats = [{
+          marketId: 0, // Default market ID
+          marketName: "No Active Markets",
+          numbers: defaultNumberStats
+        }];
+      }
       
       console.log("===== JANTRI STATS RESPONSE =====");
       console.log("Number of markets returned:", jantriStats.length);
-      if (jantriStats.length > 0) {
-        console.log("First market:", jantriStats[0].marketId, jantriStats[0].marketName);
-        console.log("Numbers with bets:", jantriStats[0].numbers.filter(n => n.totalBets > 0).length);
-      }
+      console.log("Numbers count in first market:", jantriStats[0].numbers.length);
+      console.log("Numbers with bets:", jantriStats[0].numbers.filter(n => n.totalBets > 0).length);
+      
       res.json(jantriStats);
     } catch (err) {
       console.error("Error in /api/jantri/stats:", err);
