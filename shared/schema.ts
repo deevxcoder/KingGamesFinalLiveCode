@@ -130,6 +130,7 @@ export const games = pgTable("games", {
   prediction: text("prediction").notNull(), // For coin flip: "heads" or "tails", for satamatka: "0" to "9" or "00" to "99"
   result: text("result"), // For coin flip: "heads" or "tails", for satamatka: "0" to "9" or "00" to "99"
   payout: integer("payout").notNull().default(0),
+  balanceAfter: integer("balance_after"), // Balance after this game is played (for history tracking)
   createdAt: timestamp("created_at").defaultNow(),
   marketId: integer("market_id").references(() => satamatkaMarkets.id),
   matchId: integer("match_id").references(() => teamMatches.id),
@@ -145,6 +146,7 @@ export const insertGameSchema = createInsertSchema(games)
     prediction: true,
     result: true,
     payout: true,
+    balanceAfter: true,
     marketId: true,
     matchId: true,
     gameMode: true,
@@ -162,6 +164,7 @@ export const insertGameSchema = createInsertSchema(games)
   })
   .partial({
     result: true,
+    balanceAfter: true,
     marketId: true,
     matchId: true,
     gameMode: true,
