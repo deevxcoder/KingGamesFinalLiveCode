@@ -630,21 +630,47 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTransactionsByUserId(userId: number): Promise<Transaction[]> {
-    return await db
-      .select()
+    const results = await db
+      .select({
+        transaction: transactions,
+        performer: {
+          id: users.id,
+          username: users.username,
+          role: users.role
+        }
+      })
       .from(transactions)
+      .leftJoin(users, eq(transactions.performedBy, users.id))
       .where(eq(transactions.userId, userId))
       .orderBy(desc(transactions.createdAt));
+      
+    // Transform results to include the performer information
+    return results.map(({ transaction, performer }) => ({
+      ...transaction,
+      performer
+    }));
   }
   
   async getAllTransactions(limit?: number): Promise<Transaction[]> {
-    const query = db.select().from(transactions).orderBy(desc(transactions.createdAt));
-    
-    if (limit) {
-      query.limit(limit);
-    }
-    
-    return await query;
+    const results = await db
+      .select({
+        transaction: transactions,
+        performer: {
+          id: users.id,
+          username: users.username,
+          role: users.role
+        }
+      })
+      .from(transactions)
+      .leftJoin(users, eq(transactions.performedBy, users.id))
+      .orderBy(desc(transactions.createdAt))
+      .limit(limit || 100);
+      
+    // Transform results to include the performer information
+    return results.map(({ transaction, performer }) => ({
+      ...transaction,
+      performer
+    }));
   }
 
   // Satamatka Market methods
