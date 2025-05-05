@@ -405,6 +405,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         prediction,
         result,
         payout,
+        balanceAfter: newBalance, // Track the balance after this game
       });
 
       // Return game result with updated user info

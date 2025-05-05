@@ -56,7 +56,7 @@ export interface IStorage {
   getGamesByUserId(userId: number): Promise<Game[]>;
   getAllGames(limit?: number): Promise<Game[]>;
   updateGameStatus(gameId: number, status: string): Promise<Game | undefined>;
-  updateGameResult(gameId: number, result: string): Promise<Game | undefined>;
+  updateGameResult(gameId: number, result: string, payout?: number): Promise<Game | undefined>;
 
   // Satamatka Market methods
   createSatamatkaMarket(market: InsertSatamatkaMarket): Promise<SatamatkaMarket>;
@@ -536,6 +536,21 @@ export class DatabaseStorage implements IStorage {
 
   // Game methods
   async createGame(insertGame: InsertGame): Promise<Game> {
+    // If balanceAfter is not provided and this is a real player bet (not admin creating game template)
+    if (insertGame.balanceAfter === undefined && insertGame.betAmount > 0) {
+      try {
+        // Get the user's current balance
+        const user = await this.getUser(insertGame.userId);
+        if (user) {
+          // Calculate new balance after this game
+          const balanceAfter = user.balance - insertGame.betAmount + (insertGame.payout || 0);
+          insertGame.balanceAfter = balanceAfter;
+        }
+      } catch (err) {
+        console.error("Error getting user balance for game:", err);
+      }
+    }
+    
     const [game] = await db.insert(games).values(insertGame).returning();
     return game;
   }
@@ -580,10 +595,69 @@ export class DatabaseStorage implements IStorage {
     return game;
   }
 
-  async updateGameResult(gameId: number, result: string): Promise<Game | undefined> {
+  async updateGameResult(gameId: number, result: string, payout?: number): Promise<Game | undefined> {
+    // Get the game first to check if it's a pending result being updated
+    const originalGame = await this.getGame(gameId);
+    
+    if (!originalGame) {
+      return undefined;
+    }
+    
+    // If the game already has a result and we're not updating the payout, just update the result
+    if (originalGame.result && payout === undefined) {
+      const [game] = await db
+        .update(games)
+        .set({ result })
+        .where(eq(games.id, gameId))
+        .returning();
+      
+      return game;
+    }
+    
+    // If we're updating from pending to a result, we need to:
+    // 1. Update the payout if provided
+    // 2. Update the user's balance
+    // 3. Update the balanceAfter in the game record
+    const updateData: any = { result };
+    
+    // If payout is provided, update it
+    if (payout !== undefined) {
+      updateData.payout = payout;
+    }
+    
+    // Only update user balance for actual player bets
+    if (originalGame.betAmount > 0) {
+      try {
+        // Get the user to update their balance
+        const user = await this.getUser(originalGame.userId);
+        
+        if (user) {
+          // The final payout to use
+          const finalPayout = payout !== undefined ? payout : originalGame.payout;
+          
+          // Only adjust balance if there's a payout (i.e., if player won)
+          if (finalPayout > 0) {
+            // Update user balance - add the payout
+            const newBalance = user.balance + finalPayout;
+            await this.updateUserBalance(user.id, newBalance);
+            
+            // Record the updated balance in the game record
+            updateData.balanceAfter = newBalance;
+          } else if (!originalGame.balanceAfter) {
+            // If there's no payout but balanceAfter wasn't recorded before,
+            // at least record the current balance 
+            updateData.balanceAfter = user.balance;
+          }
+        }
+      } catch (err) {
+        console.error("Error updating user balance for game result:", err);
+      }
+    }
+    
+    // Update the game with all the changes
     const [game] = await db
       .update(games)
-      .set({ result })
+      .set(updateData)
       .where(eq(games.id, gameId))
       .returning();
     
