@@ -1274,20 +1274,35 @@ export default function WalletPage() {
                                   </div>
 
                                   <div className="px-4 pb-4 text-sm border-t border-slate-800 bg-slate-950/50">
-                                    <p><strong>Payment Method:</strong> {request.paymentMode}</p>
+                                    <div className="mt-2 flex items-center gap-2">
+                                      <strong>Payment Method:</strong> 
+                                      <Badge variant="outline" className={
+                                        request.paymentMode === PaymentMode.UPI 
+                                          ? "bg-blue-950/40 text-blue-400 border-blue-800"
+                                          : "bg-amber-950/40 text-amber-400 border-amber-800"
+                                      }>
+                                        {request.paymentMode}
+                                      </Badge>
+                                    </div>
                                     
                                     {/* Payment details based on payment mode */}
                                     {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
-                                      <p><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
+                                      <p className="mt-2"><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
                                     )}
                                     
                                     {request.paymentMode === PaymentMode.BANK && (
                                       <>
                                         {request.paymentDetails.bankName && 
-                                          <p><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
+                                          <p className="mt-2"><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
                                         {request.paymentDetails.accountNumber && 
                                           <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
                                       </>
+                                    )}
+                                    
+                                    {request.reviewedBy && (
+                                      <p className="mt-2">
+                                        <strong>Reviewed by:</strong> Admin
+                                      </p>
                                     )}
                                     
                                     {request.status === RequestStatus.REJECTED && request.notes && (
@@ -1329,7 +1344,9 @@ export default function WalletPage() {
                                       <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
                                         <div className="flex items-center gap-1">
                                           <CreditCard className="h-3 w-3" />
-                                          {transaction.performer?.username || `Admin #${transaction.performedBy}`}
+                                          {transaction.performer ? 
+                                            `${transaction.performer.username} (${transaction.performer.role})` : 
+                                            `Admin #${transaction.performedBy}`}
                                         </div>
                                       </Badge>
                                       {transaction.balanceAfter !== undefined && (

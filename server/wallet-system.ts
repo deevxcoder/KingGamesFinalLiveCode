@@ -263,7 +263,7 @@ export async function reviewWalletRequest(
           balanceAfter: updatedUser.rows[0].balance, // Include the player's updated balance
           performedBy: adminId,
           requestId: requestId,
-          description: `${request.requestType === 'deposit' ? 'Deposit' : 'Withdrawal'} request processed by ${adminId}`,
+          description: `${request.requestType === 'deposit' ? 'Deposit' : 'Withdrawal'} request processed`,
         });
       }
       
