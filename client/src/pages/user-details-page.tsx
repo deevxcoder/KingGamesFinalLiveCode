@@ -346,88 +346,95 @@ export default function UserDetailsPage() {
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
-                            <TableRow>
-                              <TableHead className="whitespace-nowrap">Date</TableHead>
-                              <TableHead className="whitespace-nowrap">Game</TableHead>
-                              <TableHead className="whitespace-nowrap">Bet Amount</TableHead>
-                              <TableHead className="whitespace-nowrap">Prediction</TableHead>
-                              <TableHead className="whitespace-nowrap">Game Details</TableHead>
-                              <TableHead className="whitespace-nowrap">Result</TableHead>
-                              <TableHead className="whitespace-nowrap">Payout</TableHead>
-                              <TableHead className="whitespace-nowrap">Balance After</TableHead>
+                            <TableRow className="bg-slate-900">
+                              <TableHead className="whitespace-nowrap text-slate-400">Time</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Game Type</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Market/Match</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Bet Amount</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Prediction</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Result</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Profit/Loss</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Balance</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {getPaginatedItems(userGames, betsPage).map((game: any) => (
-                              <TableRow key={game.id}>
-                                <TableCell className="whitespace-nowrap">
-                                  {new Date(game.createdAt).toLocaleString()}
+                              <TableRow key={game.id} className="bg-slate-900/40 hover:bg-slate-900/60">
+                                <TableCell className="text-slate-400">
+                                  {/* Convert to relative time like "about 8 hours ago" */}
+                                  about {Math.floor((Date.now() - new Date(game.createdAt).getTime()) / (1000 * 60 * 60))} hours ago
                                 </TableCell>
-                                <TableCell className="capitalize">
-                                  {game.gameType?.replace(/_/g, ' ') || "Coin Flip"}
+                                <TableCell>
+                                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-white">
+                                    {game.gameType === 'cricket_toss' ? 'Cricket Toss' :
+                                     game.gameType === 'team_match' ? 'Team Match' :
+                                     game.gameType === 'coin_flip' ? 'Coin Flip' :
+                                     game.gameType.includes('satamatka') ? 'Satamatka' :
+                                     game.gameType.replace(/_/g, ' ')}
+                                  </Badge>
                                 </TableCell>
-                                <TableCell>₹{(game.betAmount / 100).toFixed(2)}</TableCell>
+                                <TableCell>
+                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && game.gameData ? (
+                                    <span>{game.gameData.teamA} vs {game.gameData.teamB}</span>
+                                  ) : game.gameType.includes('satamatka') ? (
+                                    <span>
+                                      {game.gameData && game.gameData.marketName ? 
+                                        game.gameData.marketName : 
+                                        game.gameMode ? `${game.gameMode} (${game.prediction})` : "Satamatka Game"}
+                                    </span>
+                                  ) : game.gameType.includes('coin_flip') ? (
+                                    <span>Coin Flip Game</span>
+                                  ) : (
+                                    <span>{game.gameType}</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  ₹{(game.betAmount / 100).toFixed(2)}
+                                </TableCell>
                                 <TableCell>
                                   {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
-                                    <>
-                                      {game.prediction === 'team_a' && game.gameData ? (
-                                        <Badge className="bg-green-600">
-                                          {game.gameData.teamA}
-                                        </Badge>
-                                      ) : game.prediction === 'team_b' && game.gameData ? (
-                                        <Badge className="bg-blue-600">
-                                          {game.gameData.teamB}
-                                        </Badge>
-                                      ) : (
-                                        <span className="capitalize">{game.prediction}</span>
-                                      )}
-                                    </>
+                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                      {game.prediction === 'team_a' && game.gameData ? 
+                                        game.gameData.teamA : 
+                                        game.prediction === 'team_b' && game.gameData ? 
+                                          game.gameData.teamB : 
+                                          game.prediction}
+                                    </Badge>
                                   ) : game.gameType.includes('satamatka') ? (
-                                    <span className="capitalize">
-                                      {game.prediction} {game.gameMode && `(${game.gameMode})`}
-                                    </span>
+                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                      {game.prediction}
+                                    </Badge>
+                                  ) : game.gameType.includes('coin_flip') ? (
+                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                      {game.prediction}
+                                    </Badge>
                                   ) : (
-                                    <span className="capitalize">{game.prediction}</span>
+                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                      {game.prediction}
+                                    </Badge>
                                   )}
                                 </TableCell>
                                 <TableCell>
-                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && game.gameData && (
-                                    <div className="text-xs space-y-1">
-                                      <div>
-                                        <Badge variant="secondary" className="mb-1">Match</Badge> {game.gameData.teamA} vs {game.gameData.teamB}
-                                      </div>
-                                      {game.gameData.description && (
-                                        <div className="text-muted-foreground">{game.gameData.description}</div>
-                                      )}
-                                    </div>
-                                  )}
-                                  {game.gameType === 'coin_flip' && (
-                                    <span className="capitalize text-xs">
-                                      <Badge variant="secondary">Coin Flip</Badge>
-                                    </span>
-                                  )}
-                                  {game.gameType.includes('satamatka') && (
-                                    <div className="text-xs space-y-1">
-                                      <div>
-                                        <Badge variant="secondary">SataMatka</Badge>
-                                        {game.gameData && game.gameData.marketName ? (
-                                          <span className="ml-1 font-medium">{game.gameData.marketName}</span>
-                                        ) : (
-                                          <span className="ml-1">Market {game.marketId}</span>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <Badge variant="outline">Type: {game.gameMode || "Standard"}</Badge>
-                                      </div>
-                                    </div>
+                                  {game.result ? (
+                                    <Badge className={(game.payout || 0) > 0 ? "bg-green-600" : "bg-red-600"}>
+                                      {game.result}
+                                    </Badge>
+                                  ) : (
+                                    <Badge className="bg-emerald-600">
+                                      pending
+                                    </Badge>
                                   )}
                                 </TableCell>
-                                <TableCell>{game.result || "Pending"}</TableCell>
-                                <TableCell className={(game.payout || 0) > 0 ? "text-green-500" : "text-red-500"}>
-                                  {(game.payout || 0) > 0 ? `+₹${(game.payout / 100).toFixed(2)}` : "₹0.00"}
+                                <TableCell className={(game.payout || 0) > 0 ? "text-amber-500" : "text-red-500 line-through"}>
+                                  {(game.payout || 0) > 0 ? 
+                                    `+₹${(game.payout / 100).toFixed(2)}` : 
+                                    game.payout === 0 || game.payout === null ? 
+                                      `₹${(game.betAmount / 100).toFixed(2)}` : 
+                                      `-₹${(Math.abs(game.payout) / 100).toFixed(2)}`}
                                 </TableCell>
-                                <TableCell className="font-medium">
-                                  {game.balanceAfter ? `₹${(game.balanceAfter / 100).toFixed(2)}` : "N/A"}
+                                <TableCell className="text-green-500">
+                                  ₹{game.balanceAfter ? (game.balanceAfter / 100).toFixed(2) : 
+                                     (((selectedUser?.balance || 0) - (game.betAmount || 0)) / 100).toFixed(2)}
                                 </TableCell>
                               </TableRow>
                             ))}
@@ -537,18 +544,12 @@ export default function UserDetailsPage() {
                                     </span>
                                   )}
                                   {game.gameType.includes('satamatka') && (
-                                    <div className="text-xs space-y-1">
-                                      <div>
-                                        <Badge variant="secondary">SataMatka</Badge>
-                                        {game.gameData && game.gameData.marketName ? (
-                                          <span className="ml-1 font-medium">{game.gameData.marketName}</span>
-                                        ) : (
-                                          <span className="ml-1">Market {game.marketId}</span>
-                                        )}
-                                      </div>
-                                      <div>
-                                        <Badge variant="outline">Type: {game.gameMode || "Standard"}</Badge>
-                                      </div>
+                                    <div className="text-xs">
+                                      {game.gameData && game.gameData.marketName ? (
+                                        <span className="font-medium">{game.gameData.marketName}</span>
+                                      ) : (
+                                        <span>SataMatka Market</span>
+                                      )}
                                     </div>
                                   )}
                                 </TableCell>
