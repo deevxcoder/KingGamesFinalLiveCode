@@ -138,7 +138,21 @@ export default function UserManagementPage() {
       const res = await apiRequest("GET", `/api/games/${selectedUser.id}`);
       return await res.json();
     },
-    enabled: !!selectedUser && isUserDetailsDialogOpen && (detailsTab === "bets" || detailsTab === "active-bets"),
+    enabled: !!selectedUser && isUserDetailsDialogOpen && detailsTab === "bets",
+  });
+  
+  // Fetch active bets (pending games) for the selected user
+  const { data: userActiveBets = [], isLoading: isLoadingActiveBets } = useQuery({
+    queryKey: ["/api/games/pending", selectedUser?.id],
+    queryFn: async () => {
+      if (!selectedUser) return [];
+      // Filter for games where result is not set (i.e., pending)
+      const res = await apiRequest("GET", `/api/games/${selectedUser.id}`);
+      const allGames = await res.json();
+      // Return only games with empty result (pending outcome)
+      return allGames.filter((game: any) => !game.result || game.result === "");
+    },
+    enabled: !!selectedUser && isUserDetailsDialogOpen && detailsTab === "active-bets",
   });
   
   // Fetch user commissions (for subadmins) or discounts (for players)
@@ -902,7 +916,7 @@ export default function UserManagementPage() {
                 <div className="space-y-1">
                   {userCommissions.map((commission: any) => (
                     <div key={commission.id} className="flex justify-between text-sm">
-                      <span>{commission.gameType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</span>
+                      <span>{commission.gameType.replace('_', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}</span>
                       <span className="font-medium">{(commission.commissionRate / 100).toFixed(2)}%</span>
                     </div>
                   ))}
@@ -1067,9 +1081,78 @@ export default function UserManagementPage() {
             {/* Active Bets Tab */}
             {detailsTab === "active-bets" && (
               <div className="py-4">
-                <div className="text-center py-8 text-muted-foreground">
-                  No active bets found
-                </div>
+                {isLoadingActiveBets ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                ) : userActiveBets.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No active bets found
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Date</TableHead>
+                          <TableHead>Game</TableHead>
+                          <TableHead>Bet Amount</TableHead>
+                          <TableHead>Prediction</TableHead>
+                          <TableHead>Game Details</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {userActiveBets.map((game: any) => (
+                          <TableRow key={game.id} className="bg-slate-800/10 hover:bg-slate-800/30">
+                            <TableCell>
+                              {new Date(game.createdAt).toLocaleString()}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="capitalize">
+                                {game.gameType.replace(/_/g, ' ')}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              ₹{(game.betAmount / 100).toFixed(2)}
+                            </TableCell>
+                            <TableCell>{game.prediction}</TableCell>
+                            <TableCell>
+                              {game.gameType === 'cricket_toss' && game.game_data && (
+                                <div className="text-xs space-y-1">
+                                  <div>
+                                    <Badge variant="secondary" className="mb-1">Match</Badge> {game.game_data.teamA} vs {game.game_data.teamB}
+                                  </div>
+                                  {game.prediction === 'team_a' ? (
+                                    <Badge className="bg-green-600">{game.game_data.teamA}</Badge>
+                                  ) : game.prediction === 'team_b' ? (
+                                    <Badge className="bg-blue-600">{game.game_data.teamB}</Badge>
+                                  ) : null}
+                                </div>
+                              )}
+                              {game.gameType === 'coinflip' && (
+                                <span className="capitalize text-xs">
+                                  <Badge variant="secondary">{game.prediction}</Badge>
+                                </span>
+                              )}
+                              {game.gameType.includes('satamatka') && game.market_id && (
+                                <div className="text-xs">
+                                  <Badge variant="secondary">Market ID: {game.market_id}</Badge>
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="secondary" className="flex items-center gap-1 whitespace-nowrap">
+                                <Clock className="h-3 w-3 animate-pulse text-yellow-500" />
+                                Pending
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
               </div>
             )}
           </div>
