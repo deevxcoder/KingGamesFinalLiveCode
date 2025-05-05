@@ -1939,65 +1939,85 @@ app.get("/api/games/my-history", async (req, res, next) => {
       // Filter matches for cricket category
       const cricketMatches = matches.filter(match => match.category === "cricket");
       
+      if (cricketMatches.length === 0) {
+        // If no matches found, return empty array
+        return res.json([]);
+      }
+      
       // For each match, get games and calculate stats
       const matchStats = await Promise.all(cricketMatches.map(async (match) => {
-        const games = await storage.getTeamMatchGamesByMatchId(match.id);
-        
-        // If subadmin, filter only their assigned users' games
-        let filteredGames = games;
-        if (req.user?.role === UserRole.SUBADMIN) {
-          const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
-          const assignedUserIds = assignedUsers.map(user => user.id);
-          filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
+        try {
+          if (!match.id) {
+            console.error("Match ID missing for match:", match);
+            return null; // Skip this match if ID is missing
+          }
+
+          const games = await storage.getTeamMatchGamesByMatchId(match.id);
+          
+          // If subadmin, filter only their assigned users' games
+          let filteredGames = games;
+          if (req.user?.role === UserRole.SUBADMIN) {
+            const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
+            const assignedUserIds = assignedUsers.map(user => user.id);
+            filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
+          }
+          
+          // Count games for each team
+          const teamA = match.teamA;
+          const teamB = match.teamB;
+          
+          const teamAGames = filteredGames.filter(game => game.prediction === teamA);
+          const teamBGames = filteredGames.filter(game => game.prediction === teamB);
+          
+          // Get unique users
+          const teamAUniqueUsers = new Set(teamAGames.map(game => game.userId)).size;
+          const teamBUniqueUsers = new Set(teamBGames.map(game => game.userId)).size;
+          
+          // Calculate totals
+          const teamATotalBets = teamAGames.length;
+          const teamBTotalBets = teamBGames.length;
+          
+          const teamATotalAmount = teamAGames.reduce((sum, game) => sum + game.betAmount, 0);
+          const teamBTotalAmount = teamBGames.reduce((sum, game) => sum + game.betAmount, 0);
+          
+          const teamAPotentialWinAmount = teamAGames.reduce((sum, game) => sum + (game.payout || 0), 0);
+          const teamBPotentialWinAmount = teamBGames.reduce((sum, game) => sum + (game.payout || 0), 0);
+          
+          return {
+            matchId: match.id,
+            matchName: `${match.teamA} vs ${match.teamB}`,
+            startTime: match.matchTime,
+            teams: [
+              {
+                teamName: match.teamA,
+                totalBets: teamATotalBets,
+                totalAmount: teamATotalAmount,
+                potentialWinAmount: teamAPotentialWinAmount,
+                uniqueUsers: teamAUniqueUsers
+              },
+              {
+                teamName: match.teamB,
+                totalBets: teamBTotalBets,
+                totalAmount: teamBTotalAmount,
+                potentialWinAmount: teamBPotentialWinAmount,
+                uniqueUsers: teamBUniqueUsers
+              }
+            ]
+          };
+        } catch (error) {
+          console.error(`Error processing match ${match.id}:`, error);
+          return null; // Skip this match if it causes an error
         }
-        
-        // Count games for each team
-        const teamA = match.teamA;
-        const teamB = match.teamB;
-        
-        const teamAGames = filteredGames.filter(game => game.prediction === teamA);
-        const teamBGames = filteredGames.filter(game => game.prediction === teamB);
-        
-        // Get unique users
-        const teamAUniqueUsers = new Set(teamAGames.map(game => game.userId)).size;
-        const teamBUniqueUsers = new Set(teamBGames.map(game => game.userId)).size;
-        
-        // Calculate totals
-        const teamATotalBets = teamAGames.length;
-        const teamBTotalBets = teamBGames.length;
-        
-        const teamATotalAmount = teamAGames.reduce((sum, game) => sum + game.betAmount, 0);
-        const teamBTotalAmount = teamBGames.reduce((sum, game) => sum + game.betAmount, 0);
-        
-        const teamAPotentialWinAmount = teamAGames.reduce((sum, game) => sum + (game.payout || 0), 0);
-        const teamBPotentialWinAmount = teamBGames.reduce((sum, game) => sum + (game.payout || 0), 0);
-        
-        return {
-          matchId: match.id,
-          matchName: `${match.teamA} vs ${match.teamB}`,
-          startTime: match.matchTime,
-          teams: [
-            {
-              teamName: match.teamA,
-              totalBets: teamATotalBets,
-              totalAmount: teamATotalAmount,
-              potentialWinAmount: teamAPotentialWinAmount,
-              uniqueUsers: teamAUniqueUsers
-            },
-            {
-              teamName: match.teamB,
-              totalBets: teamBTotalBets,
-              totalAmount: teamBTotalAmount,
-              potentialWinAmount: teamBPotentialWinAmount,
-              uniqueUsers: teamBUniqueUsers
-            }
-          ]
-        };
       }));
       
-      res.json(matchStats);
+      // Filter out null entries (matches that failed to process)
+      const validMatchStats = matchStats.filter(match => match !== null);
+      
+      res.json(validMatchStats);
     } catch (err) {
-      next(err);
+      console.error("Error in cricket toss stats API:", err);
+      // Return empty array instead of error
+      res.json([]);
     }
   });
   

@@ -128,21 +128,30 @@ export default function RiskManagementPage() {
   }
 
   // Query for jantri statistics (Satamatka)
-  const { data: jantriStats, isLoading: jantriLoading } = useQuery<JantriGameStats[]>({
+  const { data: jantriStats, isLoading: jantriLoading, error: jantriError } = useQuery<JantriGameStats[]>({
     queryKey: ["/api/jantri/stats", isAdmin ? "admin" : `subadmin-${user?.id}`],
     enabled: !!user && (isAdmin || isSubadmin),
+    retry: 1,
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false
   });
 
   // Query for cricket toss statistics
-  const { data: cricketTossStats, isLoading: cricketLoading } = useQuery<TeamMatchStats[]>({
+  const { data: cricketTossStats, isLoading: cricketLoading, error: cricketError } = useQuery<TeamMatchStats[]>({
     queryKey: ["/api/cricket-toss/stats", isAdmin ? "admin" : `subadmin-${user?.id}`],
     enabled: !!user && (isAdmin || isSubadmin),
+    retry: 1,
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false
   });
 
   // Query for sports match statistics
-  const { data: sportsStats, isLoading: sportsLoading } = useQuery<TeamMatchStats[]>({
+  const { data: sportsStats, isLoading: sportsLoading, error: sportsError } = useQuery<TeamMatchStats[]>({
     queryKey: ["/api/sports/stats", isAdmin ? "admin" : `subadmin-${user?.id}`],
     enabled: !!user && (isAdmin || isSubadmin),
+    retry: 1,
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: false
   });
 
   // Function to format currency amounts
@@ -268,31 +277,7 @@ export default function RiskManagementPage() {
   // Process cricket toss data from API
   const processCricketTossData = () => {
     if (!cricketTossStats || cricketTossStats.length === 0) {
-      // If no cricket toss data, show demo data if in development
-      if (process.env.NODE_ENV === 'development') {
-        return [
-          {
-            teamName: "India",
-            totalBets: 0,
-            totalAmount: 0,
-            potentialWinAmount: 0,
-            uniqueUsers: 0,
-            matchId: 1,
-            matchName: "India vs Australia",
-            opponentTeam: "Australia"
-          },
-          {
-            teamName: "Australia",
-            totalBets: 0,
-            totalAmount: 0,
-            potentialWinAmount: 0,
-            uniqueUsers: 0,
-            matchId: 1,
-            matchName: "India vs Australia",
-            opponentTeam: "India"
-          }
-        ];
-      }
+      // Return empty array when no data is available
       return [];
     }
     
@@ -361,41 +346,7 @@ export default function RiskManagementPage() {
   // Process sports match data from API
   const processSportsData = () => {
     if (!sportsStats || sportsStats.length === 0) {
-      // If no sports data, show demo data if in development
-      if (process.env.NODE_ENV === 'development') {
-        return [
-          {
-            teamName: "Mumbai Indians",
-            totalBets: 0,
-            totalAmount: 0,
-            potentialWinAmount: 0,
-            uniqueUsers: 0,
-            matchId: 1,
-            matchName: "Mumbai Indians vs Chennai Super Kings",
-            opponentTeam: "Chennai Super Kings"
-          },
-          {
-            teamName: "Chennai Super Kings",
-            totalBets: 0,
-            totalAmount: 0,
-            potentialWinAmount: 0,
-            uniqueUsers: 0,
-            matchId: 1,
-            matchName: "Mumbai Indians vs Chennai Super Kings",
-            opponentTeam: "Mumbai Indians"
-          },
-          {
-            teamName: "Draw",
-            totalBets: 0,
-            totalAmount: 0,
-            potentialWinAmount: 0,
-            uniqueUsers: 0,
-            matchId: 1,
-            matchName: "Mumbai Indians vs Chennai Super Kings",
-            isDraw: true
-          }
-        ];
-      }
+      // Return empty array when no data is available
       return [];
     }
     
@@ -609,16 +560,27 @@ export default function RiskManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.length === 0 ? (
+              {jantriLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-4">
-                    {jantriLoading ? (
-                      <div className="flex justify-center items-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                      </div>
-                    ) : (
-                      "No data available"
-                    )}
+                    <div className="flex justify-center items-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : jantriError ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-4 text-red-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <AlertTriangle className="h-6 w-6" />
+                      <p>Error loading Satamatka statistics. Please try again later.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-4">
+                    No data available for Satamatka games
                   </TableCell>
                 </TableRow>
               ) : (
@@ -736,16 +698,27 @@ export default function RiskManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.length === 0 ? (
+              {cricketLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-4">
-                    {cricketLoading ? (
-                      <div className="flex justify-center items-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                      </div>
-                    ) : (
-                      "No data available"
-                    )}
+                    <div className="flex justify-center items-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : cricketError ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-4 text-red-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <AlertTriangle className="h-6 w-6" />
+                      <p>Error loading Cricket Toss statistics. Please try again later.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-4">
+                    No data available for Cricket Toss games
                   </TableCell>
                 </TableRow>
               ) : (
@@ -911,16 +884,27 @@ export default function RiskManagementPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.length === 0 ? (
+              {sportsLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-4">
-                    {sportsLoading ? (
-                      <div className="flex justify-center items-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-                      </div>
-                    ) : (
-                      "No data available"
-                    )}
+                    <div className="flex justify-center items-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : sportsError ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-4 text-red-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <AlertTriangle className="h-6 w-6" />
+                      <p>Error loading Sports statistics. Please try again later.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : data.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-4">
+                    No data available for Sports matches
                   </TableCell>
                 </TableRow>
               ) : (
