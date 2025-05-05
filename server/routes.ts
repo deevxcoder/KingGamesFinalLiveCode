@@ -940,8 +940,24 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const marketId = Number(req.params.id);
       const { status } = req.body;
       
-      if (!status || !["open", "closed", "resulted"].includes(status)) {
-        return res.status(400).json({ message: "Invalid status" });
+      // Updated to include the "waiting" status for the proper workflow sequence
+      if (!status || !["waiting", "open", "closed", "resulted"].includes(status)) {
+        return res.status(400).json({ 
+          message: "Invalid status. Must be one of: waiting, open, closed, resulted" 
+        });
+      }
+      
+      // Check the current market status before allowing transition
+      const existingMarket = await storage.getSatamatkaMarket(marketId);
+      if (!existingMarket) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+      
+      // Get the current market to check if status transition is valid
+      if (status === "resulted" && existingMarket.status !== "closed") {
+        return res.status(400).json({ 
+          message: "Market can only be set to 'resulted' from 'closed' status" 
+        });
       }
       
       const market = await storage.updateSatamatkaMarketStatus(marketId, status);
@@ -1061,7 +1077,18 @@ app.get("/api/games/my-history", async (req, res, next) => {
       }
 
       if (market.status !== "open") {
-        return res.status(400).json({ message: "Market is closed for betting" });
+        // Provide a more specific error message based on the actual market status
+        const statusMessages = {
+          "waiting": "Market is not yet active for betting",
+          "closed": "Market is closed for betting",
+          "resulted": "Market results have been declared",
+          "settled": "Market has been settled"
+        };
+        
+        const message = statusMessages[market.status as keyof typeof statusMessages] || 
+                       "Market is not available for betting";
+        
+        return res.status(400).json({ message });
       }
 
       // Validate prediction based on game mode
@@ -1179,7 +1206,18 @@ app.get("/api/games/my-history", async (req, res, next) => {
       }
 
       if (market.status !== "open") {
-        return res.status(400).json({ message: "Market is closed for betting" });
+        // Provide a more specific error message based on the actual market status
+        const statusMessages = {
+          "waiting": "Market is not yet active for betting",
+          "closed": "Market is closed for betting",
+          "resulted": "Market results have been declared",
+          "settled": "Market has been settled"
+        };
+        
+        const message = statusMessages[market.status as keyof typeof statusMessages] || 
+                       "Market is not available for betting";
+        
+        return res.status(400).json({ message });
       }
       
       // Validate each bet and calculate total amount
@@ -1503,7 +1541,17 @@ app.get("/api/games/my-history", async (req, res, next) => {
       
       // Check if match is still open for betting
       if (match.status !== "open") {
-        return res.status(400).json({ message: "Match is not open for betting" });
+        // Provide a more specific error message based on the actual match status
+        const statusMessages = {
+          "waiting": "Match is not yet active for betting",
+          "closed": "Match is closed for betting",
+          "resulted": "Match results have been declared"
+        };
+        
+        const message = statusMessages[match.status as keyof typeof statusMessages] || 
+                       "Match is not available for betting";
+        
+        return res.status(400).json({ message });
       }
       
       // Check if match time is in the future
@@ -1614,7 +1662,17 @@ app.get("/api/games/my-history", async (req, res, next) => {
       }
       
       if (match.status !== 'open') {
-        return res.status(400).json({ message: "Match is not open for betting" });
+        // Provide a more specific error message based on the actual match status
+        const statusMessages = {
+          "waiting": "Match is not yet active for betting",
+          "closed": "Match is closed for betting",
+          "resulted": "Match results have been declared"
+        };
+        
+        const message = statusMessages[match.status as keyof typeof statusMessages] || 
+                       "Match is not available for betting";
+        
+        return res.status(400).json({ message });
       }
       
       // Check if user has sufficient balance
