@@ -89,16 +89,13 @@ export default function WalletPage() {
   const { data: systemPaymentDetails, isLoading: loadingPaymentDetails } = useQuery<SystemPaymentDetails>({
     queryKey: ["/api/wallet/payment-details"],
     queryFn: async ({ queryKey }) => {
-      console.log("Fetching payment details from API...");
       const res = await fetch(queryKey[0] as string, {
         credentials: "include",
       });
       if (!res.ok) {
-        console.error("Failed to fetch payment details:", res.status);
         throw new Error("Failed to fetch payment details");
       }
       const data = await res.json();
-      console.log("Received payment details from API:", data);
       return data;
     }
   });
@@ -122,7 +119,6 @@ export default function WalletPage() {
       };
       
       setPaymentModeDetails(transformedDetails);
-      console.log("Using admin-configured payment details:", transformedDetails);
     }
   }, [systemPaymentDetails]);
 
@@ -143,10 +139,7 @@ export default function WalletPage() {
     refetch: refetchTransactions
   } = useQuery<any[]>({
     queryKey: ["/api/transactions"],
-    enabled: activeTab === "history" || activeTab === "balance",
-    onSuccess: (data) => {
-      console.log("Transaction data received:", data);
-    }
+    enabled: activeTab === "history" || activeTab === "balance"
   });
 
   // File upload handler
@@ -174,7 +167,6 @@ export default function WalletPage() {
       const data = await res.json();
       return data.imageUrl;
     } catch (error) {
-      console.error("Upload error:", error);
       throw error;
     }
   };
@@ -1375,12 +1367,7 @@ export default function WalletPage() {
                                             )
                                         }
                                       </p>
-                                      {/* Display extra debug info in development environment */}
-                                      {import.meta.env.DEV && (
-                                        <div className="mt-2 text-xs text-yellow-500">
-                                          <p><strong>DEBUG - Performer Data:</strong> {JSON.stringify(transaction.performer || {})}</p>
-                                        </div>
-                                      )}
+
                                     </div>
                                   )}
                                 </div>
