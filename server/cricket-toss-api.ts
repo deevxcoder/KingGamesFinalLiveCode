@@ -1,8 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { storage } from "./storage";
-import { GameType, TeamMatchResult } from "@shared/schema";
+import { GameType, TeamMatchResult, games } from "@shared/schema";
 import { db, pool } from "./db";
+import { eq } from "drizzle-orm";
 
 // Schema for creating a cricket toss game
 const createCricketTossSchema = z.object({
@@ -207,17 +208,38 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         return res.status(400).json({ error: "Game is not a Cricket Toss game" });
       }
       
-      // Process results and handle payouts for users who bet on this game
-      // Note: In a real implementation, this would also update user balances for winners
-      
+      // Process the result and handle user balance updates for payouts
       try {
-        // Update only the result column - the games table doesn't have a status column
-        const updateResult = await pool.query(
-          `UPDATE games SET result = $1 WHERE id = $2 RETURNING *`,
-          [result, gameId]
-        );
+        // Get the user who placed the bet
+        const user = await storage.getUser(game.userId);
+        if (!user) {
+          return res.status(404).json({ error: "User not found" });
+        }
         
-        if (updateResult.rows.length === 0) {
+        // Calculate payout based on result
+        let payout = 0;
+        if (game.prediction === result) {
+          // If prediction matches, calculate payout based on the odds in gameData
+          const gameData = game.gameData as any;
+          const odds = result === 'team_a' ? gameData.oddTeamA : gameData.oddTeamB;
+          payout = Math.floor(game.betAmount * (odds / 100));
+        }
+        
+        // Update user balance with the payout
+        const updatedBalance = user.balance + payout;
+        await storage.updateUserBalance(user.id, updatedBalance);
+        
+        // Update the game with result, payout, and balanceAfter
+        const updateResult = await db.update(games)
+          .set({
+            result,
+            payout,
+            balanceAfter: updatedBalance // Track the balance after this result is applied
+          })
+          .where(eq(games.id, gameId))
+          .returning();
+        
+        if (updateResult.length === 0) {
           return res.status(404).json({ error: "Game not found or could not be updated" });
         }
         
@@ -314,6 +336,9 @@ export function setupCricketTossApiRoutes(app: express.Express) {
       const odds = betOn === TeamMatchResult.TEAM_A ? gameData.oddTeamA : gameData.oddTeamB;
       const potentialPayout = Math.floor((betAmount * odds) / 100);
       
+      // Calculate new balance after bet
+      const newBalance = user.balance - betAmount;
+      
       // Create a new game entry for this user's bet
       const userBet = {
         userId: user.id,
@@ -331,7 +356,8 @@ export function setupCricketTossApiRoutes(app: express.Express) {
           status: 'pending'
         },
         result: "pending", // Use pending instead of null
-        payout: potentialPayout
+        payout: potentialPayout,
+        balanceAfter: newBalance // Track balance after this bet
       };
       
       const createdBet = await storage.createGame(userBet);
