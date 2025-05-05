@@ -1189,7 +1189,7 @@ function MarketTable({
                     {/* No actions for resulted markets */}
                     {market.status === "resulted" && (
                       <DropdownMenuItem disabled className="text-muted-foreground">
-                        <InfoIcon className="mr-2 h-4 w-4" />
+                        <Info className="mr-2 h-4 w-4" />
                         No actions available
                       </DropdownMenuItem>
                     )}
