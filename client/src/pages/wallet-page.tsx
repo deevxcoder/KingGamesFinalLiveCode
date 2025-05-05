@@ -1363,7 +1363,18 @@ export default function WalletPage() {
                                   
                                   {transaction.description && (
                                     <div className="px-4 pb-4 text-sm border-t border-slate-800 bg-slate-950/50">
-                                      <p className="mt-2"><strong>Description:</strong> {transaction.description}</p>
+                                      <p className="mt-2">
+                                        <strong>Description:</strong>{" "}
+                                        {/* Override some older transactions that used fixed text */}
+                                        {transaction.description === "Funds added by admin" && transaction.performer 
+                                          ? `Funds added by ${transaction.performer.username} (${transaction.performer.role})` 
+                                          : transaction.description.replace(/processed by \d+/, 
+                                              transaction.performer 
+                                                ? `processed by ${transaction.performer.username} (${transaction.performer.role})` 
+                                                : "processed"
+                                            )
+                                        }
+                                      </p>
                                       {/* Display extra debug info in development environment */}
                                       {import.meta.env.DEV && (
                                         <div className="mt-2 text-xs text-yellow-500">
