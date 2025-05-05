@@ -7,7 +7,7 @@ import { format } from "date-fns";
 import MarketCard from "@/components/market-card";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, Clock, Timer, CheckCircle2, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Timer, CheckCircle2, AlertCircle, PauseCircle } from "lucide-react";
 
 interface SatamatkaMarket {
   id: number;
@@ -47,8 +47,22 @@ export default function MarketListPage() {
 
   // Filter markets by status
   const openMarkets = allMarkets.filter(market => market.status === "open");
-  const closedMarkets = allMarkets.filter(market => market.status === "closed" || market.status === "waiting_result");
+  const upcomingMarkets = allMarkets.filter(market => market.status === "waiting");
+  const closedMarkets = allMarkets.filter(market => market.status === "closed");
   const resultedMarkets = allMarkets.filter(market => market.status === "resulted");
+  
+  // Sort markets in 'all' tab according to status priority: open, waiting, closed, resulted
+  const sortedAllMarkets = [...allMarkets].sort((a, b) => {
+    const statusPriority = {
+      "open": 1,
+      "waiting": 2,
+      "closed": 3, 
+      "resulted": 4
+    };
+    
+    return (statusPriority[a.status as keyof typeof statusPriority] || 99) - 
+           (statusPriority[b.status as keyof typeof statusPriority] || 99);
+  });
   
   // Get today's date for display
   const today = new Date();
@@ -67,18 +81,22 @@ export default function MarketListPage() {
       </div>
 
       <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6 grid w-full grid-cols-4">
+        <TabsList className="mb-6 grid w-full grid-cols-5">
           <TabsTrigger value="active" className="flex items-center justify-center">
             <Clock className="h-4 w-4 mr-2" />
-            <span>Active ({activeMarkets.length})</span>
+            <span>Active ({openMarkets.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="upcoming" className="flex items-center justify-center">
+            <PauseCircle className="h-4 w-4 mr-2" />
+            <span>Upcoming ({upcomingMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="closed" className="flex items-center justify-center">
             <Timer className="h-4 w-4 mr-2" />
-            <span>Waiting ({closedMarkets.length})</span>
+            <span>Closed ({closedMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="resulted" className="flex items-center justify-center">
             <CheckCircle2 className="h-4 w-4 mr-2" />
-            <span>Results ({resultedMarkets.length})</span>
+            <span>Resulted ({resultedMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="all" className="flex items-center justify-center">
             <AlertCircle className="h-4 w-4 mr-2" />
@@ -96,7 +114,7 @@ export default function MarketListPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {isLoadingActive ? (
+            {isLoadingAll ? (
               // Loading skeletons
               Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="border rounded-lg p-4">
@@ -112,8 +130,8 @@ export default function MarketListPage() {
                   <Skeleton className="h-10 w-full" />
                 </div>
               ))
-            ) : activeMarkets.length > 0 ? (
-              activeMarkets.map((market) => (
+            ) : openMarkets.length > 0 ? (
+              openMarkets.map((market) => (
                 <MarketCard
                   key={market.id}
                   id={market.id}
@@ -134,11 +152,54 @@ export default function MarketListPage() {
           </div>
         </TabsContent>
         
+        <TabsContent value="upcoming" className="space-y-6">
+          <div className="p-4 bg-muted/50 rounded-lg mb-4">
+            <h2 className="text-lg font-semibold flex items-center">
+              <PauseCircle className="h-5 w-5 mr-2 text-purple-500" />
+              Upcoming Markets
+            </h2>
+            <p className="text-sm text-muted-foreground">These markets will open for betting soon</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {isLoadingAll ? (
+              // Loading skeletons
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="border rounded-lg p-4">
+                  <Skeleton className="h-28 w-full mb-4" />
+                  <Skeleton className="h-6 w-3/4 mb-2" />
+                  <Skeleton className="h-4 w-1/2 mb-2" />
+                  <Skeleton className="h-10 w-full mt-4" />
+                </div>
+              ))
+            ) : upcomingMarkets.length > 0 ? (
+              upcomingMarkets.map((market) => (
+                <MarketCard
+                  key={market.id}
+                  id={market.id}
+                  name={market.name}
+                  type={market.type}
+                  openTime={market.openTime}
+                  closeTime={market.closeTime}
+                  openResult={market.openResult}
+                  closeResult={market.closeResult}
+                  status={market.status}
+                  showFullInfo={true}
+                />
+              ))
+            ) : (
+              <div className="col-span-full text-center py-10">
+                <p className="text-muted-foreground">No upcoming markets at the moment.</p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
         <TabsContent value="closed" className="space-y-6">
           <div className="p-4 bg-muted/50 rounded-lg mb-4">
             <h2 className="text-lg font-semibold flex items-center">
               <Timer className="h-5 w-5 mr-2 text-yellow-500" />
-              Waiting for Results
+              Closed Markets
             </h2>
             <p className="text-sm text-muted-foreground">These markets are closed for betting and waiting for results</p>
           </div>
@@ -240,8 +301,8 @@ export default function MarketListPage() {
                   <Skeleton className="h-10 w-full mt-4" />
                 </div>
               ))
-            ) : allMarkets.length > 0 ? (
-              allMarkets.map((market) => (
+            ) : sortedAllMarkets.length > 0 ? (
+              sortedAllMarkets.map((market) => (
                 <MarketCard
                   key={market.id}
                   id={market.id}
