@@ -256,41 +256,17 @@ function CricketTossMatches() {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="upcoming" className="w-full">
+      <Tabs defaultValue="live" className="w-full">
         <TabsList className="grid grid-cols-2 mb-8">
-          <TabsTrigger value="upcoming" className="flex items-center justify-center">
-            <Calendar className="h-4 w-4 mr-2" />
-            Upcoming Games
-          </TabsTrigger>
           <TabsTrigger value="live" className="flex items-center justify-center">
             <Clock className="h-4 w-4 mr-2" />
             Live Now
           </TabsTrigger>
+          <TabsTrigger value="upcoming" className="flex items-center justify-center">
+            <Calendar className="h-4 w-4 mr-2" />
+            Upcoming Games
+          </TabsTrigger>
         </TabsList>
-        
-        <TabsContent value="upcoming" className="space-y-6">
-          {isLoading ? (
-            <div className="flex justify-center p-10">
-              <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-            </div>
-          ) : openGames.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {openGames.map((game) => (
-                <CricketTossCard 
-                  key={`${game.type}-${game.id}`}
-                  game={game}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card className="bg-gray-900 border-gray-800">
-              <CardContent className="pt-6 text-center">
-                <p className="text-gray-400">No upcoming cricket games available right now.</p>
-                <p className="text-sm text-gray-500 mt-2">Check back later for new games.</p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
         
         <TabsContent value="live" className="space-y-6">
           {isLoading ? (
@@ -311,6 +287,30 @@ function CricketTossMatches() {
               <CardContent className="pt-6 text-center">
                 <p className="text-gray-400">No live cricket games available right now.</p>
                 <p className="text-sm text-gray-500 mt-2">Check back later for live games.</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+        
+        <TabsContent value="upcoming" className="space-y-6">
+          {isLoading ? (
+            <div className="flex justify-center p-10">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+            </div>
+          ) : openGames.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {openGames.map((game) => (
+                <CricketTossCard 
+                  key={`${game.type}-${game.id}`}
+                  game={game}
+                />
+              ))}
+            </div>
+          ) : (
+            <Card className="bg-gray-900 border-gray-800">
+              <CardContent className="pt-6 text-center">
+                <p className="text-gray-400">No upcoming cricket games available right now.</p>
+                <p className="text-sm text-gray-500 mt-2">Check back later for new games.</p>
               </CardContent>
             </Card>
           )}
