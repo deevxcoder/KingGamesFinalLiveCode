@@ -579,7 +579,7 @@ export default function SubadminSettingsPage() {
                                 <CardContent>
                                   <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">Commission:</span>
-                                    <span className="text-xl font-bold">{comm.commissionRate}%</span>
+                                    <span className="text-xl font-bold">{(comm.commissionRate / 100).toFixed(2)}%</span>
                                   </div>
                                 </CardContent>
                               </Card>
