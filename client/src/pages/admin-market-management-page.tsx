@@ -94,7 +94,7 @@ const resultFormSchema = z.object({
 // Form schema for creating/editing markets
 const marketFormSchema = z.object({
   name: z.string().min(3, "Name must be at least 3 characters"),
-  type: z.string().min(2, "Type is required"),
+  type: z.string().optional().default("gali"), // Default type is 'gali' since all markets follow this style
   coverImage: z.string().optional(),
   marketDate: z.string().min(1, "Date is required"),
   openTime: z.string().min(5, "Open time is required"),
@@ -111,6 +111,8 @@ export default function AdminMarketManagementPage() {
   const [isAddMarketOpen, setIsAddMarketOpen] = useState(false);
   const [editingMarket, setEditingMarket] = useState<SatamatkaMarket | null>(null);
   const [declareResultMarket, setDeclareResultMarket] = useState<SatamatkaMarket | null>(null);
+  const [isTemplateSelectOpen, setIsTemplateSelectOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<SatamatkaMarket | null>(null);
   const queryClient = useQueryClient();
 
   // Form for result declaration
@@ -367,7 +369,10 @@ export default function AdminMarketManagementPage() {
             <span>{dateString}</span>
           </div>
           
-          <Button onClick={handleAddMarket} className="bg-gradient-to-r from-blue-600 to-indigo-600">
+          <Button 
+            onClick={() => setIsTemplateSelectOpen(true)} 
+            className="bg-gradient-to-r from-blue-600 to-indigo-600"
+          >
             <Plus className="h-4 w-4 mr-2" />
             Add Market
           </Button>
@@ -562,22 +567,7 @@ export default function AdminMarketManagementPage() {
                 )}
               />
               
-              <FormField
-                control={marketForm.control}
-                name="type"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Market Type</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="e.g. dishawar, gali, mumbai, or custom type" />
-                    </FormControl>
-                    <FormDescription>
-                      Standard types: dishawar, gali, mumbai, kalyan. You can also enter a custom type.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Market Type removed as it's not needed - all markets follow the gali style */}
               
               <FormField
                 control={marketForm.control}
