@@ -1088,28 +1088,31 @@ export default function RiskManagementPage() {
             <CardDescription>
               Monitor and analyze betting patterns to manage risk effectively.
               <div className="mt-2 flex flex-col space-y-3">
-                <div className="flex space-x-4">
-                  <div className="flex items-center space-x-1">
-                    <Badge className="bg-gray-100 text-gray-800">None</Badge>
-                    <span className="text-xs">Up to ₹{(lowRiskThreshold / 100).toFixed(2)}</span>
+                {/* Responsive risk indicator layout */}
+                <div className="flex flex-wrap gap-2 mb-2">
+                  <div className="flex items-center gap-1 mr-2">
+                    <Badge className="bg-gray-100 text-gray-800 whitespace-nowrap">None</Badge>
+                    <span className="text-xs whitespace-nowrap">Up to ₹{(lowRiskThreshold / 100).toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Badge className="bg-green-100 text-green-800">Low</Badge>
-                    <span className="text-xs">₹{(lowRiskThreshold / 100).toFixed(2)}-₹{(mediumRiskThreshold / 100).toFixed(2)}</span>
+                  <div className="flex items-center gap-1 mr-2">
+                    <Badge className="bg-green-100 text-green-800 whitespace-nowrap">Low</Badge>
+                    <span className="text-xs whitespace-nowrap">₹{(lowRiskThreshold / 100).toFixed(2)}-₹{(mediumRiskThreshold / 100).toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Badge className="bg-yellow-100 text-yellow-800">Medium</Badge>
-                    <span className="text-xs">₹{(mediumRiskThreshold / 100).toFixed(2)}-₹{(highRiskThreshold / 100).toFixed(2)}</span>
+                  <div className="flex items-center gap-1 mr-2">
+                    <Badge className="bg-yellow-100 text-yellow-800 whitespace-nowrap">Medium</Badge>
+                    <span className="text-xs whitespace-nowrap">₹{(mediumRiskThreshold / 100).toFixed(2)}-₹{(highRiskThreshold / 100).toFixed(2)}</span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Badge className="bg-red-100 text-red-800">High</Badge>
-                    <span className="text-xs">Over ₹{(highRiskThreshold / 100).toFixed(2)}</span>
+                  <div className="flex items-center gap-1 mr-2">
+                    <Badge className="bg-red-100 text-red-800 whitespace-nowrap">High</Badge>
+                    <span className="text-xs whitespace-nowrap">Over ₹{(highRiskThreshold / 100).toFixed(2)}</span>
                   </div>
+                </div>
+                <div className="flex justify-end mt-2">
                   <Button 
                     variant="outline" 
                     size="sm"
                     onClick={() => setShowRiskSettings(!showRiskSettings)}
-                    className="ml-auto text-xs flex items-center"
+                    className="text-xs flex items-center"
                   >
                     <Settings className="h-3 w-3 mr-1" />
                     {showRiskSettings ? "Hide Settings" : "Customize Thresholds"}
@@ -1117,12 +1120,15 @@ export default function RiskManagementPage() {
                 </div>
                 
                 {showRiskSettings && (
-                  <div className="bg-muted/20 p-3 rounded-md space-y-3">
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <Label htmlFor="low-threshold" className="text-xs flex items-center">
-                          <Badge className="bg-green-100 text-green-800 mr-2 text-xs">Low</Badge> 
-                          Risk Threshold (₹{(lowRiskThreshold / 100).toFixed(2)})
+                  <div className="bg-muted/20 p-3 rounded-md space-y-3 mt-4">
+                    <h4 className="text-sm font-medium mb-2">Risk Threshold Settings</h4>
+                    
+                    {/* Low Risk Threshold Slider */}
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-green-100 text-green-800 text-xs">Low</Badge> 
+                        <Label htmlFor="low-threshold" className="text-xs">
+                          Risk Threshold: <span className="font-semibold">₹{(lowRiskThreshold / 100).toFixed(2)}</span>
                         </Label>
                       </div>
                       <Slider 
@@ -1134,11 +1140,13 @@ export default function RiskManagementPage() {
                         onValueChange={(values: number[]) => setLowRiskThreshold(values[0])}
                       />
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <Label htmlFor="medium-threshold" className="text-xs flex items-center">
-                          <Badge className="bg-yellow-100 text-yellow-800 mr-2 text-xs">Medium</Badge> 
-                          Risk Threshold (₹{(mediumRiskThreshold / 100).toFixed(2)})
+                    
+                    {/* Medium Risk Threshold Slider */}
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-yellow-100 text-yellow-800 text-xs">Medium</Badge>
+                        <Label htmlFor="medium-threshold" className="text-xs">
+                          Risk Threshold: <span className="font-semibold">₹{(mediumRiskThreshold / 100).toFixed(2)}</span>
                         </Label>
                       </div>
                       <Slider 
@@ -1156,11 +1164,13 @@ export default function RiskManagementPage() {
                         }}
                       />
                     </div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <Label htmlFor="high-threshold" className="text-xs flex items-center">
-                          <Badge className="bg-red-100 text-red-800 mr-2 text-xs">High</Badge> 
-                          Risk Threshold (₹{(highRiskThreshold / 100).toFixed(2)})
+                    
+                    {/* High Risk Threshold Slider */}
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge className="bg-red-100 text-red-800 text-xs">High</Badge>
+                        <Label htmlFor="high-threshold" className="text-xs">
+                          Risk Threshold: <span className="font-semibold">₹{(highRiskThreshold / 100).toFixed(2)}</span>
                         </Label>
                       </div>
                       <Slider 
@@ -1246,8 +1256,8 @@ export default function RiskManagementPage() {
               </TabsContent>
             </Tabs>
           </CardContent>
-          <CardFooter className="flex justify-between border-t px-6 py-4">
-            <p className="text-sm text-muted-foreground">
+          <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-3 border-t px-6 py-4">
+            <p className="text-sm text-muted-foreground order-2 sm:order-1">
               Showing top 100 results sorted by {sortColumn === 'totalBets' ? 'number of bets' : 
                 sortColumn === 'totalAmount' ? 'bet amount' : 
                 sortColumn === 'potentialWinAmount' ? 'potential win amount' : 
@@ -1255,8 +1265,8 @@ export default function RiskManagementPage() {
                 sortColumn === 'gameMode' ? 'game mode' :
                 'number'}
             </p>
-            <div className="flex items-center space-x-2">
-              <AlertTriangle className="h-4 w-4 text-yellow-600" />
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <AlertTriangle className="h-4 w-4 flex-shrink-0 text-yellow-600" />
               <span className="text-sm text-muted-foreground">High risk items require attention</span>
             </div>
           </CardFooter>
