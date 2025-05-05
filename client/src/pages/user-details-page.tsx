@@ -211,21 +211,21 @@ export default function UserDetailsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-slate-950 border-slate-800">
         <CardHeader>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <CardTitle>User Activity</CardTitle>
+              <CardTitle className="text-white">User Activity</CardTitle>
               <CardDescription>View transaction history, bet history, and active bets</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           <div className="w-full">
-            <div className="flex border-b mb-4 w-full overflow-x-auto pb-1">
+            <div className="flex border-b border-slate-800 mb-4 w-full overflow-x-auto pb-1">
               <button 
                 type="button"
-                className={`px-4 py-2 flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === "transactions" ? "border-b-2 border-primary font-medium" : ""}`}
+                className={`px-4 py-2 flex items-center justify-center gap-2 whitespace-nowrap text-slate-300 ${activeTab === "transactions" ? "border-b-2 border-primary font-medium" : ""}`}
                 onClick={() => setActiveTab("transactions")}
               >
                 <History className="h-4 w-4" />
@@ -233,15 +233,15 @@ export default function UserDetailsPage() {
               </button>
               <button 
                 type="button"
-                className={`px-4 py-2 flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === "bets" ? "border-b-2 border-primary font-medium" : ""}`}
+                className={`px-4 py-2 flex items-center justify-center gap-2 whitespace-nowrap text-slate-300 ${activeTab === "bets" ? "border-b-2 border-primary font-medium" : ""}`}
                 onClick={() => setActiveTab("bets")}
               >
                 <FileText className="h-4 w-4" />
-                <span>Bet History</span>
+                <span>Game History</span>
               </button>
               <button 
                 type="button"
-                className={`px-4 py-2 flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === "active-bets" ? "border-b-2 border-primary font-medium" : ""}`}
+                className={`px-4 py-2 flex items-center justify-center gap-2 whitespace-nowrap text-slate-300 ${activeTab === "active-bets" ? "border-b-2 border-primary font-medium" : ""}`}
                 onClick={() => setActiveTab("active-bets")}
               >
                 <BarChart className="h-4 w-4" />
@@ -266,21 +266,21 @@ export default function UserDetailsPage() {
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
-                            <TableRow>
-                              <TableHead className="whitespace-nowrap">Date</TableHead>
-                              <TableHead className="whitespace-nowrap">Type</TableHead>
-                              <TableHead className="whitespace-nowrap">Amount</TableHead>
-                              <TableHead className="whitespace-nowrap">Description</TableHead>
+                            <TableRow className="bg-slate-900">
+                              <TableHead className="whitespace-nowrap text-slate-400">Date</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Type</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Amount</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Description</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {getPaginatedItems(userTransactions, transactionsPage).map((transaction: any) => (
-                              <TableRow key={transaction.id}>
-                                <TableCell className="whitespace-nowrap">
+                              <TableRow key={transaction.id} className="bg-slate-900/40 hover:bg-slate-900/60">
+                                <TableCell className="whitespace-nowrap text-slate-300">
                                   {new Date(transaction.createdAt).toLocaleString()}
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
+                                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-white">
                                     <div className="flex items-center gap-1">
                                       {transaction.amount > 0 ? (
                                         <ArrowUp className="h-3 w-3 text-green-500" />
@@ -291,10 +291,10 @@ export default function UserDetailsPage() {
                                     </div>
                                   </Badge>
                                 </TableCell>
-                                <TableCell className={transaction.amount > 0 ? "text-green-500" : "text-red-500"}>
+                                <TableCell className={transaction.amount > 0 ? "text-amber-500" : "text-red-500"}>
                                   {transaction.amount > 0 ? "+" : ""}₹{(transaction.amount / 100).toFixed(2)}
                                 </TableCell>
-                                <TableCell>{transaction.description || "Balance update"}</TableCell>
+                                <TableCell className="text-slate-300">{transaction.description || "Balance update"}</TableCell>
                               </TableRow>
                             ))}
                           </TableBody>
@@ -487,89 +487,86 @@ export default function UserDetailsPage() {
                       <div className="overflow-x-auto">
                         <Table>
                           <TableHeader>
-                            <TableRow>
-                              <TableHead className="whitespace-nowrap">Date</TableHead>
-                              <TableHead className="whitespace-nowrap">Game</TableHead>
-                              <TableHead className="whitespace-nowrap">Bet Amount</TableHead>
-                              <TableHead className="whitespace-nowrap">Prediction</TableHead>
-                              <TableHead className="whitespace-nowrap">Game Details</TableHead>
-                              <TableHead className="whitespace-nowrap">Potential Payout</TableHead>
-                              <TableHead className="whitespace-nowrap">Status</TableHead>
+                            <TableRow className="bg-slate-900">
+                              <TableHead className="whitespace-nowrap text-slate-400">Time</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Game Type</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Market/Match</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Bet Amount</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Prediction</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Result</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Potential Payout</TableHead>
+                              <TableHead className="whitespace-nowrap text-slate-400">Balance</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
                             {getPaginatedItems(userActiveBets, activeBetsPage).map((game: any) => (
-                              <TableRow key={game.id} className="bg-slate-800/10 hover:bg-slate-800/30">
-                                <TableCell className="whitespace-nowrap">
-                                  {new Date(game.createdAt).toLocaleString()}
+                              <TableRow key={game.id} className="bg-slate-900/40 hover:bg-slate-900/60">
+                                <TableCell className="text-slate-400">
+                                  about {Math.floor((Date.now() - new Date(game.createdAt).getTime()) / (1000 * 60 * 60))} hours ago
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="capitalize">
-                                    {game.gameType.replace(/_/g, ' ')}
+                                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-white">
+                                    {game.gameType === 'cricket_toss' ? 'Cricket Toss' :
+                                     game.gameType === 'team_match' ? 'Team Match' :
+                                     game.gameType === 'coin_flip' ? 'Coin Flip' :
+                                     game.gameType.includes('satamatka') ? 'Satamatka' :
+                                     game.gameType.replace(/_/g, ' ')}
                                   </Badge>
                                 </TableCell>
-                                <TableCell className="font-medium">
+                                <TableCell>
+                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && (game.gameData || game.match) ? (
+                                    <span>{game.gameData?.teamA || game.match?.teamA} vs {game.gameData?.teamB || game.match?.teamB}</span>
+                                  ) : game.gameType.includes('satamatka') ? (
+                                    <span>
+                                      {game.gameData && game.gameData.marketName ? 
+                                        game.gameData.marketName : 
+                                        game.gameMode ? `${game.gameMode} (${game.prediction})` : "Satamatka Game"}
+                                    </span>
+                                  ) : game.gameType.includes('coin_flip') ? (
+                                    <span>Coin Flip Game</span>
+                                  ) : (
+                                    <span>{game.gameType}</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
                                   ₹{(game.betAmount / 100).toFixed(2)}
                                 </TableCell>
                                 <TableCell>
                                   {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
-                                    <>
-                                      {game.prediction === 'team_a' && (game.gameData || game.match) ? (
-                                        <Badge className="bg-green-600">
-                                          {game.gameData?.teamA || game.match?.teamA}
-                                        </Badge>
-                                      ) : game.prediction === 'team_b' && (game.gameData || game.match) ? (
-                                        <Badge className="bg-blue-600">
-                                          {game.gameData?.teamB || game.match?.teamB}
-                                        </Badge>
-                                      ) : (
-                                        <span className="capitalize">{game.prediction}</span>
-                                      )}
-                                    </>
+                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                      {game.prediction === 'team_a' && (game.gameData || game.match) ? 
+                                        (game.gameData?.teamA || game.match?.teamA) : 
+                                        game.prediction === 'team_b' && (game.gameData || game.match) ? 
+                                          (game.gameData?.teamB || game.match?.teamB) : 
+                                          game.prediction}
+                                    </Badge>
+                                  ) : game.gameType.includes('satamatka') ? (
+                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                      {game.prediction}
+                                    </Badge>
                                   ) : (
-                                    <span className="capitalize">{game.prediction}</span>
+                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                      {game.prediction}
+                                    </Badge>
                                   )}
                                 </TableCell>
                                 <TableCell>
-                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && (game.gameData || game.match) && (
-                                    <div className="text-xs space-y-1">
-                                      <div>
-                                        <Badge variant="secondary" className="mb-1">Match</Badge> {game.gameData?.teamA || game.match?.teamA} vs {game.gameData?.teamB || game.match?.teamB}
-                                      </div>
-                                    </div>
-                                  )}
-                                  {game.gameType === 'coinflip' && (
-                                    <span className="capitalize text-xs">
-                                      <Badge variant="secondary">{game.prediction}</Badge>
-                                    </span>
-                                  )}
-                                  {game.gameType.includes('satamatka') && (
-                                    <div className="text-xs">
-                                      {game.gameData && game.gameData.marketName ? (
-                                        <span className="font-medium">{game.gameData.marketName}</span>
-                                      ) : (
-                                        <span>SataMatka Market</span>
-                                      )}
-                                    </div>
-                                  )}
+                                  <Badge className="bg-emerald-600">
+                                    pending
+                                  </Badge>
                                 </TableCell>
-                                <TableCell className="text-green-500 font-medium">
+                                <TableCell className="text-amber-500">
                                   {game.gameType === 'cricket_toss' && game.gameData ? (
                                     <>
-                                      {game.prediction === 'team_a' 
-                                        ? `₹${(game.betAmount * game.gameData.oddTeamA / 100 / 100).toFixed(2)}`
-                                        : `₹${(game.betAmount * game.gameData.oddTeamB / 100 / 100).toFixed(2)}`
-                                      }
+                                      +₹{(game.betAmount * (game.prediction === 'team_a' ? 
+                                           game.gameData.oddTeamA : game.gameData.oddTeamB) / 100 / 100).toFixed(2)}
                                     </>
                                   ) : (
-                                    <>₹{((game.betAmount * 1.9) / 100).toFixed(2)}</>
+                                    <>+₹{(game.betAmount * 1.9 / 100).toFixed(2)}</>
                                   )}
                                 </TableCell>
-                                <TableCell>
-                                  <Badge variant="secondary" className="flex items-center gap-1 whitespace-nowrap">
-                                    <Clock className="h-3 w-3 animate-pulse text-yellow-500" />
-                                    Pending
-                                  </Badge>
+                                <TableCell className="text-green-500">
+                                  ₹{(((selectedUser?.balance || 0)) / 100).toFixed(2)}
                                 </TableCell>
                               </TableRow>
                             ))}
