@@ -986,6 +986,36 @@ app.get("/api/games/my-history", async (req, res, next) => {
       next(err);
     }
   });
+  
+  // Delete a market (used for removing market templates)
+  app.delete("/api/satamatka/markets/:id", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const marketId = Number(req.params.id);
+      
+      // Check if there are any games associated with this market
+      const games = await storage.getSatamatkaGamesByMarketId(marketId);
+      
+      if (games.length > 0) {
+        return res.status(400).json({ 
+          message: "Cannot delete market with existing games. This market has been used for betting and cannot be removed."
+        });
+      }
+      
+      // Delete the market
+      const deletedMarket = await storage.deleteSatamatkaMarket(marketId);
+      
+      if (!deletedMarket) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+      
+      res.json({ 
+        message: "Market template removed successfully", 
+        id: marketId 
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Play Satamatka game
   app.post("/api/satamatka/play", async (req, res, next) => {

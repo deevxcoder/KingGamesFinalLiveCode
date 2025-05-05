@@ -898,6 +898,22 @@ export class DatabaseStorage implements IStorage {
     
     return market;
   }
+  
+  async deleteSatamatkaMarket(id: number): Promise<SatamatkaMarket | undefined> {
+    // First check if the market exists
+    const market = await this.getSatamatkaMarket(id);
+    if (!market) {
+      return undefined;
+    }
+    
+    // Delete the market
+    const [deletedMarket] = await db
+      .delete(satamatkaMarkets)
+      .where(eq(satamatkaMarkets.id, id))
+      .returning();
+    
+    return deletedMarket;
+  }
 
   async getSatamatkaGamesByMarketId(marketId: number): Promise<Game[]> {
     return await db
