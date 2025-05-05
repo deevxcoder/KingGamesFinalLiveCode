@@ -393,7 +393,7 @@ export default function UserDetailsPage() {
                                 </TableCell>
                                 <TableCell>
                                   {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
-                                    <Badge className="bg-primary hover:bg-primary/90">
+                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
                                       {game.prediction === 'team_a' && (game.gameData || game.match) ? 
                                         (game.gameData?.teamA || game.match?.teamA) : 
                                       game.prediction === 'team_b' && (game.gameData || game.match) ? 
@@ -411,15 +411,15 @@ export default function UserDetailsPage() {
                                         game.prediction}
                                     </Badge>
                                   ) : game.gameType.includes('satamatka') ? (
-                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
                                       {game.prediction}
                                     </Badge>
                                   ) : game.gameType.includes('coin_flip') ? (
-                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
                                       {game.prediction}
                                     </Badge>
                                   ) : (
-                                    <Badge className="bg-indigo-600 hover:bg-indigo-700">
+                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
                                       {game.prediction}
                                     </Badge>
                                   )}
@@ -558,7 +558,7 @@ export default function UserDetailsPage() {
                                 </TableCell>
                                 <TableCell>
                                   {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
-                                    <Badge className="bg-primary hover:bg-primary/90 border-0">
+                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
                                       {game.prediction === 'team_a' && (game.gameData || game.match) ? 
                                         (game.gameData?.teamA || game.match?.teamA) : 
                                       game.prediction === 'team_b' && (game.gameData || game.match) ? 
@@ -576,11 +576,11 @@ export default function UserDetailsPage() {
                                         game.prediction}
                                     </Badge>
                                   ) : game.gameType.includes('satamatka') ? (
-                                    <Badge className="bg-primary hover:bg-primary/90 border-0">
+                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
                                       {game.prediction}
                                     </Badge>
                                   ) : (
-                                    <Badge className="bg-primary hover:bg-primary/90 border-0">
+                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
                                       {game.prediction}
                                     </Badge>
                                   )}
