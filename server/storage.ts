@@ -47,6 +47,7 @@ export interface IStorage {
   getUsersByAssignedTo(assignedToId: number): Promise<User[]>;
   updateUserBalance(userId: number, newBalance: number): Promise<User | undefined>;
   updateUser(userId: number, data: {username?: string; password?: string}): Promise<User | undefined>;
+  updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined>;
   blockUser(userId: number, blockedById: number): Promise<User | undefined>;
   unblockUser(userId: number): Promise<User | undefined>;
   getBlockedByUser(userId: number): Promise<number | null>;
