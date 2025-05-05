@@ -9,6 +9,7 @@ import RecentWinners from "@/components/recent-winners";
 import RecentResults from "@/components/recent-results";
 import BalanceCard from "@/components/balance-card";
 import StatsCard from "@/components/stats-card";
+import DashboardStatsCard from "@/components/dashboard-stats-card";
 import PromoSlider from "@/components/promo-slider";
 import GameHistoryTable from "@/components/game-history-table";
 import { Button } from "@/components/ui/button";
@@ -127,11 +128,35 @@ export default function HomePage() {
     enabled: !!user,
   });
   
-  // Fetch subadmin statistics
-  const { data: subadminStats = { totalProfit: 0, totalDeposits: 0, totalUsers: 0, activeUsers: 0, recentGames: [] } } = useQuery({
+  // Define the interface for subadmin statistics
+  interface SubadminStats {
+    totalProfit: number;
+    totalDeposits: number;
+    totalUsers: number;
+    activeUsers: number;
+    recentGames: Array<{
+      id: number;
+      username: string;
+      gameType: string;
+      betAmount: number;
+      result: 'win' | 'loss' | 'pending';
+      createdAt: string;
+    }>;
+  }
+  
+  // Fetch subadmin statistics with proper typing
+  const subadminStatsQuery = useQuery<SubadminStats>({
     queryKey: ["/api/subadmin/stats"],
     enabled: !!user && user.role === UserRole.SUBADMIN,
   });
+  
+  const subadminStats: SubadminStats = subadminStatsQuery.data || { 
+    totalProfit: 0, 
+    totalDeposits: 0, 
+    totalUsers: 0, 
+    activeUsers: 0, 
+    recentGames: [] 
+  };
 
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
@@ -176,6 +201,108 @@ export default function HomePage() {
           </div>
         )}
       </div>
+      
+      {/* Subadmin Statistics Dashboard - Only visible to subadmins */}
+      {isSubadmin && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 flex items-center text-slate-200">
+            <BarChart2 className="h-5 w-5 mr-2 text-blue-500" />
+            Dashboard Statistics
+          </h2>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Profit Card */}
+            <DashboardStatsCard 
+              title="Total Profit" 
+              value={`₹${subadminStats.totalProfit.toLocaleString()}`}
+              icon={<TrendingUp className="h-5 w-5 text-emerald-400" />}
+              trend="up"
+              color="green"
+            />
+            
+            {/* Total Deposits Card */}
+            <DashboardStatsCard 
+              title="Total Deposits" 
+              value={`₹${subadminStats.totalDeposits.toLocaleString()}`}
+              icon={<DollarSign className="h-5 w-5 text-blue-400" />}
+              trend="up" 
+              color="blue"
+            />
+            
+            {/* Total Users Card */}
+            <DashboardStatsCard 
+              title="Total Users" 
+              value={subadminStats.totalUsers.toString()}
+              icon={<Users className="h-5 w-5 text-purple-400" />}
+              trend="up"
+              color="purple"
+            />
+            
+            {/* Active Users Card */}
+            <DashboardStatsCard 
+              title="Active Users" 
+              value={subadminStats.activeUsers.toString()}
+              icon={<Activity className="h-5 w-5 text-amber-400" />}
+              trend="neutral"
+              color="amber"
+            />
+          </div>
+          
+          {/* Recent Games Section */}
+          {subadminStats.recentGames && subadminStats.recentGames.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-lg font-semibold mb-3 text-slate-200">Recent Game Activity</h3>
+              
+              <div className="bg-slate-800/50 border border-slate-700 rounded-lg overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-slate-800">
+                        <th className="py-3 px-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Player</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Game</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Amount</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Result</th>
+                        <th className="py-3 px-4 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-700">
+                      {subadminStats.recentGames.map((game, idx) => (
+                        <tr key={game.id} className={idx % 2 === 0 ? 'bg-slate-800/30' : 'bg-slate-800/10'}>
+                          <td className="py-3 px-4 text-sm text-slate-300">{game.username}</td>
+                          <td className="py-3 px-4 text-sm text-slate-300 capitalize">
+                            {game.gameType.replace('_', ' ')}
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            <span className="font-medium text-emerald-400">₹{game.betAmount}</span>
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            {game.result === 'win' ? (
+                              <span className="px-2 py-1 text-xs font-medium rounded-full bg-green-900/30 text-green-400">
+                                Win
+                              </span>
+                            ) : game.result === 'loss' ? (
+                              <span className="px-2 py-1 text-xs font-medium rounded-full bg-red-900/30 text-red-400">
+                                Loss
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 text-xs font-medium rounded-full bg-slate-700/50 text-slate-400">
+                                Pending
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-sm text-slate-400">
+                            {new Date(game.createdAt).toLocaleDateString()}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
       
       {/* Game Icon Cards - Only visible to players */}
       {isPlayer && (
