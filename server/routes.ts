@@ -1931,89 +1931,125 @@ app.get("/api/games/my-history", async (req, res, next) => {
   });
   
   // Cricket Toss Betting Statistics
-  app.get("/api/cricket-toss/stats", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+  app.get("/api/cricket-toss/stats", async (req, res) => {
     try {
-      // Get active cricket toss matches
-      const matches = await storage.getActiveTeamMatches();
+      // Get all games to find cricket toss games
+      console.log("Fetching cricket toss stats...");
+      const allGames = await storage.getAllGames();
+      console.log(`Total games found: ${allGames.length}`);
       
-      // Filter matches for cricket category
-      const cricketMatches = matches.filter(match => match.category === "cricket");
+      // Filter for cricket toss games only
+      const cricketTossGames = allGames.filter(game => 
+        game.gameType === GameType.CRICKET_TOSS
+      );
+      console.log(`Cricket toss games found: ${cricketTossGames.length}`);
       
-      if (cricketMatches.length === 0) {
-        // If no matches found, return empty array
+      if (cricketTossGames.length === 0) {
+        // If no cricket toss games found, return empty array
+        console.log("No cricket toss games found, returning empty array");
         return res.json([]);
       }
       
-      // For each match, get games and calculate stats
-      const matchStats = await Promise.all(cricketMatches.map(async (match) => {
-        try {
-          if (!match.id) {
-            console.error("Match ID missing for match:", match);
-            return null; // Skip this match if ID is missing
-          }
-
-          const games = await storage.getTeamMatchGamesByMatchId(match.id);
-          
-          // If subadmin, filter only their assigned users' games
-          let filteredGames = games;
-          if (req.user?.role === UserRole.SUBADMIN) {
-            const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
-            const assignedUserIds = assignedUsers.map(user => user.id);
-            filteredGames = games.filter(game => assignedUserIds.includes(game.userId));
-          }
-          
-          // Count games for each team
-          const teamA = match.teamA;
-          const teamB = match.teamB;
-          
-          const teamAGames = filteredGames.filter(game => game.prediction === teamA);
-          const teamBGames = filteredGames.filter(game => game.prediction === teamB);
-          
-          // Get unique users
-          const teamAUniqueUsers = new Set(teamAGames.map(game => game.userId)).size;
-          const teamBUniqueUsers = new Set(teamBGames.map(game => game.userId)).size;
-          
-          // Calculate totals
-          const teamATotalBets = teamAGames.length;
-          const teamBTotalBets = teamBGames.length;
-          
-          const teamATotalAmount = teamAGames.reduce((sum, game) => sum + game.betAmount, 0);
-          const teamBTotalAmount = teamBGames.reduce((sum, game) => sum + game.betAmount, 0);
-          
-          const teamAPotentialWinAmount = teamAGames.reduce((sum, game) => sum + (game.payout || 0), 0);
-          const teamBPotentialWinAmount = teamBGames.reduce((sum, game) => sum + (game.payout || 0), 0);
-          
-          return {
-            matchId: match.id,
-            matchName: `${match.teamA} vs ${match.teamB}`,
-            startTime: match.matchTime,
-            teams: [
-              {
-                teamName: match.teamA,
-                totalBets: teamATotalBets,
-                totalAmount: teamATotalAmount,
-                potentialWinAmount: teamAPotentialWinAmount,
-                uniqueUsers: teamAUniqueUsers
-              },
-              {
-                teamName: match.teamB,
-                totalBets: teamBTotalBets,
-                totalAmount: teamBTotalAmount,
-                potentialWinAmount: teamBPotentialWinAmount,
-                uniqueUsers: teamBUniqueUsers
-              }
-            ]
-          };
-        } catch (error) {
-          console.error(`Error processing match ${match.id}:`, error);
-          return null; // Skip this match if it causes an error
+      // Identify unique cricket games by their game data
+      const uniqueMatches = new Map();
+      
+      // First gather all the cricket toss games that serve as templates
+      cricketTossGames.forEach(game => {
+        const gameData = game.gameData as any;
+        if (!gameData) return;
+        
+        // Skip non-game-template entries
+        if (game.userId !== 1 && !gameData.tossGameId) return;
+        
+        // Use the original game's ID or this game's ID if it's a template
+        const matchId = gameData.tossGameId || game.id;
+        
+        if (!uniqueMatches.has(matchId)) {
+          uniqueMatches.set(matchId, {
+            matchId,
+            matchName: `${gameData.teamA || 'Team A'} vs ${gameData.teamB || 'Team B'}`,
+            startTime: gameData.tossTime || new Date().toISOString(),
+            teamA: gameData.teamA || 'Team A',
+            teamB: gameData.teamB || 'Team B',
+            status: gameData.status || 'unknown',
+            games: []
+          });
         }
-      }));
+      });
       
-      // Filter out null entries (matches that failed to process)
-      const validMatchStats = matchStats.filter(match => match !== null);
+      // Now assign all bet games to their respective matches
+      cricketTossGames.forEach(game => {
+        const gameData = game.gameData as any;
+        if (!gameData) return;
+        
+        // If this is a bet on a game template, add it to that template's stats
+        if (gameData.tossGameId && uniqueMatches.has(gameData.tossGameId)) {
+          const match = uniqueMatches.get(gameData.tossGameId);
+          match.games.push(game);
+        }
+      });
       
-      res.json(validMatchStats);
+      // Filter matches if user is a subadmin to only show their assigned users' bets
+      if (req.user?.role === UserRole.SUBADMIN) {
+        const assignedUsers = await storage.getUsersByAssignedTo(req.user.id);
+        const assignedUserIds = assignedUsers.map(user => user.id);
+        
+        // Filter each match's games to only include games by assigned users
+        for (const [matchId, match] of uniqueMatches.entries()) {
+          match.games = match.games.filter(game => assignedUserIds.includes(game.userId));
+        }
+      }
+      
+      // Calculate statistics for each match
+      const matchStats = Array.from(uniqueMatches.values()).map(match => {
+        const { games, teamA, teamB } = match;
+        
+        // Group games by team
+        const teamAGames = games.filter(game => game.prediction === TeamMatchResult.TEAM_A || game.prediction === teamA);
+        const teamBGames = games.filter(game => game.prediction === TeamMatchResult.TEAM_B || game.prediction === teamB);
+        
+        // Get unique users for each team
+        const teamAUniqueUsers = new Set(teamAGames.map(game => game.userId)).size;
+        const teamBUniqueUsers = new Set(teamBGames.map(game => game.userId)).size;
+        
+        // Calculate totals
+        const teamATotalBets = teamAGames.length;
+        const teamBTotalBets = teamBGames.length;
+        
+        const teamATotalAmount = teamAGames.reduce((sum, game) => sum + game.betAmount, 0);
+        const teamBTotalAmount = teamBGames.reduce((sum, game) => sum + game.betAmount, 0);
+        
+        const teamAPotentialWinAmount = teamAGames.reduce((sum, game) => sum + (game.payout || 0), 0);
+        const teamBPotentialWinAmount = teamBGames.reduce((sum, game) => sum + (game.payout || 0), 0);
+        
+        return {
+          matchId: match.matchId,
+          matchName: match.matchName,
+          startTime: match.startTime,
+          status: match.status,
+          teams: [
+            {
+              teamName: teamA,
+              totalBets: teamATotalBets,
+              totalAmount: teamATotalAmount,
+              potentialWinAmount: teamAPotentialWinAmount,
+              uniqueUsers: teamAUniqueUsers
+            },
+            {
+              teamName: teamB,
+              totalBets: teamBTotalBets,
+              totalAmount: teamBTotalAmount,
+              potentialWinAmount: teamBPotentialWinAmount,
+              uniqueUsers: teamBUniqueUsers
+            }
+          ]
+        };
+      });
+      
+      // Return match stats, filtered to remove matches with no games
+      res.json(matchStats.filter(match => 
+        match.teams.some(team => team.totalBets > 0)
+      ));
     } catch (err) {
       console.error("Error in cricket toss stats API:", err);
       // Return empty array instead of error
