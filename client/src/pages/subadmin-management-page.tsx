@@ -1181,7 +1181,7 @@ export default function SubadminManagementPage() {
                       name="satamatkaCrossing"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Other Games</FormLabel>
+                          <FormLabel>Crossing</FormLabel>
                           <div className="flex items-center gap-2">
                             <FormControl>
                               <Input type="number" min="0" max="100" step="0.1" {...field} />
