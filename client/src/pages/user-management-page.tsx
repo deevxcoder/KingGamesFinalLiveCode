@@ -1022,7 +1022,7 @@ export default function UserManagementPage() {
               </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/30">
+            <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-slate-800/30 overflow-x-auto custom-horizontal-scrollbar">
               {/* Transactions Tab */}
               {detailsTab === "transactions" && (
                 <div className="py-4">
@@ -1036,7 +1036,7 @@ export default function UserManagementPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto custom-horizontal-scrollbar">
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -1116,7 +1116,7 @@ export default function UserManagementPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto custom-horizontal-scrollbar">
                         <Table>
                           <TableHeader>
                             <TableRow>
