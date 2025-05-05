@@ -167,9 +167,26 @@ export default function AdminMarketManagementPage() {
 
   const updateMarketResult = useMutation({
     mutationFn: async ({ id, result }: { id: number; result: string }) => {
-      return apiRequest(`/api/satamatka/markets/${id}/results`, "PATCH", { 
-        result 
-      });
+      // Determine if this is the open or close result based on market status
+      const market = declareResultMarket;
+      
+      if (!market) {
+        throw new Error("Market not found");
+      }
+      
+      // If market is open, set the openResult
+      // If market is closed or waiting_result, set the closeResult
+      if (market.status === "open") {
+        return apiRequest(`/api/satamatka/markets/${id}/results`, "PATCH", { 
+          openResult: result 
+        });
+      } else if (market.status === "closed" || market.status === "waiting_result") {
+        return apiRequest(`/api/satamatka/markets/${id}/results`, "PATCH", { 
+          closeResult: result 
+        });
+      } else {
+        throw new Error("Market status does not allow result declaration");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/satamatka/markets"] });
@@ -446,9 +463,15 @@ export default function AdminMarketManagementPage() {
       <Dialog open={!!declareResultMarket} onOpenChange={(open) => !open && setDeclareResultMarket(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Declare Result</DialogTitle>
+            <DialogTitle>
+              {declareResultMarket?.status === "open" 
+                ? "Declare Open Result" 
+                : "Declare Close Result"
+              }
+            </DialogTitle>
             <DialogDescription>
-              Enter the result for {declareResultMarket?.name}. Results should be a two-digit number from 00 to 99.
+              Enter the {declareResultMarket?.status === "open" ? "open" : "close"} result for {declareResultMarket?.name}. 
+              Results should be a two-digit number from 00 to 99.
             </DialogDescription>
           </DialogHeader>
           
@@ -459,12 +482,24 @@ export default function AdminMarketManagementPage() {
                 name="result"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Result</FormLabel>
+                    <FormLabel>
+                      {declareResultMarket?.status === "open" ? "Open Result" : "Close Result"}
+                    </FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="e.g. 42" maxLength={2} />
                     </FormControl>
                     <FormDescription>
                       Enter a two-digit number (00-99).
+                      {declareResultMarket?.status === "open" && (
+                        <div className="mt-1 text-amber-500">
+                          Note: Declaring open result will keep the market open for betting.
+                        </div>
+                      )}
+                      {(declareResultMarket?.status === "closed" || declareResultMarket?.status === "waiting_result") && (
+                        <div className="mt-1 text-amber-500">
+                          Note: Declaring close result will finalize the market and set its status to "resulted".
+                        </div>
+                      )}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -866,6 +901,15 @@ function MarketTable({
                       Edit Market
                     </DropdownMenuItem>
                     
+                    {/* Open Result Declaration */}
+                    {market.status === "open" && (
+                      <DropdownMenuItem onClick={() => handleDeclareResult(market)}>
+                        <Check className="mr-2 h-4 w-4" />
+                        Declare Open Result
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {/* Market Close Action */}
                     {market.status === "open" && (
                       <DropdownMenuItem 
                         onClick={() => updateMarketStatus.mutate({ id: market.id, status: "closed" })}
@@ -875,19 +919,31 @@ function MarketTable({
                       </DropdownMenuItem>
                     )}
                     
+                    {/* Close Result Declaration */}
                     {(market.status === "closed" || market.status === "waiting_result") && (
                       <DropdownMenuItem onClick={() => handleDeclareResult(market)}>
                         <Check className="mr-2 h-4 w-4" />
-                        Declare Result
+                        Declare Final Result
                       </DropdownMenuItem>
                     )}
                     
-                    {market.status === "closed" && (
+                    {/* Reopen Market */}
+                    {(market.status === "closed" || market.status === "waiting_result") && (
                       <DropdownMenuItem 
                         onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
                       >
                         <Clock className="mr-2 h-4 w-4" />
                         Reopen Market
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {/* Market Cycle Management */}
+                    {market.status === "resulted" && market.isRecurring && (
+                      <DropdownMenuItem 
+                        onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
+                      >
+                        <Clock className="mr-2 h-4 w-4" />
+                        Activate Next Cycle
                       </DropdownMenuItem>
                     )}
                   </DropdownMenuContent>

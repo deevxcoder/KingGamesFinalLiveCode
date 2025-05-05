@@ -705,35 +705,45 @@ export class DatabaseStorage implements IStorage {
           type: "dishawar",
           openTime: new Date(now.getTime() + 1 * 60 * 60 * 1000), // 1 hour from now
           closeTime: new Date(now.getTime() + 3 * 60 * 60 * 1000), // 3 hours from now
-          status: "open",
+          status: "waiting_result", // Markets start in waiting state, admin must activate manually
+          isRecurring: true,
+          recurrencePattern: "daily",
         },
         {
           name: "Demo Gali Day",
           type: "gali",
           openTime: new Date(now.getTime() + 2 * 60 * 60 * 1000), // 2 hours from now
           closeTime: new Date(now.getTime() + 4 * 60 * 60 * 1000), // 4 hours from now
-          status: "open",
+          status: "waiting_result", // Markets start in waiting state, admin must activate manually
+          isRecurring: true,
+          recurrencePattern: "daily",
         },
         {
           name: "Demo Mumbai Afternoon",
           type: "mumbai",
           openTime: new Date(now.getTime() + 3 * 60 * 60 * 1000), // 3 hours from now
           closeTime: new Date(now.getTime() + 5 * 60 * 60 * 1000), // 5 hours from now
-          status: "open",
+          status: "waiting_result", // Markets start in waiting state, admin must activate manually
+          isRecurring: true,
+          recurrencePattern: "daily",
         },
         {
           name: "Demo Kalyan Evening",
           type: "kalyan",
           openTime: new Date(now.getTime() + 4 * 60 * 60 * 1000), // 4 hours from now
           closeTime: new Date(now.getTime() + 6 * 60 * 60 * 1000), // 6 hours from now
-          status: "open",
+          status: "waiting_result", // Markets start in waiting state, admin must activate manually
+          isRecurring: true,
+          recurrencePattern: "daily",
         },
         {
           name: "Demo Dishawar Night",
           type: "dishawar",
           openTime: new Date(now.getTime() + 5 * 60 * 60 * 1000), // 5 hours from now
           closeTime: new Date(now.getTime() + 7 * 60 * 60 * 1000), // 7 hours from now
-          status: "open",
+          status: "waiting_result", // Markets start in waiting state, admin must activate manually
+          isRecurring: true,
+          recurrencePattern: "daily",
         },
       ];
       
@@ -805,13 +815,18 @@ export class DatabaseStorage implements IStorage {
     const updateData: any = {
       openResult: null,
       closeResult: null,
-      status: MarketStatus.OPEN
+      // Don't automatically open the market for the next cycle - leave it waiting
+      status: "waiting_result", // MarketStatus.WAITING_RESULT,
+      lastResultedDate: new Date()
     };
     
     // Calculate next cycle dates based on recurrence pattern
     const { nextOpenTime, nextCloseTime } = this.calculateNextCycleDates(market);
     updateData.openTime = nextOpenTime;
     updateData.closeTime = nextCloseTime;
+    // Store the next times for admin reference but don't automatically activate
+    updateData.nextOpenTime = nextOpenTime;
+    updateData.nextCloseTime = nextCloseTime;
     
     // Update the market with new cycle information
     const [updatedMarket] = await db
@@ -849,11 +864,11 @@ export class DatabaseStorage implements IStorage {
     
     // Apply pattern-specific adjustments
     switch (market.recurrencePattern) {
-      case RecurrencePattern.DAILY:
+      case "daily":
         // Already set for next day
         break;
         
-      case RecurrencePattern.WEEKDAYS:
+      case "weekdays":
         // Skip weekends
         while (nextOpenTime.getDay() === 0 || nextOpenTime.getDay() === 6) {
           nextOpenTime.setDate(nextOpenTime.getDate() + 1);
@@ -861,7 +876,7 @@ export class DatabaseStorage implements IStorage {
         }
         break;
         
-      case RecurrencePattern.WEEKLY:
+      case "weekly":
         // Same day next week
         nextOpenTime.setDate(nextOpenTime.getDate() + 6); // +7 days from tomorrow
         nextCloseTime.setDate(nextCloseTime.getDate() + 6); // +7 days from tomorrow
