@@ -374,8 +374,8 @@ export default function UserDetailsPage() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell>
-                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && game.gameData ? (
-                                    <span>{game.gameData.teamA} vs {game.gameData.teamB}</span>
+                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && (game.gameData || game.match) ? (
+                                    <span>{game.gameData?.teamA || game.match?.teamA} vs {game.gameData?.teamB || game.match?.teamB}</span>
                                   ) : game.gameType.includes('satamatka') ? (
                                     <span>
                                       {game.gameData && game.gameData.marketName ? 
@@ -394,18 +394,20 @@ export default function UserDetailsPage() {
                                 <TableCell>
                                   {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
                                     <Badge className="bg-primary hover:bg-primary/90">
-                                      {game.prediction === 'team_a' && game.gameData ? 
-                                        game.gameData.teamA : 
-                                      game.prediction === 'team_b' && game.gameData ? 
-                                        game.gameData.teamB : 
-                                      game.prediction === 'Team_a' && game.gameData ? 
-                                        game.gameData.teamA :
-                                      game.prediction === 'Team_b' && game.gameData ? 
-                                        game.gameData.teamB :
-                                      game.prediction && game.gameData?.teamA && game.prediction.includes(game.gameData.teamA) ?
-                                        game.gameData.teamA :
-                                      game.prediction && game.gameData?.teamB && game.prediction.includes(game.gameData.teamB) ?
-                                        game.gameData.teamB :
+                                      {game.prediction === 'team_a' && (game.gameData || game.match) ? 
+                                        (game.gameData?.teamA || game.match?.teamA) : 
+                                      game.prediction === 'team_b' && (game.gameData || game.match) ? 
+                                        (game.gameData?.teamB || game.match?.teamB) : 
+                                      game.prediction === 'Team_a' && (game.gameData || game.match) ? 
+                                        (game.gameData?.teamA || game.match?.teamA) :
+                                      game.prediction === 'Team_b' && (game.gameData || game.match) ? 
+                                        (game.gameData?.teamB || game.match?.teamB) :
+                                      game.prediction && (game.gameData?.teamA || game.match?.teamA) && 
+                                        (game.prediction.includes(game.gameData?.teamA || game.match?.teamA)) ?
+                                        (game.gameData?.teamA || game.match?.teamA) :
+                                      game.prediction && (game.gameData?.teamB || game.match?.teamB) && 
+                                        (game.prediction.includes(game.gameData?.teamB || game.match?.teamB)) ?
+                                        (game.gameData?.teamB || game.match?.teamB) :
                                         game.prediction}
                                     </Badge>
                                   ) : game.gameType.includes('satamatka') ? (
@@ -552,10 +554,12 @@ export default function UserDetailsPage() {
                                         (game.gameData?.teamA || game.match?.teamA) :
                                       game.prediction === 'Team_b' && (game.gameData || game.match) ? 
                                         (game.gameData?.teamB || game.match?.teamB) :
-                                      game.prediction && game.gameData?.teamA && game.prediction.includes(game.gameData.teamA) ?
-                                        game.gameData.teamA :
-                                      game.prediction && game.gameData?.teamB && game.prediction.includes(game.gameData.teamB) ?
-                                        game.gameData.teamB :
+                                      game.prediction && (game.gameData?.teamA || game.match?.teamA) && 
+                                        (game.prediction.includes(game.gameData?.teamA || game.match?.teamA)) ?
+                                        (game.gameData?.teamA || game.match?.teamA) :
+                                      game.prediction && (game.gameData?.teamB || game.match?.teamB) && 
+                                        (game.prediction.includes(game.gameData?.teamB || game.match?.teamB)) ?
+                                        (game.gameData?.teamB || game.match?.teamB) :
                                         game.prediction}
                                     </Badge>
                                   ) : game.gameType.includes('satamatka') ? (
@@ -574,10 +578,15 @@ export default function UserDetailsPage() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell className="text-amber-500">
-                                  {game.gameType === 'cricket_toss' && game.gameData ? (
+                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && game.gameData ? (
                                     <>
-                                      +₹{(game.betAmount * (game.prediction === 'team_a' ? 
-                                           game.gameData.oddTeamA : game.gameData.oddTeamB) / 100 / 100).toFixed(2)}
+                                      +₹{(game.betAmount * (
+                                            (game.prediction === 'team_a' || game.prediction === 'Team_a') ? 
+                                              game.gameData.oddTeamA : 
+                                            (game.prediction === 'team_b' || game.prediction === 'Team_b') ? 
+                                              game.gameData.oddTeamB : 
+                                            1.9
+                                          ) / 100 / 100).toFixed(2)}
                                     </>
                                   ) : (
                                     <>+₹{(game.betAmount * 1.9 / 100).toFixed(2)}</>
