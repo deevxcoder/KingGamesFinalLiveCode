@@ -280,7 +280,7 @@ export default function UserDetailsPage() {
                                   {new Date(transaction.createdAt).toLocaleString()}
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="border-slate-700 bg-slate-800/80 text-white">
+                                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-white">
                                     <div className="flex items-center gap-1">
                                       {transaction.amount > 0 ? (
                                         <ArrowUp className="h-3 w-3 text-green-500" />
@@ -398,10 +398,6 @@ export default function UserDetailsPage() {
                                         game.gameData.teamA : 
                                       game.prediction === 'team_b' && game.gameData ? 
                                         game.gameData.teamB : 
-                                      game.prediction === 'Team_a' && game.gameData ? 
-                                        game.gameData.teamA :
-                                      game.prediction === 'Team_b' && game.gameData ? 
-                                        game.gameData.teamB :
                                       game.prediction && game.gameData?.teamA && game.prediction.includes(game.gameData.teamA) ?
                                         game.gameData.teamA :
                                       game.prediction && game.gameData?.teamB && game.prediction.includes(game.gameData.teamB) ?
