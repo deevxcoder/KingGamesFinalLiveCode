@@ -2351,9 +2351,27 @@ app.get("/api/games/my-history", async (req, res, next) => {
         // Calculate stats for each number
         const numberStats = allNumbers.map(number => {
           // Find games with this number as prediction
-          const numberGames = filteredGames.filter(game => 
-            game.prediction === number && game.gameType === "satamatka"
-          );
+          console.log(`Filtering games for number ${number}...`);
+          
+          // Check if any games have gameType starting with "satamatka"
+          const satamatkaGames = filteredGames.filter(game => game.gameType.includes("satamatka"));
+          if (market.id === 16 && number === "12") {
+            console.log(`Market ${market.id}: Found ${satamatkaGames.length} total Satamatka games`);
+            console.log(`First game:`, satamatkaGames[0]);
+          }
+          
+          // Filter games for this number
+          const numberGames = filteredGames.filter(game => {
+            const matchesPrediction = game.prediction === number;
+            const matchesGameType = game.gameType === "satamatka" || game.gameType.includes("satamatka");
+            
+            if (market.id === 16 && number === "12" && matchesPrediction) {
+              console.log(`Found game with prediction ${number}:`, game);
+              console.log(`Game type: ${game.gameType}, Matches: ${matchesGameType}`);
+            }
+            
+            return matchesPrediction && matchesGameType;
+          });
           
           // Group games by gameMode
           const gameModeGroups: Record<string, typeof numberGames> = {};
@@ -2403,8 +2421,15 @@ app.get("/api/games/my-history", async (req, res, next) => {
         };
       }));
       
+      console.log("===== JANTRI STATS RESPONSE =====");
+      console.log("Number of markets returned:", jantriStats.length);
+      if (jantriStats.length > 0) {
+        console.log("First market:", jantriStats[0].marketId, jantriStats[0].marketName);
+        console.log("Numbers with bets:", jantriStats[0].numbers.filter(n => n.totalBets > 0).length);
+      }
       res.json(jantriStats);
     } catch (err) {
+      console.error("Error in /api/jantri/stats:", err);
       next(err);
     }
   });

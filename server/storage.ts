@@ -928,17 +928,25 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveSatamatkaMarkets(): Promise<SatamatkaMarket[]> {
+    console.log("===== GETTING ACTIVE SATAMATKA MARKETS =====");
     const now = new Date();
-    return await db
+    
+    // Get all markets with status "open" or "waiting_result"
+    const markets = await db
       .select()
       .from(satamatkaMarkets)
       .where(
-        and(
-          gte(satamatkaMarkets.closeTime, now), // Market's close time is in the future
-          eq(satamatkaMarkets.status, "open")
+        or(
+          eq(satamatkaMarkets.status, "open"),
+          eq(satamatkaMarkets.status, "waiting_result")
         )
       )
       .orderBy(satamatkaMarkets.closeTime);
+    
+    console.log("Found", markets.length, "active/waiting Satamatka markets");
+    markets.forEach(m => console.log("Market:", m.id, m.name, "Status:", m.status));
+    
+    return markets;
   }
 
   async updateSatamatkaMarketResults(id: number, openResult?: string, closeResult?: string): Promise<SatamatkaMarket | undefined> {
