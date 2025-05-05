@@ -15,6 +15,7 @@ import GamesPage from "@/pages/games-page";
 import ProfilePage from "@/pages/profile-page";
 import UserManagementPage from "@/pages/user-management-page";
 import SubadminManagementPage from "@/pages/subadmin-management-page";
+import SubadminDashboardPage from "@/pages/subadmin-dashboard-page";
 import GameHistoryPage from "@/pages/game-history-page";
 import RiskManagementPage from "@/pages/risk-management-page";
 import MarketListPage from "@/pages/market-list-page";
@@ -80,6 +81,11 @@ function Router() {
         path="/subadmins" 
         component={SubadminManagementPage} 
         allowedRoles={[UserRole.ADMIN]}
+      />
+      <ProtectedRoute 
+        path="/subadmin-dashboard" 
+        component={SubadminDashboardPage} 
+        allowedRoles={[UserRole.SUBADMIN]}
       />
       
       {/* Admin Market and Team Management routes */}

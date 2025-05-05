@@ -134,6 +134,12 @@ export default function Sidebar() {
     },
     // Admin and Subadmin Management
     {
+      name: "Subadmin Dashboard",
+      path: "/subadmin-dashboard",
+      icon: <LayoutDashboard className="w-5 h-5 mr-3" />,
+      visible: isSubadmin,
+    },
+    {
       name: "Jantri Management",
       path: "/jantri-management",
       icon: <Calculator className="w-5 h-5 mr-3" />,
