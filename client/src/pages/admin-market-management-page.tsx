@@ -111,6 +111,8 @@ export default function AdminMarketManagementPage() {
   const [declareResultMarket, setDeclareResultMarket] = useState<SatamatkaMarket | null>(null);
   const [isTemplateSelectOpen, setIsTemplateSelectOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<SatamatkaMarket | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [marketToDelete, setMarketToDelete] = useState<SatamatkaMarket | null>(null);
   const queryClient = useQueryClient();
 
   // Form for result declaration
@@ -248,6 +250,29 @@ export default function AdminMarketManagementPage() {
     onError: (error: Error) => {
       toast({
         title: "Failed to update market",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Delete market mutation
+  const deleteMarket = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest("DELETE", `/api/satamatka/markets/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/satamatka/markets"] });
+      setMarketToDelete(null);
+      setDeleteConfirmOpen(false);
+      toast({
+        title: "Market template removed",
+        description: "The market template has been successfully removed",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to remove market template",
         description: error.message,
         variant: "destructive",
       });
@@ -586,27 +611,40 @@ export default function AdminMarketManagementPage() {
                           <span>Closes: {format(parseISO(market.closeTime), "h:mm a")}</span>
                         </div>
                       </div>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedTemplate(market);
-                          setIsTemplateSelectOpen(false);
-                          setIsAddMarketOpen(true);
-                          marketForm.reset({
-                            name: market.name,
-                            type: market.type || "gali",
-                            coverImage: market.coverImage || "",
-                            marketDate: format(new Date(), "yyyy-MM-dd"),
-                            openTime: format(parseISO(market.openTime), "HH:mm"),
-                            closeTime: format(parseISO(market.closeTime), "HH:mm"),
-                            resultTime: market.resultTime ? format(parseISO(market.resultTime), "HH:mm") : format(parseISO(market.closeTime), "HH:mm"),
-                          });
-                        }}
-                      >
-                        Use Template
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedTemplate(market);
+                            setIsTemplateSelectOpen(false);
+                            setIsAddMarketOpen(true);
+                            marketForm.reset({
+                              name: market.name,
+                              type: market.type || "gali",
+                              coverImage: market.coverImage || "",
+                              marketDate: format(new Date(), "yyyy-MM-dd"),
+                              openTime: format(parseISO(market.openTime), "HH:mm"),
+                              closeTime: format(parseISO(market.closeTime), "HH:mm"),
+                              resultTime: market.resultTime ? format(parseISO(market.resultTime), "HH:mm") : format(parseISO(market.closeTime), "HH:mm"),
+                            });
+                          }}
+                        >
+                          Use Template
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMarketToDelete(market);
+                            setDeleteConfirmOpen(true);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))
                 )}
@@ -844,6 +882,51 @@ export default function AdminMarketManagementPage() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Market Template Confirmation Dialog */}
+      <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Remove Market Template</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to remove this market template?
+              {marketToDelete && (
+                <div className="mt-2 p-2 border rounded bg-muted">
+                  <div className="font-semibold">{marketToDelete.name}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    <span>Opens: {format(parseISO(marketToDelete.openTime), "h:mm a")}</span>
+                    <span className="mx-2">|</span>
+                    <span>Closes: {format(parseISO(marketToDelete.closeTime), "h:mm a")}</span>
+                  </div>
+                </div>
+              )}
+              This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteConfirmOpen(false);
+                setMarketToDelete(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (marketToDelete) {
+                  deleteMarket.mutate(marketToDelete.id);
+                }
+              }}
+              disabled={deleteMarket.isPending}
+            >
+              {deleteMarket.isPending ? 'Removing...' : 'Remove Template'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
