@@ -126,6 +126,12 @@ export default function HomePage() {
     queryKey: ["/api/games/top-winners"],
     enabled: !!user,
   });
+  
+  // Fetch subadmin statistics
+  const { data: subadminStats = { totalProfit: 0, totalDeposits: 0, totalUsers: 0, activeUsers: 0, recentGames: [] } } = useQuery({
+    queryKey: ["/api/subadmin/stats"],
+    enabled: !!user && user.role === UserRole.SUBADMIN,
+  });
 
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;

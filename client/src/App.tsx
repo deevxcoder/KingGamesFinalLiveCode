@@ -82,11 +82,7 @@ function Router() {
         component={SubadminManagementPage} 
         allowedRoles={[UserRole.ADMIN]}
       />
-      <ProtectedRoute 
-        path="/subadmin-dashboard" 
-        component={SubadminDashboardPage} 
-        allowedRoles={[UserRole.SUBADMIN]}
-      />
+      {/* Subadmin dashboard integrated into main dashboard */}
       
       {/* Admin Market and Team Management routes */}
       <ProtectedRoute 
