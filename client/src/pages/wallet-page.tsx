@@ -767,7 +767,7 @@ export default function WalletPage() {
         </div>
       </div>
       
-      <Tabs defaultValue="balance" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs defaultValue="balance" value={activeTab} onValueChange={updateTab} className="w-full">
 
         {/* Balance Tab */}
         <TabsContent value="balance" className="space-y-4">
@@ -788,14 +788,14 @@ export default function WalletPage() {
                 </div>
                 <div className="flex gap-3">
                   <Button 
-                    onClick={() => setActiveTab("deposit")}
+                    onClick={() => updateTab("deposit")}
                     className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white"
                   >
                     <ArrowDown className="mr-2 h-4 w-4" />
                     Deposit
                   </Button>
                   <Button 
-                    onClick={() => setActiveTab("withdraw")} 
+                    onClick={() => updateTab("withdraw")} 
                     variant="outline"
                     className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
                   >
@@ -897,7 +897,7 @@ export default function WalletPage() {
               )}
             </CardContent>
             <CardFooter>
-              <Button variant="outline" className="w-full" onClick={() => setActiveTab("history")}>
+              <Button variant="outline" className="w-full" onClick={() => updateTab("history")}>
                 View All Transactions
               </Button>
             </CardFooter>

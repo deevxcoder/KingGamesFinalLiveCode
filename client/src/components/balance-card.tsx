@@ -8,8 +8,8 @@ interface BalanceCardProps {
 }
 
 export default function BalanceCard({ balance }: BalanceCardProps) {
-  // Link directly to the wallet page - the deposit tab can be selected once there
-  const walletUrl = "/wallet";
+  // Link directly to the wallet page with deposit tab pre-selected
+  const walletUrl = "/wallet?tab=deposit";
   
   return (
     <Card className="bg-slate-900/70 shadow-lg border border-slate-800 w-full lg:w-auto">
