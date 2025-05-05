@@ -27,6 +27,7 @@ interface Game {
   prediction: string;
   result: string;
   payout: number;
+  balanceAfter?: number;
   createdAt: string;
   marketId?: number;
   matchId?: number;
@@ -86,12 +87,13 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                 <TableHead className="text-slate-400">Prediction</TableHead>
                 <TableHead className="text-slate-400">Result</TableHead>
                 <TableHead className="text-slate-400">Profit/Loss</TableHead>
+                <TableHead className="text-slate-400">Balance</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {displayGames.length === 0 ? (
                 <TableRow className="border-slate-800">
-                  <TableCell colSpan={7} className="text-center py-4 text-slate-500">
+                  <TableCell colSpan={8} className="text-center py-4 text-slate-500">
                     No games played yet
                   </TableCell>
                 </TableRow>
@@ -273,6 +275,9 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                         isWin ? "text-teal-400" : "text-slate-400"
                       }`}>
                         {formatProfitLoss(game.betAmount, game.payout, game.gameType)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-green-400">
+                        {game.balanceAfter !== undefined ? formatCurrency(game.balanceAfter) : "-"}
                       </TableCell>
                     </TableRow>
                   );
