@@ -256,6 +256,19 @@ export async function reviewWalletRequest(
           [request.userId]
         );
         
+        // Get the admin's username and role to include in the description
+        const adminResult = await client.query(
+          'SELECT username, role FROM users WHERE id = $1',
+          [adminId]
+        );
+        
+        let adminDescription = '';
+        if (adminResult.rowCount > 0) {
+          adminDescription = `${adminResult.rows[0].username} (${adminResult.rows[0].role})`;
+        } else {
+          adminDescription = `Admin #${adminId}`;
+        }
+        
         // Create transaction record with the player's balance after this transaction
         await db.insert(transactions).values({
           userId: request.userId,
@@ -263,7 +276,7 @@ export async function reviewWalletRequest(
           balanceAfter: updatedUser.rows[0].balance, // Include the player's updated balance
           performedBy: adminId,
           requestId: requestId,
-          description: `${request.requestType === 'deposit' ? 'Deposit' : 'Withdrawal'} request processed`,
+          description: `${request.requestType === 'deposit' ? 'Deposit' : 'Withdrawal'} request processed by ${adminDescription}`,
         });
       }
       
@@ -569,7 +582,7 @@ export function setupWalletRoutes(app: express.Express) {
         // Create transaction record with player's balance after the transaction
         const transactionResult = await client.query(
           'INSERT INTO transactions (user_id, amount, balance_after, performed_by, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-          [userId, actualAmount, updatedBalance, req.user.id, `${transactionType === 'deposit' ? 'Added' : 'Deducted'} by admin: ${notes}`]
+          [userId, actualAmount, updatedBalance, req.user.id, `${transactionType === 'deposit' ? 'Added' : 'Deducted'} by ${req.user.username} (${req.user.role}): ${notes}`]
         );
         
         await client.query('COMMIT');
