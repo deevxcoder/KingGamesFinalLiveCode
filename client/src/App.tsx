@@ -33,6 +33,7 @@ import SubadminCommissionManagementPage from "@/pages/subadmin-commission-manage
 import FundManagementPage from "@/pages/fund-management-page";
 import LeaderboardPage from "@/pages/leaderboard-page";
 import SettingsRouter from "@/pages/settings-router";
+import UserDetailsPage from "@/pages/user-details-page";
 
 function Router() {
   return (
@@ -75,6 +76,11 @@ function Router() {
       <ProtectedRoute 
         path="/users" 
         component={UserManagementPage} 
+        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
+      />
+      <ProtectedRoute 
+        path="/users/:id" 
+        component={UserDetailsPage} 
         allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
       />
       <ProtectedRoute 
