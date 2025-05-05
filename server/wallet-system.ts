@@ -250,12 +250,20 @@ export async function reviewWalletRequest(
           throw new Error('User not found');
         }
         
-        // Create transaction record
+        // Get the updated user balance
+        const updatedUser = await client.query(
+          'SELECT balance FROM users WHERE id = $1',
+          [request.userId]
+        );
+        
+        // Create transaction record with the balance after this transaction
         await db.insert(transactions).values({
           userId: request.userId,
           amount: balanceChangePaisa, // Use the converted amount (paisa)
+          balanceAfter: updatedUser.rows[0].balance, // Include the updated balance
           performedBy: adminId,
           requestId: requestId,
+          description: `${request.requestType === 'deposit' ? 'Deposit' : 'Withdrawal'} request processed`,
         });
       }
       
@@ -486,6 +494,99 @@ export function setupWalletRoutes(app: express.Express) {
       }
       
       res.json({ success: true });
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Admin direct transaction endpoint (for adding/removing funds directly)
+  app.post('/api/admin/transactions', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // Only admin and subadmin can access this endpoint
+      if (req.user.role !== UserRole.ADMIN && req.user.role !== UserRole.SUBADMIN) {
+        return res.status(403).json({ message: 'Forbidden' });
+      }
+      
+      // Validate the request data
+      const { userId, amount, transactionType, notes } = req.body;
+      
+      if (!userId || !amount || amount <= 0 || !transactionType || !notes) {
+        return res.status(400).json({ message: 'Invalid request data' });
+      }
+      
+      // For subadmins, verify they can only process transactions for their assigned users
+      if (req.user.role === UserRole.SUBADMIN) {
+        // Import the connection pool for raw SQL transactions
+        const { pool } = await import('./db');
+        // Use a direct SQL query for this specific check
+        const result = await pool.query(
+          `SELECT * FROM users WHERE id = $1 AND assigned_to = $2`,
+          [userId, req.user.id]
+        );
+        
+        if (result.rowCount === 0) {
+          return res.status(403).json({ message: 'You can only process transactions for your assigned users' });
+        }
+      }
+      
+      // Start a transaction
+      const { pool } = await import('./db');
+      const client = await pool.connect();
+      
+      try {
+        await client.query('BEGIN');
+        
+        // Get the user
+        const userResult = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
+        
+        if (userResult.rowCount === 0) {
+          await client.query('ROLLBACK');
+          return res.status(404).json({ message: 'User not found' });
+        }
+        
+        // Convert amount to paisa for storage
+        const amountInPaisa = amount * 100;
+        const actualAmount = transactionType === 'deposit' ? amountInPaisa : -amountInPaisa;
+        
+        // Update user balance
+        const updatedUserResult = await client.query(
+          'UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance',
+          [actualAmount, userId]
+        );
+        
+        if (updatedUserResult.rowCount === 0) {
+          await client.query('ROLLBACK');
+          return res.status(500).json({ message: 'Failed to update user balance' });
+        }
+        
+        // Get the updated balance
+        const updatedBalance = updatedUserResult.rows[0].balance;
+        
+        // Create transaction record with balance after
+        const transactionResult = await client.query(
+          'INSERT INTO transactions (user_id, amount, balance_after, performed_by, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+          [userId, actualAmount, updatedBalance, req.user.id, notes]
+        );
+        
+        await client.query('COMMIT');
+        
+        // Return the transaction and updated user
+        res.status(201).json({
+          transaction: transactionResult.rows[0],
+          userBalance: updatedBalance / 100 // Convert back to rupees for display
+        });
+        
+      } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Transaction error:', error);
+        res.status(500).json({ message: 'Transaction failed' });
+      } finally {
+        client.release();
+      }
     } catch (err) {
       next(err);
     }

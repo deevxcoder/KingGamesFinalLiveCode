@@ -1325,13 +1325,19 @@ export default function WalletPage() {
                                         </p>
                                       </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex flex-col items-end gap-2">
                                       <Badge variant={transaction.amount > 0 ? "outline" : "secondary"}>
                                         <div className="flex items-center gap-1">
                                           <CreditCard className="h-3 w-3" />
                                           {transaction.performer?.username || `Admin #${transaction.performedBy}`}
                                         </div>
                                       </Badge>
+                                      {transaction.balanceAfter !== undefined && (
+                                        <div className="text-sm text-muted-foreground">
+                                          <span className="font-medium">Balance: </span>
+                                          ₹{(transaction.balanceAfter / 100).toFixed(2)}
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                   
