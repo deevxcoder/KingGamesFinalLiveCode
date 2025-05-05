@@ -536,18 +536,34 @@ export class DatabaseStorage implements IStorage {
 
   // Game methods
   async createGame(insertGame: InsertGame): Promise<Game> {
-    // If balanceAfter is not provided and this is a real player bet (not admin creating game template)
-    if (insertGame.balanceAfter === undefined && insertGame.betAmount > 0) {
+    // Make sure balanceAfter is provided or calculated for all player games
+    // This ensures we always track balance history for real player bets
+    if (insertGame.userId && insertGame.betAmount > 0) {
       try {
-        // Get the user's current balance
-        const user = await this.getUser(insertGame.userId);
-        if (user) {
-          // Calculate new balance after this game
-          const balanceAfter = user.balance - insertGame.betAmount + (insertGame.payout || 0);
-          insertGame.balanceAfter = balanceAfter;
+        // If balanceAfter is already provided, make sure it's properly set
+        if (insertGame.balanceAfter !== undefined) {
+          // Ensure balanceAfter is a valid number
+          if (typeof insertGame.balanceAfter !== 'number' || isNaN(insertGame.balanceAfter)) {
+            console.warn("Invalid balanceAfter provided, recalculating");
+            insertGame.balanceAfter = undefined;
+          }
+        }
+        
+        // If balanceAfter is still undefined, calculate it
+        if (insertGame.balanceAfter === undefined) {
+          // Get the user's current balance
+          const user = await this.getUser(insertGame.userId);
+          if (user) {
+            // Calculate new balance after this game
+            const balanceAfter = user.balance - insertGame.betAmount + (insertGame.payout || 0);
+            insertGame.balanceAfter = balanceAfter;
+            console.log(`Set balanceAfter to ${balanceAfter} for user ${insertGame.userId}`);
+          } else {
+            console.warn(`User ${insertGame.userId} not found when creating game`);
+          }
         }
       } catch (err) {
-        console.error("Error getting user balance for game:", err);
+        console.error("Error setting balance for game:", err);
       }
     }
     
