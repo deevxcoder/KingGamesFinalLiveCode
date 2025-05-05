@@ -534,17 +534,11 @@ export default function AdminMarketManagementPage() {
                   <FormItem>
                     <FormLabel>Market Type</FormLabel>
                     <FormControl>
-                      <select 
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                        {...field}
-                      >
-                        <option value="">Select market type</option>
-                        <option value="dishawar">Dishawar</option>
-                        <option value="gali">Gali</option>
-                        <option value="mumbai">Mumbai</option>
-                        <option value="kalyan">Kalyan</option>
-                      </select>
+                      <Input {...field} placeholder="e.g. dishawar, gali, mumbai, or custom type" />
                     </FormControl>
+                    <FormDescription>
+                      Standard types: dishawar, gali, mumbai, kalyan. You can also enter a custom type.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
