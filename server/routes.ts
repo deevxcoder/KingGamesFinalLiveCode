@@ -1166,7 +1166,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         // Provide a more specific error message based on the actual market status
         const statusMessages = {
           "waiting": "Market is not yet active for betting",
-          "closed": "Market is closed for betting",
+          "closed": "Market is in 'Waiting Results' status and closed for betting",
           "resulted": "Market results have been declared",
           "settled": "Market has been settled"
         };
@@ -1295,7 +1295,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         // Provide a more specific error message based on the actual market status
         const statusMessages = {
           "waiting": "Market is not yet active for betting",
-          "closed": "Market is closed for betting",
+          "closed": "Market is in 'Waiting Results' status and closed for betting",
           "resulted": "Market results have been declared",
           "settled": "Market has been settled"
         };
