@@ -66,12 +66,6 @@ import {
 const createSubadminSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  commissions: z.object({
-    satamatka_jodi: z.string(),
-    satamatka_harf: z.string(),
-    satamatka_crossing: z.string(),
-    satamatka_odd_even: z.string(),
-  }).optional(),
 });
 
 // Commission schema for subadmin
@@ -119,7 +113,6 @@ export default function SubadminManagementPage() {
   const [isUserListDialogOpen, setIsUserListDialogOpen] = useState(false);
   const [selectedSubadminId, setSelectedSubadminId] = useState<number | null>(null);
   const [selectedSubadminName, setSelectedSubadminName] = useState<string>("");
-  const [showCommissionSettings, setShowCommissionSettings] = useState(false);
   const [activeTab, setActiveTab] = useState("subadmins");
 
   const form = useForm<z.infer<typeof createSubadminSchema>>({
@@ -127,12 +120,6 @@ export default function SubadminManagementPage() {
     defaultValues: {
       username: "",
       password: "",
-      commissions: {
-        satamatka_jodi: "2.0",
-        satamatka_harf: "2.0",
-        satamatka_crossing: "2.0",
-        satamatka_odd_even: "2.0",
-      },
     },
   });
   
@@ -156,35 +143,22 @@ export default function SubadminManagementPage() {
   // Create subadmin mutation
   const createSubadminMutation = useMutation({
     mutationFn: async (data: z.infer<typeof createSubadminSchema>) => {
-      // Use the new endpoint that creates a subadmin with commissions in one operation
-      if (showCommissionSettings) {
-        const res = await apiRequest("POST", "/api/subadmin/create-with-commissions", {
-          username: data.username,
-          password: data.password,
-          commissions: data.commissions
-        });
-        
-        return await res.json();
-      } else {
-        // If not showing commission settings, just create the subadmin without commissions
-        const res = await apiRequest("POST", "/api/register", {
-          username: data.username,
-          password: data.password,
-          role: UserRole.SUBADMIN,
-        });
-        
-        return await res.json();
-      }
+      // Create subadmin without commissions
+      const res = await apiRequest("POST", "/api/register", {
+        username: data.username,
+        password: data.password,
+        role: UserRole.SUBADMIN,
+      });
+      
+      return await res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/commissions/subadmin"] });
       setIsCreateDialogOpen(false);
-      setShowCommissionSettings(false);
       form.reset();
       toast({
         title: "Subadmin created",
-        description: "The subadmin account has been created successfully with commission settings",
+        description: "The subadmin account has been created successfully",
       });
     },
     onError: (error: Error) => {
@@ -821,101 +795,7 @@ export default function SubadminManagementPage() {
                 )}
               />
               
-              {/* Toggle for commission settings */}
-              <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-2">
-                  <Settings className="h-4 w-4 text-muted-foreground" />
-                  <span>Commission Settings for Market Games</span>
-                </div>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowCommissionSettings(!showCommissionSettings)}
-                  className={showCommissionSettings ? "bg-primary/10" : ""}
-                >
-                  {showCommissionSettings ? "Hide Settings" : "Show Settings"}
-                </Button>
-              </div>
-              
-              {/* Commission settings section */}
-              {showCommissionSettings && (
-                <div className="space-y-4 pt-4 pb-2">
-                  <Separator />
-                  <h3 className="text-sm font-medium">Market Game Commission Rates</h3>
-                  <p className="text-xs text-muted-foreground">Set commission percentages for Satamatka games</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="commissions.satamatka_jodi"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Jodi (Pair)</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input placeholder="2.0" {...field} className="max-w-[100px]" />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="commissions.satamatka_harf"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Harf</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input placeholder="2.0" {...field} className="max-w-[100px]" />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="commissions.satamatka_crossing"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Crossing</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input placeholder="2.0" {...field} className="max-w-[100px]" />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="commissions.satamatka_odd_even"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Odd/Even</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input placeholder="2.0" {...field} className="max-w-[100px]" />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              )}
+
               
               <DialogFooter className="pt-4">
                 <Button 
