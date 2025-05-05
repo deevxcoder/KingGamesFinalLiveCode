@@ -144,6 +144,9 @@ export default function WalletPage() {
   } = useQuery<any[]>({
     queryKey: ["/api/transactions"],
     enabled: activeTab === "history" || activeTab === "balance",
+    onSuccess: (data) => {
+      console.log("Transaction data received:", data);
+    }
   });
 
   // File upload handler
@@ -1361,6 +1364,12 @@ export default function WalletPage() {
                                   {transaction.description && (
                                     <div className="px-4 pb-4 text-sm border-t border-slate-800 bg-slate-950/50">
                                       <p className="mt-2"><strong>Description:</strong> {transaction.description}</p>
+                                      {/* Display extra debug info in development environment */}
+                                      {import.meta.env.DEV && (
+                                        <div className="mt-2 text-xs text-yellow-500">
+                                          <p><strong>DEBUG - Performer Data:</strong> {JSON.stringify(transaction.performer || {})}</p>
+                                        </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
