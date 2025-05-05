@@ -184,6 +184,7 @@ export const RecurrencePattern = {
 export type RecurrencePatternValue = typeof RecurrencePattern[keyof typeof RecurrencePattern];
 
 export const MarketStatus = {
+  WAITING: "waiting",  // Newly created, not yet open for betting
   OPEN: "open",        // Open for betting
   CLOSED: "closed",    // Closed for betting, awaiting results
   RESULTED: "resulted", // Results published
@@ -200,7 +201,7 @@ export const satamatkaMarkets = pgTable("satamatka_markets", {
   closeTime: timestamp("close_time").notNull(),
   openResult: text("open_result"),
   closeResult: text("close_result"),
-  status: text("status").notNull().default(MarketStatus.OPEN),
+  status: text("status").notNull().default(MarketStatus.WAITING),
   isRecurring: boolean("is_recurring").notNull().default(false),
   recurrencePattern: text("recurrence_pattern").default(RecurrencePattern.DAILY),
   lastResultedDate: timestamp("last_resulted_date"),
@@ -226,7 +227,13 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
   .extend({
     type: z.enum([MarketType.DISHAWAR, MarketType.GALI, MarketType.MUMBAI, MarketType.KALYAN]),
     coverImage: z.string().optional(),
-    status: z.enum([MarketStatus.OPEN, MarketStatus.CLOSED, MarketStatus.RESULTED, MarketStatus.SETTLED]).default(MarketStatus.OPEN),
+    status: z.enum([
+      MarketStatus.WAITING,
+      MarketStatus.OPEN, 
+      MarketStatus.CLOSED, 
+      MarketStatus.RESULTED, 
+      MarketStatus.SETTLED
+    ]).default(MarketStatus.WAITING),
     isRecurring: z.boolean().default(false),
     recurrencePattern: z.enum([
       RecurrencePattern.DAILY,

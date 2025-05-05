@@ -208,10 +208,10 @@ export default function AdminMarketManagementPage() {
 
   const createMarket = useMutation({
     mutationFn: async (data: z.infer<typeof marketFormSchema>) => {
-      // Set initial market status to "waiting_result" to ensure manual activation flow
+      // Set initial market status to "waiting" to ensure manual activation flow
       const marketData = {
         ...data,
-        status: "waiting_result" // All markets start in waiting status
+        status: "waiting" // All markets start in waiting status
       };
       return apiRequest("POST", "/api/satamatka/markets", marketData);
     },
@@ -280,13 +280,15 @@ export default function AdminMarketManagementPage() {
   });
 
   // Filter markets by status
+  const waitingMarkets = allMarkets.filter(market => market.status === "waiting");
   const openMarkets = allMarkets.filter(market => market.status === "open");
-  const closedMarkets = allMarkets.filter(market => market.status === "closed" || market.status === "waiting_result");
+  const closedMarkets = allMarkets.filter(market => market.status === "closed");
   const resultedMarkets = allMarkets.filter(market => market.status === "resulted");
 
   // Get markets for current tab
   const getMarketsForTab = () => {
     switch (activeTab) {
+      case "waiting": return waitingMarkets;
       case "open": return openMarkets;
       case "closed": return closedMarkets;
       case "resulted": return resultedMarkets;
@@ -338,7 +340,7 @@ export default function AdminMarketManagementPage() {
       // When editing, preserve the original status
       updateMarket.mutate({ id: editingMarket.id, data });
     } else {
-      // When creating new, the mutation will set status to "waiting_result"
+      // When creating new, the mutation will set status to "waiting"
       createMarket.mutate(data);
       
       // Show informative toast about manual activation
@@ -432,10 +434,14 @@ export default function AdminMarketManagementPage() {
       </div>
 
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6 grid w-full grid-cols-4">
+        <TabsList className="mb-6 grid w-full grid-cols-5">
           <TabsTrigger value="all" className="flex items-center justify-center">
             <AlertCircle className="h-4 w-4 mr-2" />
             <span>All ({allMarkets.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="waiting" className="flex items-center justify-center">
+            <PauseCircle className="h-4 w-4 mr-2" />
+            <span>Upcoming ({waitingMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="open" className="flex items-center justify-center">
             <Clock className="h-4 w-4 mr-2" />
