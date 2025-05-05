@@ -1563,6 +1563,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
                      /^R[0-9]$/.test(prediction);
             case SatamatkaGameMode.CROSSING:
               return /^[0-9]$/.test(prediction) || 
+                     /^[0-9][0-9]$/.test(prediction) ||
                      /^[0-9]+(,[0-9]+)+$/.test(prediction) || 
                      /^Combinations of [0-9,]+$/.test(prediction) || 
                      /^[0-9]+ digits \([0-9]+ combinations\)$/.test(prediction);
