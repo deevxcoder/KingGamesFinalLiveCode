@@ -351,8 +351,10 @@ export default function UserDetailsPage() {
                               <TableHead className="whitespace-nowrap">Game</TableHead>
                               <TableHead className="whitespace-nowrap">Bet Amount</TableHead>
                               <TableHead className="whitespace-nowrap">Prediction</TableHead>
+                              <TableHead className="whitespace-nowrap">Game Details</TableHead>
                               <TableHead className="whitespace-nowrap">Result</TableHead>
                               <TableHead className="whitespace-nowrap">Payout</TableHead>
+                              <TableHead className="whitespace-nowrap">Balance After</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -365,10 +367,62 @@ export default function UserDetailsPage() {
                                   {game.gameType?.replace(/_/g, ' ') || "Coin Flip"}
                                 </TableCell>
                                 <TableCell>₹{(game.betAmount / 100).toFixed(2)}</TableCell>
-                                <TableCell>{game.prediction}</TableCell>
+                                <TableCell>
+                                  {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
+                                    <>
+                                      {game.prediction === 'team_a' && game.gameData ? (
+                                        <Badge className="bg-green-600">
+                                          {game.gameData.teamA}
+                                        </Badge>
+                                      ) : game.prediction === 'team_b' && game.gameData ? (
+                                        <Badge className="bg-blue-600">
+                                          {game.gameData.teamB}
+                                        </Badge>
+                                      ) : (
+                                        <span className="capitalize">{game.prediction}</span>
+                                      )}
+                                    </>
+                                  ) : game.gameType.includes('satamatka') ? (
+                                    <span className="capitalize">
+                                      {game.prediction} {game.gameMode && `(${game.gameMode})`}
+                                    </span>
+                                  ) : (
+                                    <span className="capitalize">{game.prediction}</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && game.gameData && (
+                                    <div className="text-xs space-y-1">
+                                      <div>
+                                        <Badge variant="secondary" className="mb-1">Match</Badge> {game.gameData.teamA} vs {game.gameData.teamB}
+                                      </div>
+                                      {game.gameData.description && (
+                                        <div className="text-muted-foreground">{game.gameData.description}</div>
+                                      )}
+                                    </div>
+                                  )}
+                                  {game.gameType === 'coin_flip' && (
+                                    <span className="capitalize text-xs">
+                                      <Badge variant="secondary">Coin Flip</Badge>
+                                    </span>
+                                  )}
+                                  {game.gameType.includes('satamatka') && game.marketId && (
+                                    <div className="text-xs space-y-1">
+                                      <div>
+                                        <Badge variant="secondary">Market ID: {game.marketId}</Badge>
+                                      </div>
+                                      <div>
+                                        <Badge variant="outline">Type: {game.gameMode || "Standard"}</Badge>
+                                      </div>
+                                    </div>
+                                  )}
+                                </TableCell>
                                 <TableCell>{game.result || "Pending"}</TableCell>
                                 <TableCell className={(game.payout || 0) > 0 ? "text-green-500" : "text-red-500"}>
                                   {(game.payout || 0) > 0 ? `+₹${(game.payout / 100).toFixed(2)}` : "₹0.00"}
+                                </TableCell>
+                                <TableCell className="font-medium">
+                                  {game.balanceAfter ? `₹${(game.balanceAfter / 100).toFixed(2)}` : "N/A"}
                                 </TableCell>
                               </TableRow>
                             ))}
