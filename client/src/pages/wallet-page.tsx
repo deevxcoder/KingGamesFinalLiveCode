@@ -1334,7 +1334,7 @@ export default function WalletPage() {
                                       </Badge>
                                       {transaction.balanceAfter !== undefined && (
                                         <div className="text-sm text-muted-foreground">
-                                          <span className="font-medium">Balance: </span>
+                                          <span className="font-medium">Your Balance After: </span>
                                           ₹{(transaction.balanceAfter / 100).toFixed(2)}
                                         </div>
                                       )}

@@ -603,9 +603,21 @@ export class DatabaseStorage implements IStorage {
   // Transaction methods
   async createTransaction(insertTransaction: InsertTransaction): Promise<Transaction> {
     try {
+      // Get the user's current balance to store in balanceAfter
+      let balanceAfter: number | undefined = insertTransaction.balanceAfter;
+      
+      // If balanceAfter is not provided, fetch it from the database
+      if (balanceAfter === undefined) {
+        const user = await this.getUser(insertTransaction.userId);
+        if (user) {
+          balanceAfter = user.balance;
+        }
+      }
+      
       const [transaction] = await db.insert(transactions).values({
         userId: insertTransaction.userId,
         amount: insertTransaction.amount,
+        balanceAfter: balanceAfter, // Include the user's balance after this transaction
         performedBy: insertTransaction.performedBy,
         requestId: insertTransaction.requestId,
         description: insertTransaction.description

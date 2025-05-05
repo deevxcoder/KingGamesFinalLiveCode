@@ -250,20 +250,20 @@ export async function reviewWalletRequest(
           throw new Error('User not found');
         }
         
-        // Get the updated user balance
+        // Get the updated user balance after the transaction
         const updatedUser = await client.query(
           'SELECT balance FROM users WHERE id = $1',
           [request.userId]
         );
         
-        // Create transaction record with the balance after this transaction
+        // Create transaction record with the player's balance after this transaction
         await db.insert(transactions).values({
           userId: request.userId,
           amount: balanceChangePaisa, // Use the converted amount (paisa)
-          balanceAfter: updatedUser.rows[0].balance, // Include the updated balance
+          balanceAfter: updatedUser.rows[0].balance, // Include the player's updated balance
           performedBy: adminId,
           requestId: requestId,
-          description: `${request.requestType === 'deposit' ? 'Deposit' : 'Withdrawal'} request processed`,
+          description: `${request.requestType === 'deposit' ? 'Deposit' : 'Withdrawal'} request processed by ${adminId}`,
         });
       }
       
@@ -566,10 +566,10 @@ export function setupWalletRoutes(app: express.Express) {
         // Get the updated balance
         const updatedBalance = updatedUserResult.rows[0].balance;
         
-        // Create transaction record with balance after
+        // Create transaction record with player's balance after the transaction
         const transactionResult = await client.query(
           'INSERT INTO transactions (user_id, amount, balance_after, performed_by, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-          [userId, actualAmount, updatedBalance, req.user.id, notes]
+          [userId, actualAmount, updatedBalance, req.user.id, `${transactionType === 'deposit' ? 'Added' : 'Deducted'} by admin: ${notes}`]
         );
         
         await client.query('COMMIT');
