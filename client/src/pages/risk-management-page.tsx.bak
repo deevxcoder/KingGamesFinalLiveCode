@@ -899,74 +899,41 @@ export default function RiskManagementPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                <>
-                  {data.map((item, index) => {
-                    // Calculate risk level using shared function
-                    const { riskLevel, riskColor } = calculateRiskLevel(item.potentialWinAmount);
-                    const isDrawOption = item.isDraw === true;
-                    
-                    // Determine if this is the start of a new match group
-                    const isNewMatch = currentMatchId !== item.matchId;
-                    currentMatchId = item.matchId || null;
-                    
-                    // Calculate if this is the second team in a match (for styling alternating teams)
-                    const isSecondTeam = index % 2 === 1;
-                    
-                    if (isNewMatch) {
-                      return (
-                        <React.Fragment key={`match-group-${item.matchId}-${index}`}>
-                          {/* Match header row */}
-                          <TableRow 
-                            key={`match-header-${item.matchId}`} 
-                            className="bg-muted/30"
-                          >
-                            <TableCell colSpan={7} className="py-1">
-                              <div className="text-sm font-medium flex items-center">
-                                <BarChart className="mr-2 h-4 w-4 text-primary" />
-                                {item.matchName || "Sports Match"}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                          
-                          {/* Team row with formatting based on whether it's a team or draw option */}
-                          <TableRow 
-                            key={`${item.matchId}-${item.teamName}`}
-                            className={isDrawOption ? "bg-muted/20 border-t border-dashed border-muted" : ""}
-                          >
-                            <TableCell className="font-medium">
-                              {isDrawOption ? (
-                                <div className="flex items-center">
-                                  <Badge variant="secondary" className="mr-2">Draw</Badge>
-                                </div>
-                              ) : (
-                                item.teamName
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              {isDrawOption ? (
-                                <span className="text-sm text-muted-foreground">No Winner</span>
-                              ) : item.opponentTeam ? (
-                                <Badge variant="outline">{item.opponentTeam}</Badge>
-                              ) : "N/A"}
-                            </TableCell>
-                            <TableCell>{item.totalBets}</TableCell>
-                            <TableCell>{formatAmount(item.totalAmount)}</TableCell>
-                            <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
-                            <TableCell>{item.uniqueUsers}</TableCell>
-                            <TableCell>
-                              <Badge className={riskColor}>{riskLevel}</Badge>
-                            </TableCell>
-                          </TableRow>
-                        </React.Fragment>
-                      );
-                    } else {
-                      // For subsequent teams or draw options in a match
-                      return (
+                data.map((item, index) => {
+                  // Calculate risk level
+                  let riskLevel = "Low";
+                  let riskColor = "bg-green-100 text-green-800";
+                  
+                  if (item.potentialWinAmount > 50000) {
+                    riskLevel = "High";
+                    riskColor = "bg-red-100 text-red-800";
+                  } else if (item.potentialWinAmount > 20000) {
+                    riskLevel = "Medium";
+                  // Calculate risk level using shared function
+                  const { riskLevel, riskColor } = calculateRiskLevel(item.potentialWinAmount);
+                  const isDrawOption = item.isDraw === true;
+                  
+                  // Use two separate returns to avoid fragment key issue
+                  if (isNewMatch) {
+                    return (
+                      <>
+                        {/* Match header row */}
                         <TableRow 
-                          key={`${item.matchId}-${item.teamName}-${index}`}
-                          className={isDrawOption 
-                            ? "bg-muted/20 border-t border-dashed border-muted" 
-                            : (isSecondTeam ? "bg-accent/10" : "")}
+                          key={`match-header-${item.matchId}`} 
+                          className="bg-muted/30"
+                        >
+                          <TableCell colSpan={7} className="py-1">
+                            <div className="text-sm font-medium flex items-center">
+                              <BarChart className="mr-2 h-4 w-4 text-primary" />
+                              {item.matchName || "Sports Match"}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        
+                        {/* Team row with formatting based on whether it's a team or draw option */}
+                        <TableRow 
+                          key={`${item.matchId}-${item.teamName}`}
+                          className={isDrawOption ? "bg-muted/20 border-t border-dashed border-muted" : ""}
                         >
                           <TableCell className="font-medium">
                             {isDrawOption ? (
@@ -992,10 +959,44 @@ export default function RiskManagementPage() {
                             <Badge className={riskColor}>{riskLevel}</Badge>
                           </TableCell>
                         </TableRow>
-                      );
-                    }
-                  })}
-                </>
+                      </>
+                    );
+                  } else {
+                    // For subsequent teams or draw options in a match
+                    return (
+                      <TableRow 
+                        key={`${item.matchId}-${item.teamName}`}
+                        className={isDrawOption 
+                          ? "bg-muted/20 border-t border-dashed border-muted" 
+                          : (isSecondTeam ? "bg-accent/10" : "")}
+                      >
+                        <TableCell className="font-medium">
+                          {isDrawOption ? (
+                            <div className="flex items-center">
+                              <Badge variant="secondary" className="mr-2">Draw</Badge>
+                            </div>
+                          ) : (
+                            item.teamName
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {isDrawOption ? (
+                            <span className="text-sm text-muted-foreground">No Winner</span>
+                          ) : item.opponentTeam ? (
+                            <Badge variant="outline">{item.opponentTeam}</Badge>
+                          ) : "N/A"}
+                        </TableCell>
+                        <TableCell>{item.totalBets}</TableCell>
+                        <TableCell>{formatAmount(item.totalAmount)}</TableCell>
+                        <TableCell>{formatAmount(item.potentialWinAmount)}</TableCell>
+                        <TableCell>{item.uniqueUsers}</TableCell>
+                        <TableCell>
+                          <Badge className={riskColor}>{riskLevel}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                })
               )}
             </TableBody>
           </Table>
