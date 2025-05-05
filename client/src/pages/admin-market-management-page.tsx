@@ -210,15 +210,21 @@ export default function AdminMarketManagementPage() {
 
   const createMarket = useMutation({
     mutationFn: async (data: z.infer<typeof marketFormSchema>) => {
-      return apiRequest("/api/satamatka/markets", "POST", data);
+      // Set initial market status to "waiting_result" to ensure manual activation flow
+      const marketData = {
+        ...data,
+        status: "waiting_result" // All markets start in waiting status
+      };
+      return apiRequest("/api/satamatka/markets", "POST", marketData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/satamatka/markets"] });
       setIsAddMarketOpen(false);
+      setSelectedTemplate(null);
       marketForm.reset();
       toast({
         title: "Market created",
-        description: "New market has been created successfully",
+        description: "New market has been created successfully. It's in 'waiting' status and must be manually opened.",
       });
     },
     onError: (error: Error) => {
@@ -310,18 +316,31 @@ export default function AdminMarketManagementPage() {
   // Handle submit for adding/editing market
   const onSubmitMarket = (data: z.infer<typeof marketFormSchema>) => {
     if (editingMarket) {
+      // When editing, preserve the original status
       updateMarket.mutate({ id: editingMarket.id, data });
     } else {
+      // When creating new, the mutation will set status to "waiting_result"
       createMarket.mutate(data);
+      
+      // Show informative toast about manual activation
+      toast({
+        title: "Reminder",
+        description: "Remember to manually open the market when you're ready for betting to begin.",
+        duration: 8000,
+      });
     }
   };
 
   // Prepare to add a new market
   const handleAddMarket = () => {
-    setIsAddMarketOpen(true);
+    // First open the template selection dialog, not directly the add market dialog
+    setIsTemplateSelectOpen(true);
+    setSelectedTemplate(null);
+    
+    // Reset form values to defaults - if user selects "Create from Scratch"
     marketForm.reset({
       name: "",
-      type: "",
+      type: "gali", // Default to gali style 
       coverImage: "",
       marketDate: format(new Date(), "yyyy-MM-dd"),
       openTime: "",
@@ -531,6 +550,115 @@ export default function AdminMarketManagementPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Template Selection Dialog */}
+      <Dialog open={isTemplateSelectOpen} onOpenChange={setIsTemplateSelectOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create New Market</DialogTitle>
+            <DialogDescription>
+              Select a previous market to use as a template or create from scratch
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="mb-4">
+              <h3 className="text-md font-semibold mb-2">Previous Markets</h3>
+              <div className="grid gap-3 max-h-[60vh] overflow-y-auto">
+                {allMarkets.length === 0 ? (
+                  <p className="text-muted-foreground">No previous markets found</p>
+                ) : (
+                  allMarkets.map(market => (
+                    <div 
+                      key={market.id} 
+                      className="border rounded-md p-3 hover:bg-accent/50 cursor-pointer flex justify-between items-center"
+                      onClick={() => {
+                        setSelectedTemplate(market);
+                        setIsTemplateSelectOpen(false);
+                        setIsAddMarketOpen(true);
+                        marketForm.reset({
+                          name: market.name,
+                          type: market.type || "gali",
+                          coverImage: market.coverImage || "",
+                          marketDate: format(new Date(), "yyyy-MM-dd"),
+                          openTime: format(parseISO(market.openTime), "HH:mm"),
+                          closeTime: format(parseISO(market.closeTime), "HH:mm"),
+                          resultTime: market.resultTime ? format(parseISO(market.resultTime), "HH:mm") : format(parseISO(market.closeTime), "HH:mm"),
+                          isRecurring: market.isRecurring || false,
+                          recurrencePattern: market.recurrencePattern || "daily",
+                        });
+                      }}
+                    >
+                      <div>
+                        <p className="font-medium">{market.name}</p>
+                        <div className="text-sm text-muted-foreground">
+                          <span>Opens: {format(parseISO(market.openTime), "h:mm a")}</span>
+                          <span className="mx-2">|</span>
+                          <span>Closes: {format(parseISO(market.closeTime), "h:mm a")}</span>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedTemplate(market);
+                          setIsTemplateSelectOpen(false);
+                          setIsAddMarketOpen(true);
+                          marketForm.reset({
+                            name: market.name,
+                            type: market.type || "gali",
+                            coverImage: market.coverImage || "",
+                            marketDate: format(new Date(), "yyyy-MM-dd"),
+                            openTime: format(parseISO(market.openTime), "HH:mm"),
+                            closeTime: format(parseISO(market.closeTime), "HH:mm"),
+                            resultTime: market.resultTime ? format(parseISO(market.resultTime), "HH:mm") : format(parseISO(market.closeTime), "HH:mm"),
+                            isRecurring: market.isRecurring || false,
+                            recurrencePattern: market.recurrencePattern || "daily",
+                          });
+                        }}
+                      >
+                        Use Template
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setIsTemplateSelectOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="button" 
+                onClick={() => {
+                  setSelectedTemplate(null);
+                  setIsTemplateSelectOpen(false);
+                  setIsAddMarketOpen(true);
+                  marketForm.reset({
+                    name: "",
+                    type: "gali",
+                    coverImage: "",
+                    marketDate: format(new Date(), "yyyy-MM-dd"),
+                    openTime: "",
+                    closeTime: "",
+                    resultTime: "",
+                    isRecurring: false,
+                    recurrencePattern: "daily",
+                  });
+                }}
+              >
+                Create from Scratch
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Add/Edit Market Dialog */}
       <Dialog 
         open={isAddMarketOpen || !!editingMarket} 
@@ -547,7 +675,9 @@ export default function AdminMarketManagementPage() {
             <DialogDescription>
               {editingMarket 
                 ? "Edit the details of the existing market." 
-                : "Fill in the details to create a new market."}
+                : selectedTemplate
+                  ? `Using template: "${selectedTemplate.name}". New market will be created in "waiting" status.`
+                  : "Fill in the details to create a new market. The market will start in waiting status and must be manually activated."}
             </DialogDescription>
           </DialogHeader>
           
@@ -882,20 +1012,27 @@ function MarketTable({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuLabel>Market Management</DropdownMenuLabel>
                     
                     <DropdownMenuSeparator />
                     
                     <DropdownMenuItem onClick={() => handleEditMarket(market)}>
                       <Edit className="mr-2 h-4 w-4" />
-                      Edit Market
+                      Edit Market Details
                     </DropdownMenuItem>
                     
-                    {/* Open Result Declaration */}
-                    {market.status === "open" && (
-                      <DropdownMenuItem onClick={() => handleDeclareResult(market)}>
-                        <Check className="mr-2 h-4 w-4" />
-                        Declare Open Result
+                    {/* Market Status Management Section */}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">Status Controls</DropdownMenuLabel>
+                    
+                    {/* Waiting/Created Market Activation */}
+                    {(market.status === "waiting_result" || market.status === "resulted") && (
+                      <DropdownMenuItem 
+                        onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
+                        className="text-green-600 font-medium"
+                      >
+                        <Clock className="mr-2 h-4 w-4" />
+                        Open Market for Betting
                       </DropdownMenuItem>
                     )}
                     
@@ -903,38 +1040,55 @@ function MarketTable({
                     {market.status === "open" && (
                       <DropdownMenuItem 
                         onClick={() => updateMarketStatus.mutate({ id: market.id, status: "closed" })}
+                        className="text-amber-600 font-medium"
                       >
                         <X className="mr-2 h-4 w-4" />
-                        Close Market
+                        Close Market for Betting
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {/* Results Management Section */}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">Results Management</DropdownMenuLabel>
+                    
+                    {/* Open Result Declaration */}
+                    {market.status === "open" && (
+                      <DropdownMenuItem 
+                        onClick={() => handleDeclareResult(market)}
+                        className="text-blue-600"
+                      >
+                        <Check className="mr-2 h-4 w-4" />
+                        Declare Open Result
                       </DropdownMenuItem>
                     )}
                     
                     {/* Close Result Declaration */}
                     {(market.status === "closed" || market.status === "waiting_result") && (
-                      <DropdownMenuItem onClick={() => handleDeclareResult(market)}>
+                      <DropdownMenuItem 
+                        onClick={() => handleDeclareResult(market)}
+                        className="text-indigo-600 font-medium"
+                      >
                         <Check className="mr-2 h-4 w-4" />
                         Declare Final Result
                       </DropdownMenuItem>
                     )}
                     
-                    {/* Reopen Market */}
-                    {(market.status === "closed" || market.status === "waiting_result") && (
-                      <DropdownMenuItem 
-                        onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        Reopen Market
-                      </DropdownMenuItem>
-                    )}
-                    
-                    {/* Market Cycle Management */}
-                    {market.status === "resulted" && market.isRecurring && (
-                      <DropdownMenuItem 
-                        onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
-                      >
-                        <Clock className="mr-2 h-4 w-4" />
-                        Activate Next Cycle
-                      </DropdownMenuItem>
+                    {/* Recurring Market Controls */}
+                    {market.isRecurring && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="text-xs text-muted-foreground">Recurring Settings</DropdownMenuLabel>
+                        
+                        {market.status === "resulted" && (
+                          <DropdownMenuItem 
+                            onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
+                            className="text-purple-600"
+                          >
+                            <Clock className="mr-2 h-4 w-4" />
+                            Activate Next Cycle
+                          </DropdownMenuItem>
+                        )}
+                      </>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
