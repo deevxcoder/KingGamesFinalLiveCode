@@ -194,9 +194,16 @@ export default function AdminMarketManagementPage() {
       queryClient.invalidateQueries({ queryKey: ["/api/satamatka/markets"] });
       setDeclareResultMarket(null);
       resultForm.reset();
+      
+      // Automatically update the status to resulted and switch tabs
+      if (declareResultMarket) {
+        updateMarketStatus.mutate({ id: declareResultMarket.id, status: "resulted" });
+        setTimeout(() => setActiveTab("resulted"), 300); // Switch to Resulted tab
+      }
+      
       toast({
         title: "Result declared",
-        description: "Market result has been declared successfully",
+        description: "Market result has been declared and status updated to resulted",
       });
     },
     onError: (error: Error) => {
@@ -222,9 +229,13 @@ export default function AdminMarketManagementPage() {
       setIsAddMarketOpen(false);
       setSelectedTemplate(null);
       marketForm.reset();
+      
+      // Automatically switch to the "waiting" tab to see new market
+      setActiveTab("waiting");
+      
       toast({
         title: "Market created",
-        description: "New market has been created successfully. It's in 'waiting' status and must be manually opened.",
+        description: "New market has been created successfully. It's in 'Upcoming' status and must be manually opened for betting.",
       });
     },
     onError: (error: Error) => {
@@ -376,30 +387,36 @@ export default function AdminMarketManagementPage() {
   const StatusBadge = ({ status }: { status: string }) => {
     let color = "";
     let displayText = status.replace('_', ' ');
+    let icon = null;
     
     switch (status) {
       case "waiting":
         color = "bg-purple-500 hover:bg-purple-600";
         displayText = "Upcoming";
+        icon = <PauseCircle className="h-3 w-3 mr-1" />;
         break;
       case "open":
         color = "bg-green-500 hover:bg-green-600";
         displayText = "Active";
+        icon = <Play className="h-3 w-3 mr-1" />;
         break;
       case "closed":
         color = "bg-yellow-500 hover:bg-yellow-600";
         displayText = "Closed";
+        icon = <X className="h-3 w-3 mr-1" />;
         break;
       case "resulted":
         color = "bg-blue-500 hover:bg-blue-600";
         displayText = "Resulted";
+        icon = <Check className="h-3 w-3 mr-1" />;
         break;
       default:
         color = "bg-slate-500 hover:bg-slate-600";
     }
     
     return (
-      <Badge className={color}>
+      <Badge className={`${color} flex items-center`}>
+        {icon}
         {displayText}
       </Badge>
     );
@@ -444,19 +461,15 @@ export default function AdminMarketManagementPage() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+      <Tabs defaultValue="waiting" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6 grid w-full grid-cols-5">
-          <TabsTrigger value="all" className="flex items-center justify-center">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            <span>All ({allMarkets.length})</span>
-          </TabsTrigger>
           <TabsTrigger value="waiting" className="flex items-center justify-center">
             <PauseCircle className="h-4 w-4 mr-2" />
             <span>Upcoming ({waitingMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="open" className="flex items-center justify-center">
             <Clock className="h-4 w-4 mr-2" />
-            <span>Open ({openMarkets.length})</span>
+            <span>Active ({openMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="closed" className="flex items-center justify-center">
             <Timer className="h-4 w-4 mr-2" />
@@ -465,6 +478,10 @@ export default function AdminMarketManagementPage() {
           <TabsTrigger value="resulted" className="flex items-center justify-center">
             <CheckCircle2 className="h-4 w-4 mr-2" />
             <span>Resulted ({resultedMarkets.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="all" className="flex items-center justify-center">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <span>All ({allMarkets.length})</span>
           </TabsTrigger>
         </TabsList>
 
@@ -477,6 +494,7 @@ export default function AdminMarketManagementPage() {
             updateMarketStatus={updateMarketStatus}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
+            setActiveTab={setActiveTab}
           />
         </TabsContent>
         
@@ -489,6 +507,7 @@ export default function AdminMarketManagementPage() {
             updateMarketStatus={updateMarketStatus}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
+            setActiveTab={setActiveTab}
           />
         </TabsContent>
         
@@ -501,6 +520,7 @@ export default function AdminMarketManagementPage() {
             updateMarketStatus={updateMarketStatus}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
+            setActiveTab={setActiveTab}
           />
         </TabsContent>
         
@@ -513,6 +533,7 @@ export default function AdminMarketManagementPage() {
             updateMarketStatus={updateMarketStatus}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
+            setActiveTab={setActiveTab}
           />
         </TabsContent>
 
@@ -525,6 +546,7 @@ export default function AdminMarketManagementPage() {
             updateMarketStatus={updateMarketStatus}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
+            setActiveTab={setActiveTab}
           />
         </TabsContent>
       </Tabs>
@@ -1029,6 +1051,7 @@ interface MarketTableProps {
   updateMarketStatus: any;
   formatDate: (date: string) => string;
   StatusBadge: React.FC<{ status: string }>;
+  setActiveTab: (tab: string) => void;
 }
 
 // Market Table Component
@@ -1039,7 +1062,8 @@ function MarketTable({
   handleDeclareResult,
   updateMarketStatus,
   formatDate,
-  StatusBadge
+  StatusBadge,
+  setActiveTab
 }: MarketTableProps) {
   if (isLoading) {
     return (
@@ -1119,51 +1143,56 @@ function MarketTable({
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="text-xs text-muted-foreground">Status Controls</DropdownMenuLabel>
                     
-                    {/* Waiting Market Activation */}
+                    {/* Waiting → Open transition */}
                     {market.status === "waiting" && (
                       <DropdownMenuItem 
-                        onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
+                        onClick={() => {
+                          updateMarketStatus.mutate({ id: market.id, status: "open" });
+                          setTimeout(() => setActiveTab("open"), 300); // Switch to Active tab
+                        }}
                         className="text-green-600 font-medium"
                       >
                         <Play className="mr-2 h-4 w-4" />
-                        Activate Betting (Open)
+                        Open for Betting
                       </DropdownMenuItem>
                     )}
                     
-                    {/* Open Market Close Action */}
+                    {/* Open → Closed transition */}
                     {market.status === "open" && (
                       <DropdownMenuItem 
-                        onClick={() => updateMarketStatus.mutate({ id: market.id, status: "closed" })}
+                        onClick={() => {
+                          updateMarketStatus.mutate({ id: market.id, status: "closed" });
+                          setTimeout(() => setActiveTab("closed"), 300); // Switch to Closed tab
+                        }}
                         className="text-amber-600 font-medium"
                       >
                         <X className="mr-2 h-4 w-4" />
-                        Close Market for Betting
+                        Close Betting
                       </DropdownMenuItem>
                     )}
                     
-                    {/* Reopen Closed/Resulted Markets */}
-                    {(market.status === "closed" || market.status === "resulted") && (
-                      <DropdownMenuItem 
-                        onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
-                        className="text-green-600 font-medium"
-                      >
-                        <Play className="mr-2 h-4 w-4" />
-                        Reopen Market for Betting
-                      </DropdownMenuItem>
-                    )}
-                    
-                    {/* Results Management Section */}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuLabel className="text-xs text-muted-foreground">Results Management</DropdownMenuLabel>
-                    
-                    {/* Only show "Declare Final Result" option for closed markets */}
+                    {/* Closed → Declare Result action */}
                     {market.status === "closed" && (
                       <DropdownMenuItem 
                         onClick={() => handleDeclareResult(market)}
-                        className="text-indigo-600 font-medium"
+                        className="text-blue-600 font-medium"
                       >
-                        <Check className="mr-2 h-4 w-4" />
-                        Declare Final Result
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Declare Result
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {/* Reopen options - mainly for correction purposes */}
+                    {(market.status === "closed" || market.status === "resulted") && (
+                      <DropdownMenuItem 
+                        onClick={() => {
+                          updateMarketStatus.mutate({ id: market.id, status: "open" });
+                          setTimeout(() => setActiveTab("open"), 300); // Switch to Open tab
+                        }}
+                        className="text-green-600 font-medium"
+                      >
+                        <Play className="mr-2 h-4 w-4" />
+                        Reopen for Betting
                       </DropdownMenuItem>
                     )}
                     
