@@ -229,12 +229,13 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         const updatedBalance = user.balance + payout;
         await storage.updateUserBalance(user.id, updatedBalance);
         
-        // Update the game with result, payout, and balanceAfter
+        // Update the game status to resulted as well
         const updateResult = await db.update(games)
           .set({
             result,
             payout,
-            balanceAfter: updatedBalance // Track the balance after this result is applied
+            balanceAfter: updatedBalance, // Track the balance after this result is applied
+            status: "resulted" // Update the status to reflect the result has been declared
           })
           .where(eq(games.id, gameId))
           .returning();

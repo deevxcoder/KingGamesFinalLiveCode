@@ -90,12 +90,29 @@ export function formatProfitLoss(
     profitLoss = normalizedPayout - normalizedBet;
   } else {
     // For games with a result, calculate actual win/loss
-    // If payout is 0, the player lost - show negative bet amount
-    if (normalizedPayout <= 0) {
-      profitLoss = -normalizedBet;
+    if (gameType === 'cricket_toss') {
+      // For cricket toss games, check if prediction matches result
+      if (result === 'team_a' || result === 'team_b') {
+        // If player won (prediction matches result), show profit
+        if (normalizedPayout > 0) {
+          profitLoss = normalizedPayout - normalizedBet;
+        } else {
+          // If player lost, show negative bet amount
+          profitLoss = -normalizedBet;
+        }
+      } else {
+        // If result is invalid or unexpected, fall back to default calculation
+        profitLoss = normalizedPayout > 0 ? normalizedPayout - normalizedBet : -normalizedBet;
+      }
     } else {
-      // Player won - show the profit (payout - bet)
-      profitLoss = normalizedPayout - normalizedBet;
+      // For other game types, use the standard calculation
+      // If payout is 0, the player lost - show negative bet amount
+      if (normalizedPayout <= 0) {
+        profitLoss = -normalizedBet;
+      } else {
+        // Player won - show the profit (payout - bet)
+        profitLoss = normalizedPayout - normalizedBet;
+      }
     }
   }
   

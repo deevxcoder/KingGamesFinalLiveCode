@@ -273,7 +273,11 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                       <TableCell className={`whitespace-nowrap text-sm ${
                         game.result === null || game.result === 'pending' 
                           ? "text-amber-400" // Pending games in amber/yellow
-                          : (game.payout > 0 ? "text-teal-400" : "text-rose-400") // Win in green, loss in red
+                          : (
+                              game.gameType === 'cricket_toss' && game.prediction === game.result
+                              ? "text-teal-400" // Win in green
+                              : (game.payout > 0 ? "text-teal-400" : "text-rose-400")
+                            ) // Loss in red
                       }`}>
                         {formatProfitLoss(game.betAmount, game.payout, game.gameType, game.result)}
                       </TableCell>
