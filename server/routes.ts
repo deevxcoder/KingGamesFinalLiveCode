@@ -1128,6 +1128,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         payout,
         marketId,
         gameMode,
+        balanceAfter: newBalance, // Track balance after this bet
       });
 
       // Return game info with updated user balance
@@ -1259,6 +1260,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
           payout: 0,  // Will be calculated when results are published
           marketId,
           gameMode,
+          balanceAfter: newBalance, // Track balance after all bets are placed
         });
         
         // Add to list of created games (for response)
@@ -1522,6 +1524,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         result: TeamMatchResult.PENDING, // Result will be updated when match ends
         payout: 0, // Payout will be updated when result is set
         matchId,
+        balanceAfter: newBalance, // Track balance after this bet
       });
       
       // Return game info with updated user balance
@@ -1625,6 +1628,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const odds = betOn === TeamMatchResult.TEAM_A ? match.oddTeamA : match.oddTeamB;
       const potentialPayout = Math.floor((betAmount * odds) / 100);
       
+      // Calculate the new balance
+      const newBalance = user.balance - betAmount;
+      
       // Create a new game entry for this user's bet
       const userBet = {
         userId: user.id,
@@ -1642,7 +1648,8 @@ app.get("/api/games/my-history", async (req, res, next) => {
           status: 'pending'
         },
         result: "pending",
-        payout: potentialPayout
+        payout: potentialPayout,
+        balanceAfter: newBalance // Track balance after this bet
       };
       
       const createdBet = await storage.createGame(userBet);
@@ -1652,7 +1659,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         game: createdBet,
         user: {
           ...user,
-          balance: user.balance - betAmount,
+          balance: newBalance,
           password: undefined,
         }
       });
