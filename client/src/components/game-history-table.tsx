@@ -99,7 +99,6 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                 </TableRow>
               ) : (
                 displayGames.map((game) => {
-                  const isWin = game.payout > 0;
                   // Helper function to format game type
                   const formatGameType = (gameType: string) => {
                     switch(gameType) {
@@ -272,9 +271,11 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                         )}
                       </TableCell>
                       <TableCell className={`whitespace-nowrap text-sm ${
-                        isWin ? "text-teal-400" : "text-slate-400"
+                        game.result === null || game.result === 'pending' 
+                          ? "text-amber-400" // Pending games in amber/yellow
+                          : (game.payout > 0 ? "text-teal-400" : "text-rose-400") // Win in green, loss in red
                       }`}>
-                        {formatProfitLoss(game.betAmount, game.payout, game.gameType)}
+                        {formatProfitLoss(game.betAmount, game.payout, game.gameType, game.result)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm text-green-400">
                         {game.balanceAfter !== undefined && game.balanceAfter !== null ? formatCurrency(game.balanceAfter) : "-"}

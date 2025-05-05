@@ -55,9 +55,15 @@ export function formatCurrency(
  * @param betAmount - Original bet amount
  * @param payout - Payout amount (0 if loss)
  * @param gameType - Type of game
+ * @param result - Game result (optional)
  * @returns Formatted profit/loss string with sign
  */
-export function formatProfitLoss(betAmount: number, payout: number, gameType?: string): string {
+export function formatProfitLoss(
+  betAmount: number, 
+  payout: number, 
+  gameType?: string, 
+  result?: string | null
+): string {
   const isPaisaBased = gameType && PAISA_BASED_GAMES.includes(gameType);
   
   // Convert to rupees if needed
@@ -75,8 +81,20 @@ export function formatProfitLoss(betAmount: number, payout: number, gameType?: s
     normalizedPayout = payout / 100;
   }
   
-  const isWin = normalizedPayout > 0;
-  const profitLoss = isWin ? normalizedPayout - normalizedBet : -normalizedBet;
+  // Different calculation based on game state
+  let profitLoss: number;
+  
+  // If the result is not set (pending game), show as "potential win/loss"
+  if (!result || result === 'pending') {
+    // For pending games, only show the potential win amount if positive
+    const potentialWin = normalizedPayout - normalizedBet;
+    // If no payout is set or payout equals 0, show the bet amount as potential loss
+    profitLoss = normalizedPayout ? potentialWin : -normalizedBet;
+  } else {
+    // For games with a result, calculate actual win/loss
+    const isWin = normalizedPayout > 0;
+    profitLoss = isWin ? normalizedPayout - normalizedBet : -normalizedBet;
+  }
   
   // Format with sign and 2 decimal places
   return `${profitLoss > 0 ? '+' : ''}₹${Math.abs(profitLoss).toFixed(2)}`;
