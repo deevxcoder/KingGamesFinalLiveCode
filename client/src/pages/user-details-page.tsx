@@ -435,9 +435,14 @@ export default function UserDetailsPage() {
                                     </Badge>
                                   )}
                                 </TableCell>
-                                <TableCell className={(game.payout || 0) > 0 ? "text-green-500" : 
-                                             game.result === null || game.result === "pending" ? "text-amber-500" : 
-                                             "text-red-500 line-through"}>
+                                <TableCell className={
+                                  (game.payout || 0) > 0 ? 
+                                    "text-green-500" : 
+                                  // Change the condition to apply amber text to cricket toss games regardless of their payout
+                                  game.result === null || game.result === "pending" || game.gameType === 'cricket_toss' ? 
+                                    "text-amber-500" : 
+                                  "text-red-500 line-through"
+                                }>
                                   {(game.payout || 0) > 0 ? 
                                     `+₹${(game.payout / 100).toFixed(2)}` : 
                                     game.result === null || game.result === "pending" ? 
