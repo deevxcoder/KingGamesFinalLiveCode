@@ -146,11 +146,27 @@ export default function UserManagementPage() {
     queryKey: ["/api/games/pending", selectedUser?.id],
     queryFn: async () => {
       if (!selectedUser) return [];
-      // Filter for games where result is not set (i.e., pending)
+      
+      // Get all games for this user
       const res = await apiRequest("GET", `/api/games/${selectedUser.id}`);
       const allGames = await res.json();
-      // Return only games with empty result (pending outcome)
-      return allGames.filter((game: any) => !game.result || game.result === "");
+      
+      // Debug log to see what games we have
+      console.log("All games for user:", allGames);
+      
+      // Better pending game detection - include both empty strings and "pending" status
+      const activeBets = allGames.filter((game: any) => {
+        const isPending = !game.result || 
+                         game.result === "" || 
+                         game.result === "pending" ||
+                         (game.game_data && game.game_data.status === "open");
+                         
+        console.log(`Game ${game.id} (${game.gameType}) - Result: "${game.result}" - isPending: ${isPending}`);
+        return isPending;
+      });
+      
+      console.log("Active bets filtered:", activeBets.length);
+      return activeBets;
     },
     enabled: !!selectedUser && isUserDetailsDialogOpen && detailsTab === "active-bets",
   });
