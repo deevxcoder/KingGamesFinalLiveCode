@@ -452,6 +452,48 @@ app.get("/api/games/my-history", async (req, res, next) => {
       next(err);
     }
   });
+  
+  // Get a single user by ID
+  app.get("/api/users/:id", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Validate ID format
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID format" });
+      }
+      
+      // Get the user
+      const user = await storage.getUser(userId);
+      
+      // Check if user exists
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Check if current user has permission to view this user
+      // Admins can view any user, subadmins can only view users assigned to them
+      if (req.user!.role === UserRole.SUBADMIN && 
+          user.role !== UserRole.PLAYER && 
+          user.id !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to view this user" });
+      }
+      
+      if (req.user!.role === UserRole.SUBADMIN && 
+          user.role === UserRole.PLAYER && 
+          user.assignedTo !== req.user!.id) {
+        return res.status(403).json({ message: "You don't have permission to view this user" });
+      }
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = user;
+      
+      // Return the user data
+      res.json(userWithoutPassword);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   app.patch("/api/users/:id/block", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
