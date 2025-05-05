@@ -1424,13 +1424,20 @@ app.get("/api/games/my-history", async (req, res, next) => {
           payout = Math.floor(game.betAmount * odds);
         }
         
-        // Update game payout
+        // Calculate new user balance after applying payout
+        const updatedBalance = user.balance + payout;
+        
+        // Update game payout, result, and balanceAfter in the games table
         await db.update(games)
-          .set({ payout })
+          .set({ 
+            payout,
+            result, // Update the result in the games table to reflect the match result
+            balanceAfter: updatedBalance // Update the balance after this game result is applied
+          })
           .where(eq(games.id, game.id));
         
         // Update user balance
-        await storage.updateUserBalance(user.id, user.balance + payout);
+        await storage.updateUserBalance(user.id, updatedBalance);
       }
       
       res.json(updatedMatch);
