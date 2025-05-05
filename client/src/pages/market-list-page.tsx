@@ -92,7 +92,7 @@ export default function MarketListPage() {
           </TabsTrigger>
           <TabsTrigger value="closed" className="flex items-center justify-center">
             <Timer className="h-4 w-4 mr-2" />
-            <span>Closed ({closedMarkets.length})</span>
+            <span>Waiting Results ({closedMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="resulted" className="flex items-center justify-center">
             <CheckCircle2 className="h-4 w-4 mr-2" />
