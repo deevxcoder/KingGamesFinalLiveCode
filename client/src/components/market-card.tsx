@@ -54,6 +54,8 @@ export default function MarketCard({
         return <Badge variant="secondary">Resulted</Badge>;
       case "waiting":
         return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">Upcoming</Badge>;
+      case "waiting_result":
+        return <Badge variant="destructive">Closed</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
@@ -196,6 +198,15 @@ export default function MarketCard({
             onClick={() => setLocation(`/game/satamatka/${id}/games`)}
           >
             View Games
+          </Button>
+        )}
+        {status !== "open" && !showFullInfo && (
+          <Button 
+            className="w-full" 
+            variant="outline"
+            onClick={() => setLocation(`/game/satamatka/${id}`)}
+          >
+            View Market
           </Button>
         )}
       </CardFooter>

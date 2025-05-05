@@ -412,6 +412,11 @@ export default function AdminMarketManagementPage() {
         displayText = "Resulted";
         icon = <Check className="h-3 w-3 mr-1" />;
         break;
+      case "waiting_result":
+        color = "bg-yellow-500 hover:bg-yellow-600";
+        displayText = "Closed";
+        icon = <X className="h-3 w-3 mr-1" />;
+        break;
       default:
         color = "bg-slate-500 hover:bg-slate-600";
     }
