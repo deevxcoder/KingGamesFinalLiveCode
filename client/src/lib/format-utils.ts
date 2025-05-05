@@ -86,14 +86,17 @@ export function formatProfitLoss(
   
   // If the result is not set (pending game), show as "potential win/loss"
   if (!result || result === 'pending') {
-    // For pending games, only show the potential win amount if positive
-    const potentialWin = normalizedPayout - normalizedBet;
-    // If no payout is set or payout equals 0, show the bet amount as potential loss
-    profitLoss = normalizedPayout ? potentialWin : -normalizedBet;
+    // For pending games, show the potential win amount (this will be positive)
+    profitLoss = normalizedPayout - normalizedBet;
   } else {
     // For games with a result, calculate actual win/loss
-    const isWin = normalizedPayout > 0;
-    profitLoss = isWin ? normalizedPayout - normalizedBet : -normalizedBet;
+    // If payout is 0, the player lost - show negative bet amount
+    if (normalizedPayout <= 0) {
+      profitLoss = -normalizedBet;
+    } else {
+      // Player won - show the profit (payout - bet)
+      profitLoss = normalizedPayout - normalizedBet;
+    }
   }
   
   // Format with sign and 2 decimal places
