@@ -995,30 +995,30 @@ export default function UserManagementPage() {
           </DialogHeader>
           
           <div className="w-full flex-1 flex flex-col overflow-hidden">
-            <div className="flex flex-wrap border-b mb-4 overflow-x-auto pb-1">
+            <div className="grid grid-cols-3 border-b mb-4 w-full">
               <button 
                 type="button"
-                className={`px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 whitespace-nowrap ${detailsTab === "transactions" ? "border-b-2 border-primary font-medium" : ""}`}
+                className={`px-1 sm:px-4 py-2 flex items-center justify-center gap-1 sm:gap-2 ${detailsTab === "transactions" ? "border-b-2 border-primary font-medium" : ""}`}
                 onClick={() => setDetailsTab("transactions")}
               >
-                <History className="h-4 w-4" />
-                <span>Transactions</span>
+                <History className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm truncate">Transactions</span>
               </button>
               <button 
                 type="button"
-                className={`px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 whitespace-nowrap ${detailsTab === "bets" ? "border-b-2 border-primary font-medium" : ""}`}
+                className={`px-1 sm:px-4 py-2 flex items-center justify-center gap-1 sm:gap-2 ${detailsTab === "bets" ? "border-b-2 border-primary font-medium" : ""}`}
                 onClick={() => setDetailsTab("bets")}
               >
-                <FileText className="h-4 w-4" />
-                <span>Bet History</span>
+                <FileText className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm truncate">Bet History</span>
               </button>
               <button 
                 type="button"
-                className={`px-2 sm:px-4 py-2 flex items-center gap-1 sm:gap-2 whitespace-nowrap ${detailsTab === "active-bets" ? "border-b-2 border-primary font-medium" : ""}`}
+                className={`px-1 sm:px-4 py-2 flex items-center justify-center gap-1 sm:gap-2 ${detailsTab === "active-bets" ? "border-b-2 border-primary font-medium" : ""}`}
                 onClick={() => setDetailsTab("active-bets")}
               >
-                <BarChart className="h-4 w-4" />
-                <span>Active Bets</span>
+                <BarChart className="h-4 w-4 flex-shrink-0" />
+                <span className="text-xs sm:text-sm truncate">Active Bets</span>
               </button>
             </div>
             
