@@ -385,17 +385,35 @@ app.get("/api/games/my-history", async (req, res, next) => {
         return res.status(400).json({ message: "Insufficient balance" });
       }
 
-      // Determine outcome (random)
-      const result = Math.random() < 0.5 ? GameOutcome.HEADS : GameOutcome.TAILS;
+      // Import our dynamic probability system
+      const { calculateWinProbability, updateUserSessionStats } = await import('./game-probability');
+      
+      // Calculate win probability based on user's history and session stats
+      const userWinProbability = await calculateWinProbability(user.id);
+      
+      // Determine if user wins based on dynamic probability
+      const userWins = Math.random() < userWinProbability;
+      
+      // Set result based on user's prediction and whether they win
+      // If user prediction is HEADS and they win, result is HEADS
+      // If user prediction is HEADS and they lose, result is TAILS
+      // And vice versa
+      const result = userWins ? prediction : 
+                    (prediction === GameOutcome.HEADS ? GameOutcome.TAILS : GameOutcome.HEADS);
       
       // Calculate payout (1.95x if win, 0 if loss)
       const multiplier = 1.95;
-      const isWin = prediction === result;
-      const payout = isWin ? Math.floor(betAmount * multiplier) : 0;
+      const payout = userWins ? Math.floor(betAmount * multiplier) : 0;
       
       // Update user balance
       const newBalance = user.balance - betAmount + payout;
       await storage.updateUserBalance(user.id, newBalance);
+      
+      // Update user session stats for future probability calculations
+      updateUserSessionStats(user.id, userWins);
+
+      // Log internal game stats (only visible in server logs, not to clients)
+      console.log(`Coin Flip: User=${user.username}, WinProb=${userWinProbability.toFixed(2)}, Wins=${userWins}, Payout=${payout}`);
 
       // Record the game
       const game = await storage.createGame({

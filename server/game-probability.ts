@@ -27,9 +27,9 @@ export async function calculateWinProbability(userId: number): Promise<number> {
   try {
     // Check if user session exists and is still valid
     const now = new Date();
-    const session = userSessions[userId];
+    const userSession = userSessions[userId];
     
-    if (!session || (now.getTime() - session.lastGameTime.getTime() > SESSION_TIMEOUT_MS)) {
+    if (!userSession || (now.getTime() - userSession.lastGameTime.getTime() > SESSION_TIMEOUT_MS)) {
       // Create or reset session
       userSessions[userId] = {
         gamesPlayed: 0,
@@ -71,9 +71,9 @@ export async function calculateWinProbability(userId: number): Promise<number> {
     }
     
     // Check session win rate caps
-    const session = userSessions[userId];
-    if (session.gamesPlayed >= 10) {
-      const currentWinRate = session.gamesWon / session.gamesPlayed;
+    const currentSession = userSessions[userId];
+    if (currentSession.gamesPlayed >= 10) {
+      const currentWinRate = currentSession.gamesWon / currentSession.gamesPlayed;
       
       // If user has won too much in this session, reduce win chance
       if (currentWinRate > 0.4) {
