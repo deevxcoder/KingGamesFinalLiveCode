@@ -270,6 +270,7 @@ export const transactions = pgTable("transactions", {
     .notNull()
     .references(() => users.id),
   amount: integer("amount").notNull(), // positive for deposit, negative for withdrawal
+  balanceAfter: integer("balance_after"), // Balance after transaction (added to track history)
   performedBy: integer("performed_by")
     .notNull()
     .references(() => users.id), // ID of admin/subadmin who performed this action
@@ -283,6 +284,7 @@ export const insertTransactionSchema = createInsertSchema(transactions)
   .pick({
     userId: true,
     amount: true,
+    balanceAfter: true,
     performedBy: true,
     description: true,
     requestId: true,
@@ -290,6 +292,7 @@ export const insertTransactionSchema = createInsertSchema(transactions)
   .partial({
     description: true,
     requestId: true,
+    balanceAfter: true,
   });
 
 export const insertWalletRequestSchema = createInsertSchema(walletRequests)
