@@ -1217,18 +1217,31 @@ export default function UserManagementPage() {
                                 <TableCell className="font-medium">
                                   ₹{(game.betAmount / 100).toFixed(2)}
                                 </TableCell>
-                                <TableCell className="capitalize">{game.prediction}</TableCell>
                                 <TableCell>
-                                  {game.gameType === 'cricket_toss' && game.game_data && (
+                                  {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
+                                    <>
+                                      {game.prediction === 'team_a' && (game.game_data || game.match) ? (
+                                        <Badge className="bg-green-600">
+                                          {game.game_data?.teamA || game.match?.teamA}
+                                        </Badge>
+                                      ) : game.prediction === 'team_b' && (game.game_data || game.match) ? (
+                                        <Badge className="bg-blue-600">
+                                          {game.game_data?.teamB || game.match?.teamB}
+                                        </Badge>
+                                      ) : (
+                                        <span className="capitalize">{game.prediction}</span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <span className="capitalize">{game.prediction}</span>
+                                  )}
+                                </TableCell>
+                                <TableCell>
+                                  {(game.gameType === 'cricket_toss' || game.gameType === 'team_match') && (game.game_data || game.match) && (
                                     <div className="text-xs space-y-1">
                                       <div>
-                                        <Badge variant="secondary" className="mb-1">Match</Badge> {game.game_data.teamA} vs {game.game_data.teamB}
+                                        <Badge variant="secondary" className="mb-1">Match</Badge> {game.game_data?.teamA || game.match?.teamA} vs {game.game_data?.teamB || game.match?.teamB}
                                       </div>
-                                      {game.prediction === 'team_a' ? (
-                                        <Badge className="bg-green-600">{game.game_data.teamA}</Badge>
-                                      ) : game.prediction === 'team_b' ? (
-                                        <Badge className="bg-blue-600">{game.game_data.teamB}</Badge>
-                                      ) : null}
                                     </div>
                                   )}
                                   {game.gameType === 'coinflip' && (
