@@ -3,6 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { UserRole } from "@shared/schema";
+import { useLocation } from "wouter";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,6 +81,7 @@ import {
 export default function UserManagementPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [_, navigate] = useLocation();
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [amount, setAmount] = useState<number>(0);
   const [remark, setRemark] = useState<string>("");
@@ -469,12 +471,8 @@ export default function UserManagementPage() {
   }, [detailsTab]);
   
   const openUserDetailsDialog = (user: any) => {
-    setSelectedUser(user);
-    setDetailsTab("transactions");
-    setTransactionsPage(1);
-    setBetsPage(1);
-    setActiveBetsPage(1);
-    setIsUserDetailsDialogOpen(true);
+    // Navigate to the user details page instead of opening a modal
+    navigate(`/users/${user.id}`);
   };
   
   const openCommissionDialog = (user: any) => {
