@@ -397,7 +397,7 @@ export default function SubadminSettingsPage() {
     if (!commissions || !Array.isArray(commissions)) return 0;
     
     const commission = Array.isArray(commissions) ? commissions.find((c: CommissionItem) => c.gameType === gameType) : null;
-    return commission ? commission.commissionRate : 0;
+    return commission ? commission.commissionRate / 100 : 0;
   };
 
   // Set form values when commissions data is loaded
@@ -415,19 +415,19 @@ export default function SubadminSettingsPage() {
 
       commissions.forEach((commission: any) => {
         if (commission.gameType === 'team_match') {
-          formValues.teamMatch = commission.commissionRate;
+          formValues.teamMatch = commission.commissionRate / 100;
         } else if (commission.gameType === 'cricket_toss') {
-          formValues.cricketToss = commission.commissionRate;
+          formValues.cricketToss = commission.commissionRate / 100;
         } else if (commission.gameType === 'coin_flip') {
-          formValues.coinFlip = commission.commissionRate;
+          formValues.coinFlip = commission.commissionRate / 100;
         } else if (commission.gameType === 'satamatka_jodi') {
-          formValues.satamatkaJodi = commission.commissionRate;
+          formValues.satamatkaJodi = commission.commissionRate / 100;
         } else if (commission.gameType === 'satamatka_harf') {
-          formValues.satamatkaHarf = commission.commissionRate;
+          formValues.satamatkaHarf = commission.commissionRate / 100;
         } else if (commission.gameType === 'satamatka_odd_even') {
-          formValues.satamatkaOddEven = commission.commissionRate;
+          formValues.satamatkaOddEven = commission.commissionRate / 100;
         } else if (commission.gameType === 'satamatka_crossing') {
-          formValues.satamatkaCrossing = commission.commissionRate;
+          formValues.satamatkaCrossing = commission.commissionRate / 100;
         }
       });
 
@@ -579,7 +579,7 @@ export default function SubadminSettingsPage() {
                                 <CardContent>
                                   <div className="flex items-center justify-between">
                                     <span className="text-muted-foreground">Commission:</span>
-                                    <span className="text-xl font-bold">{(comm.commissionRate / 100).toFixed(2)}%</span>
+                                    <span className="text-xl font-bold">{(comm.commissionRate / 10000).toFixed(2)}%</span>
                                   </div>
                                 </CardContent>
                               </Card>
