@@ -220,9 +220,12 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         let payout = 0;
         if (game.prediction === result) {
           // If prediction matches, calculate payout based on the odds in gameData
+          // Include the bet amount in the payout (total return, not just profit)
           const gameData = game.gameData as any;
           const odds = result === 'team_a' ? gameData.oddTeamA : gameData.oddTeamB;
-          payout = Math.floor(game.betAmount * (odds / 100));
+          // Calculate total payout including original bet amount
+          const winAmount = Math.floor(game.betAmount * (odds / 100));
+          payout = winAmount + game.betAmount;
         }
         
         // Update user balance with the payout
@@ -335,7 +338,9 @@ export function setupCricketTossApiRoutes(app: express.Express) {
       // Calculate potential payout based on odds from the game data
       const gameData = game.gameData as any;
       const odds = betOn === TeamMatchResult.TEAM_A ? gameData.oddTeamA : gameData.oddTeamB;
-      const potentialPayout = Math.floor((betAmount * odds) / 100);
+      // Calculate potential winnings based on odds and include original bet amount
+      const winAmount = Math.floor((betAmount * odds) / 100);
+      const potentialPayout = winAmount + betAmount;
       
       // Calculate new balance after bet
       const newBalance = user.balance - betAmount;
