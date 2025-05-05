@@ -1529,10 +1529,10 @@ export default function SatamatkaGame() {
 
       </div>
 
-      {/* Recent Bets Table */}
+      {/* Recent Bets Table - Enhanced with more details */}
       <div className="mt-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="overflow-hidden border-slate-700">
+          <CardHeader className="flex flex-row items-center justify-between bg-slate-900">
             <div>
               <CardTitle>Your Recent Bets</CardTitle>
               <CardDescription>Latest bets you've placed</CardDescription>
@@ -1546,60 +1546,101 @@ export default function SatamatkaGame() {
               View Full History
             </Button>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Market</TableHead>
-                  <TableHead>Game Type</TableHead>
-                  <TableHead>Prediction</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(recentBets as Game[]).slice(0, 10).map((bet) => (
-                  <TableRow key={bet.id}>
-                    <TableCell>
-                      {bet.marketName || 
-                       (bet.gameType === 'satamatka' && bet.marketId ? 
-                        (bet.marketId === marketId ? typedMarket.name : `Market #${bet.marketId}`) : 
-                        'Unknown')}
-                    </TableCell>
-                    <TableCell>
-                      {bet.gameType === 'satamatka' && bet.gameData ? 
-                        (GAME_MODES[bet.gameData.gameMode as keyof typeof GAME_MODES] || bet.gameData.gameMode) : 
-                        bet.gameType}
-                    </TableCell>
-                    <TableCell>{bet.prediction}</TableCell>
-                    <TableCell>{formatCurrency(bet.betAmount, bet.gameType)}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          bet.status === "win" ? "default" : 
-                          bet.status === "loss" ? "destructive" : 
-                          bet.status === "pending" ? "secondary" : "outline"
-                        }
-                        className={bet.status === "win" ? "bg-green-600 hover:bg-green-700" : ""}
-                      >
-                        {bet.status === "pending" ? "Pending" : 
-                         bet.status === "win" ? "Won" : 
-                         bet.status === "loss" ? "Lost" : bet.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{format(new Date(bet.createdAt), "MMM d, h:mm a")}</TableCell>
-                  </TableRow>
-                ))}
-                {(recentBets as Game[]).length === 0 && (
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-slate-800">
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4 text-muted-foreground">
-                      No recent bets found. Place your first bet!
-                    </TableCell>
+                    <TableHead className="font-medium">ID</TableHead>
+                    <TableHead className="font-medium">Market</TableHead>
+                    <TableHead className="font-medium">Game Type</TableHead>
+                    <TableHead className="font-medium">Prediction</TableHead>
+                    <TableHead className="font-medium">Amount</TableHead>
+                    <TableHead className="font-medium">Potential Win</TableHead>
+                    <TableHead className="font-medium">Result</TableHead>
+                    <TableHead className="font-medium">Payout</TableHead>
+                    <TableHead className="font-medium">Balance After</TableHead>
+                    <TableHead className="font-medium">Date</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {(recentBets as Game[]).slice(0, 10).map((bet) => {
+                    // Calculate potential win amount based on game mode
+                    const gameMode = bet.gameMode || (bet.gameData?.gameMode as string);
+                    const potentialWin = gameMode 
+                      ? (calculatePotentialWin(gameMode, bet.betAmount / 100) / 100).toFixed(2)
+                      : (bet.betAmount * 1.9 / 100).toFixed(2); // Default multiplier if gameMode not available
+                    
+                    // Determine visual styling based on status
+                    const isWin = bet.result === "win" || bet.status === "win";
+                    const isLoss = bet.result === "loss" || bet.status === "loss";
+                    const isPending = bet.result === "pending" || bet.status === "pending" || !bet.result;
+                    
+                    // Format payout amount
+                    const payout = bet.payout ? (bet.payout / 100).toFixed(2) : "0.00";
+                    
+                    return (
+                      <TableRow key={bet.id} className="border-slate-700">
+                        <TableCell className="font-mono text-xs">{bet.id}</TableCell>
+                        <TableCell>
+                          {bet.market?.name || 
+                          (bet.gameType === 'satamatka' && bet.marketId ? 
+                          (bet.marketId === marketId ? typedMarket.name : `Market #${bet.marketId}`) : 
+                          'Unknown')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="bg-indigo-950/40 border-indigo-700 text-indigo-300">
+                            {bet.gameType === 'satamatka' && gameMode ? 
+                              (GAME_MODES[gameMode as keyof typeof GAME_MODES] || gameMode) : 
+                              formatGameType(bet.gameType)}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium">
+                            {bet.prediction}
+                          </span>
+                        </TableCell>
+                        <TableCell>₹{(bet.betAmount / 100).toFixed(2)}</TableCell>
+                        <TableCell>₹{potentialWin}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              isWin ? "default" : 
+                              isLoss ? "destructive" : 
+                              isPending ? "secondary" : "outline"
+                            }
+                            className={`${
+                              isWin ? "bg-green-600 hover:bg-green-700" : 
+                              isPending ? "bg-amber-500 hover:bg-amber-600 text-black" : ""
+                            }`}
+                          >
+                            {isPending ? "Pending" : 
+                             isWin ? "Won" : 
+                             isLoss ? "Lost" : bet.result || "Unknown"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className={isWin ? "text-green-500 font-medium" : ""}>
+                          {isWin ? `+₹${payout}` : `₹${payout}`}
+                        </TableCell>
+                        <TableCell className="font-mono">
+                          ₹{bet.balanceAfter ? (bet.balanceAfter / 100).toFixed(2) : "N/A"}
+                        </TableCell>
+                        <TableCell className="whitespace-nowrap">
+                          {format(new Date(bet.createdAt), "MMM d, h:mm a")}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                  {(recentBets as Game[]).length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                        No recent bets found. Place your first bet!
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -1692,4 +1733,20 @@ function calculatePotentialWin(gameMode: string, betAmount: number): number {
   }
   
   return Math.floor(betAmount * payoutRatio);
+}
+
+// Helper function to format game type for display
+function formatGameType(gameType: string): string {
+  switch (gameType) {
+    case "satamatka":
+      return "Satamatka";
+    case "cricket_toss":
+      return "Cricket Toss";
+    case "team_match":
+      return "Team Match";
+    case "coin_flip":
+      return "Coin Flip";
+    default:
+      return gameType.charAt(0).toUpperCase() + gameType.slice(1).replace(/_/g, ' ');
+  }
 }
