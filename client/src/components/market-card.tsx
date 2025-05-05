@@ -49,13 +49,13 @@ export default function MarketCard({
       case "open":
         return <Badge className="bg-green-500 hover:bg-green-600 text-white">Open</Badge>;
       case "closed":
-        return <Badge variant="destructive">Closed</Badge>;
+        return <Badge variant="destructive">Waiting Results</Badge>;
       case "resulted":
         return <Badge variant="secondary">Resulted</Badge>;
       case "waiting":
         return <Badge className="bg-purple-500 hover:bg-purple-600 text-white">Upcoming</Badge>;
       case "waiting_result":
-        return <Badge variant="destructive">Closed</Badge>;
+        return <Badge variant="destructive">Waiting Results</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }

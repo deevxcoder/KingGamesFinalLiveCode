@@ -199,9 +199,9 @@ export default function MarketListPage() {
           <div className="p-4 bg-muted/50 rounded-lg mb-4">
             <h2 className="text-lg font-semibold flex items-center">
               <Timer className="h-5 w-5 mr-2 text-yellow-500" />
-              Closed Markets
+              Markets Waiting Results
             </h2>
-            <p className="text-sm text-muted-foreground">These markets are closed for betting and waiting for results</p>
+            <p className="text-sm text-muted-foreground">These markets are closed for betting and waiting for results to be declared</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

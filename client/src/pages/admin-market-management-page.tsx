@@ -404,7 +404,7 @@ export default function AdminMarketManagementPage() {
         break;
       case "closed":
         color = "bg-yellow-500 hover:bg-yellow-600";
-        displayText = "Closed";
+        displayText = "Waiting Results";
         icon = <X className="h-3 w-3 mr-1" />;
         break;
       case "resulted":
@@ -414,7 +414,7 @@ export default function AdminMarketManagementPage() {
         break;
       case "waiting_result":
         color = "bg-yellow-500 hover:bg-yellow-600";
-        displayText = "Closed";
+        displayText = "Waiting Results";
         icon = <X className="h-3 w-3 mr-1" />;
         break;
       default:
@@ -480,7 +480,7 @@ export default function AdminMarketManagementPage() {
           </TabsTrigger>
           <TabsTrigger value="closed" className="flex items-center justify-center">
             <Timer className="h-4 w-4 mr-2" />
-            <span>Closed ({closedMarkets.length})</span>
+            <span>Waiting Results ({closedMarkets.length})</span>
           </TabsTrigger>
           <TabsTrigger value="resulted" className="flex items-center justify-center">
             <CheckCircle2 className="h-4 w-4 mr-2" />
