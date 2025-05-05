@@ -56,6 +56,7 @@ export interface IStorage {
   createGame(game: InsertGame): Promise<Game>;
   getGame(id: number): Promise<Game | undefined>;
   getGamesByUserId(userId: number): Promise<Game[]>;
+  getGamesByUserIds(userIds: number[]): Promise<Game[]>;
   getAllGames(limit?: number): Promise<Game[]>;
   updateGameStatus(gameId: number, status: string): Promise<Game | undefined>;
   updateGameResult(gameId: number, result: string, payout?: number): Promise<Game | undefined>;
@@ -689,6 +690,38 @@ export class DatabaseStorage implements IStorage {
       query.limit(limit);
     }
     
+    return await query;
+  }
+  
+  async getGamesByUserIds(userIds: number[]): Promise<Game[]> {
+    if (!userIds.length) {
+      return [];
+    }
+    
+    // Build OR condition for multiple user IDs
+    const whereConditions = userIds.map(id => eq(games.userId, id));
+    
+    const query = db.select()
+      .from(games)
+      .where(whereConditions.length > 1 ? or(...whereConditions) : whereConditions[0])
+      .orderBy(desc(games.createdAt));
+      
+    return await query;
+  }
+  
+  async getWalletTransactionsByUserIds(userIds: number[]): Promise<Transaction[]> {
+    if (!userIds.length) {
+      return [];
+    }
+    
+    // Build OR condition for multiple user IDs
+    const whereConditions = userIds.map(id => eq(transactions.userId, id));
+    
+    const query = db.select()
+      .from(transactions)
+      .where(whereConditions.length > 1 ? or(...whereConditions) : whereConditions[0])
+      .orderBy(desc(transactions.createdAt));
+      
     return await query;
   }
 

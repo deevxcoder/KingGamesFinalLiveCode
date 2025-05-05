@@ -726,6 +726,85 @@ app.get("/api/games/my-history", async (req, res, next) => {
       next(err);
     }
   });
+  
+  // API endpoint for subadmin dashboard statistics
+  app.get("/api/subadmin/stats", async (req, res, next) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      
+      // Only allow admin and subadmin to access this endpoint
+      if (req.user!.role !== UserRole.SUBADMIN && req.user!.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      
+      const subadminId = req.user!.id;
+      let assignedTo = subadminId;
+      
+      // If admin is viewing a specific subadmin's stats
+      if (req.user!.role === UserRole.ADMIN && req.query.subadminId) {
+        assignedTo = Number(req.query.subadminId);
+      }
+      
+      // Get all users assigned to this subadmin
+      const users = await storage.getUsersByAssignedTo(assignedTo);
+      
+      if (!users || users.length === 0) {
+        return res.json({
+          totalProfit: 0,
+          totalDeposits: 0,
+          totalUsers: 0,
+          activeUsers: 0
+        });
+      }
+      
+      // Get all user IDs assigned to this subadmin
+      const userIds = users.map(user => user.id);
+      let totalProfit = 0;
+      let totalDeposits = 0;
+      
+      // Calculate total deposits from wallet transactions
+      const transactions = await storage.getWalletTransactionsByUserIds(userIds);
+      if (transactions && transactions.length > 0) {
+        // Sum deposits (credit transactions from admin/subadmin)
+        totalDeposits = transactions
+          .filter(tx => tx.transactionType === 'credit' && (tx.source === 'deposit' || tx.source === 'admin'))
+          .reduce((sum, tx) => sum + tx.amount, 0);
+      }
+      
+      // Calculate profit/loss from games
+      const games = await storage.getGamesByUserIds(userIds);
+      if (games && games.length > 0) {
+        // Calculate profit (positive when house wins, negative when player wins)
+        totalProfit = games.reduce((sum, game) => {
+          if (game.result === 'win') {
+            // House loss (negative profit): betAmount - payout
+            return sum - (game.payout - game.betAmount);
+          } else if (game.result === 'loss') {
+            // House win (positive profit): betAmount
+            return sum + game.betAmount;
+          }
+          // Pending games don't affect profit calculation
+          return sum;
+        }, 0);
+      }
+      
+      // Count active users (users who played at least one game)
+      const activeUserIds = games.length > 0 ? 
+        [...new Set(games.map(game => game.userId))] : [];
+      const activeUsers = activeUserIds.length;
+      
+      res.json({
+        totalProfit,
+        totalDeposits,
+        totalUsers: users.length,
+        activeUsers
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Recent games across all users (for admin dashboard)
   app.get("/api/games/recent", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
