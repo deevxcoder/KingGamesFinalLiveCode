@@ -33,7 +33,7 @@ import {
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
-import { eq, and, desc, gte, lte } from "drizzle-orm";
+import { eq, and, desc, gte, lte, or } from "drizzle-orm";
 
 // Connect to PostgreSQL for session storage
 const PostgresSessionStore = connectPg(session);
