@@ -1931,7 +1931,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
   });
   
   // Cricket Toss Betting Statistics
-  app.get("/api/cricket-toss/stats", async (req, res) => {
+  app.get("/api/cricket-toss-stats", async (req, res) => {
     try {
       // Get all games to find cricket toss games
       console.log("Fetching cricket toss stats...");

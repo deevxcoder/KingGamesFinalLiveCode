@@ -138,7 +138,7 @@ export default function RiskManagementPage() {
 
   // Query for cricket toss statistics
   const { data: cricketTossStats, isLoading: cricketLoading, error: cricketError } = useQuery<TeamMatchStats[]>({
-    queryKey: ["/api/cricket-toss/stats", isAdmin ? "admin" : `subadmin-${user?.id}`],
+    queryKey: ["/api/cricket-toss-stats", isAdmin ? "admin" : `subadmin-${user?.id}`],
     enabled: !!user && (isAdmin || isSubadmin),
     retry: 1,
     staleTime: 30000, // 30 seconds
