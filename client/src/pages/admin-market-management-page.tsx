@@ -134,8 +134,6 @@ export default function AdminMarketManagementPage() {
       openTime: "",
       closeTime: "",
       resultTime: "",
-      isRecurring: false,
-      recurrencePattern: "daily",
     },
   });
 
@@ -295,8 +293,6 @@ export default function AdminMarketManagementPage() {
       openTime: format(parseISO(market.openTime), "HH:mm"),
       closeTime: format(parseISO(market.closeTime), "HH:mm"),
       resultTime: market.resultTime ? format(parseISO(market.resultTime), "HH:mm") : format(parseISO(market.closeTime), "HH:mm"),
-      isRecurring: market.isRecurring || false,
-      recurrencePattern: market.recurrencePattern || "daily",
     });
   };
 
@@ -834,60 +830,7 @@ export default function AdminMarketManagementPage() {
                 />
               </div>
               
-              {/* Recurring Market options */}
-              <div className="space-y-4 border border-input rounded-md p-4 bg-muted/10">
-                <h3 className="font-semibold text-sm">Recurring Market Settings</h3>
-                
-                <FormField
-                  control={marketForm.control}
-                  name="isRecurring"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md">
-                      <FormControl>
-                        <Checkbox 
-                          checked={field.value} 
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>
-                          Make this a recurring market
-                        </FormLabel>
-                        <FormDescription>
-                          Recurring markets automatically reset after results are declared
-                        </FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                
-                {marketForm.watch("isRecurring") && (
-                  <FormField
-                    control={marketForm.control}
-                    name="recurrencePattern"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Recurrence Pattern</FormLabel>
-                        <FormControl>
-                          <select 
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            {...field}
-                          >
-                            <option value="daily">Daily (Every day)</option>
-                            <option value="weekdays">Weekdays (Monday to Friday)</option>
-                            <option value="weekly">Weekly (Same day every week)</option>
-                            <option value="custom">Custom (Advanced scheduling)</option>
-                          </select>
-                        </FormControl>
-                        <FormDescription>
-                          Choose how often this market should repeat
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
+
               
               <DialogFooter>
                 <Button 
@@ -971,7 +914,6 @@ function MarketTable({
             <TableHead>Close Time</TableHead>
             <TableHead>Result</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Recurring</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -993,15 +935,6 @@ function MarketTable({
               </TableCell>
               <TableCell>
                 <StatusBadge status={market.status} />
-              </TableCell>
-              <TableCell>
-                {market.isRecurring ? (
-                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                    {market.recurrencePattern || "Daily"}
-                  </Badge>
-                ) : (
-                  <span className="text-slate-400">-</span>
-                )}
               </TableCell>
               <TableCell className="text-right">
                 <DropdownMenu>
@@ -1073,23 +1006,7 @@ function MarketTable({
                       </DropdownMenuItem>
                     )}
                     
-                    {/* Recurring Market Controls */}
-                    {market.isRecurring && (
-                      <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuLabel className="text-xs text-muted-foreground">Recurring Settings</DropdownMenuLabel>
-                        
-                        {market.status === "resulted" && (
-                          <DropdownMenuItem 
-                            onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
-                            className="text-purple-600"
-                          >
-                            <Clock className="mr-2 h-4 w-4" />
-                            Activate Next Cycle
-                          </DropdownMenuItem>
-                        )}
-                      </>
-                    )}
+
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
