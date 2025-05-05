@@ -373,23 +373,32 @@ export default function AdminMarketManagementPage() {
   // Status badge component
   const StatusBadge = ({ status }: { status: string }) => {
     let color = "";
+    let displayText = status.replace('_', ' ');
+    
     switch (status) {
+      case "waiting":
+        color = "bg-purple-500 hover:bg-purple-600";
+        displayText = "Upcoming";
+        break;
       case "open":
         color = "bg-green-500 hover:bg-green-600";
+        displayText = "Active";
         break;
       case "closed":
-      case "waiting_result":
         color = "bg-yellow-500 hover:bg-yellow-600";
+        displayText = "Closed";
         break;
       case "resulted":
         color = "bg-blue-500 hover:bg-blue-600";
+        displayText = "Resulted";
         break;
       default:
         color = "bg-slate-500 hover:bg-slate-600";
     }
+    
     return (
       <Badge className={color}>
-        {status.replace('_', ' ')}
+        {displayText}
       </Badge>
     );
   };
