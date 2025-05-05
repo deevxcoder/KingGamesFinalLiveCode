@@ -531,7 +531,7 @@ export default function UserManagementPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto custom-horizontal-scrollbar">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1191,7 +1191,7 @@ export default function UserManagementPage() {
                     </div>
                   ) : (
                     <>
-                      <div className="overflow-x-auto">
+                      <div className="overflow-x-auto custom-horizontal-scrollbar">
                         <Table>
                           <TableHeader>
                             <TableRow>
