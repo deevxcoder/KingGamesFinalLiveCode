@@ -255,15 +255,38 @@ export default function SatamatkaGame() {
   // Mutation for placing multiple bets
   const placeMultipleBetsMutation = useMutation({
     mutationFn: async (bets: Array<{number: string, amount: number}>) => {
-      // Process bet amounts for the server
-      const serverBets = bets.map(bet => {
-        // For satamatka games, the stored amounts are already in rupees
-        // The server expects paisa, so we need to multiply by 100
-        return {
-          prediction: bet.number,
-          betAmount: bet.amount * 100,
-        };
-      });
+      // For crossing game type, generate all combinations
+      let serverBets;
+      
+      if (selectedGameMode === "crossing" && bets.length > 1) {
+        // Generate all possible combinations (pairs) of the selected digits
+        serverBets = [];
+        for (let i = 0; i < bets.length; i++) {
+          for (let j = 0; j < bets.length; j++) {
+            // Skip same digit combinations
+            if (i !== j) {
+              const digit1 = bets[i].number;
+              const digit2 = bets[j].number;
+              const combination = `${digit1}${digit2}`;
+              
+              serverBets.push({
+                prediction: combination,
+                betAmount: bets[i].amount * 100, // Convert to paisa
+              });
+            }
+          }
+        }
+      } else {
+        // For other game modes, process normally
+        serverBets = bets.map(bet => {
+          // For satamatka games, the stored amounts are already in rupees
+          // The server expects paisa, so we need to multiply by 100
+          return {
+            prediction: bet.number,
+            betAmount: bet.amount * 100,
+          };
+        });
+      }
       
       // Use the new bulk betting endpoint
       const response = await apiRequest("POST", "/api/satamatka/play-multiple", {
