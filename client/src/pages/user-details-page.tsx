@@ -406,10 +406,15 @@ export default function UserDetailsPage() {
                                       <Badge variant="secondary">Coin Flip</Badge>
                                     </span>
                                   )}
-                                  {game.gameType.includes('satamatka') && game.marketId && (
+                                  {game.gameType.includes('satamatka') && (
                                     <div className="text-xs space-y-1">
                                       <div>
-                                        <Badge variant="secondary">Market ID: {game.marketId}</Badge>
+                                        <Badge variant="secondary">SataMatka</Badge>
+                                        {game.gameData && game.gameData.marketName ? (
+                                          <span className="ml-1 font-medium">{game.gameData.marketName}</span>
+                                        ) : (
+                                          <span className="ml-1">Market {game.marketId}</span>
+                                        )}
                                       </div>
                                       <div>
                                         <Badge variant="outline">Type: {game.gameMode || "Standard"}</Badge>
@@ -531,9 +536,19 @@ export default function UserDetailsPage() {
                                       <Badge variant="secondary">{game.prediction}</Badge>
                                     </span>
                                   )}
-                                  {game.gameType.includes('satamatka') && game.marketId && (
-                                    <div className="text-xs">
-                                      <Badge variant="secondary">Market ID: {game.marketId}</Badge>
+                                  {game.gameType.includes('satamatka') && (
+                                    <div className="text-xs space-y-1">
+                                      <div>
+                                        <Badge variant="secondary">SataMatka</Badge>
+                                        {game.gameData && game.gameData.marketName ? (
+                                          <span className="ml-1 font-medium">{game.gameData.marketName}</span>
+                                        ) : (
+                                          <span className="ml-1">Market {game.marketId}</span>
+                                        )}
+                                      </div>
+                                      <div>
+                                        <Badge variant="outline">Type: {game.gameMode || "Standard"}</Badge>
+                                      </div>
                                     </div>
                                   )}
                                 </TableCell>
