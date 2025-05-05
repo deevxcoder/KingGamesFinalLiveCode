@@ -214,8 +214,6 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
   .pick({
     name: true,
     type: true,
-    openTime: true,
-    closeTime: true,
     openResult: true,
     closeResult: true,
     status: true,
@@ -227,6 +225,8 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
   .extend({
     type: z.enum([MarketType.DISHAWAR, MarketType.GALI, MarketType.MUMBAI, MarketType.KALYAN]),
     coverImage: z.string().optional(),
+    openTime: z.union([z.string(), z.date()]).transform(val => typeof val === 'string' ? new Date(val) : val),
+    closeTime: z.union([z.string(), z.date()]).transform(val => typeof val === 'string' ? new Date(val) : val),
     status: z.enum([
       MarketStatus.WAITING,
       MarketStatus.OPEN, 
@@ -241,8 +241,12 @@ export const insertSatamatkaMarketSchema = createInsertSchema(satamatkaMarkets)
       RecurrencePattern.WEEKLY,
       RecurrencePattern.CUSTOM
     ]).default(RecurrencePattern.DAILY).optional(),
-    nextOpenTime: z.date().optional(),
-    nextCloseTime: z.date().optional(),
+    nextOpenTime: z.union([z.string(), z.date()]).transform(val => 
+      val ? (typeof val === 'string' ? new Date(val) : val) : undefined
+    ).optional(),
+    nextCloseTime: z.union([z.string(), z.date()]).transform(val => 
+      val ? (typeof val === 'string' ? new Date(val) : val) : undefined
+    ).optional(),
   })
   .partial({
     openResult: true,
