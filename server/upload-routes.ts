@@ -419,6 +419,68 @@ export function setupUploadRoutes(app: express.Express) {
     }
   });
 
+  // API route to upload market banner images (admin only)
+  app.post('/api/upload/market-banner', requireAdmin, marketBannerUpload.single('marketBannerImage'), (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+      
+      // Generate URL for the uploaded file
+      const fileUrl = `/uploads/market-banners/${req.file.filename}`;
+      
+      // Return the URL to the client
+      res.json({ 
+        success: true, 
+        imageUrl: fileUrl,
+        filename: req.file.filename
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ error: 'File upload failed' });
+    }
+  });
+  
+  // API route to get all market banner images
+  app.get('/api/market-banners', async (req: Request, res: Response) => {
+    try {
+      // Read the market banners directory
+      const files = fs.readdirSync(marketBannerUploadsDir);
+      
+      // Map to URLs
+      const marketBannerImages = files.map(file => ({
+        filename: file,
+        url: `/uploads/market-banners/${file}`
+      }));
+      
+      res.json(marketBannerImages);
+    } catch (error) {
+      console.error('Error fetching market banner images:', error);
+      res.status(500).json({ error: 'Failed to fetch market banner images' });
+    }
+  });
+  
+  // API route to delete a market banner image (admin only)
+  app.delete('/api/market-banners/:filename', requireAdmin, (req: Request, res: Response) => {
+    try {
+      const { filename } = req.params;
+      const filePath = path.join(marketBannerUploadsDir, filename);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+      
+      // Delete the file
+      fs.unlinkSync(filePath);
+      
+      res.json({ success: true, message: 'Market banner image deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting market banner image:', error);
+      res.status(500).json({ error: 'Failed to delete market banner image' });
+    }
+  });
+
   // Allow access to static uploads
   app.use('/uploads', express.static(uploadsDir));
 }

@@ -713,13 +713,86 @@ export default function AdminMarketManagementPage() {
                 control={marketForm.control}
                 name="coverImage"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cover Banner Image URL</FormLabel>
+                  <FormItem className="space-y-3">
+                    <FormLabel>Cover Banner Image</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="https://example.com/banner.jpg" />
+                      <div className="flex flex-col gap-3">
+                        {field.value ? (
+                          <div className="relative w-full h-40 rounded-md overflow-hidden border">
+                            <img 
+                              src={field.value} 
+                              alt="Market banner preview" 
+                              className="w-full h-full object-cover"
+                            />
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2 h-6 w-6 rounded-full"
+                              onClick={() => field.onChange("")}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : null}
+                        
+                        {!field.value && (
+                          <div className="flex items-center gap-3">
+                            <Input 
+                              type="file" 
+                              accept="image/*"
+                              onChange={async (e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                
+                                // Create form data for upload
+                                const formData = new FormData();
+                                formData.append('marketBannerImage', file);
+                                
+                                try {
+                                  // Upload the image
+                                  const response = await fetch('/api/upload/market-banner', {
+                                    method: 'POST',
+                                    body: formData,
+                                    credentials: 'include'
+                                  });
+                                  
+                                  if (!response.ok) {
+                                    throw new Error('Image upload failed');
+                                  }
+                                  
+                                  const data = await response.json();
+                                  
+                                  // Set the image URL to the form field
+                                  field.onChange(data.imageUrl);
+                                } catch (error) {
+                                  console.error('Error uploading image:', error);
+                                  toast({
+                                    title: "Upload Failed",
+                                    description: "There was an error uploading the image. Please try again.",
+                                    variant: "destructive"
+                                  });
+                                } finally {
+                                  // Clear the file input
+                                  e.target.value = '';
+                                }
+                              }}
+                              className="flex-1"
+                            />
+                            
+                            <div className="text-muted-foreground">or</div>
+                            
+                            <Input 
+                              placeholder="Direct image URL" 
+                              onChange={(e) => field.onChange(e.target.value)}
+                              className="flex-1"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </FormControl>
                     <FormDescription>
-                      Enter a URL for the market banner image (optional)
+                      Upload a banner image for the market or provide a direct URL (optional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
