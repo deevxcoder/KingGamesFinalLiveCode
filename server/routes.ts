@@ -961,6 +961,19 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const marketId = Number(req.params.id);
       const { openResult, closeResult } = req.body;
       
+      // Get the current market to check its status
+      const existingMarket = await storage.getSatamatkaMarket(marketId);
+      if (!existingMarket) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+      
+      // Ensure the market is closed before allowing result declaration
+      if (existingMarket.status !== "closed") {
+        return res.status(400).json({ 
+          message: "Results can only be declared for closed markets. Please close the market first." 
+        });
+      }
+      
       if (openResult === undefined && closeResult === undefined) {
         return res.status(400).json({ message: "Either openResult or closeResult must be provided" });
       }
@@ -978,7 +991,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const market = await storage.updateSatamatkaMarketResults(marketId, openResult, closeResult);
       
       if (!market) {
-        return res.status(404).json({ message: "Market not found" });
+        return res.status(404).json({ message: "Failed to update market results" });
       }
       
       res.json(market);

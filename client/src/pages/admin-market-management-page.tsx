@@ -504,14 +504,9 @@ export default function AdminMarketManagementPage() {
       <Dialog open={!!declareResultMarket} onOpenChange={(open) => !open && setDeclareResultMarket(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {declareResultMarket?.status === "open" 
-                ? "Declare Open Result" 
-                : "Declare Close Result"
-              }
-            </DialogTitle>
+            <DialogTitle>Declare Final Result</DialogTitle>
             <DialogDescription>
-              Enter the {declareResultMarket?.status === "open" ? "open" : "close"} result for {declareResultMarket?.name}. 
+              Enter the final result for {declareResultMarket?.name}. 
               Results should be a two-digit number from 00 to 99.
             </DialogDescription>
           </DialogHeader>
@@ -523,24 +518,15 @@ export default function AdminMarketManagementPage() {
                 name="result"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      {declareResultMarket?.status === "open" ? "Open Result" : "Close Result"}
-                    </FormLabel>
+                    <FormLabel>Final Result</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="e.g. 42" maxLength={2} />
                     </FormControl>
                     <FormDescription>
                       Enter a two-digit number (00-99).
-                      {declareResultMarket?.status === "open" && (
-                        <div className="mt-1 text-amber-500">
-                          Note: Declaring open result will keep the market open for betting.
-                        </div>
-                      )}
-                      {(declareResultMarket?.status === "closed" || declareResultMarket?.status === "waiting_result") && (
-                        <div className="mt-1 text-amber-500">
-                          Note: Declaring close result will finalize the market and set its status to "resulted".
-                        </div>
-                      )}
+                      <div className="mt-1 text-amber-500">
+                        Note: Declaring the final result will finalize the market and set its status to "resulted".
+                      </div>
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1057,19 +1043,8 @@ function MarketTable({
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="text-xs text-muted-foreground">Results Management</DropdownMenuLabel>
                     
-                    {/* Open Result Declaration */}
-                    {market.status === "open" && (
-                      <DropdownMenuItem 
-                        onClick={() => handleDeclareResult(market)}
-                        className="text-blue-600"
-                      >
-                        <Check className="mr-2 h-4 w-4" />
-                        Declare Open Result
-                      </DropdownMenuItem>
-                    )}
-                    
-                    {/* Close Result Declaration */}
-                    {(market.status === "closed" || market.status === "waiting_result") && (
+                    {/* Only show "Declare Final Result" option for closed markets */}
+                    {market.status === "closed" && (
                       <DropdownMenuItem 
                         onClick={() => handleDeclareResult(market)}
                         className="text-indigo-600 font-medium"

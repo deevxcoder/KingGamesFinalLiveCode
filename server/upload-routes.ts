@@ -10,6 +10,7 @@ const proofUploadsDir = path.join(uploadsDir, 'proofs');
 const sliderUploadsDir = path.join(uploadsDir, 'sliders');
 const gameCardUploadsDir = path.join(uploadsDir, 'gamecards');
 const matchBannerUploadsDir = path.join(uploadsDir, 'match-banners');
+const marketBannerUploadsDir = path.join(uploadsDir, 'market-banners');
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -29,6 +30,10 @@ if (!fs.existsSync(gameCardUploadsDir)) {
 
 if (!fs.existsSync(matchBannerUploadsDir)) {
   fs.mkdirSync(matchBannerUploadsDir, { recursive: true });
+}
+
+if (!fs.existsSync(marketBannerUploadsDir)) {
+  fs.mkdirSync(marketBannerUploadsDir, { recursive: true });
 }
 
 // File filter to accept only images
@@ -116,6 +121,26 @@ const gameCardUpload = multer({
 
 const matchBannerUpload = multer({ 
   storage: matchBannerStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB max file size
+  },
+  fileFilter: fileFilter
+});
+
+// Configure market banner uploads storage
+const marketBannerStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, marketBannerUploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `market-banner-${uniqueSuffix}${ext}`);
+  }
+});
+
+const marketBannerUpload = multer({ 
+  storage: marketBannerStorage,
   limits: {
     fileSize: 2 * 1024 * 1024 // 2MB max file size
   },
