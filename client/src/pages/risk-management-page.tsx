@@ -211,15 +211,42 @@ export default function RiskManagementPage() {
           return; // Skip this entry if it doesn't match the filter
         }
         
+        // Calculate the correct potential win amount based on game mode
+        let calculatedPotentialWin = 0;
+        
+        switch (gameMode) {
+          case "jodi":
+            calculatedPotentialWin = numStat.totalAmount * 90;
+            break;
+          case "harf":
+            calculatedPotentialWin = numStat.totalAmount * 9;
+            break;
+          case "crossing":
+            calculatedPotentialWin = numStat.totalAmount * 4.5;
+            break;
+          case "odd_even":
+            calculatedPotentialWin = numStat.totalAmount * 1.8;
+            break;
+          default:
+            // If potential win amount is available, use it; otherwise, use a default multiplier
+            calculatedPotentialWin = numStat.potentialWinAmount || (numStat.totalAmount * 1);
+        }
+        
+        // Create a modified stat with the calculated potential win
+        const updatedStat = {
+          ...numStat,
+          potentialWinAmount: calculatedPotentialWin
+        };
+        
         if (!combinedData[number]) {
-          combinedData[number] = { ...numStat };
+          combinedData[number] = updatedStat;
         } else {
           // For "all" filter, accumulate stats across bet types
           if (betTypeFilter === "all") {
             // Add values to existing stats
             combinedData[number].totalBets += numStat.totalBets;
             combinedData[number].totalAmount += numStat.totalAmount;
-            combinedData[number].potentialWinAmount += numStat.potentialWinAmount;
+            combinedData[number].potentialWinAmount += calculatedPotentialWin;
             combinedData[number].uniqueUsers += numStat.uniqueUsers;
             
             // Update gameMode if this entry has more bets for this number than the existing one
@@ -230,7 +257,7 @@ export default function RiskManagementPage() {
             // For specific bet type, only accumulate matching bet type stats
             combinedData[number].totalBets += numStat.totalBets;
             combinedData[number].totalAmount += numStat.totalAmount;
-            combinedData[number].potentialWinAmount += numStat.potentialWinAmount;
+            combinedData[number].potentialWinAmount += calculatedPotentialWin;
             combinedData[number].uniqueUsers += numStat.uniqueUsers;
           }
         }
