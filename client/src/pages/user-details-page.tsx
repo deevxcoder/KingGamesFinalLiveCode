@@ -361,11 +361,16 @@ export default function UserDetailsPage() {
                             {getPaginatedItems(userGames, betsPage).map((game: any) => (
                               <TableRow key={game.id} className="bg-slate-900/40 hover:bg-slate-900/60">
                                 <TableCell className="text-slate-400">
-                                  {/* Convert to relative time like "about 8 hours ago" */}
                                   about {Math.floor((Date.now() - new Date(game.createdAt).getTime()) / (1000 * 60 * 60))} hours ago
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="border-slate-700 bg-slate-800/80 text-white">
+                                  <Badge className={`border-0 text-white ${
+                                    game.gameType === 'cricket_toss' ? 'bg-blue-950' : 
+                                    game.gameType === 'team_match' ? 'bg-blue-950' :
+                                    game.gameType === 'coin_flip' ? 'bg-blue-950' :
+                                    game.gameType.includes('satamatka') ? 'bg-blue-950' :
+                                    'bg-blue-950'
+                                  }`}>
                                     {game.gameType === 'cricket_toss' ? 'Cricket Toss' :
                                      game.gameType === 'team_match' ? 'Team Match' :
                                      game.gameType === 'coin_flip' ? 'Coin Flip' :
@@ -393,7 +398,7 @@ export default function UserDetailsPage() {
                                 </TableCell>
                                 <TableCell>
                                   {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
-                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
+                                    <Badge className="bg-indigo-900 border-0 text-white">
                                       {game.prediction === 'team_a' && (game.gameData || game.match) ? 
                                         (game.gameData?.teamA || game.match?.teamA) : 
                                       game.prediction === 'team_b' && (game.gameData || game.match) ? 
@@ -411,15 +416,15 @@ export default function UserDetailsPage() {
                                         game.prediction}
                                     </Badge>
                                   ) : game.gameType.includes('satamatka') ? (
-                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
+                                    <Badge className="bg-indigo-900 border-0 text-white">
                                       {game.prediction}
                                     </Badge>
                                   ) : game.gameType.includes('coin_flip') ? (
-                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
+                                    <Badge className="bg-indigo-900 border-0 text-white">
                                       {game.prediction}
                                     </Badge>
                                   ) : (
-                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
+                                    <Badge className="bg-indigo-900 border-0 text-white">
                                       {game.prediction}
                                     </Badge>
                                   )}
@@ -530,7 +535,7 @@ export default function UserDetailsPage() {
                                   about {Math.floor((Date.now() - new Date(game.createdAt).getTime()) / (1000 * 60 * 60))} hours ago
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="border-slate-700 bg-slate-800/80 text-white">
+                                  <Badge className="bg-blue-950 border-0 text-white">
                                     {game.gameType === 'cricket_toss' ? 'Cricket Toss' :
                                      game.gameType === 'team_match' ? 'Team Match' :
                                      game.gameType === 'coin_flip' ? 'Coin Flip' :
@@ -558,7 +563,7 @@ export default function UserDetailsPage() {
                                 </TableCell>
                                 <TableCell>
                                   {game.gameType === 'cricket_toss' || game.gameType === 'team_match' ? (
-                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
+                                    <Badge className="bg-indigo-900 border-0 text-white">
                                       {game.prediction === 'team_a' && (game.gameData || game.match) ? 
                                         (game.gameData?.teamA || game.match?.teamA) : 
                                       game.prediction === 'team_b' && (game.gameData || game.match) ? 
@@ -576,11 +581,11 @@ export default function UserDetailsPage() {
                                         game.prediction}
                                     </Badge>
                                   ) : game.gameType.includes('satamatka') ? (
-                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
+                                    <Badge className="bg-indigo-900 border-0 text-white">
                                       {game.prediction}
                                     </Badge>
                                   ) : (
-                                    <Badge className="bg-slate-800 border border-slate-600 text-white">
+                                    <Badge className="bg-indigo-900 border-0 text-white">
                                       {game.prediction}
                                     </Badge>
                                   )}
