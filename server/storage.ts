@@ -1029,6 +1029,20 @@ export class DatabaseStorage implements IStorage {
     return market;
   }
   
+  async updateSatamatkaMarket(id: number, marketData: Partial<InsertSatamatkaMarket>): Promise<SatamatkaMarket | undefined> {
+    // Prevent changing the market status via this method to ensure proper workflow
+    const { status, ...dataToUpdate } = marketData;
+    
+    // Update the market with the provided data
+    const [market] = await db
+      .update(satamatkaMarkets)
+      .set(dataToUpdate)
+      .where(eq(satamatkaMarkets.id, id))
+      .returning();
+    
+    return market;
+  }
+  
   async deleteSatamatkaMarket(id: number): Promise<SatamatkaMarket | undefined> {
     // First check if the market exists
     const market = await this.getSatamatkaMarket(id);

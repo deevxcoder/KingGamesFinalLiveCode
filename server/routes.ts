@@ -1021,6 +1021,45 @@ app.get("/api/games/my-history", async (req, res, next) => {
       next(err);
     }
   });
+  
+  // Update market details (without changing status)
+  app.patch("/api/satamatka/markets/:id", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const marketId = Number(req.params.id);
+      const formData = req.body;
+      
+      // Get the existing market to make sure it exists
+      const existingMarket = await storage.getSatamatkaMarket(marketId);
+      if (!existingMarket) {
+        return res.status(404).json({ message: "Market not found" });
+      }
+      
+      // Convert string dates to Date objects if they're strings
+      if (formData.openTime && typeof formData.openTime === 'string') {
+        formData.openTime = new Date(formData.openTime);
+      }
+      
+      if (formData.closeTime && typeof formData.closeTime === 'string') {
+        formData.closeTime = new Date(formData.closeTime);
+      }
+      
+      if (formData.resultTime && typeof formData.resultTime === 'string') {
+        formData.resultTime = new Date(formData.resultTime);
+      }
+      
+      // Update the market details (this method explicitly excludes status to maintain workflow)
+      const market = await storage.updateSatamatkaMarket(marketId, formData);
+      
+      if (!market) {
+        return res.status(500).json({ message: "Failed to update market" });
+      }
+      
+      // Return updated market
+      res.json(market);
+    } catch (err) {
+      next(err);
+    }
+  });
 
   // Update market results
   app.patch("/api/satamatka/markets/:id/results", requireRole([UserRole.ADMIN]), async (req, res, next) => {
