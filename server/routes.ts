@@ -1005,10 +1005,96 @@ app.get("/api/games/my-history", async (req, res, next) => {
         return res.status(400).json({ message: "Results must be two-digit numbers (00-99)" });
       }
       
+      // Update market results
       const market = await storage.updateSatamatkaMarketResults(marketId, openResult, closeResult);
       
       if (!market) {
         return res.status(404).json({ message: "Failed to update market results" });
+      }
+      
+      // Process all bets for this market if closeResult is provided (final result)
+      if (closeResult) {
+        try {
+          // Get all games for this market
+          const marketGames = await storage.getSatamatkaGamesByMarketId(marketId);
+          
+          // Process each game
+          for (const game of marketGames) {
+            // Skip already processed games
+            if (game.result !== "pending") continue;
+            
+            // Get user info
+            const user = await storage.getUser(game.userId);
+            if (!user) continue;
+            
+            // Determine if the bet won based on game mode and prediction
+            let isWinner = false;
+            let payout = 0;
+            
+            // Game mode specific win conditions
+            if (game.gameMode === SatamatkaGameMode.JODI && game.prediction === closeResult) {
+              // For Jodi mode, prediction must match closeResult exactly
+              isWinner = true;
+              payout = game.betAmount * 90; // 90x payout for matching jodi
+            } 
+            else if (game.gameMode === SatamatkaGameMode.HARF) {
+              // For Harf, check if digit matches position
+              const firstDigit = closeResult[0]; 
+              const secondDigit = closeResult[1];
+              
+              if (
+                (game.prediction === firstDigit) || 
+                (game.prediction === secondDigit) ||
+                (game.prediction === `L${firstDigit}`) ||
+                (game.prediction === `R${secondDigit}`)
+              ) {
+                isWinner = true;
+                payout = game.betAmount * 9; // 9x payout for matching single digit
+              }
+            }
+            else if (game.gameMode === SatamatkaGameMode.CROSSING) {
+              // For Crossing, check if any digit in prediction matches either digit in result
+              const digits = game.prediction.replace(/[^0-9,]/g, '').split(',');
+              if (digits.includes(closeResult[0]) || digits.includes(closeResult[1])) {
+                isWinner = true;
+                payout = game.betAmount * 9; // 9x payout for crossing
+              }
+            }
+            else if (game.gameMode === SatamatkaGameMode.ODD_EVEN) {
+              // For Odd-Even, check if prediction matches the result's parity
+              const resultNumber = parseInt(closeResult, 10);
+              const isResultOdd = resultNumber % 2 !== 0;
+              
+              if ((game.prediction === "odd" && isResultOdd) || 
+                  (game.prediction === "even" && !isResultOdd)) {
+                isWinner = true;
+                payout = game.betAmount * 1.8; // 1.8x payout for odd/even
+              }
+            }
+            
+            // Set game result
+            const result = isWinner ? "win" : "loss";
+            
+            // Calculate updated balance
+            const updatedBalance = user.balance + (isWinner ? payout : 0);
+            
+            // Update game and user in database
+            await storage.updateGameResult(game.id, result, payout);
+            
+            // Only update user balance if they won
+            if (isWinner) {
+              await storage.updateUserBalance(user.id, updatedBalance);
+            }
+            
+            // Explicitly update the balanceAfter field to ensure it's recorded
+            await db.update(games)
+              .set({ balanceAfter: updatedBalance })
+              .where(eq(games.id, game.id));
+          }
+        } catch (err) {
+          console.error("Error processing market bets:", err);
+          // Don't return error as the market result update was successful
+        }
       }
       
       res.json(market);

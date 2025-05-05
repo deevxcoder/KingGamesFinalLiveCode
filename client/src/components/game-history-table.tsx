@@ -282,7 +282,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                         {formatProfitLoss(game.betAmount, game.payout, game.gameType, game.result)}
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-sm text-green-400">
-                        {game.balanceAfter !== undefined && game.balanceAfter !== null ? formatCurrency(game.balanceAfter) : "-"}
+                        {game.balanceAfter !== undefined && game.balanceAfter !== null ? formatCurrency(game.balanceAfter, game.gameType) : "-"}
                       </TableCell>
                     </TableRow>
                   );
