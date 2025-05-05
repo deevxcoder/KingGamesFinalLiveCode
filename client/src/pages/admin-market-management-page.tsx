@@ -60,7 +60,9 @@ import {
   X,
   Check,
   Search,
-  Filter
+  Filter,
+  PauseCircle,
+  Play
 } from "lucide-react";
 
 // Interface for market data
@@ -467,6 +469,18 @@ export default function AdminMarketManagementPage() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-6">
+          <MarketTable 
+            markets={filteredMarkets} 
+            isLoading={isLoadingAll}
+            handleEditMarket={handleEditMarket}
+            handleDeclareResult={handleDeclareResult}
+            updateMarketStatus={updateMarketStatus}
+            formatDate={formatDate}
+            StatusBadge={StatusBadge}
+          />
+        </TabsContent>
+        
+        <TabsContent value="waiting" className="space-y-6">
           <MarketTable 
             markets={filteredMarkets} 
             isLoading={isLoadingAll}
@@ -1105,18 +1119,18 @@ function MarketTable({
                     <DropdownMenuSeparator />
                     <DropdownMenuLabel className="text-xs text-muted-foreground">Status Controls</DropdownMenuLabel>
                     
-                    {/* Waiting/Created Market Activation */}
-                    {(market.status === "waiting_result" || market.status === "resulted") && (
+                    {/* Waiting Market Activation */}
+                    {market.status === "waiting" && (
                       <DropdownMenuItem 
                         onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
                         className="text-green-600 font-medium"
                       >
-                        <Clock className="mr-2 h-4 w-4" />
-                        Open Market for Betting
+                        <Play className="mr-2 h-4 w-4" />
+                        Activate Betting (Open)
                       </DropdownMenuItem>
                     )}
                     
-                    {/* Market Close Action */}
+                    {/* Open Market Close Action */}
                     {market.status === "open" && (
                       <DropdownMenuItem 
                         onClick={() => updateMarketStatus.mutate({ id: market.id, status: "closed" })}
@@ -1124,6 +1138,17 @@ function MarketTable({
                       >
                         <X className="mr-2 h-4 w-4" />
                         Close Market for Betting
+                      </DropdownMenuItem>
+                    )}
+                    
+                    {/* Reopen Closed/Resulted Markets */}
+                    {(market.status === "closed" || market.status === "resulted") && (
+                      <DropdownMenuItem 
+                        onClick={() => updateMarketStatus.mutate({ id: market.id, status: "open" })}
+                        className="text-green-600 font-medium"
+                      >
+                        <Play className="mr-2 h-4 w-4" />
+                        Reopen Market for Betting
                       </DropdownMenuItem>
                     )}
                     
