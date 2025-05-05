@@ -485,8 +485,9 @@ export class DatabaseStorage implements IStorage {
     const updateData: any = {};
     if (data.username) updateData.username = data.username;
     if (data.password) {
-      const { hashPassword } = await import('./auth');
-      updateData.password = await hashPassword(data.password);
+      // Use bcrypt directly instead of importing from auth to avoid circular dependency
+      const bcrypt = require('bcrypt');
+      updateData.password = await bcrypt.hash(data.password, 10);
     }
     
     if (Object.keys(updateData).length === 0) return this.getUser(userId);
@@ -494,6 +495,16 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+    return user;
+  }
+  
+  async updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined> {
+    // Update just the password field
+    const [user] = await db
+      .update(users)
+      .set({ password: hashedPassword })
       .where(eq(users.id, userId))
       .returning();
     return user;
