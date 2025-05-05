@@ -445,13 +445,33 @@ export default function RiskManagementPage() {
     let totalUniqueUsers = 0;
     
     if (activeTab === "satamatka") {
-      const data = processJantriData();
-      data.forEach(item => {
-        totalBets += item.totalBets;
-        totalAmount += item.totalAmount;
-        totalPotentialWin += item.potentialWinAmount;
-        totalUniqueUsers += item.uniqueUsers;
-      });
+      // For Satamatka, loop through all markets to get the raw data
+      // This ensures we include all potential payouts even with filters
+      if (jantriStats && jantriStats.length > 0) {
+        jantriStats.forEach(market => {
+          market.numbers.forEach(numStat => {
+            totalBets += numStat.totalBets;
+            totalAmount += numStat.totalAmount;
+            totalPotentialWin += numStat.potentialWinAmount;
+            
+            // We don't add uniqueUsers directly as they could be duplicated
+            // across numbers, so we handle this separately
+          });
+          
+          // Add unique users from the market-level data
+          // This is more accurate than summing per-number unique users
+          totalUniqueUsers = Math.max(totalUniqueUsers, market.totalUniqueUsers || 0);
+        });
+      } else {
+        // Fallback to the processed data if needed
+        const data = processJantriData();
+        data.forEach(item => {
+          totalBets += item.totalBets;
+          totalAmount += item.totalAmount;
+          totalPotentialWin += item.potentialWinAmount;
+          totalUniqueUsers += item.uniqueUsers;
+        });
+      }
     } else if (activeTab === "cricket") {
       const data = processCricketTossData();
       data.forEach(item => {
@@ -469,6 +489,12 @@ export default function RiskManagementPage() {
         totalUniqueUsers += item.uniqueUsers;
       });
     }
+    
+    // Ensure we don't have negative values
+    totalBets = Math.max(0, totalBets);
+    totalAmount = Math.max(0, totalAmount);
+    totalPotentialWin = Math.max(0, totalPotentialWin);
+    totalUniqueUsers = Math.max(0, totalUniqueUsers);
     
     return { totalBets, totalAmount, totalPotentialWin, totalUniqueUsers };
   };
