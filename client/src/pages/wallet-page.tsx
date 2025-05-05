@@ -29,6 +29,7 @@ import {
 import { formatDistance } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
+import { useLocation } from "wouter";
 import DashboardLayout from "@/components/dashboard-layout";
 import { PaymentMode, RequestType, RequestStatus, WalletRequest, PaymentDetails } from "@/lib/types";
 
@@ -79,11 +80,31 @@ type WithdrawalFormValues = z.infer<typeof withdrawalFormSchema>;
 export default function WalletPage() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("balance");
+  const [location, setLocation] = useLocation();
+  
+  // Extract tab parameter from URL or default to "balance"
+  const getTabFromUrl = () => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const tab = searchParams.get('tab');
+    // Only allow valid tabs
+    return tab === 'deposit' || tab === 'withdraw' || tab === 'history' ? tab : 'balance';
+  };
+  
+  const [activeTab, setActiveTab] = useState(getTabFromUrl());
   const [proofImage, setProofImage] = useState<File | null>(null);
   const [paymentModeDetails, setPaymentModeDetails] = useState<PaymentDetails | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  
+  // Update URL when tab changes
+  const updateTab = (tab: string) => {
+    setActiveTab(tab);
+    // Update URL with tab parameter
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set('tab', tab);
+    const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+    window.history.replaceState(null, '', newUrl);
+  };
 
   // Fetch payment details from the system
   const { data: systemPaymentDetails, isLoading: loadingPaymentDetails } = useQuery<SystemPaymentDetails>({
@@ -224,7 +245,7 @@ export default function WalletPage() {
       refetchTransactions();
       
       // Switch to history tab
-      setActiveTab("history");
+      updateTab("history");
     },
     onError: (error: Error) => {
       toast({

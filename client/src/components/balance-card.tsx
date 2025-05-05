@@ -1,18 +1,15 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { IndianRupee } from "lucide-react";
-import { Link, useLocation } from "wouter";
+import { Link } from "wouter";
 
 interface BalanceCardProps {
   balance: number;
 }
 
 export default function BalanceCard({ balance }: BalanceCardProps) {
-  const [location] = useLocation();
-  
-  // Determine if we're in the admin or subadmin dashboard to create the right deposit link
-  const baseUrl = location.includes('/admin') ? '/admin' : '/subadmin';
-  const depositUrl = `${baseUrl}/wallet/deposit`;
+  // Link directly to the wallet page - the deposit tab can be selected once there
+  const walletUrl = "/wallet";
   
   return (
     <Card className="bg-slate-900/70 shadow-lg border border-slate-800 w-full lg:w-auto">
@@ -25,7 +22,7 @@ export default function BalanceCard({ balance }: BalanceCardProps) {
             <p className="text-sm text-slate-400">Your Balance</p>
             <p className="text-xl font-bold text-fuchsia-300">₹{(balance / 100).toFixed(2)}</p>
           </div>
-          <Link href={depositUrl}>
+          <Link href={walletUrl}>
             <Button 
               variant="outline" 
               size="sm" 
