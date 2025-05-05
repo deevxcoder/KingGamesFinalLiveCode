@@ -261,7 +261,6 @@ export default function WalletPage() {
         try {
           imageUrl = await uploadProofImage(proofImage);
         } catch (uploadError) {
-          console.error("Image upload error:", uploadError);
           toast({
             title: "Upload Failed",
             description: "Failed to upload payment proof. Please try again.",
@@ -281,7 +280,6 @@ export default function WalletPage() {
         notes: values.notes,
       });
     } catch (error: any) {
-      console.error("Deposit error:", error);
       toast({
         title: "Deposit Request Failed",
         description: error.message || "An error occurred while processing your deposit request.",
@@ -321,7 +319,6 @@ export default function WalletPage() {
       // Success notification handled by the createRequestMutation onSuccess
       
     } catch (error: any) {
-      console.error("Withdrawal error:", error);
       toast({
         title: "Withdrawal Request Failed",
         description: error.message || "An error occurred while processing your withdrawal request.",
