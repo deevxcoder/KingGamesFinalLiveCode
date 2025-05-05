@@ -449,18 +449,48 @@ export default function RiskManagementPage() {
       // This ensures we include all potential payouts even with filters
       if (jantriStats && jantriStats.length > 0) {
         jantriStats.forEach(market => {
+          // Calculate potential payout based on the total bet amount and game mode
+          let marketTotalAmount = 0;
+          const betsByGameMode: Record<string, number> = {
+            'jodi': 0,
+            'harf': 0,
+            'odd_even': 0,
+            'crossing': 0
+          };
+          
           market.numbers.forEach(numStat => {
             totalBets += numStat.totalBets;
             totalAmount += numStat.totalAmount;
-            totalPotentialWin += numStat.potentialWinAmount;
+            marketTotalAmount += numStat.totalAmount;
             
-            // We don't add uniqueUsers directly as they could be duplicated
-            // across numbers, so we handle this separately
+            // Track bet amounts by game mode
+            if (numStat.gameMode && betsByGameMode[numStat.gameMode] !== undefined) {
+              betsByGameMode[numStat.gameMode] += numStat.totalAmount;
+            }
+            
+            // We will calculate the potential payouts separately below
+            // We don't add uniqueUsers directly as they could be duplicated across numbers
           });
           
-          // Add unique users from the market-level data
-          // This is more accurate than summing per-number unique users
-          totalUniqueUsers = Math.max(totalUniqueUsers, market.totalUniqueUsers || 0);
+          // Calculate potential payout based on game mode and betting amount
+          // These odds are based on typical payout multiples for Satamatka games
+          totalPotentialWin += betsByGameMode['jodi'] * 90;
+          totalPotentialWin += betsByGameMode['harf'] * 9;
+          totalPotentialWin += betsByGameMode['odd_even'] * 1.8;
+          totalPotentialWin += betsByGameMode['crossing'] * 4.5;
+          
+          // Count unique users by collecting user IDs from all numbers
+          const uniqueUserIds = new Set<number>();
+          market.numbers.forEach(numStat => {
+            // Each numStat.uniqueUsers is a count, not the actual user IDs
+            // So we just add to our counter based on the best approximation we have
+            if (numStat.uniqueUsers > 0) {
+              totalUniqueUsers += 1;
+            }
+          });
+          
+          // Note: This is an approximation as we don't have the actual unique user IDs
+          // across the entire market
         });
       } else {
         // Fallback to the processed data if needed
@@ -468,7 +498,21 @@ export default function RiskManagementPage() {
         data.forEach(item => {
           totalBets += item.totalBets;
           totalAmount += item.totalAmount;
-          totalPotentialWin += item.potentialWinAmount;
+          
+          // Calculate potential payout based on game mode
+          if (item.gameMode === 'jodi') {
+            totalPotentialWin += item.totalAmount * 90;
+          } else if (item.gameMode === 'harf') {
+            totalPotentialWin += item.totalAmount * 9;
+          } else if (item.gameMode === 'odd_even') {
+            totalPotentialWin += item.totalAmount * 1.8;
+          } else if (item.gameMode === 'crossing') {
+            totalPotentialWin += item.totalAmount * 4.5;
+          } else {
+            // Default case - use the provided potentialWinAmount
+            totalPotentialWin += item.potentialWinAmount;
+          }
+          
           totalUniqueUsers += item.uniqueUsers;
         });
       }
