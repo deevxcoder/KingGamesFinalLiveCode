@@ -540,25 +540,47 @@ app.get("/api/games/my-history", async (req, res, next) => {
         return res.status(403).json({ message: "You don't have permission to modify this user" });
       }
 
-      // For subadmins adding funds to players, check if subadmin has enough balance
-      if (req.user!.role === UserRole.SUBADMIN && amount > 0) {
+      // For subadmins interacting with player funds
+      if (req.user!.role === UserRole.SUBADMIN) {
         const subadmin = await storage.getUser(req.user!.id);
-        if (!subadmin || subadmin.balance < amount) {
-          return res.status(400).json({ 
-            message: "Insufficient balance in your account. Please make a deposit request to add funds to your wallet first."
+        
+        // When adding funds, check if subadmin has enough balance
+        if (amount > 0) {
+          if (!subadmin || subadmin.balance < amount) {
+            return res.status(400).json({ 
+              message: "Insufficient balance in your account. Please make a deposit request to add funds to your wallet first."
+            });
+          }
+          
+          // Deduct the amount from subadmin's balance
+          await storage.updateUserBalance(subadmin.id, subadmin.balance - amount);
+          
+          // Record transaction for subadmin (negative amount = deduction)
+          await storage.createTransaction({
+            userId: subadmin.id,
+            amount: -amount,
+            performedBy: subadmin.id,
+            description: `Funds transferred to ${user.username}`,
+          });
+        } 
+        // When deducting funds, add to subadmin's balance
+        else if (amount < 0) {
+          if (!subadmin) {
+            return res.status(404).json({ message: "Subadmin not found" });
+          }
+          
+          // Add the absolute value of the amount to subadmin's balance
+          const amountToAdd = Math.abs(amount);
+          await storage.updateUserBalance(subadmin.id, subadmin.balance + amountToAdd);
+          
+          // Record transaction for subadmin (positive amount = addition)
+          await storage.createTransaction({
+            userId: subadmin.id,
+            amount: amountToAdd,
+            performedBy: subadmin.id,
+            description: `Funds recovered from ${user.username}`,
           });
         }
-        
-        // Deduct the amount from subadmin's balance
-        await storage.updateUserBalance(subadmin.id, subadmin.balance - amount);
-        
-        // Record transaction for subadmin (negative amount = deduction)
-        await storage.createTransaction({
-          userId: subadmin.id,
-          amount: -amount,
-          performedBy: subadmin.id,
-          description: `Funds transferred to ${user.username}`,
-        });
       }
 
       // Prevent negative balance for the player

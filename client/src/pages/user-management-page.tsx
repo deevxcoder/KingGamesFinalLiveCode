@@ -215,7 +215,9 @@ export default function UserManagementPage() {
       return await res.json();
     },
     onSuccess: () => {
+      // Invalidate both the users list and current user's info to update UI immediately
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/user"] });
       setAmount(0);
       setRemark("");
       setIsAddFundsDialogOpen(false);
