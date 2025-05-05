@@ -296,6 +296,7 @@ export function setupCricketTossRoutes(app: express.Express) {
       const potentialPayout = Math.floor((betAmount * odds) / 100);
       
       // Create a new game entry for this user's bet
+      const newBalance = user.balance - betAmount;
       const userBet = {
         userId: user.id,
         gameType: GameType.CRICKET_TOSS,
@@ -312,7 +313,8 @@ export function setupCricketTossRoutes(app: express.Express) {
           status: 'pending'
         },
         result: "pending", // Use pending instead of null
-        payout: potentialPayout
+        payout: potentialPayout,
+        balanceAfter: newBalance // Track the balance after this bet
       };
       
       const createdBet = await storage.createGame(userBet);
@@ -322,7 +324,7 @@ export function setupCricketTossRoutes(app: express.Express) {
         bet: createdBet,
         user: {
           ...user,
-          balance: user.balance - betAmount,
+          balance: newBalance,
           password: undefined,
         }
       });
