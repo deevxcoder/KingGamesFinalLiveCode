@@ -365,7 +365,7 @@ export default function UserDetailsPage() {
                                   about {Math.floor((Date.now() - new Date(game.createdAt).getTime()) / (1000 * 60 * 60))} hours ago
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-white">
+                                  <Badge variant="outline" className="border-slate-700 bg-slate-800/80 text-white">
                                     {game.gameType === 'cricket_toss' ? 'Cricket Toss' :
                                      game.gameType === 'team_match' ? 'Team Match' :
                                      game.gameType === 'coin_flip' ? 'Coin Flip' :
@@ -515,7 +515,7 @@ export default function UserDetailsPage() {
                                   about {Math.floor((Date.now() - new Date(game.createdAt).getTime()) / (1000 * 60 * 60))} hours ago
                                 </TableCell>
                                 <TableCell>
-                                  <Badge variant="outline" className="bg-slate-800 border-slate-700 text-white">
+                                  <Badge variant="outline" className="border-slate-700 bg-slate-800/80 text-white">
                                     {game.gameType === 'cricket_toss' ? 'Cricket Toss' :
                                      game.gameType === 'team_match' ? 'Team Match' :
                                      game.gameType === 'coin_flip' ? 'Coin Flip' :
@@ -548,6 +548,10 @@ export default function UserDetailsPage() {
                                         (game.gameData?.teamA || game.match?.teamA) : 
                                       game.prediction === 'team_b' && (game.gameData || game.match) ? 
                                         (game.gameData?.teamB || game.match?.teamB) : 
+                                      game.prediction === 'Team_a' && (game.gameData || game.match) ? 
+                                        (game.gameData?.teamA || game.match?.teamA) :
+                                      game.prediction === 'Team_b' && (game.gameData || game.match) ? 
+                                        (game.gameData?.teamB || game.match?.teamB) :
                                       game.prediction && game.gameData?.teamA && game.prediction.includes(game.gameData.teamA) ?
                                         game.gameData.teamA :
                                       game.prediction && game.gameData?.teamB && game.prediction.includes(game.gameData.teamB) ?
