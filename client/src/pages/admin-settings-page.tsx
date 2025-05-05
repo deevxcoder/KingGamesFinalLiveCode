@@ -1119,13 +1119,13 @@ export default function AdminSettingsPage() {
                   // Save commission rates for each game type
                   saveCommissionMutation.mutate({
                     defaultRates: {
-                      coin_flip: parseFloat(commissionRates.coin_flip),
-                      cricket_toss: parseFloat(commissionRates.cricket_toss),
-                      team_match: parseFloat(commissionRates.team_match),
-                      satamatka_jodi: parseFloat(commissionRates.satamatka_jodi),
-                      satamatka_harf: parseFloat(commissionRates.satamatka_harf),
-                      satamatka_crossing: parseFloat(commissionRates.satamatka_crossing),
-                      satamatka_odd_even: parseFloat(commissionRates.satamatka_odd_even)
+                      coin_flip: Math.round(parseFloat(commissionRates.coin_flip) * 100),
+                      cricket_toss: Math.round(parseFloat(commissionRates.cricket_toss) * 100),
+                      team_match: Math.round(parseFloat(commissionRates.team_match) * 100),
+                      satamatka_jodi: Math.round(parseFloat(commissionRates.satamatka_jodi) * 100),
+                      satamatka_harf: Math.round(parseFloat(commissionRates.satamatka_harf) * 100),
+                      satamatka_crossing: Math.round(parseFloat(commissionRates.satamatka_crossing) * 100),
+                      satamatka_odd_even: Math.round(parseFloat(commissionRates.satamatka_odd_even) * 100)
                     }
                   });
                 }}
