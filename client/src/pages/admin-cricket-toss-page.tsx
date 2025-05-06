@@ -86,6 +86,9 @@ type CricketTossGame = {
     oddTeamA: number;
     oddTeamB: number;
     imageUrl?: string;
+    status?: string;
+    openTime?: string;
+    closeTime?: string;
   };
 };
 
@@ -101,6 +104,10 @@ const tossGameFormSchema = z.object({
   description: z.string().optional(),
   tossDate: z.string().min(1, "Toss date is required"),
   tossTime: z.string().min(1, "Toss time is required"),
+  openDate: z.string().optional(),
+  openTime: z.string().optional(),
+  closeDate: z.string().optional(),
+  closeTime: z.string().optional(),
   oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   imageUrl: z.string().optional(),
@@ -438,14 +445,33 @@ export default function AdminCricketTossPage() {
 
   // Handle submit for adding/editing game
   const onSubmitGame = (formData: z.infer<typeof tossGameFormSchema>) => {
-    // Combine date and time into a single ISO string for tossTime
-    const { tossDate, tossTime, ...restData } = formData;
-    const combinedDateTime = `${tossDate}T${tossTime}:00`;
+    // Combine date and time into a single ISO string for tossTime, openTime, and closeTime
+    const { 
+      tossDate, tossTime, 
+      openDate, openTime, 
+      closeDate, closeTime, 
+      ...restData 
+    } = formData;
     
-    // Create the data object with combined date/time
+    // Convert toss time to ISO string
+    const combinedTossDateTime = `${tossDate}T${tossTime}:00`;
+    
+    // Process open time - use toss time as default if not provided
+    const combinedOpenDateTime = openDate && openTime 
+      ? `${openDate}T${openTime}:00`
+      : combinedTossDateTime;
+    
+    // Process close time - use toss time as default if not provided  
+    const combinedCloseDateTime = closeDate && closeTime 
+      ? `${closeDate}T${closeTime}:00`
+      : combinedTossDateTime;
+    
+    // Create the data object with combined date/times
     const data = {
       ...restData,
-      tossTime: combinedDateTime,
+      tossTime: combinedTossDateTime,
+      openTime: combinedOpenDateTime,
+      closeTime: combinedCloseDateTime,
     };
     
     if (editingGame) {

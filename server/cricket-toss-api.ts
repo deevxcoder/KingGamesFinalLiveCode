@@ -114,7 +114,7 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         });
       }
       
-      const { teamA, teamB, description, tossTime, oddTeamA, oddTeamB } = validationResult.data;
+      const { teamA, teamB, description, tossTime, oddTeamA, oddTeamB, openTime, closeTime } = validationResult.data;
       
       // Create the cricket toss game using the team match data
       const newGame = {
@@ -129,7 +129,10 @@ export function setupCricketTossApiRoutes(app: express.Express) {
           tossTime,
           oddTeamA,
           oddTeamB,
-          imageUrl: validationResult.data.imageUrl || ""
+          imageUrl: validationResult.data.imageUrl || "",
+          openTime: openTime || tossTime, // If no specific open time, use toss time
+          closeTime: closeTime || tossTime, // If no specific close time, use toss time
+          status: "open"
         },
         status: "open",
         result: "pending", // Required by schema, using "pending" as placeholder
@@ -361,6 +364,8 @@ export function setupCricketTossApiRoutes(app: express.Express) {
           oddTeamB: gameData.oddTeamB,
           description: gameData.description,
           tossTime: gameData.tossTime,
+          openTime: gameData.openTime,
+          closeTime: gameData.closeTime,
           status: 'pending'
         },
         result: "pending", // Use pending instead of null
