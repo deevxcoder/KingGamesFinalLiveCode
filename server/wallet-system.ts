@@ -854,8 +854,8 @@ export function setupWalletRoutes(app: express.Express) {
           
           // Record this deduction in admin's transactions
           const description = isTargetSubadmin 
-            ? `Funds deducted from ${req.user.username} (${req.user.role}) by ${req.user.username} (${req.user.role}) for transfer to ${userResult.rows[0].username} (${userResult.rows[0].role}) (${adminDeductionAmount/100} of ${amountInPaisa/100} - commission rate applied): ${notes}` 
-            : `Funds deducted from ${req.user.username} (${req.user.role}) by ${req.user.username} (${req.user.role}) for transfer to ${userResult.rows[0].username} (${userResult.rows[0].role}): ${notes}`;
+            ? `Fund transferred to ${userResult.rows[0].username} (${userResult.rows[0].role}) deducted from ${req.user.username} (${req.user.role}) (Commission applied)` 
+            : `Fund transferred to ${userResult.rows[0].username} (${userResult.rows[0].role}) deducted from ${req.user.username} (${req.user.role})`;
             
           await client.query(
             'INSERT INTO transactions (user_id, amount, performed_by, description, balance_after) VALUES ($1, $2, $3, $4, $5)',
@@ -910,8 +910,8 @@ export function setupWalletRoutes(app: express.Express) {
           
           // Record this addition in admin's transactions
           const description = isTargetSubadmin 
-            ? `Funds added to ${req.user.username} (${req.user.role}) by ${req.user.username} (${req.user.role}) from ${userResult.rows[0].username} (${userResult.rows[0].role}) (${adminAdditionAmount/100} of ${amountInPaisa/100} - commission rate applied): ${notes}` 
-            : `Funds added to ${req.user.username} (${req.user.role}) by ${req.user.username} (${req.user.role}) from ${userResult.rows[0].username} (${userResult.rows[0].role}): ${notes}`;
+            ? `Fund added to ${req.user.username} (${req.user.role}) from ${userResult.rows[0].username} (${userResult.rows[0].role}) for withdrawal (Commission applied)` 
+            : `Fund added to ${req.user.username} (${req.user.role}) from ${userResult.rows[0].username} (${userResult.rows[0].role}) for withdrawal`;
           
           await client.query(
             'INSERT INTO transactions (user_id, amount, performed_by, description, balance_after) VALUES ($1, $2, $3, $4, $5)',
@@ -943,21 +943,21 @@ export function setupWalletRoutes(app: express.Express) {
         let transactionDescription;
         
         if (isAdminSelfFunding) {
-          transactionDescription = `Platform Investment: ${notes}`;
+          transactionDescription = `Platform Investment`;
         } else {
           // Include both recipient and sender information in the description
           if (transactionType === 'deposit') {
             // For deposit, include special info about commission for subadmin
             const isSubadminReceivingFunds = userResult.rows[0].role === UserRole.SUBADMIN;
             transactionDescription = isSubadminReceivingFunds && req.user.role === UserRole.ADMIN
-              ? `Funds added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}) (Received full amount ${amountInPaisa/100}): ${notes}`
-              : `Funds added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}): ${notes}`;
+              ? `Fund added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role})`
+              : `Fund added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role})`;
           } else {
             // For withdraw, special handling for subadmin transactions with commission
             const isSubadminLosingFunds = userResult.rows[0].role === UserRole.SUBADMIN && req.user.role === UserRole.ADMIN;
             transactionDescription = isSubadminLosingFunds
-              ? `Funds deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}) (Full amount ${amountInPaisa/100}): ${notes}`
-              : `Funds deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}): ${notes}`;
+              ? `Fund deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}) (Commission applied)`
+              : `Fund deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role})`;
           }
         }
         
