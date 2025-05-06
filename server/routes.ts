@@ -1422,19 +1422,22 @@ app.get("/api/games/my-history", async (req, res, next) => {
             // Set game result
             const result = isWinner ? "win" : "loss";
             
-            // Calculate updated balance - only add the payout if user won
-            const updatedBalance = user.balance + (isWinner ? payout : 0);
+            // We do NOT need to update the balanceAfter field for each game individually
+            // as it was already correctly set when the bet was placed.
+            // We only need to add the payout to the running balance for win cases.
             
             // Update game result and payout in database
             await storage.updateGameResult(game.id, result, payout);
             
             // Only update user balance if they won
             if (isWinner) {
+              // Update user's actual balance in the database
+              const updatedBalance = user.balance + payout;
               await storage.updateUserBalance(user.id, updatedBalance);
               
-              // Explicitly update the balanceAfter field to ensure it's recorded with the new balance
+              // For winning games, update the balanceAfter to reflect the addition of the payout
               await db.update(games)
-                .set({ balanceAfter: updatedBalance })
+                .set({ balanceAfter: game.balanceAfter! + payout })
                 .where(eq(games.id, game.id));
             }
           }
@@ -1903,20 +1906,31 @@ app.get("/api/games/my-history", async (req, res, next) => {
           payout = Math.floor(game.betAmount * odds);
         }
         
-        // Calculate new user balance after applying payout
-        const updatedBalance = user.balance + payout;
-        
-        // Update game payout, result, and balanceAfter in the games table
-        await db.update(games)
-          .set({ 
-            payout,
-            result, // Update the result in the games table to reflect the match result
-            balanceAfter: updatedBalance // Update the balance after this game result is applied
-          })
-          .where(eq(games.id, game.id));
-        
-        // Update user balance
-        await storage.updateUserBalance(user.id, updatedBalance);
+        // Only add payout to user balance if they won (payout > 0)
+        if (payout > 0) {
+          // Calculate new user balance after applying payout
+          const updatedBalance = user.balance + payout;
+          
+          // Update game payout, result, and balanceAfter in the games table
+          await db.update(games)
+            .set({ 
+              payout,
+              result, // Update the result in the games table to reflect the match result
+              balanceAfter: game.balanceAfter! + payout // Add payout to the stored balance
+            })
+            .where(eq(games.id, game.id));
+          
+          // Update user balance
+          await storage.updateUserBalance(user.id, updatedBalance);
+        } else {
+          // Just update the game result and payout, keep the original balanceAfter
+          await db.update(games)
+            .set({ 
+              payout,
+              result // Update the result in the games table to reflect the match result
+            })
+            .where(eq(games.id, game.id));
+        }
       }
       
       res.json(updatedMatch);
