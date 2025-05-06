@@ -23,7 +23,7 @@ import { eq, and, gte, desc } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import { setupCricketTossRoutes } from "./cricket-toss";
 import { setupCricketTossApiRoutes } from "./cricket-toss-api";
-import { setupWalletRoutes } from "./wallet-system";
+import { setupWalletRoutes, setupDepositCommissions } from "./wallet-system";
 import { setupUploadRoutes } from "./upload-routes";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -38,6 +38,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup wallet routes for deposits and withdrawals
   setupWalletRoutes(app);
+  
+  // Setup deposit commission management routes
+  setupDepositCommissions(app);
   
   // Setup file upload routes
   setupUploadRoutes(app);

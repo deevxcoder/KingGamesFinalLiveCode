@@ -326,6 +326,151 @@ export async function reviewWalletRequest(
 }
 
 // Express router setup for wallet system
+// Endpoint to manage deposit commissions
+export async function setupDepositCommissions(app: express.Express) {
+  // Get all deposit commissions (admin only)
+  app.get('/api/admin/deposit-commissions', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // Only admin can access this endpoint
+      if (req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: 'Forbidden - Only admins can view all deposit commissions' });
+      }
+      
+      // Get all subadmins with their deposit commissions
+      const commissions = await db.select({
+        commission: depositCommissions,
+        subadmin: {
+          id: users.id,
+          username: users.username
+        }
+      })
+      .from(depositCommissions)
+      .innerJoin(users, eq(depositCommissions.subadminId, users.id))
+      .where(eq(depositCommissions.isActive, true));
+      
+      res.json(commissions);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Get deposit commission for a specific subadmin
+  app.get('/api/admin/deposit-commissions/:subadminId', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // Only admin can access this endpoint
+      if (req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: 'Forbidden - Only admins can view deposit commissions' });
+      }
+      
+      const subadminId = Number(req.params.subadminId);
+      
+      // Verify the user is a subadmin
+      const userResult = await db.select()
+        .from(users)
+        .where(and(eq(users.id, subadminId), eq(users.role, UserRole.SUBADMIN)))
+        .limit(1);
+      
+      if (userResult.length === 0) {
+        return res.status(404).json({ message: 'Subadmin not found' });
+      }
+      
+      // Get commission for this subadmin
+      const commissionRate = await getSubadminDepositCommission(subadminId);
+      
+      // Get the actual commission record if it exists
+      const commissionResult = await db.select()
+        .from(depositCommissions)
+        .where(and(eq(depositCommissions.subadminId, subadminId), eq(depositCommissions.isActive, true)))
+        .limit(1);
+      
+      res.json({
+        subadminId,
+        username: userResult[0].username,
+        commissionRate,
+        isDefault: commissionResult.length === 0
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Set or update a deposit commission for a subadmin
+  app.post('/api/admin/deposit-commissions', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // Only admin can access this endpoint
+      if (req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: 'Forbidden - Only admins can manage deposit commissions' });
+      }
+      
+      const { subadminId, commissionRate } = req.body;
+      
+      if (!subadminId || typeof commissionRate !== 'number' || commissionRate < 0 || commissionRate > 10000) {
+        return res.status(400).json({ 
+          message: 'Invalid request data. Commission rate must be between 0 and 10000 (0% to 100%)' 
+        });
+      }
+      
+      // Verify the user is a subadmin
+      const userResult = await db.select()
+        .from(users)
+        .where(and(eq(users.id, subadminId), eq(users.role, UserRole.SUBADMIN)))
+        .limit(1);
+      
+      if (userResult.length === 0) {
+        return res.status(404).json({ message: 'Subadmin not found' });
+      }
+      
+      // Check if a commission already exists
+      const existingCommission = await db.select()
+        .from(depositCommissions)
+        .where(eq(depositCommissions.subadminId, subadminId))
+        .limit(1);
+      
+      if (existingCommission.length > 0) {
+        // Update existing commission
+        await db.update(depositCommissions)
+          .set({
+            commissionRate,
+            isActive: true,
+            updatedAt: new Date()
+          })
+          .where(eq(depositCommissions.subadminId, subadminId));
+      } else {
+        // Create new commission
+        await db.insert(depositCommissions).values({
+          subadminId,
+          commissionRate,
+          isActive: true
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'Deposit commission set successfully',
+        data: {
+          subadminId,
+          username: userResult[0].username,
+          commissionRate
+        }
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+}
+
 export function setupWalletRoutes(app: express.Express) {
   // Create a new wallet request (deposit or withdrawal)
   app.post('/api/wallet/requests', async (req: Request, res: Response, next: NextFunction) => {
@@ -732,16 +877,47 @@ export function setupWalletRoutes(app: express.Express) {
             });
           }
           
-          // Add the deducted amount to admin's balance
+          // Check if target user is a subadmin for commission calculations
+          const isTargetSubadmin = userResult.rows[0].role === UserRole.SUBADMIN;
+          
+          // For withdrawals from subadmins, we apply the commission logic where only a percentage 
+          // of funds is added to the admin's wallet (commission-based system)
+          let adminAdditionAmount = amountInPaisa; // Default: add full amount for players
+          
+          if (isTargetSubadmin) {
+            // Get the commission rate for this subadmin (e.g., 30%)
+            const commissionRate = await getSubadminDepositCommission(userId);
+            
+            // Calculate the amount to add to admin (only the commission percentage)
+            adminAdditionAmount = Math.floor(amountInPaisa * (commissionRate / 10000));
+            
+            // Log the commission calculation for debugging
+            console.log(`Withdrawal from subadmin ${userId}: Total: ${amountInPaisa}, Commission rate: ${commissionRate/100}%, Admin addition: ${adminAdditionAmount}`);
+          }
+          
+          // Get admin's current balance before update
+          const adminResult = await client.query('SELECT balance FROM users WHERE id = $1', [req.user.id]);
+          
+          // Add the calculated amount to admin's balance
           await client.query(
             'UPDATE users SET balance = balance + $1 WHERE id = $2',
-            [amountInPaisa, req.user.id]
+            [adminAdditionAmount, req.user.id]
           );
           
           // Record this addition in admin's transactions
+          const description = isTargetSubadmin 
+            ? `Funds received from ${userResult.rows[0].username} (${adminAdditionAmount/100} of ${amountInPaisa/100} - commission rate applied): ${notes}` 
+            : `Funds received from ${userResult.rows[0].username}: ${notes}`;
+          
           await client.query(
-            'INSERT INTO transactions (user_id, amount, performed_by, description) VALUES ($1, $2, $3, $4)',
-            [req.user.id, amountInPaisa, req.user.id, `Funds received from ${userResult.rows[0].username}: ${notes}`]
+            'INSERT INTO transactions (user_id, amount, performed_by, description, balance_after) VALUES ($1, $2, $3, $4, $5)',
+            [
+              req.user.id, 
+              adminAdditionAmount, 
+              req.user.id, 
+              description,
+              adminResult.rows[0].balance + adminAdditionAmount
+            ]
           );
         }
         
