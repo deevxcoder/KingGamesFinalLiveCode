@@ -698,19 +698,17 @@ export class DatabaseStorage implements IStorage {
           // The final payout to use
           const finalPayout = payout !== undefined ? payout : originalGame.payout;
           
-          // Only adjust balance if there's a payout (i.e., if player won)
+          // Calculate the new balance based on whether the player won or not
+          let newBalance = user.balance;
+          
+          // If there's a payout (i.e., player won), add it to their balance
           if (finalPayout > 0) {
-            // Update user balance - add the payout
-            const newBalance = user.balance + finalPayout;
+            newBalance = user.balance + finalPayout;
             await this.updateUserBalance(user.id, newBalance);
-            
-            // Record the updated balance in the game record
-            updateData.balanceAfter = newBalance;
-          } else if (!originalGame.balanceAfter) {
-            // If there's no payout but balanceAfter wasn't recorded before,
-            // at least record the current balance 
-            updateData.balanceAfter = user.balance;
           }
+          
+          // Always record the balance after the game, whether win or loss
+          updateData.balanceAfter = newBalance;
         }
       } catch (err) {
         console.error("Error updating user balance for game result:", err);
