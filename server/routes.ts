@@ -683,7 +683,33 @@ app.get("/api/games/my-history", async (req, res, next) => {
           // For admin self-funding, don't check balance
           const isAdminSelfFunding = req.user!.role === UserRole.ADMIN && userId === req.user!.id;
           
-          if (!isAdminSelfFunding && adminOrSubadmin.balance < amount) {
+          // Check if the recipient is a subadmin - we need to apply commission logic
+          const isRecipientSubadmin = user.role === UserRole.SUBADMIN;
+          
+          // Calculate deduction amount based on commission (if target is subadmin)
+          let deductionAmount = amount;
+          
+          if (req.user!.role === UserRole.ADMIN && isRecipientSubadmin) {
+            try {
+              // Import the function from wallet-system.ts
+              const { getSubadminDepositCommission } = await import('./wallet-system');
+              
+              // Get the commission rate for this subadmin (e.g., 50% = 5000)
+              const commissionRate = await getSubadminDepositCommission(userId);
+              
+              // Calculate the amount to deduct from admin (only the commission percentage)
+              // Only deduct the commission percentage from admin's wallet, not the full amount
+              deductionAmount = Math.floor((amount * commissionRate) / 10000);
+              
+              console.log(`Transfer to subadmin ${userId}: Total: ${amount}, Commission rate: ${commissionRate/100}%, Admin deduction: ${deductionAmount}`);
+            } catch (error) {
+              console.error('Error calculating commission rate:', error);
+              // If there's an error, use default behavior (deduct full amount)
+              deductionAmount = amount;
+            }
+          }
+          
+          if (!isAdminSelfFunding && adminOrSubadmin.balance < deductionAmount) {
             return res.status(400).json({ 
               message: "Insufficient balance in your account. Please add funds to your wallet first."
             });
@@ -691,15 +717,19 @@ app.get("/api/games/my-history", async (req, res, next) => {
           
           // Skip deduction if it's admin self-funding
           if (!isAdminSelfFunding) {
-            // Deduct the amount from admin/subadmin's balance
-            await storage.updateUserBalance(adminOrSubadmin.id, adminOrSubadmin.balance - amount);
+            // Deduct the calculated amount from admin/subadmin's balance
+            await storage.updateUserBalance(adminOrSubadmin.id, adminOrSubadmin.balance - deductionAmount);
             
             // Record transaction for admin/subadmin (negative amount = deduction)
+            const description = isRecipientSubadmin 
+              ? `Funds transferred to ${user.username} (${deductionAmount} of ${amount} - commission rate applied)` 
+              : `Funds transferred to ${user.username}`;
+              
             await storage.createTransaction({
               userId: adminOrSubadmin.id,
-              amount: -amount,
+              amount: -deductionAmount,
               performedBy: adminOrSubadmin.id,
-              description: `Funds transferred to ${user.username}`,
+              description,
             });
           }
         } 
@@ -708,17 +738,46 @@ app.get("/api/games/my-history", async (req, res, next) => {
           // Skip addition if it's admin self-deduction
           const isAdminSelfDeduction = req.user!.role === UserRole.ADMIN && userId === req.user!.id;
           
+          // Check if the source is a subadmin - we need to apply commission logic
+          const isSourceSubadmin = user.role === UserRole.SUBADMIN;
+          
+          // Calculate addition amount based on commission (if source is subadmin)
+          let additionAmount = Math.abs(amount);
+          
+          if (req.user!.role === UserRole.ADMIN && isSourceSubadmin) {
+            try {
+              // Import the function from wallet-system.ts
+              const { getSubadminDepositCommission } = await import('./wallet-system');
+              
+              // Get the commission rate for this subadmin (e.g., 50% = 5000)
+              const commissionRate = await getSubadminDepositCommission(userId);
+              
+              // Calculate the amount to add to admin (only the commission percentage)
+              // Only add the commission percentage to admin's wallet, not the full amount
+              additionAmount = Math.floor((Math.abs(amount) * commissionRate) / 10000);
+              
+              console.log(`Withdrawal from subadmin ${userId}: Total: ${Math.abs(amount)}, Commission rate: ${commissionRate/100}%, Admin addition: ${additionAmount}`);
+            } catch (error) {
+              console.error('Error calculating commission rate:', error);
+              // If there's an error, use default behavior (add full amount)
+              additionAmount = Math.abs(amount);
+            }
+          }
+          
           if (!isAdminSelfDeduction) {
-            // Add the absolute value of the amount to admin/subadmin's balance
-            const amountToAdd = Math.abs(amount);
-            await storage.updateUserBalance(adminOrSubadmin.id, adminOrSubadmin.balance + amountToAdd);
+            // Add the calculated amount to admin/subadmin's balance
+            await storage.updateUserBalance(adminOrSubadmin.id, adminOrSubadmin.balance + additionAmount);
             
             // Record transaction for admin/subadmin (positive amount = addition)
+            const description = isSourceSubadmin 
+              ? `Funds recovered from ${user.username} (${additionAmount} of ${Math.abs(amount)} - commission rate applied)` 
+              : `Funds recovered from ${user.username}`;
+              
             await storage.createTransaction({
               userId: adminOrSubadmin.id,
-              amount: amountToAdd,
+              amount: additionAmount,
               performedBy: adminOrSubadmin.id,
-              description: `Funds recovered from ${user.username}`,
+              description,
             });
           }
         }
