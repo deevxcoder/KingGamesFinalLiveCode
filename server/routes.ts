@@ -2629,6 +2629,58 @@ app.get("/api/games/my-history", async (req, res, next) => {
     }
   });
   
+  // Get player-specific game odds endpoint
+  // This returns the odds applicable to a player based on their assigned subadmin
+  app.get("/api/game-odds/player", async (req, res, next) => {
+    try {
+      // Must be logged in to use this endpoint
+      if (!req.isAuthenticated() || !req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+      
+      const gameType = req.query.gameType as string || '';
+      
+      if (!gameType) {
+        return res.status(400).json({ message: "Game type is required" });
+      }
+      
+      // Get the requesting user's details
+      const userId = req.user.id;
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      let odds;
+      
+      // If player is assigned to a subadmin, get custom odds if available
+      if (user.assignedTo) {
+        // First try to get subadmin-specific odds
+        const subadminOdds = await storage.getGameOddsBySubadmin(user.assignedTo, gameType);
+        
+        if (subadminOdds && subadminOdds.length > 0) {
+          // Found subadmin-specific odds
+          odds = subadminOdds;
+          console.log(`Using subadmin (${user.assignedTo}) odds for player ${userId}, gameType ${gameType}:`, odds);
+        } else {
+          // Fall back to admin odds
+          odds = await storage.getGameOdds(gameType);
+          console.log(`Using admin odds for player ${userId}, gameType ${gameType} (subadmin ${user.assignedTo} has no custom odds):`, odds);
+        }
+      } else {
+        // If player is not assigned to any subadmin, use regular platform odds
+        odds = await storage.getGameOdds(gameType);
+        console.log(`Using platform odds for player ${userId}, gameType ${gameType} (not assigned to any subadmin):`, odds);
+      }
+      
+      res.json(odds);
+    } catch (err) {
+      console.error("Error fetching player odds:", err);
+      next(err);
+    }
+  });
+  
   // Get admin odds endpoint
   app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {

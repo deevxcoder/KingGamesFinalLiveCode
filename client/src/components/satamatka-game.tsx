@@ -181,18 +181,30 @@ export default function SatamatkaGame() {
     enabled: !!user && !isNaN(marketId)
   });
 
-  // Fetch the game odds for Satamatka
+  // Fetch the game odds for Satamatka - get player-specific odds based on their assigned subadmin
   const { data: satamatkaOddsData } = useQuery<any>({
-    queryKey: ['/api/game-odds', 'satamatka'],
+    queryKey: ['/api/game-odds', 'satamatka', user?.id],
     queryFn: async () => {
+      if (!user) return null;
+      
       const modes = ['jodi', 'harf', 'crossing', 'odd_even'];
+      
+      // This will get the odds that apply to this specific player
+      // which should include any subadmin overrides
       const results = await Promise.all(
         modes.map(mode => 
-          apiRequest("GET", `/api/game-odds?gameType=satamatka_${mode}`)
+          apiRequest("GET", `/api/game-odds/player?gameType=satamatka_${mode}`)
             .then(res => res.json())
+            .catch(err => {
+              console.error(`Error fetching odds for ${mode}:`, err);
+              return null;
+            })
         )
       );
       
+      console.log("Raw game odds data from API:", results);
+      
+      // Parse the odds data
       return { 
         jodi: results[0]?.[0]?.oddValue || 9000, 
         harf: results[1]?.[0]?.oddValue || 900, 
@@ -1748,8 +1760,12 @@ function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record
   let payoutRatio = 1;
   
   // Use odds from server if available, otherwise fall back to defaults
+  // The odds coming from the server are already multiplied by 100, so we divide by 100 to get the actual ratio
+  console.log("Calculating potential win with odds:", odds);
+  
   switch (gameMode) {
     case "jodi":
+      // If we have server odds (which are already in the right format) use them
       payoutRatio = odds.jodi ? (odds.jodi / 100) : 90;
       break;
     case "harf":
@@ -1762,6 +1778,8 @@ function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record
       payoutRatio = odds.odd_even ? (odds.odd_even / 100) : 1.8;
       break;
   }
+  
+  console.log(`Game mode: ${gameMode}, Payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
   // For all game modes in Satamatka, bet display is in rupees but stored as paisa
   // Need to convert betAmount to paisa first, then multiple by ratio
