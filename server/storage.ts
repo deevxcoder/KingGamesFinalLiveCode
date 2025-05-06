@@ -487,9 +487,9 @@ export class DatabaseStorage implements IStorage {
     const updateData: any = {};
     if (data.username) updateData.username = data.username;
     if (data.password) {
-      // Use bcrypt directly instead of importing from auth to avoid circular dependency
-      const bcrypt = require('bcrypt');
-      updateData.password = await bcrypt.hash(data.password, 10);
+      // Hash the password directly using bcrypt
+      const bcryptModule = await import('bcrypt');
+      updateData.password = await bcryptModule.default.hash(data.password, 10);
     }
     
     if (Object.keys(updateData).length === 0) return this.getUser(userId);
