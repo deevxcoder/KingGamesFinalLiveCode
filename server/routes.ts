@@ -1422,21 +1422,21 @@ app.get("/api/games/my-history", async (req, res, next) => {
             // Set game result
             const result = isWinner ? "win" : "loss";
             
-            // Calculate updated balance
+            // Calculate updated balance - only add the payout if user won
             const updatedBalance = user.balance + (isWinner ? payout : 0);
             
-            // Update game and user in database
+            // Update game result and payout in database
             await storage.updateGameResult(game.id, result, payout);
             
             // Only update user balance if they won
             if (isWinner) {
               await storage.updateUserBalance(user.id, updatedBalance);
+              
+              // Explicitly update the balanceAfter field to ensure it's recorded with the new balance
+              await db.update(games)
+                .set({ balanceAfter: updatedBalance })
+                .where(eq(games.id, game.id));
             }
-            
-            // Explicitly update the balanceAfter field to ensure it's recorded
-            await db.update(games)
-              .set({ balanceAfter: updatedBalance })
-              .where(eq(games.id, game.id));
           }
         } catch (err) {
           console.error("Error processing market bets:", err);
@@ -1719,9 +1719,16 @@ app.get("/api/games/my-history", async (req, res, next) => {
       
       // Record each game
       const createdGames = [];
+      
+      // Track decreasing balance for each individual bet
+      let currentBalance = user.balance;
+      
       for (const bet of validatedBets) {
         // Bet amounts are already in paisa from the client side
         const betAmountInPaisa = bet.betAmount;
+        
+        // Deduct this specific bet from the running balance
+        currentBalance -= betAmountInPaisa;
         
         const game = await storage.createGame({
           userId: user.id,
@@ -1732,7 +1739,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
           payout: 0,  // Will be calculated when results are published
           marketId,
           gameMode,
-          balanceAfter: newBalance, // Track balance after all bets are placed
+          balanceAfter: currentBalance, // Track balance after EACH bet is placed
         });
         
         // Add to list of created games (for response)
