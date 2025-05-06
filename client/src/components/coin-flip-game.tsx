@@ -5,7 +5,14 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { GameOutcome } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatProfitLoss } from "@/lib/format-utils";
-import { playCoinFlipSound, playWinSound, playLoseSound, initAudio } from "@/lib/sound-utils";
+import { 
+  playCoinFlipSound, 
+  playWinSound, 
+  playLoseSound, 
+  initAudio, 
+  toggleMute, 
+  isSoundMuted 
+} from "@/lib/sound-utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Card, 
@@ -16,7 +23,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronsUp, ChevronsDown, IndianRupee, Trophy, X, History } from "lucide-react";
+import { 
+  ChevronsUp, 
+  ChevronsDown, 
+  IndianRupee, 
+  Trophy, 
+  X, 
+  History, 
+  Volume2, 
+  VolumeX 
+} from "lucide-react";
 
 // Game history type to use in the component
 interface GameHistory {
@@ -40,6 +56,7 @@ export default function CoinFlipGame() {
   const [showWinPopup, setShowWinPopup] = useState(false);
   const [showLosePopup, setShowLosePopup] = useState(false);
   const [walletUpdating, setWalletUpdating] = useState(false);
+  const [muted, setMuted] = useState(isSoundMuted());
   const [lastResult, setLastResult] = useState<{
     isWin: boolean;
     amount: number;
@@ -160,6 +177,21 @@ export default function CoinFlipGame() {
     setResult(null);
     setWalletUpdating(false); // Ensure wallet updating state is reset
   };
+  
+  const handleToggleMute = () => {
+    // Toggle the mute state in the sound utility
+    const newMuteState = toggleMute();
+    setMuted(newMuteState);
+    
+    // Initialize audio context (this is needed for the first toggle)
+    initAudio();
+    
+    // Show toast notification about sound state
+    toast({
+      title: newMuteState ? "Sound Off" : "Sound On",
+      description: newMuteState ? "Game sounds have been muted" : "Game sounds have been enabled",
+    });
+  };
 
   const handlePlaceBet = () => {
     if (!selectedPrediction) {
@@ -209,7 +241,22 @@ export default function CoinFlipGame() {
 
   return (
     <Card className="bg-card rounded-xl shadow-xl border border-border mb-8 relative overflow-hidden">
-      <CardHeader>
+      <CardHeader className="relative">
+        {/* Mute/Unmute button in top-right corner */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="absolute top-2 right-2 h-8 w-8 rounded-full bg-background/40 hover:bg-background/60 border border-border"
+          onClick={handleToggleMute}
+          title={muted ? "Unmute sounds" : "Mute sounds"}
+        >
+          {muted ? (
+            <VolumeX className="h-4 w-4 text-muted-foreground" />
+          ) : (
+            <Volume2 className="h-4 w-4 text-primary" />
+          )}
+        </Button>
+        
         <CardTitle className="text-xl font-bold text-center">
           <span className="text-primary">King</span>
           <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
