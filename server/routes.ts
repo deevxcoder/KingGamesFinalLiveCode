@@ -1355,11 +1355,31 @@ app.get("/api/games/my-history", async (req, res, next) => {
             let isWinner = false;
             let payout = 0;
             
+            // Get appropriate odds for this player and game mode from the database
+            const getOddsValue = async (gameMode: string): Promise<number> => {
+              const gameTypeMap = {
+                [SatamatkaGameMode.JODI]: 'satamatka_jodi',
+                [SatamatkaGameMode.HARF]: 'satamatka_harf',
+                [SatamatkaGameMode.CROSSING]: 'satamatka_crossing',
+                [SatamatkaGameMode.ODD_EVEN]: 'satamatka_odd_even'
+              };
+              
+              const gameType = gameTypeMap[gameMode as keyof typeof gameTypeMap];
+              if (!gameType) {
+                console.warn(`Unknown game mode: ${gameMode}, using default odds`);
+                return 0;
+              }
+              
+              // Get odds configured in the database based on player's relation to subadmins
+              return await storage.getOddsForPlayer(game.userId, gameType);
+            };
+            
             // Game mode specific win conditions
             if (game.gameMode === SatamatkaGameMode.JODI && game.prediction === closeResult) {
               // For Jodi mode, prediction must match closeResult exactly
               isWinner = true;
-              payout = game.betAmount * 90; // 90x payout for matching jodi
+              const oddValue = await getOddsValue(game.gameMode);
+              payout = game.betAmount * (oddValue / 100); // Apply configured odds
             } 
             else if (game.gameMode === SatamatkaGameMode.HARF) {
               // For Harf, check if digit matches position
@@ -1373,7 +1393,8 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 (game.prediction === `R${secondDigit}`)
               ) {
                 isWinner = true;
-                payout = game.betAmount * 9; // 9x payout for matching single digit
+                const oddValue = await getOddsValue(game.gameMode);
+                payout = game.betAmount * (oddValue / 100); // Apply configured odds
               }
             }
             else if (game.gameMode === SatamatkaGameMode.CROSSING) {
@@ -1381,7 +1402,8 @@ app.get("/api/games/my-history", async (req, res, next) => {
               const digits = game.prediction.replace(/[^0-9,]/g, '').split(',');
               if (digits.includes(closeResult[0]) || digits.includes(closeResult[1])) {
                 isWinner = true;
-                payout = game.betAmount * 95; // 95x payout for crossing
+                const oddValue = await getOddsValue(game.gameMode);
+                payout = game.betAmount * (oddValue / 100); // Apply configured odds
               }
             }
             else if (game.gameMode === SatamatkaGameMode.ODD_EVEN) {
@@ -1392,7 +1414,8 @@ app.get("/api/games/my-history", async (req, res, next) => {
               if ((game.prediction === "odd" && isResultOdd) || 
                   (game.prediction === "even" && !isResultOdd)) {
                 isWinner = true;
-                payout = game.betAmount * 1.8; // 1.8x payout for odd/even
+                const oddValue = await getOddsValue(game.gameMode);
+                payout = game.betAmount * (oddValue / 100); // Apply configured odds
               }
             }
             

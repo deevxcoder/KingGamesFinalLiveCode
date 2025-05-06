@@ -124,6 +124,7 @@ export default function SatamatkaGame() {
   const [selectedGameMode, setSelectedGameMode] = useState<string>("jodi");
   const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
   const [betDetails, setBetDetails] = useState<{prediction: string; betAmount: number} | null>(null);
+  const [gameOdds, setGameOdds] = useState<Record<string, number>>({});
   
   // New state for multi-selection and quick bet amounts
   const [quickBetAmount, setQuickBetAmount] = useState<number>(10);
@@ -179,6 +180,36 @@ export default function SatamatkaGame() {
     },
     enabled: !!user && !isNaN(marketId)
   });
+
+  // Fetch the game odds for Satamatka
+  const { data: satamatkaOddsData } = useQuery<any>({
+    queryKey: ['/api/game-odds', 'satamatka'],
+    queryFn: async () => {
+      const modes = ['jodi', 'harf', 'crossing', 'odd_even'];
+      const results = await Promise.all(
+        modes.map(mode => 
+          apiRequest("GET", `/api/game-odds?gameType=satamatka_${mode}`)
+            .then(res => res.json())
+        )
+      );
+      
+      return { 
+        jodi: results[0]?.[0]?.oddValue || 9000, 
+        harf: results[1]?.[0]?.oddValue || 900, 
+        crossing: results[2]?.[0]?.oddValue || 9500,
+        odd_even: results[3]?.[0]?.oddValue || 180 
+      };
+    },
+    enabled: !!user
+  });
+  
+  // Update game odds when they load
+  useEffect(() => {
+    if (satamatkaOddsData) {
+      console.log("Received Satamatka odds:", satamatkaOddsData);
+      setGameOdds(satamatkaOddsData);
+    }
+  }, [satamatkaOddsData]);
 
   // Log market data when it changes
   useEffect(() => {
@@ -1707,21 +1738,23 @@ export default function SatamatkaGame() {
 }
 
 // Helper function to calculate potential win based on game mode
-function calculatePotentialWin(gameMode: string, betAmount: number): number {
+// Function to calculate potential winnings based on current odds from the server
+function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record<string, number> = {}): number {
   let payoutRatio = 1;
   
+  // Use odds from server if available, otherwise fall back to defaults
   switch (gameMode) {
     case "jodi":
-      payoutRatio = 90;
+      payoutRatio = odds.jodi ? (odds.jodi / 100) : 90;
       break;
     case "harf":
-      payoutRatio = 9;
+      payoutRatio = odds.harf ? (odds.harf / 100) : 9;
       break;
     case "crossing":
-      payoutRatio = 95; // Updated from 4.5 to 95 to match the actual odds
+      payoutRatio = odds.crossing ? (odds.crossing / 100) : 95;
       break;
     case "odd_even":
-      payoutRatio = 1.8;
+      payoutRatio = odds.odd_even ? (odds.odd_even / 100) : 1.8;
       break;
   }
   
