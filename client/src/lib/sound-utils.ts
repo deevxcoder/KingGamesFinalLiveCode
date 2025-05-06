@@ -1,12 +1,15 @@
 /**
  * Sound utilities for the game
- * Uses Web Audio API to generate simple sound effects
+ * Uses Web Audio API to play sound effects
  */
 
 // Audio context for sound generation
 let audioContext: AudioContext | null = null;
 // Sound mute state
 let isMuted = false;
+
+// Audio buffer cache
+const audioBufferCache: { [key: string]: AudioBuffer } = {};
 
 /**
  * Initialize the audio context (must be called after user interaction)
@@ -16,11 +19,87 @@ export function initAudio() {
     try {
       audioContext = new AudioContext();
       console.log('Audio context initialized');
+      
+      // Preload sound files
+      loadSound('/sounds/coin-flip-sound.mp3');
+      loadSound('/sounds/coin-flip-win.mp3');
     } catch (error) {
       console.error('Failed to initialize audio context:', error);
     }
   }
   return audioContext;
+}
+
+/**
+ * Load a sound file and cache it
+ */
+async function loadSound(url: string): Promise<AudioBuffer | null> {
+  if (!audioContext) return null;
+  
+  // If already cached, return from cache
+  if (audioBufferCache[url]) {
+    return audioBufferCache[url];
+  }
+  
+  try {
+    const response = await fetch(url);
+    const arrayBuffer = await response.arrayBuffer();
+    
+    return new Promise((resolve, reject) => {
+      if (!audioContext) {
+        reject('Audio context not initialized');
+        return;
+      }
+      
+      audioContext.decodeAudioData(
+        arrayBuffer,
+        (buffer) => {
+          audioBufferCache[url] = buffer;  // Cache the decoded audio
+          resolve(buffer);
+        },
+        (error) => {
+          console.error('Error decoding audio data:', error);
+          reject(error);
+        }
+      );
+    });
+  } catch (error) {
+    console.error('Error loading sound:', error);
+    return null;
+  }
+}
+
+/**
+ * Play a sound from URL
+ */
+async function playSound(url: string, volume: number = 1.0): Promise<void> {
+  if (isMuted || !audioContext) return;
+  
+  try {
+    // Get audio buffer (load if needed)
+    let buffer = audioBufferCache[url];
+    if (!buffer) {
+      buffer = await loadSound(url);
+      if (!buffer) return;
+    }
+    
+    // Create audio source
+    const source = audioContext.createBufferSource();
+    source.buffer = buffer;
+    
+    // Create gain node for volume control
+    const gainNode = audioContext.createGain();
+    gainNode.gain.value = volume;
+    
+    // Connect nodes
+    source.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Play the sound
+    source.start(0);
+  } catch (error) {
+    console.error('Error playing sound:', error);
+  }
 }
 
 /**
@@ -42,148 +121,51 @@ export function isSoundMuted() {
  * Play a coin flip sound
  */
 export function playCoinFlipSound() {
-  if (isMuted) return;
-  
-  const ctx = initAudio();
-  if (!ctx) return;
-  
-  try {
-    // Create more complex metallic sound (like a real coin)
-    const oscillator1 = ctx.createOscillator();
-    const oscillator2 = ctx.createOscillator();
-    const filterNode = ctx.createBiquadFilter();
-    const gainNode = ctx.createGain();
-    
-    // First oscillator - base flip sound
-    oscillator1.type = 'triangle';
-    oscillator1.frequency.setValueAtTime(800, ctx.currentTime);
-    oscillator1.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
-    
-    // Second oscillator - metal "ping" effect
-    oscillator2.type = 'sine';
-    oscillator2.frequency.setValueAtTime(1200, ctx.currentTime);
-    oscillator2.frequency.exponentialRampToValueAtTime(900, ctx.currentTime + 0.05);
-    
-    // Filter for more metallic sound
-    filterNode.type = 'bandpass';
-    filterNode.frequency.setValueAtTime(800, ctx.currentTime);
-    filterNode.Q.value = 7.0;
-    
-    // Amplitude envelope
-    gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-    
-    // Connect nodes
-    oscillator1.connect(filterNode);
-    oscillator2.connect(filterNode);
-    filterNode.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    
-    // Play sounds
-    oscillator1.start();
-    oscillator2.start();
-    oscillator1.stop(ctx.currentTime + 0.3);
-    oscillator2.stop(ctx.currentTime + 0.3);
-  } catch (error) {
-    console.error('Error playing coin flip sound:', error);
-  }
+  playSound('/sounds/coin-flip-sound.mp3', 0.8);
 }
 
 /**
  * Play a win sound
  */
 export function playWinSound() {
-  if (isMuted) return;
-  
-  const ctx = initAudio();
-  if (!ctx) return;
-  
-  try {
-    // Create a more exciting win sound
-    const oscillator1 = ctx.createOscillator();
-    const oscillator2 = ctx.createOscillator();
-    const oscillator3 = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    
-    // First oscillator - ascending notes
-    oscillator1.type = 'sine';
-    oscillator1.frequency.setValueAtTime(440, ctx.currentTime); // A4
-    oscillator1.frequency.setValueAtTime(523.25, ctx.currentTime + 0.1); // C5
-    oscillator1.frequency.setValueAtTime(659.25, ctx.currentTime + 0.2); // E5
-    oscillator1.frequency.setValueAtTime(880, ctx.currentTime + 0.3); // A5
-    
-    // Second oscillator - harmony
-    oscillator2.type = 'triangle';
-    oscillator2.frequency.setValueAtTime(440 * 1.5, ctx.currentTime + 0.1);
-    oscillator2.frequency.setValueAtTime(523.25 * 1.5, ctx.currentTime + 0.2);
-    oscillator2.frequency.setValueAtTime(659.25 * 1.5, ctx.currentTime + 0.3);
-    
-    // Third oscillator - decorative trill
-    oscillator3.type = 'sine';
-    oscillator3.frequency.setValueAtTime(880 * 2, ctx.currentTime + 0.3);
-    oscillator3.frequency.setValueAtTime(1046.50 * 2, ctx.currentTime + 0.35);
-    oscillator3.frequency.setValueAtTime(1318.51 * 2, ctx.currentTime + 0.4);
-    
-    // Gain envelope
-    gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.2);
-    gainNode.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.4);
-    gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.7);
-    
-    oscillator1.connect(gainNode);
-    oscillator2.connect(gainNode);
-    oscillator3.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    
-    oscillator1.start();
-    oscillator2.start(ctx.currentTime + 0.05);
-    oscillator3.start(ctx.currentTime + 0.3);
-    
-    oscillator1.stop(ctx.currentTime + 0.7);
-    oscillator2.stop(ctx.currentTime + 0.7);
-    oscillator3.stop(ctx.currentTime + 0.7);
-  } catch (error) {
-    console.error('Error playing win sound:', error);
-  }
+  playSound('/sounds/coin-flip-win.mp3', 0.8);
 }
 
 /**
  * Play a lose sound
  */
 export function playLoseSound() {
-  if (isMuted) return;
-  
-  const ctx = initAudio();
-  if (!ctx) return;
+  // Since you didn't provide a lose sound, let's create a simple one
+  if (isMuted || !audioContext) return;
   
   try {
     // Create a sad lose sound
-    const oscillator1 = ctx.createOscillator();
-    const oscillator2 = ctx.createOscillator();
-    const gainNode = ctx.createGain();
+    const oscillator1 = audioContext.createOscillator();
+    const oscillator2 = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
     
     // First oscillator - main descending tone
     oscillator1.type = 'sine';
-    oscillator1.frequency.setValueAtTime(400, ctx.currentTime);
-    oscillator1.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.3);
+    oscillator1.frequency.setValueAtTime(400, audioContext.currentTime);
+    oscillator1.frequency.linearRampToValueAtTime(200, audioContext.currentTime + 0.3);
     
     // Second oscillator - dissonant lower tone
     oscillator2.type = 'sine';
-    oscillator2.frequency.setValueAtTime(380, ctx.currentTime);
-    oscillator2.frequency.linearRampToValueAtTime(190, ctx.currentTime + 0.3);
+    oscillator2.frequency.setValueAtTime(380, audioContext.currentTime);
+    oscillator2.frequency.linearRampToValueAtTime(190, audioContext.currentTime + 0.3);
     
     // Gain envelope
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.4);
     
     oscillator1.connect(gainNode);
     oscillator2.connect(gainNode);
-    gainNode.connect(ctx.destination);
+    gainNode.connect(audioContext.destination);
     
     oscillator1.start();
     oscillator2.start();
-    oscillator1.stop(ctx.currentTime + 0.4);
-    oscillator2.stop(ctx.currentTime + 0.4);
+    oscillator1.stop(audioContext.currentTime + 0.4);
+    oscillator2.stop(audioContext.currentTime + 0.4);
   } catch (error) {
     console.error('Error playing lose sound:', error);
   }
