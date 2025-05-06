@@ -517,8 +517,11 @@ export default function CoinFlipGame() {
                   Potential Win:
                 </span>
                 <div className="flex items-center text-green-500 font-medium">
-                  ₹{(betAmount * 1.95).toFixed(2)}
-                  <span className="text-xs text-muted-foreground ml-1">(1.95x)</span>
+                  {/* Use game odds from the server instead of hardcoded value */}
+                  ₹{(betAmount * (gameOdds > 0 ? gameOdds : 1.95)).toFixed(2)}
+                  <span className="text-xs text-muted-foreground ml-1">
+                    ({(gameOdds > 0 ? gameOdds : 1.95).toFixed(2)}x)
+                  </span>
                 </div>
               </div>
             </div>
