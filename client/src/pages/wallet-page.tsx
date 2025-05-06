@@ -1383,6 +1383,24 @@ export default function WalletPage() {
                                             return transaction.description;
                                           }
                                           
+                                          // Special case for "Funds deducted by KingGames" format (old format)
+                                          if (transaction.description === "Funds deducted by KingGames" && transaction.performer) {
+                                            // Convert to proper format for Fund Debit
+                                            return `Funds deducted from ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                          }
+                                          
+                                          // Special case for "Funds recovered from subadmin" format (old format) 
+                                          if (transaction.description?.includes("Funds recovered from subadmin") && transaction.performer) {
+                                            // Convert to proper format for Fund Credit (commission case)
+                                            return `Funds added to ${transaction.performer.username} (${transaction.performer.role}) by ${transaction.performer.username} (${transaction.performer.role}) from ${user?.username} (${user?.role}) (Commission applied)`;
+                                          }
+                                          
+                                          // Special case for "Funds transferred to subadmin" format (old format)
+                                          if (transaction.description?.includes("Funds transferred to subadmin") && transaction.performer) {
+                                            // Convert to proper format for Fund Debit (commission case)
+                                            return `Funds deducted from ${transaction.performer.username} (${transaction.performer.role}) by ${transaction.performer.username} (${transaction.performer.role}) for transfer to ${user?.username} (${user?.role}) (Commission applied)`;
+                                          }
+                                          
                                           // Special case for older "Funds added by admin" format
                                           if (transaction.description === "Funds added by admin" && transaction.performer) {
                                             if (transaction.amount > 0) {
