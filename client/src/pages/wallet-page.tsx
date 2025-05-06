@@ -1377,14 +1377,42 @@ export default function WalletPage() {
                                         <strong>Description:</strong>{" "}
                                         {/* Handle different transaction description formats */}
                                         {(() => {
+                                          // For descriptions that include proper format already (added to/deducted from)
+                                          if (transaction.description?.includes("added to") || 
+                                              transaction.description?.includes("deducted from")) {
+                                            return transaction.description;
+                                          }
+                                          
                                           // Special case for older "Funds added by admin" format
                                           if (transaction.description === "Funds added by admin" && transaction.performer) {
-                                            return `Funds added to ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                            if (transaction.amount > 0) {
+                                              // Fund credit
+                                              return `Funds added to ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                            } else {
+                                              // Fund debit
+                                              return `Funds deducted from ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                            }
                                           }
                                           
                                           // Special case for older "Funds added by [username]" format
                                           if (transaction.description?.startsWith("Funds added by ") && transaction.performer) {
-                                            return `Funds added to ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                            if (transaction.amount > 0) {
+                                              // Fund credit
+                                              return `Funds added to ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                            } else {
+                                              // Fund debit
+                                              return `Funds deducted from ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                            }
+                                          }
+                                          
+                                          // Special case for transfer descriptions
+                                          if (transaction.description?.includes("Funds transferred to") && transaction.performer) {
+                                            return transaction.description;
+                                          }
+                                          
+                                          // Special case for received funds descriptions
+                                          if (transaction.description?.includes("Funds received from") && transaction.performer) {
+                                            return transaction.description;
                                           }
                                           
                                           // For "Added by" format without recipient info
