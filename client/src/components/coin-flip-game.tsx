@@ -5,6 +5,7 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 import { GameOutcome } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency, formatProfitLoss } from "@/lib/format-utils";
+import { playCoinFlipSound, playWinSound, playLoseSound, initAudio } from "@/lib/sound-utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Card, 
