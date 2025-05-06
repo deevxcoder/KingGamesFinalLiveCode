@@ -114,9 +114,6 @@ const matchFormSchema = z.object({
   matchDate: z.string().min(1, "Match date is required"),
   matchTime: z.string().min(1, "Match time is required"),
   coverImage: z.string().optional(),
-  oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
-  oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
-  oddDraw: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000").optional(),
 });
 
 export default function AdminTeamMatchPage() {
@@ -148,9 +145,6 @@ export default function AdminTeamMatchPage() {
       matchDate: format(new Date(), "yyyy-MM-dd"),
       matchTime: "12:00",
       coverImage: "",
-      oddTeamA: 100,
-      oddTeamB: 100,
-      oddDraw: 300,
     },
   });
 
@@ -906,75 +900,13 @@ export default function AdminTeamMatchPage() {
               
 
               
-              <div className="grid grid-cols-3 gap-4">
-                <FormField
-                  control={matchForm.control}
-                  name="oddTeamA"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Team A Odds</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={e => field.onChange(Number(e.target.value))}
-                          min={100}
-                          max={2000}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Range: 100-2000
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={matchForm.control}
-                  name="oddDraw"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Draw Odds</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={e => field.onChange(Number(e.target.value))}
-                          min={100}
-                          max={2000}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Range: 100-2000
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={matchForm.control}
-                  name="oddTeamB"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Team B Odds</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={e => field.onChange(Number(e.target.value))}
-                          min={100}
-                          max={2000}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Range: 100-2000
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <div className="p-4 bg-muted/30 rounded-lg border border-dashed mt-4">
+                <div className="flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <p className="text-sm text-muted-foreground">
+                    Match odds will be automatically set based on configured system settings.
+                  </p>
+                </div>
               </div>
               
               <DialogFooter>
