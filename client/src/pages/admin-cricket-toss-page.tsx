@@ -283,11 +283,37 @@ export default function AdminCricketTossPage() {
       // Add safe handling of date parsing for toss time
       let tossDate = new Date();
       let tossTimeStr = "12:00";
+      let openDate = new Date();
+      let openTimeStr = "12:00";
+      let closeDate = new Date();
+      let closeTimeStr = "12:00";
       
       if (game.gameData.tossTime) {
         const parsedDate = parseISO(game.gameData.tossTime);
         tossDate = parsedDate;
         tossTimeStr = format(parsedDate, "HH:mm");
+      }
+      
+      // Parse open time if available
+      if (game.gameData.openTime) {
+        const parsedOpenDate = parseISO(game.gameData.openTime);
+        openDate = parsedOpenDate;
+        openTimeStr = format(parsedOpenDate, "HH:mm");
+      } else {
+        // If no open time, use toss time
+        openDate = tossDate;
+        openTimeStr = tossTimeStr;
+      }
+      
+      // Parse close time if available
+      if (game.gameData.closeTime) {
+        const parsedCloseDate = parseISO(game.gameData.closeTime);
+        closeDate = parsedCloseDate;
+        closeTimeStr = format(parsedCloseDate, "HH:mm");
+      } else {
+        // If no close time, use toss time
+        closeDate = tossDate;
+        closeTimeStr = tossTimeStr;
       }
       
       gameForm.reset({
@@ -296,6 +322,10 @@ export default function AdminCricketTossPage() {
         description: game.gameData.description || "",
         tossDate: format(tossDate, "yyyy-MM-dd"),
         tossTime: tossTimeStr,
+        openDate: format(openDate, "yyyy-MM-dd"),
+        openTime: openTimeStr,
+        closeDate: format(closeDate, "yyyy-MM-dd"),
+        closeTime: closeTimeStr,
         oddTeamA: game.gameData.oddTeamA,
         oddTeamB: game.gameData.oddTeamB,
         imageUrl: game.gameData.imageUrl || "",
@@ -489,12 +519,20 @@ export default function AdminCricketTossPage() {
   // Prepare to add a new game
   const handleAddGame = () => {
     setIsAddGameOpen(true);
+    
+    // Get today's date for the form fields
+    const todayFormatted = format(new Date(), "yyyy-MM-dd");
+    
     gameForm.reset({
       teamA: "",
       teamB: "",
       description: "",
-      tossDate: format(new Date(), "yyyy-MM-dd"),
+      tossDate: todayFormatted,
       tossTime: "12:00",
+      openDate: todayFormatted,  // Initialize with today's date
+      openTime: "12:00",         // Initialize with same time as toss
+      closeDate: todayFormatted, // Initialize with today's date
+      closeTime: "12:00",        // Initialize with same time as toss
       oddTeamA: 200,
       oddTeamB: 200,
       imageUrl: "",
@@ -826,6 +864,116 @@ export default function AdminCricketTossPage() {
                 />
               </div>
               
+              {/* Open Betting Date and Time Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={gameForm.control}
+                  name="openDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Open Betting Date (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        If not provided, toss date will be used
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={gameForm.control}
+                  name="openTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Open Betting Time (Optional)</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select time" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Array.from({ length: 24 }).map((_, hour) => (
+                            <div key={hour}>
+                              <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</SelectItem>
+                              <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>{hour.toString().padStart(2, '0')}:30</SelectItem>
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        If not provided, toss time will be used
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Close Betting Date and Time Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={gameForm.control}
+                  name="closeDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Close Betting Date (Optional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        If not provided, toss date will be used
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={gameForm.control}
+                  name="closeTime"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Close Betting Time (Optional)</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select time" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Array.from({ length: 24 }).map((_, hour) => (
+                            <div key={hour}>
+                              <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</SelectItem>
+                              <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>{hour.toString().padStart(2, '0')}:30</SelectItem>
+                            </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        If not provided, toss time will be used
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
               {/* Banner Image URL */}
               <FormField
                 control={gameForm.control}
@@ -972,6 +1120,7 @@ function CricketTossTable({
           <TableRow>
             <TableHead>Teams</TableHead>
             <TableHead>Toss Time</TableHead>
+            <TableHead>Open/Close Time</TableHead>
             <TableHead>Odds (A/B)</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Result</TableHead>
@@ -1000,6 +1149,14 @@ function CricketTossTable({
                 )}
               </TableCell>
               <TableCell>{game.gameData ? formatDate(game.gameData.tossTime) : formatDate(game.createdAt)}</TableCell>
+              <TableCell>
+                {game.gameData ? (
+                  <div className="text-xs">
+                    <div>Open: {game.gameData.openTime ? formatDate(game.gameData.openTime) : "Same as toss"}</div>
+                    <div>Close: {game.gameData.closeTime ? formatDate(game.gameData.closeTime) : "Same as toss"}</div>
+                  </div>
+                ) : '-'}
+              </TableCell>
               <TableCell>{game.gameData ? `${game.gameData.oddTeamA} / ${game.gameData.oddTeamB}` : '-'}</TableCell>
               <TableCell>
                 <StatusBadge result={game.result} />
