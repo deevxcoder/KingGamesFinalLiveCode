@@ -68,15 +68,9 @@ const createSubadminSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// Commission schema for subadmin
+// Commission schema for subadmin deposit
 const commissionSchema = z.object({
-  teamMatch: z.coerce.number().min(0).max(100),
-  cricketToss: z.coerce.number().min(0).max(100),
-  coinFlip: z.coerce.number().min(0).max(100),
-  satamatkaJodi: z.coerce.number().min(0).max(100),
-  satamatkaHarf: z.coerce.number().min(0).max(100),
-  satamatkaOddEven: z.coerce.number().min(0).max(100),
-  satamatkaCrossing: z.coerce.number().min(0).max(100),
+  depositCommissionRate: z.coerce.number().min(0).max(100),
 });
 
 // Game Odds schema for subadmin
@@ -303,19 +297,13 @@ export default function SubadminManagementPage() {
   const commissionForm = useForm<Commission>({
     resolver: zodResolver(commissionSchema),
     defaultValues: {
-      teamMatch: 0,
-      cricketToss: 0,
-      coinFlip: 0,
-      satamatkaJodi: 0,
-      satamatkaHarf: 0,
-      satamatkaOddEven: 0,
-      satamatkaCrossing: 0,
+      depositCommissionRate: 0,
     }
   });
   
-  // Get commission settings for a selected subadmin
-  const { data: commissions, isLoading: isLoadingCommissions, refetch: refetchCommissions } = useQuery({
-    queryKey: [`/api/commissions/subadmin/${selectedSubadminId}`],
+  // Get deposit commission settings for a selected subadmin
+  const { data: depositCommission, isLoading: isLoadingCommissions, refetch: refetchCommissions } = useQuery({
+    queryKey: [`/api/admin/deposit-commissions/${selectedSubadminId}`],
     enabled: !!selectedSubadminId && isCommissionDialogOpen,
   });
   
