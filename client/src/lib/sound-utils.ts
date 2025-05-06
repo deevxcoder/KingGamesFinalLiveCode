@@ -119,32 +119,10 @@ export function playWinSound() {
 }
 
 /**
- * Play a lose sound
+ * Placeholder for losing sound - not used as per user request
+ * We keep the function for API consistency but it doesn't do anything
  */
 export function playLoseSound() {
-  if (isMuted) return;
-  
-  const ctx = initAudio();
-  if (!ctx) return;
-  
-  try {
-    // Create a sad lose sound
-    const oscillator = ctx.createOscillator();
-    const gainNode = ctx.createGain();
-    
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(300, ctx.currentTime);
-    oscillator.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.3);
-    
-    gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-    gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.3);
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(ctx.destination);
-    
-    oscillator.start();
-    oscillator.stop(ctx.currentTime + 0.3);
-  } catch (error) {
-    console.error('Error playing lose sound:', error);
-  }
+  // No sound played for losses as requested by the user
+  return;
 }

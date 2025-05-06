@@ -8,7 +8,6 @@ import { formatCurrency, formatProfitLoss } from "@/lib/format-utils";
 import { 
   playCoinFlipSound, 
   playWinSound, 
-  playLoseSound, 
   initAudio, 
   toggleMute, 
   isSoundMuted 
@@ -99,11 +98,10 @@ export default function CoinFlipGame() {
         // Prepare result data
         const isWin = data.game.payout > 0;
         
-        // Play win or lose sound based on result
+        // Only play win sound if the player wins
+        // No sound for losses as requested
         if (isWin) {
           playWinSound();
-        } else {
-          playLoseSound();
         }
         
         // For win popup, display the amount won (not dividing by 100)
