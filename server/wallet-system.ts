@@ -945,7 +945,10 @@ export function setupWalletRoutes(app: express.Express) {
         if (isAdminSelfFunding) {
           transactionDescription = `Platform Investment: ${notes}`;
         } else {
-          transactionDescription = `${transactionType === 'deposit' ? 'Added' : 'Deducted'} by ${req.user.username} (${req.user.role}): ${notes}`;
+          // Include both recipient and sender information in the description
+          transactionDescription = transactionType === 'deposit'
+            ? `Funds added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}): ${notes}`
+            : `Funds deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}): ${notes}`;
         }
         
         const transactionResult = await client.query(
