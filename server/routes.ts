@@ -775,11 +775,21 @@ app.get("/api/games/my-history", async (req, res, next) => {
         }
       }
       
-      // Update the user - for subadmins only pass the password
-      const updatedUser = await storage.updateUser(
-        userId, 
-        req.user!.role === UserRole.SUBADMIN ? { password } : { username, password }
-      );
+      // Prepare the update data
+      const updateData: { username?: string; password?: string } = {};
+      
+      // Only include username if provided (and user is admin)
+      if (username && req.user!.role === UserRole.ADMIN) {
+        updateData.username = username;
+      }
+      
+      // Only include password if provided
+      if (password) {
+        updateData.password = password;
+      }
+      
+      // Update the user with prepared data
+      const updatedUser = await storage.updateUser(userId, updateData);
       
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
@@ -789,6 +799,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const { password: pwd, ...userWithoutPassword } = updatedUser;
       res.json(userWithoutPassword);
     } catch (err) {
+      console.error("Error updating user:", err);
       next(err);
     }
   });
