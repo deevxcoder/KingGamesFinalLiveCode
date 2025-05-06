@@ -81,28 +81,57 @@ export default function MarketListPage() {
       </div>
 
       <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6 grid w-full grid-cols-5">
-          <TabsTrigger value="active" className="flex items-center justify-center">
-            <Clock className="h-4 w-4 mr-2" />
-            <span>Active ({openMarkets.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="upcoming" className="flex items-center justify-center">
-            <PauseCircle className="h-4 w-4 mr-2" />
-            <span>Upcoming ({upcomingMarkets.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="closed" className="flex items-center justify-center">
-            <Timer className="h-4 w-4 mr-2" />
-            <span>Waiting Results ({closedMarkets.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="resulted" className="flex items-center justify-center">
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            <span>Resulted ({resultedMarkets.length})</span>
-          </TabsTrigger>
-          <TabsTrigger value="all" className="flex items-center justify-center">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            <span>All ({allMarkets.length})</span>
-          </TabsTrigger>
-        </TabsList>
+        {/* Mobile view: scrollable tabs */}
+        <div className="md:hidden mb-6 overflow-x-auto scrollbar-none">
+          <TabsList className="inline-flex flex-nowrap min-w-max border-b-0 px-1">
+            <TabsTrigger value="active" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
+              <Clock className="h-4 w-4 mr-1" />
+              <span>Active ({openMarkets.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="upcoming" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
+              <PauseCircle className="h-4 w-4 mr-1" />
+              <span>Upcoming ({upcomingMarkets.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="closed" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
+              <Timer className="h-4 w-4 mr-1" />
+              <span>Waiting ({closedMarkets.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="resulted" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
+              <CheckCircle2 className="h-4 w-4 mr-1" />
+              <span>Results ({resultedMarkets.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="all" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
+              <AlertCircle className="h-4 w-4 mr-1" />
+              <span>All ({allMarkets.length})</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+        
+        {/* Desktop view: grid tabs */}
+        <div className="hidden md:block">
+          <TabsList className="mb-6 grid w-full grid-cols-5">
+            <TabsTrigger value="active" className="flex items-center justify-center">
+              <Clock className="h-4 w-4 mr-2" />
+              <span>Active ({openMarkets.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="upcoming" className="flex items-center justify-center">
+              <PauseCircle className="h-4 w-4 mr-2" />
+              <span>Upcoming ({upcomingMarkets.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="closed" className="flex items-center justify-center">
+              <Timer className="h-4 w-4 mr-2" />
+              <span>Waiting Results ({closedMarkets.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="resulted" className="flex items-center justify-center">
+              <CheckCircle2 className="h-4 w-4 mr-2" />
+              <span>Resulted ({resultedMarkets.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="all" className="flex items-center justify-center">
+              <AlertCircle className="h-4 w-4 mr-2" />
+              <span>All ({allMarkets.length})</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="active" className="space-y-6">
           <div className="p-4 bg-muted/50 rounded-lg mb-4">
