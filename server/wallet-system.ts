@@ -953,7 +953,11 @@ export function setupWalletRoutes(app: express.Express) {
               ? `Funds added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}) (Received full amount ${amountInPaisa/100}): ${notes}`
               : `Funds added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}): ${notes}`;
           } else {
-            transactionDescription = `Funds deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}): ${notes}`;
+            // For withdraw, special handling for subadmin transactions with commission
+            const isSubadminLosingFunds = userResult.rows[0].role === UserRole.SUBADMIN && req.user.role === UserRole.ADMIN;
+            transactionDescription = isSubadminLosingFunds
+              ? `Funds deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}) (Full amount ${amountInPaisa/100}): ${notes}`
+              : `Funds deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}): ${notes}`;
           }
         }
         
