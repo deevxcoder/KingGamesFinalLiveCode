@@ -111,8 +111,8 @@ export function formatProfitLoss(
       if (normalizedPayout <= 0) {
         profitLoss = -normalizedBet;
       } else {
-        // Player won - show the profit (payout - bet)
-        profitLoss = normalizedPayout - normalizedBet;
+        // Player won - show the full payout amount (including original bet)
+        profitLoss = normalizedPayout;
       }
     }
   }
