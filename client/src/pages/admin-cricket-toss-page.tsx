@@ -108,8 +108,6 @@ const tossGameFormSchema = z.object({
   openTime: z.string().optional(),
   closeDate: z.string().optional(),
   closeTime: z.string().optional(),
-  oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
-  oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   imageUrl: z.string().optional(),
 });
 
@@ -139,8 +137,7 @@ export default function AdminCricketTossPage() {
       description: "",
       tossDate: format(new Date(), "yyyy-MM-dd"),
       tossTime: "12:00",
-      oddTeamA: 200,
-      oddTeamB: 200,
+      imageUrl: "",
     },
   });
 
@@ -326,8 +323,6 @@ export default function AdminCricketTossPage() {
         openTime: openTimeStr,
         closeDate: format(closeDate, "yyyy-MM-dd"),
         closeTime: closeTimeStr,
-        oddTeamA: game.gameData.oddTeamA,
-        oddTeamB: game.gameData.oddTeamB,
         imageUrl: game.gameData.imageUrl || "",
       });
     } catch (error) {
@@ -533,8 +528,6 @@ export default function AdminCricketTossPage() {
       openTime: "12:00",         // Initialize with same time as toss
       closeDate: todayFormatted, // Initialize with today's date
       closeTime: "12:00",        // Initialize with same time as toss
-      oddTeamA: 200,
-      oddTeamB: 200,
       imageUrl: "",
     });
   };
@@ -974,74 +967,105 @@ export default function AdminCricketTossPage() {
                 />
               </div>
               
-              {/* Banner Image URL */}
-              <FormField
-                control={gameForm.control}
-                name="imageUrl"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Banner Image URL</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="e.g. https://example.com/image.jpg" 
-                        {...field} 
-                        value={field.value || ""}
+              {/* Banner Image Selection */}
+              <div className="space-y-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label>Match Banner Image</Label>
+                  <div className="flex items-center space-x-4 mt-2">
+                    <div className="flex-1">
+                      <FormField
+                        control={gameForm.control}
+                        name="imageUrl"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input 
+                                placeholder="Image URL" 
+                                {...field} 
+                                value={field.value || ""}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
-                    </FormControl>
-                    <FormDescription>
-                      Enter a URL for the banner image (optional)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={gameForm.control}
-                  name="oddTeamA"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Team A Odds</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={e => field.onChange(Number(e.target.value))}
-                          min={100}
-                          max={500}
+                    </div>
+                    <div className="flex-none">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          // Show file picker and handle upload
+                          const fileInput = document.createElement('input');
+                          fileInput.type = 'file';
+                          fileInput.accept = 'image/*';
+                          
+                          fileInput.onchange = async (e) => {
+                            const file = (e.target as HTMLInputElement).files?.[0];
+                            if (!file) return;
+                            
+                            // Create form data for upload
+                            const formData = new FormData();
+                            formData.append('matchBannerImage', file);
+                            
+                            try {
+                              // Upload the file
+                              const response = await fetch('/api/upload/match-banner', {
+                                method: 'POST',
+                                body: formData,
+                              });
+                              
+                              if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.error || 'Failed to upload image');
+                              }
+                              
+                              const data = await response.json();
+                              
+                              if (data.imageUrl) {
+                                // Set the image URL in the form
+                                gameForm.setValue('imageUrl', data.imageUrl);
+                                toast({
+                                  title: "Image uploaded",
+                                  description: "Banner image has been uploaded successfully",
+                                });
+                              }
+                            } catch (error) {
+                              console.error('Error uploading image:', error);
+                              toast({
+                                title: "Upload failed",
+                                description: error instanceof Error ? error.message : 'Failed to upload image',
+                                variant: "destructive"
+                              });
+                            }
+                          };
+                          
+                          fileInput.click();
+                        }}
+                      >
+                        Upload Image
+                      </Button>
+                    </div>
+                  </div>
+                  {gameForm.watch('imageUrl') && (
+                    <div className="mt-4">
+                      <p className="text-sm font-medium mb-2">Preview:</p>
+                      <div className="relative w-full h-40 overflow-hidden rounded-md border border-input">
+                        <img 
+                          src={gameForm.watch('imageUrl')} 
+                          alt="Match Banner Preview" 
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = "https://placehold.co/600x400?text=Image+Not+Found";
+                          }}
                         />
-                      </FormControl>
-                      <FormDescription>
-                        Range: 100-500
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
+                      </div>
+                    </div>
                   )}
-                />
-                
-                <FormField
-                  control={gameForm.control}
-                  name="oddTeamB"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Team B Odds</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
-                          onChange={e => field.onChange(Number(e.target.value))}
-                          min={100}
-                          max={500}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Range: 100-500
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Upload a banner image for the cricket toss game (optional)
+                  </p>
+                </div>
               </div>
               
               <DialogFooter>
