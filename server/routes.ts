@@ -430,8 +430,42 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const result = userWins ? prediction : 
                     (prediction === GameOutcome.HEADS ? GameOutcome.TAILS : GameOutcome.HEADS);
       
-      // Calculate payout (1.95x if win, 0 if loss)
-      const multiplier = 1.95;
+      // Get appropriate multiplier from game odds settings
+      // First check if user is assigned to a subadmin
+      let multiplier = 1.95; // Default fallback if no odds are configured
+      
+      // Try to get user's assigned subadmin
+      const userData = await storage.getUser(user.id);
+      const subadminId = userData?.assignedTo;
+      
+      try {
+        if (subadminId) {
+          // User is assigned to a subadmin, check for subadmin-specific odds
+          const subadminOdds = await storage.getGameOddsBySubadmin(subadminId, 'coin_flip');
+          if (subadminOdds.length > 0) {
+            // Use subadmin odds
+            multiplier = subadminOdds[0].oddValue / 100; // Convert from stored integer (195) to decimal (1.95)
+          } else {
+            // No subadmin-specific odds, check admin odds
+            const adminOdds = await storage.getGameOdds('coin_flip');
+            const adminOdd = adminOdds.find(odd => odd.setByAdmin === true);
+            if (adminOdd) {
+              multiplier = adminOdd.oddValue / 100;
+            }
+          }
+        } else {
+          // User not assigned to a subadmin, use admin odds directly
+          const adminOdds = await storage.getGameOdds('coin_flip');
+          const adminOdd = adminOdds.find(odd => odd.setByAdmin === true);
+          if (adminOdd) {
+            multiplier = adminOdd.oddValue / 100;
+          }
+        }
+      } catch (error) {
+        console.error("Error getting odds settings:", error);
+        // Use default multiplier if there's an error
+      }
+      
       const payout = userWins ? Math.floor(betAmount * multiplier) : 0;
       
       // Update user balance
