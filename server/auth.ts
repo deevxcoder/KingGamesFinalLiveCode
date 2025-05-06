@@ -58,11 +58,16 @@ async function comparePasswords(supplied: string, stored: string) {
         return false;
       }
     } 
-    // Check if it's a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+    // Legacy bcrypt support - for backwards compatibility only
+    // Will be removed in future versions
     else if (stored.startsWith('$2a$') || stored.startsWith('$2b$') || stored.startsWith('$2y$')) {
       try {
-        console.log("Checking bcrypt password format");
-        return await bcryptjs.compare(supplied, stored);
+        console.log("Checking bcrypt password format (legacy support)");
+        const result = await bcryptjs.compare(supplied, stored);
+        
+        // If this is successful, we should update to the new format
+        console.log("Legacy password format detected, consider updating to new format");
+        return result;
       } catch (err) {
         console.error('Error comparing bcrypt password:', err);
         return false;
