@@ -497,9 +497,23 @@ export const subadminCommissions = pgTable("subadmin_commissions", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Deposit commissions for subadmins (used in fund transfers)
+export const depositCommissions = pgTable("deposit_commissions", {
+  id: serial("id").primaryKey(),
+  subadminId: integer("subadmin_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  commissionRate: integer("commission_rate").notNull(), // percentage (stored as integer, e.g. 3000 = 30.00%)
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertSubadminCommissionSchema = createInsertSchema(subadminCommissions);
 export type InsertSubadminCommission = z.infer<typeof insertSubadminCommissionSchema>;
 export type SubadminCommission = typeof subadminCommissions.$inferSelect;
+
+export const insertDepositCommissionSchema = createInsertSchema(depositCommissions);
+export type InsertDepositCommission = z.infer<typeof insertDepositCommissionSchema>;
+export type DepositCommission = typeof depositCommissions.$inferSelect;
 
 // User Discount Schema (set by subadmin)
 export const userDiscounts = pgTable("user_discounts", {
@@ -536,6 +550,10 @@ export type GameOdd = typeof gameOdds.$inferSelect;
 // Relations
 export const subadminCommissionsRelations = relations(subadminCommissions, ({ one }) => ({
   subadmin: one(users, { fields: [subadminCommissions.subadminId], references: [users.id] }),
+}));
+
+export const depositCommissionsRelations = relations(depositCommissions, ({ one }) => ({
+  subadmin: one(users, { fields: [depositCommissions.subadminId], references: [users.id] }),
 }));
 
 export const userDiscountsRelations = relations(userDiscounts, ({ one }) => ({
