@@ -307,37 +307,29 @@ export default function SubadminManagementPage() {
     enabled: !!selectedSubadminId && isCommissionDialogOpen,
   });
   
-  // Update commission mutation
+  // Update deposit commission mutation
   const updateCommissionMutation = useMutation({
     mutationFn: async (values: Commission) => {
       if (!selectedSubadminId) {
         throw new Error('No subadmin selected');
       }
       
-      return apiRequest("POST", `/api/commissions/subadmin/${selectedSubadminId}`, {
-        commissions: [
-          { gameType: 'team_match', commissionRate: Math.round(values.teamMatch * 100) },
-          { gameType: 'cricket_toss', commissionRate: Math.round(values.cricketToss * 100) },
-          { gameType: 'coin_flip', commissionRate: Math.round(values.coinFlip * 100) },
-          { gameType: 'satamatka_jodi', commissionRate: Math.round(values.satamatkaJodi * 100) },
-          { gameType: 'satamatka_harf', commissionRate: Math.round(values.satamatkaHarf * 100) },
-          { gameType: 'satamatka_odd_even', commissionRate: Math.round(values.satamatkaOddEven * 100) },
-          { gameType: 'satamatka_crossing', commissionRate: Math.round(values.satamatkaCrossing * 100) },
-        ]
+      return apiRequest("POST", `/api/admin/deposit-commissions/${selectedSubadminId}`, {
+        commissionRate: Math.round(values.depositCommissionRate * 100)
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/commissions/subadmin/${selectedSubadminId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/admin/deposit-commissions/${selectedSubadminId}`] });
       toast({
-        title: "Commission settings updated",
-        description: `Commission rates for ${selectedSubadminName} have been updated successfully.`,
+        title: "Deposit commission updated",
+        description: `Commission rate for ${selectedSubadminName} has been updated successfully.`,
         duration: 3000,
       });
       setIsCommissionDialogOpen(false);
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to update commission settings",
+        title: "Failed to update deposit commission",
         description: error.message,
         variant: "destructive",
         duration: 5000,
@@ -350,40 +342,16 @@ export default function SubadminManagementPage() {
     updateCommissionMutation.mutate(values);
   };
   
-  // Set form values when commissions data is loaded
+  // Set form values when deposit commission data is loaded
   useEffect(() => {
-    if (commissions && Array.isArray(commissions) && commissions.length > 0) {
-      const formValues: any = {
-        teamMatch: 0,
-        cricketToss: 0,
-        coinFlip: 0,
-        satamatkaJodi: 0,
-        satamatkaHarf: 0,
-        satamatkaOddEven: 0,
-        satamatkaCrossing: 0,
+    if (depositCommission) {
+      const formValues = {
+        depositCommissionRate: depositCommission.commissionRate / 100,
       };
-
-      commissions.forEach((commission: any) => {
-        if (commission.gameType === 'team_match') {
-          formValues.teamMatch = commission.commissionRate / 100;
-        } else if (commission.gameType === 'cricket_toss') {
-          formValues.cricketToss = commission.commissionRate / 100;
-        } else if (commission.gameType === 'coin_flip') {
-          formValues.coinFlip = commission.commissionRate / 100;
-        } else if (commission.gameType === 'satamatka_jodi') {
-          formValues.satamatkaJodi = commission.commissionRate / 100;
-        } else if (commission.gameType === 'satamatka_harf') {
-          formValues.satamatkaHarf = commission.commissionRate / 100;
-        } else if (commission.gameType === 'satamatka_odd_even') {
-          formValues.satamatkaOddEven = commission.commissionRate / 100;
-        } else if (commission.gameType === 'satamatka_crossing') {
-          formValues.satamatkaCrossing = commission.commissionRate / 100;
-        }
-      });
 
       commissionForm.reset(formValues);
     }
-  }, [commissions, commissionForm]);
+  }, [depositCommission, commissionForm]);
   
   // Open commission dialog for a specific subadmin
   const openCommissionDialog = (subadmin: any) => {
@@ -887,13 +855,13 @@ export default function SubadminManagementPage() {
         </DialogContent>
       </Dialog>
       
-      {/* Commission Settings Dialog */}
+      {/* Deposit Commission Settings Dialog */}
       <Dialog open={isCommissionDialogOpen} onOpenChange={setIsCommissionDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-secondary">
+        <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-secondary">
           <DialogHeader>
-            <DialogTitle>Commission Settings</DialogTitle>
+            <DialogTitle>Deposit Commission Settings</DialogTitle>
             <DialogDescription>
-              Configure commission rates for {selectedSubadminName}
+              Configure deposit commission rate for {selectedSubadminName}
             </DialogDescription>
           </DialogHeader>
           
@@ -907,29 +875,26 @@ export default function SubadminManagementPage() {
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Important information</AlertTitle>
                 <AlertDescription>
-                  Commission rates determine the percentage of bets that the subadmin will receive from player bets.
-                  These rates affect your platform's revenue.
+                  <p className="text-sm">
+                    This commission rate determines the percentage applied during fund transfers between
+                    admin and subadmin:
+                  </p>
+                  <ul className="text-sm list-disc list-inside mt-2 space-y-1">
+                    <li>When admin adds funds to subadmin: Full amount goes to subadmin but only commission percentage is deducted from admin.</li>
+                    <li>When admin removes funds from subadmin: Full amount is removed from subadmin but only commission percentage is added to admin.</li>
+                  </ul>
                 </AlertDescription>
               </Alert>
               
               <Form {...commissionForm}>
                 <form onSubmit={commissionForm.handleSubmit(onSubmitCommission)} className="space-y-4 py-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Sports Games */}
-                    <div className="space-y-3 col-span-2">
-                      <h3 className="text-sm font-medium flex items-center gap-2">
-                        <Percent className="h-4 w-4" />
-                        Sports Games
-                      </h3>
-                      <Separator />
-                    </div>
-                    
+                  <div className="grid grid-cols-1 gap-4">
                     <FormField
                       control={commissionForm.control}
-                      name="teamMatch"
+                      name="depositCommissionRate"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Team Match</FormLabel>
+                          <FormLabel>Deposit Commission Rate</FormLabel>
                           <div className="flex items-center gap-2">
                             <FormControl>
                               <Input type="number" min="0" max="100" step="0.1" {...field} />
@@ -937,125 +902,8 @@ export default function SubadminManagementPage() {
                             <span>%</span>
                           </div>
                           <FormDescription className="text-xs">
-                            Commission on team match bets
+                            Set the commission rate between 0% and 100%.
                           </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={commissionForm.control}
-                      name="cricketToss"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Cricket Toss</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input type="number" min="0" max="100" step="0.1" {...field} />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormDescription className="text-xs">
-                            Commission on cricket toss predictions
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={commissionForm.control}
-                      name="coinFlip"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Coin Flip</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input type="number" min="0" max="100" step="0.1" {...field} />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormDescription className="text-xs">
-                            Commission on coin flip games
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    {/* Satamatka Games */}
-                    <div className="space-y-3 col-span-2 mt-4">
-                      <h3 className="text-sm font-medium flex items-center gap-2">
-                        <Percent className="h-4 w-4" />
-                        Satamatka Games
-                      </h3>
-                      <Separator />
-                    </div>
-                    
-                    <FormField
-                      control={commissionForm.control}
-                      name="satamatkaJodi"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Jodi (Pair)</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input type="number" min="0" max="100" step="0.1" {...field} />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={commissionForm.control}
-                      name="satamatkaHarf"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Harf</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input type="number" min="0" max="100" step="0.1" {...field} />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={commissionForm.control}
-                      name="satamatkaOddEven"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Odd/Even</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input type="number" min="0" max="100" step="0.1" {...field} />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={commissionForm.control}
-                      name="satamatkaCrossing"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Crossing</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input type="number" min="0" max="100" step="0.1" {...field} />
-                            </FormControl>
-                            <span>%</span>
-                          </div>
                           <FormMessage />
                         </FormItem>
                       )}
