@@ -1375,17 +1375,34 @@ export default function WalletPage() {
                                     <div className="px-4 pb-4 text-sm border-t border-slate-800 bg-slate-950/50">
                                       <p className="mt-2">
                                         <strong>Description:</strong>{" "}
-                                        {/* Override some older transactions that used fixed text */}
-                                        {transaction.description === "Funds added by admin" && transaction.performer 
-                                          ? `Funds added by ${transaction.performer.username} (${transaction.performer.role})` 
-                                          : transaction.description.replace(/processed by \d+/, 
-                                              transaction.performer 
-                                                ? `processed by ${transaction.performer.username} (${transaction.performer.role})` 
-                                                : "processed"
-                                            )
-                                        }
+                                        {/* Handle different transaction description formats */}
+                                        {(() => {
+                                          // Special case for older "Funds added by admin" format
+                                          if (transaction.description === "Funds added by admin" && transaction.performer) {
+                                            return `Funds added to ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                          }
+                                          
+                                          // Special case for older "Funds added by [username]" format
+                                          if (transaction.description?.startsWith("Funds added by ") && transaction.performer) {
+                                            return `Funds added to ${user?.username} (${user?.role}) by ${transaction.performer.username} (${transaction.performer.role})`;
+                                          }
+                                          
+                                          // For "Added by" format without recipient info
+                                          if (transaction.description?.includes("Added by ") && !transaction.description?.includes("added to") && transaction.performer) {
+                                            return transaction.description.replace("Added by ", `Funds added to ${user?.username} (${user?.role}) by `);
+                                          }
+                                          
+                                          // Replace generic "processed by" patterns
+                                          if (transaction.description?.includes("processed by") && transaction.performer) {
+                                            return transaction.description.replace(/processed by \d+/, 
+                                              `processed by ${transaction.performer.username} (${transaction.performer.role})`
+                                            );
+                                          }
+                                          
+                                          // Default: return the description as is
+                                          return transaction.description;
+                                        })()}
                                       </p>
-
                                     </div>
                                   )}
                                 </div>
