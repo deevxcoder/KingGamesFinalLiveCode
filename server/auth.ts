@@ -2,9 +2,13 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
-import bcrypt from "bcrypt";
+import { scrypt, timingSafeEqual, randomBytes } from "crypto";
+import { promisify } from "util";
 import { storage } from "./storage";
 import { User as SelectUser, UserRole } from "@shared/schema";
+
+// Promisify the scrypt function
+const scryptAsync = promisify(scrypt);
 
 declare global {
   namespace Express {
@@ -13,20 +17,35 @@ declare global {
 }
 
 export async function hashPassword(password: string) {
-  return bcrypt.hash(password, 10);
+  // Use our native crypto.scrypt function for password hashing
+  const salt = randomBytes(16).toString('hex');
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString('hex')}.${salt}`;
 }
 
 async function comparePasswords(supplied: string, stored: string) {
-  // Check if it's a bcrypt hash (starts with $2a$, $2b$, or $2y$)
-  if (stored.startsWith('$2a$') || stored.startsWith('$2b$') || stored.startsWith('$2y$')) {
-    return bcrypt.compare(supplied, stored);
+  try {
+    // Check if it's our crypto.scrypt format (hex.salt)
+    if (stored.includes('.')) {
+      try {
+        const [hashedPart, salt] = stored.split('.');
+        const hashedBuf = Buffer.from(hashedPart, 'hex');
+        const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+        return timingSafeEqual(hashedBuf, suppliedBuf);
+      } catch (err) {
+        console.error('Error comparing crypto.scrypt password:', err);
+        return false;
+      }
+    } else {
+      // This is either bcrypt or an unknown format - in either case, we
+      // simply set up a special debug log for it and return false
+      console.log(`Unsupported password format: ${stored.substring(0, 4)}...`);
+      return false;
+    }
+  } catch (error) {
+    console.error("Error in comparePasswords:", error);
+    return false;
   }
-  
-  // For debugging
-  console.log('Password format not recognized:', stored.substring(0, 4));
-  
-  // Fallback for old-style passwords if needed in the future
-  return false;
 }
 
 export function setupAuth(app: Express) {
@@ -204,6 +223,47 @@ export function setupAuth(app: Express) {
       res.status(200).json({ message: "Password updated successfully" });
     } catch (err) {
       console.error("Error updating password:", err);
+      next(err);
+    }
+  });
+  
+  // Admin password reset endpoint - allows admins to reset any user's password
+  app.patch("/api/admin/reset-password/:userId", async (req, res, next) => {
+    try {
+      // Check if user is authenticated and is an admin
+      if (!req.isAuthenticated() || req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: "Forbidden: Only admins can reset passwords" });
+      }
+      
+      const { userId } = req.params;
+      const { newPassword } = req.body;
+      
+      if (!newPassword) {
+        return res.status(400).json({ message: "New password is required" });
+      }
+      
+      // Find the user whose password will be reset
+      const user = await storage.getUser(parseInt(userId));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update the user's password in the database
+      const updatedUser = await storage.updateUserPassword(user.id, hashedPassword);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to reset password" });
+      }
+      
+      // Return success response
+      res.status(200).json({ 
+        message: `Password for user ${user.username} was reset successfully` 
+      });
+    } catch (err) {
+      console.error("Error resetting password:", err);
       next(err);
     }
   });
