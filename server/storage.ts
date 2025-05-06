@@ -1,3 +1,5 @@
+import { scrypt, randomBytes } from 'crypto';
+import { promisify } from 'util';
 import { 
   users, 
   games, 
@@ -37,6 +39,16 @@ import { eq, and, desc, gte, lte, or } from "drizzle-orm";
 
 // Connect to PostgreSQL for session storage
 const PostgresSessionStore = connectPg(session);
+
+// Promisify the scrypt function
+const scryptAsync = promisify(scrypt);
+
+// Function to hash password using crypto
+async function hashPassword(password: string) {
+  const salt = randomBytes(16).toString('hex');
+  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${buf.toString('hex')}.${salt}`;
+}
 
 export interface IStorage {
   // User methods
@@ -487,9 +499,14 @@ export class DatabaseStorage implements IStorage {
     const updateData: any = {};
     if (data.username) updateData.username = data.username;
     if (data.password) {
-      // Hash the password directly using bcrypt
-      const bcryptModule = await import('bcrypt');
-      updateData.password = await bcryptModule.default.hash(data.password, 10);
+      // Use our native crypto hashPassword function
+      try {
+        updateData.password = await hashPassword(data.password);
+        console.log("Password hashed successfully using crypto.scrypt");
+      } catch (err) {
+        console.error("Error hashing password:", err);
+        throw new Error("Failed to hash password");
+      }
     }
     
     if (Object.keys(updateData).length === 0) return this.getUser(userId);
