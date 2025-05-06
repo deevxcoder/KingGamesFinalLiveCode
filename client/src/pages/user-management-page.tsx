@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { UserRole } from "@shared/schema";
@@ -96,6 +96,7 @@ export default function UserManagementPage() {
   const [detailsTab, setDetailsTab] = useState("transactions");
   const [commissionRate, setCommissionRate] = useState<number>(0);
   const [selectedGameType, setSelectedGameType] = useState<string>("satamatka_jodi");
+  const [selectedSubadminCommissionRate, setSelectedSubadminCommissionRate] = useState<number | null>(null);
   
   // Pagination states
   const [transactionsPage, setTransactionsPage] = useState(1);
@@ -435,15 +436,50 @@ export default function UserManagementPage() {
     });
   };
 
-  const openAddFundsDialog = (user: any) => {
-    setSelectedUser(user);
+  // Fetch deposit commission rate for a subadmin
+  const fetchDepositCommissionRate = async (subadminId: number) => {
+    try {
+      if (user?.role === UserRole.ADMIN) {
+        const response = await apiRequest("GET", `/api/admin/deposit-commissions/${subadminId}`);
+        const data = await response.json();
+        if (data && data.commissionRate !== undefined) {
+          return data.commissionRate / 100; // Convert from basis points to percentage
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching commission rate:", error);
+      return null;
+    }
+  };
+
+  const openAddFundsDialog = async (targetUser: any) => {
+    setSelectedUser(targetUser);
     setAmount(0);
+    
+    // If admin is opening dialog for a subadmin, fetch the commission rate
+    if (targetUser?.role === UserRole.SUBADMIN && user?.role === UserRole.ADMIN) {
+      const commissionRate = await fetchDepositCommissionRate(targetUser.id);
+      setSelectedSubadminCommissionRate(commissionRate);
+    } else {
+      setSelectedSubadminCommissionRate(null);
+    }
+    
     setIsAddFundsDialogOpen(true);
   };
 
-  const openRemoveFundsDialog = (user: any) => {
-    setSelectedUser(user);
+  const openRemoveFundsDialog = async (targetUser: any) => {
+    setSelectedUser(targetUser);
     setAmount(0);
+    
+    // If admin is opening dialog for a subadmin, fetch the commission rate
+    if (targetUser?.role === UserRole.SUBADMIN && user?.role === UserRole.ADMIN) {
+      const commissionRate = await fetchDepositCommissionRate(targetUser.id);
+      setSelectedSubadminCommissionRate(commissionRate);
+    } else {
+      setSelectedSubadminCommissionRate(null);
+    }
+    
     setIsRemoveFundsDialogOpen(true);
   };
 
@@ -666,7 +702,7 @@ export default function UserManagementPage() {
               Add funds to {selectedUser?.username}'s account
               {user?.role === UserRole.ADMIN && selectedUser?.role === UserRole.SUBADMIN && (
                 <span className="block mt-2 text-sm font-medium text-yellow-600">
-                  Note: Commission rate applies to transfers to subadmins
+                  Note: Commission rate of {selectedSubadminCommissionRate !== null ? `${selectedSubadminCommissionRate}%` : "..."} applies to this transfer
                 </span>
               )}
             </DialogDescription>
@@ -686,6 +722,17 @@ export default function UserManagementPage() {
                   step="1"
                 />
               </div>
+              {user?.role === UserRole.ADMIN && selectedUser?.role === UserRole.SUBADMIN && selectedSubadminCommissionRate !== null && amount > 0 && (
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-sm">
+                  <p className="text-yellow-800">
+                    <span className="font-medium">Commission calculation:</span> 
+                    <br />
+                    Subadmin receives: ₹{amount.toFixed(2)}
+                    <br />
+                    Admin pays: ₹{((amount * selectedSubadminCommissionRate) / 100).toFixed(2)} ({selectedSubadminCommissionRate}% of ₹{amount.toFixed(2)})
+                  </p>
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="remark">Remark (Optional)</Label>
@@ -724,7 +771,7 @@ export default function UserManagementPage() {
               Remove funds from {selectedUser?.username}'s account
               {user?.role === UserRole.ADMIN && selectedUser?.role === UserRole.SUBADMIN && (
                 <span className="block mt-2 text-sm font-medium text-yellow-600">
-                  Note: Commission rate applies to withdrawals from subadmins
+                  Note: Commission rate of {selectedSubadminCommissionRate !== null ? `${selectedSubadminCommissionRate}%` : "..."} applies to this withdrawal
                 </span>
               )}
             </DialogDescription>
@@ -745,6 +792,17 @@ export default function UserManagementPage() {
                   step="1"
                 />
               </div>
+              {user?.role === UserRole.ADMIN && selectedUser?.role === UserRole.SUBADMIN && selectedSubadminCommissionRate !== null && amount > 0 && (
+                <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md text-sm">
+                  <p className="text-yellow-800">
+                    <span className="font-medium">Commission calculation:</span> 
+                    <br />
+                    Subadmin pays: ₹{amount.toFixed(2)}
+                    <br />
+                    Admin receives: ₹{((amount * selectedSubadminCommissionRate) / 100).toFixed(2)} ({selectedSubadminCommissionRate}% of ₹{amount.toFixed(2)})
+                  </p>
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="remove-remark">Remark (Optional)</Label>
