@@ -117,6 +117,7 @@ export interface IStorage {
   getGameOdds(gameType: string): Promise<GameOdd[]>;
   getGameOddsBySubadmin(subadminId: number, gameType?: string): Promise<GameOdd[]>;
   upsertGameOdd(gameType: string, oddValue: number, setByAdmin: boolean, subadminId?: number): Promise<GameOdd>;
+  getOddsForPlayer(userId: number, gameType: string): Promise<number>;
 
   // Admin seeding methods
   seedCricketTossGames(): Promise<void>;
@@ -1422,6 +1423,103 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await query.orderBy(gameOdds.gameType);
+  }
+  
+  /**
+   * Gets the appropriate odds for a player based on their relationship with subadmins
+   * Hierarchy of odds:
+   * 1. If user has a specific discount set by their assigned subadmin, use that
+   * 2. If user is assigned to a subadmin who has custom odds, use those
+   * 3. Otherwise, use the admin's platform default odds
+   */
+  async getOddsForPlayer(userId: number, gameType: string): Promise<number> {
+    try {
+      // Step 1: Get the user and their assigned admin
+      const user = await this.getUser(userId);
+      if (!user || !user.assignedTo) {
+        // Fallback to admin odds if user not found or not assigned
+        const [adminOdds] = await db
+          .select()
+          .from(gameOdds)
+          .where(
+            and(
+              eq(gameOdds.gameType, gameType),
+              eq(gameOdds.setByAdmin, true),
+              eq(gameOdds.isActive, true)
+            )
+          );
+          
+        return adminOdds?.oddValue || this.getDefaultOddForGameType(gameType);
+      }
+      
+      // Step 2: Check if user has a specific discount set by their subadmin
+      const userDiscounts = await this.getUserDiscounts(userId, user.assignedTo);
+      const matchingDiscount = userDiscounts.find(d => d.gameType === gameType);
+      
+      if (matchingDiscount) {
+        // User has a specific discount rate, apply it
+        return matchingDiscount.discountRate;
+      }
+      
+      // Step 3: Check if assigned admin has custom odds
+      if (user.assignedTo) {
+        const [subadminOdds] = await db
+          .select()
+          .from(gameOdds)
+          .where(
+            and(
+              eq(gameOdds.gameType, gameType),
+              eq(gameOdds.subadminId, user.assignedTo),
+              eq(gameOdds.isActive, true)
+            )
+          );
+          
+        if (subadminOdds) {
+          return subadminOdds.oddValue;
+        }
+      }
+      
+      // Step 4: Fallback to admin's platform default odds
+      const [adminOdds] = await db
+        .select()
+        .from(gameOdds)
+        .where(
+          and(
+            eq(gameOdds.gameType, gameType),
+            eq(gameOdds.setByAdmin, true),
+            eq(gameOdds.isActive, true)
+          )
+        );
+        
+      return adminOdds?.oddValue || this.getDefaultOddForGameType(gameType);
+    } catch (error) {
+      console.error(`Error getting odds for player ${userId} and game type ${gameType}:`, error);
+      // Return default odds as fallback in case of error
+      return this.getDefaultOddForGameType(gameType);
+    }
+  }
+  
+  /**
+   * Returns default odds for different game types
+   * Used as fallback when no odds configuration exists in the database
+   */
+  private getDefaultOddForGameType(gameType: string): number {
+    switch(gameType) {
+      case 'coin_flip':
+        return 195; // 1.95x for coin flip
+      case 'satamatka_jodi':
+        return 9000; // 90x for Satamatka Jodi
+      case 'satamatka_harf':
+        return 900; // 9x for Satamatka Harf
+      case 'satamatka_crossing':
+        return 9500; // 95x for Satamatka Crossing
+      case 'satamatka_odd_even':
+        return 180; // 1.8x for Satamatka Odd-Even
+      case 'cricket_toss':
+        return 195; // 1.95x for Cricket Toss
+      default:
+        return 200; // 2x as generic fallback
+    }
   }
 
   async upsertGameOdd(gameType: string, oddValue: number, setByAdmin: boolean, subadminId?: number): Promise<GameOdd> {
