@@ -504,7 +504,7 @@ export default function RiskManagementPage() {
           totalPotentialWin += betsByGameMode['jodi'] * 90;
           totalPotentialWin += betsByGameMode['harf'] * 9;
           totalPotentialWin += betsByGameMode['odd_even'] * 1.8;
-          totalPotentialWin += betsByGameMode['crossing'] * 4.5;
+          totalPotentialWin += betsByGameMode['crossing'] * 95;
           
           // Count unique users by collecting user IDs from all numbers
           const uniqueUserIds = new Set<number>();
@@ -534,7 +534,7 @@ export default function RiskManagementPage() {
           } else if (item.gameMode === 'odd_even') {
             totalPotentialWin += item.totalAmount * 1.8;
           } else if (item.gameMode === 'crossing') {
-            totalPotentialWin += item.totalAmount * 4.5;
+            totalPotentialWin += item.totalAmount * 95;
           } else {
             // Default case - use the provided potentialWinAmount
             totalPotentialWin += item.potentialWinAmount;

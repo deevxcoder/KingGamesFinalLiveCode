@@ -1347,7 +1347,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
               const digits = game.prediction.replace(/[^0-9,]/g, '').split(',');
               if (digits.includes(closeResult[0]) || digits.includes(closeResult[1])) {
                 isWinner = true;
-                payout = game.betAmount * 9; // 9x payout for crossing
+                payout = game.betAmount * 95; // 95x payout for crossing
               }
             }
             else if (game.gameMode === SatamatkaGameMode.ODD_EVEN) {
