@@ -222,7 +222,7 @@ export default function RiskManagementPage() {
             calculatedPotentialWin = numStat.totalAmount * 9;
             break;
           case "crossing":
-            calculatedPotentialWin = numStat.totalAmount * 4.5;
+            calculatedPotentialWin = numStat.totalAmount * 95;
             break;
           case "odd_even":
             calculatedPotentialWin = numStat.totalAmount * 1.8;

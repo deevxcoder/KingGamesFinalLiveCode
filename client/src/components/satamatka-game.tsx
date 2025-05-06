@@ -1718,7 +1718,7 @@ function calculatePotentialWin(gameMode: string, betAmount: number): number {
       payoutRatio = 9;
       break;
     case "crossing":
-      payoutRatio = 4.5;
+      payoutRatio = 95; // Updated from 4.5 to 95 to match the actual odds
       break;
     case "odd_even":
       payoutRatio = 1.8;
