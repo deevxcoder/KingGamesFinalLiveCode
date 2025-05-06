@@ -386,10 +386,39 @@ app.get("/api/games/my-history", async (req, res, next) => {
       }
 
       // Import our dynamic probability system
-      const { calculateWinProbability, updateUserSessionStats } = await import('./game-probability');
+      const { calculateWinProbability, updateUserSessionStats, DEFAULT_HOUSE_EDGE_WIN_RATE } = await import('./game-probability');
       
       // Calculate win probability based on user's history and session stats
-      const userWinProbability = await calculateWinProbability(user.id);
+      let userWinProbability = await calculateWinProbability(user.id);
+      
+      // Critical adjustment: Force house edge after seeing game logs
+      // This is a temporary adjustment to ensure the house maintains an edge
+      // The user has been winning too frequently, so we'll lower the probability temporarily
+      // The player has won too many times in a row, adjust probability downward
+      const MAX_WIN_PROBABILITY = 0.35; // Limit maximum win probability to 35% temporarily
+      
+      // Get user's recent games to check winning streak
+      const recentGames = await storage.getRecentGames(user.id, 5);
+      let winStreak = 0;
+      
+      // Count consecutive wins
+      for (const game of recentGames) {
+        if (game.payout > 0) {
+          winStreak++;
+        } else {
+          break; // Stop counting at first loss
+        }
+      }
+      
+      // Apply stricter probability if user is on a winning streak
+      if (winStreak >= 3) {
+        // Cap at a much lower probability for users on a win streak
+        userWinProbability = Math.min(userWinProbability, 0.25);
+        console.log(`Win streak detected (${winStreak}), applying stricter probability: ${userWinProbability.toFixed(2)}`);
+      } else {
+        // Standard adjustment - cap at MAX_WIN_PROBABILITY
+        userWinProbability = Math.min(userWinProbability, MAX_WIN_PROBABILITY);
+      }
       
       // Determine if user wins based on dynamic probability
       const userWins = Math.random() < userWinProbability;

@@ -59,6 +59,7 @@ export interface IStorage {
   getGamesByUserId(userId: number): Promise<Game[]>;
   getGamesByUserIds(userIds: number[]): Promise<Game[]>;
   getAllGames(limit?: number): Promise<Game[]>;
+  getRecentGames(userId: number, limit?: number): Promise<Game[]>;
   updateGameStatus(gameId: number, status: string): Promise<Game | undefined>;
   updateGameResult(gameId: number, result: string, payout?: number): Promise<Game | undefined>;
 
@@ -616,6 +617,19 @@ export class DatabaseStorage implements IStorage {
     });
   }
 
+  async getRecentGames(userId: number, limit: number = 10): Promise<Game[]> {
+    // Get the most recent games for a user, optionally filtered by game type
+    // This is used for calculating probabilities and win/loss streaks
+    const recentGames = await db
+      .select()
+      .from(games)
+      .where(eq(games.userId, userId))
+      .orderBy(desc(games.createdAt))
+      .limit(limit);
+    
+    return recentGames;
+  }
+  
   async updateGameStatus(gameId: number, status: string): Promise<Game | undefined> {
     const [game] = await db
       .update(games)
