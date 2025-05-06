@@ -7,6 +7,8 @@ import DashboardLayout from "@/components/dashboard-layout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GiCricketBat } from "react-icons/gi";
+import { AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Card, 
   CardContent, 
@@ -61,7 +63,6 @@ import {
   Trophy, 
   Clock, 
   CheckCircle2, 
-  AlertCircle,
   Plus,
   MoreVertical,
   Edit,
@@ -678,6 +679,13 @@ export default function AdminTeamMatchPage() {
                 : "Fill in the details to create a new match."}
             </DialogDescription>
           </DialogHeader>
+          
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <AlertDescription>
+              Match odds are now configured in the Admin Settings page and no longer set during match creation.
+            </AlertDescription>
+          </Alert>
           
           <Form {...matchForm}>
             <form onSubmit={matchForm.handleSubmit(onSubmitMatch)} className="space-y-4">

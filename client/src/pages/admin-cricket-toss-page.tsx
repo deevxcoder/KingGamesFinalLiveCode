@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { format, parseISO } from "date-fns";
 import DashboardLayout from "@/components/dashboard-layout";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Card, 
   CardContent, 
@@ -761,6 +762,13 @@ export default function AdminCricketTossPage() {
                 : "Fill in the details to create a new Cricket Toss game."}
             </DialogDescription>
           </DialogHeader>
+          
+          <Alert className="mb-4">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <AlertDescription>
+              Cricket toss odds are now configured in the Admin Settings page and no longer set during game creation.
+            </AlertDescription>
+          </Alert>
           
           <Form {...gameForm}>
             <form onSubmit={gameForm.handleSubmit(onSubmitGame)} className="space-y-4">
