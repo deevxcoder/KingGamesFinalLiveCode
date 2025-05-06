@@ -1180,10 +1180,15 @@ export default function SatamatkaGame() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Payout Ratio:</span>
                     <span className="font-medium ml-2">
-                      {selectedGameMode === "jodi" ? "90x" : 
-                       selectedGameMode === "harf" ? "9x" : 
-                       selectedGameMode === "crossing" ? "95x" : 
-                       selectedGameMode === "odd_even" ? "1.8x" : "1x"}
+                      {selectedGameMode === "jodi" 
+                        ? `${(gameOdds.jodi ? gameOdds.jodi / 100 : 90)}x` 
+                        : selectedGameMode === "harf" 
+                        ? `${(gameOdds.harf ? gameOdds.harf / 100 : 9)}x` 
+                        : selectedGameMode === "crossing" 
+                        ? `${(gameOdds.crossing ? gameOdds.crossing / 100 : 95)}x` 
+                        : selectedGameMode === "odd_even" 
+                        ? `${(gameOdds.odd_even ? gameOdds.odd_even / 100 : 1.8)}x` 
+                        : "1x"}
                     </span>
                   </div>
                   <div className="text-sm">
@@ -1223,13 +1228,13 @@ export default function SatamatkaGame() {
   const getGameModeDescription = () => {
     switch (selectedGameMode) {
       case "jodi":
-        return "Predict the exact two-digit number (00-99). Payout ratio: 90x";
+        return `Predict the exact two-digit number (00-99). Payout ratio: ${(gameOdds.jodi ? gameOdds.jodi / 100 : 90)}x`;
       case "harf":
-        return "Predict digits in specific positions (left/right). Select first digit, second digit, or both. Payout ratio: 9x";
+        return `Predict digits in specific positions (left/right). Select first digit, second digit, or both. Payout ratio: ${(gameOdds.harf ? gameOdds.harf / 100 : 9)}x`;
       case "crossing":
-        return "Select multiple digits (0-9) to create two-digit combinations. For example, selecting 1,2,3 creates: 12, 21, 13, 31, 23, 32. Payout ratio: 95x";
+        return `Select multiple digits (0-9) to create two-digit combinations. For example, selecting 1,2,3 creates: 12, 21, 13, 31, 23, 32. Payout ratio: ${(gameOdds.crossing ? gameOdds.crossing / 100 : 95)}x`;
       case "odd_even":
-        return "Predict if the result will be odd or even. Payout ratio: 1.8x";
+        return `Predict if the result will be odd or even. Payout ratio: ${(gameOdds.odd_even ? gameOdds.odd_even / 100 : 1.8)}x`;
       default:
         return "Select a game mode to see details.";
     }
@@ -1599,7 +1604,7 @@ export default function SatamatkaGame() {
                     // Calculate potential win amount based on game mode
                     const gameMode = bet.gameMode || (bet.gameData?.gameMode as string);
                     const potentialWin = gameMode 
-                      ? (calculatePotentialWin(gameMode, bet.betAmount / 100) / 100).toFixed(2)
+                      ? (calculatePotentialWin(gameMode, bet.betAmount / 100, gameOdds) / 100).toFixed(2)
                       : (bet.betAmount * 1.9 / 100).toFixed(2); // Default multiplier if gameMode not available
                     
                     // Determine visual styling based on status
@@ -1708,7 +1713,7 @@ export default function SatamatkaGame() {
               <div className="space-y-1">
                 <h4 className="text-sm font-medium">Potential Win</h4>
                 <p className="text-sm text-muted-foreground">
-                  {betDetails ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount) / 100).toFixed(2)}` : ''}
+                  {betDetails ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount, gameOdds) / 100).toFixed(2)}` : ''}
                 </p>
               </div>
             </div>
