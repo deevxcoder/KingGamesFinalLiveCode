@@ -204,10 +204,8 @@ export default function AdminTeamMatchPage() {
       teamB: string;
       category: string;
       description?: string;
-      matchTime: Date;
-      oddTeamA: number;
-      oddTeamB: number;
-      oddDraw?: number;
+      matchTime: string;
+      coverImage?: string;
     }) => {
       return apiRequest("POST", "/api/team-matches", data);
     },
@@ -237,10 +235,8 @@ export default function AdminTeamMatchPage() {
         teamB: string;
         category: string;
         description?: string;
-        matchTime: Date;
-        oddTeamA: number;
-        oddTeamB: number;
-        oddDraw?: number;
+        matchTime: string;
+        coverImage?: string;
       }
     }) => {
       return apiRequest("PATCH", `/api/team-matches/${id}`, data);
@@ -308,9 +304,6 @@ export default function AdminTeamMatchPage() {
       matchDate: format(matchDate, "yyyy-MM-dd"),
       matchTime: format(matchDate, "HH:mm"),
       coverImage: "",
-      oddTeamA: match.oddTeamA,
-      oddTeamB: match.oddTeamB,
-      oddDraw: match.oddDraw || undefined,
     });
   };
 
@@ -342,9 +335,7 @@ export default function AdminTeamMatchPage() {
       category: restData.category,
       description: restData.description,
       matchTime: combinedDateTime, // Send as ISO string
-      oddTeamA: restData.oddTeamA,
-      oddTeamB: restData.oddTeamB,
-      oddDraw: restData.oddDraw,
+      coverImage: restData.coverImage,
     };
     
     if (editingMatch) {
@@ -365,9 +356,6 @@ export default function AdminTeamMatchPage() {
       matchDate: format(new Date(), "yyyy-MM-dd"),
       matchTime: "12:00",
       coverImage: "",
-      oddTeamA: 100,
-      oddTeamB: 100,
-      oddDraw: 300,
     });
   };
 
