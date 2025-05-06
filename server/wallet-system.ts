@@ -21,13 +21,14 @@ export const RequestStatus = {
 export const RequestType = {
   DEPOSIT: 'deposit',
   WITHDRAWAL: 'withdrawal',
+  PLATFORM_INVESTMENT: 'platform_investment',
 } as const;
 
 // Validation schemas
 export const walletRequestSchema = z.object({
   userId: z.number(),
   amount: z.number().positive(),
-  requestType: z.enum([RequestType.DEPOSIT, RequestType.WITHDRAWAL]),
+  requestType: z.enum([RequestType.DEPOSIT, RequestType.WITHDRAWAL, RequestType.PLATFORM_INVESTMENT]),
   paymentMode: z.enum([PaymentMode.UPI, PaymentMode.BANK]),
   paymentDetails: z.object({
     upiId: z.string().optional(),
@@ -232,9 +233,9 @@ export async function reviewWalletRequest(
       if (status === RequestStatus.APPROVED) {
         // Convert amount to paisa (multiply by 100) since the balance is stored in paisa
         // but the deposit/withdrawal amounts are entered in rupees
-        const balanceChangeRupees = request.requestType === RequestType.DEPOSIT 
-          ? request.amount 
-          : -request.amount;
+        const balanceChangeRupees = request.requestType === RequestType.WITHDRAWAL 
+          ? -request.amount 
+          : request.amount;
           
         // Convert rupees to paisa (multiply by 100) for storage
         const balanceChangePaisa = balanceChangeRupees * 100;
@@ -269,6 +270,15 @@ export async function reviewWalletRequest(
           adminDescription = `Admin #${adminId}`;
         }
         
+        // Create appropriate description based on request type
+        let transactionDescription;
+        
+        if (request.requestType === RequestType.PLATFORM_INVESTMENT) {
+          transactionDescription = `Platform Investment approved by ${adminDescription}`;
+        } else {
+          transactionDescription = `${request.requestType === RequestType.DEPOSIT ? 'Deposit' : 'Withdrawal'} request processed by ${adminDescription}`;
+        }
+        
         // Create transaction record with the player's balance after this transaction
         await db.insert(transactions).values({
           userId: request.userId,
@@ -276,7 +286,7 @@ export async function reviewWalletRequest(
           balanceAfter: updatedUser.rows[0].balance, // Include the player's updated balance
           performedBy: adminId,
           requestId: requestId,
-          description: `${request.requestType === 'deposit' ? 'Deposit' : 'Withdrawal'} request processed by ${adminDescription}`,
+          description: transactionDescription,
         });
       }
       
@@ -310,6 +320,75 @@ export function setupWalletRoutes(app: express.Express) {
       
       const newRequest = await createWalletRequest(validatedData);
       res.status(201).json(newRequest);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // Special endpoint for admin platform investments (self-funding with tracking)
+  app.post('/api/admin/platform-investment', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // Only admin can access this endpoint
+      if (req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: 'Forbidden - Only admins can make platform investments' });
+      }
+      
+      const { amount, notes } = req.body;
+      
+      if (!amount || amount <= 0 || !notes) {
+        return res.status(400).json({ message: 'Invalid request data - amount and notes are required' });
+      }
+      
+      // Start a transaction
+      const { pool } = await import('./db');
+      const client = await pool.connect();
+      
+      try {
+        await client.query('BEGIN');
+        
+        // Convert amount to paisa for storage
+        const amountInPaisa = amount * 100;
+        
+        // Update admin's balance
+        const updatedUserResult = await client.query(
+          'UPDATE users SET balance = balance + $1 WHERE id = $2 RETURNING balance',
+          [amountInPaisa, req.user.id]
+        );
+        
+        if (updatedUserResult.rowCount === 0) {
+          await client.query('ROLLBACK');
+          return res.status(500).json({ message: 'Failed to update admin balance' });
+        }
+        
+        // Get the updated balance
+        const updatedBalance = updatedUserResult.rows[0].balance;
+        
+        // Create transaction record with special description
+        const transactionResult = await client.query(
+          'INSERT INTO transactions (user_id, amount, balance_after, performed_by, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+          [req.user.id, amountInPaisa, updatedBalance, req.user.id, `Platform Investment: ${notes}`]
+        );
+        
+        await client.query('COMMIT');
+        
+        // Return the transaction and updated user
+        res.status(201).json({
+          transaction: transactionResult.rows[0],
+          userBalance: updatedBalance / 100, // Convert back to rupees for display
+          message: 'Platform investment recorded successfully.'
+        });
+        
+      } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Investment error:', error);
+        res.status(500).json({ message: 'Platform investment failed' });
+      } finally {
+        client.release();
+      }
     } catch (err) {
       next(err);
     }
@@ -553,17 +632,68 @@ export function setupWalletRoutes(app: express.Express) {
       try {
         await client.query('BEGIN');
         
-        // Get the user
+        // Get the user receiving funds
         const userResult = await client.query('SELECT * FROM users WHERE id = $1', [userId]);
         
         if (userResult.rowCount === 0) {
           await client.query('ROLLBACK');
           return res.status(404).json({ message: 'User not found' });
         }
-        
+
         // Convert amount to paisa for storage
         const amountInPaisa = amount * 100;
         const actualAmount = transactionType === 'deposit' ? amountInPaisa : -amountInPaisa;
+        
+        // Special case: Admin adding funds to their own wallet (platform investment)
+        const isAdminSelfFunding = req.user.role === UserRole.ADMIN && userId === req.user.id && transactionType === 'deposit';
+        
+        // If admin is adding funds to another user/subadmin, check admin's balance
+        if (req.user.role === UserRole.ADMIN && transactionType === 'deposit' && userId !== req.user.id) {
+          // Get admin's current balance
+          const adminResult = await client.query('SELECT balance FROM users WHERE id = $1', [req.user.id]);
+          
+          if (adminResult.rowCount === 0 || adminResult.rows[0].balance < amountInPaisa) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ 
+              message: 'Insufficient balance to fund user. Please add funds to your admin wallet first.' 
+            });
+          }
+          
+          // Deduct the amount from admin's balance
+          await client.query(
+            'UPDATE users SET balance = balance - $1 WHERE id = $2',
+            [amountInPaisa, req.user.id]
+          );
+          
+          // Record this deduction in admin's transactions
+          await client.query(
+            'INSERT INTO transactions (user_id, amount, performed_by, description) VALUES ($1, $2, $3, $4)',
+            [req.user.id, -amountInPaisa, req.user.id, `Funds transferred to ${userResult.rows[0].username}: ${notes}`]
+          );
+        }
+        
+        // If admin is deducting funds from a user/subadmin, add those funds to admin's wallet
+        if (req.user.role === UserRole.ADMIN && transactionType === 'withdraw' && userId !== req.user.id) {
+          // First check if user has sufficient balance
+          if (userResult.rows[0].balance < amountInPaisa) {
+            await client.query('ROLLBACK');
+            return res.status(400).json({ 
+              message: 'User has insufficient balance for this deduction.' 
+            });
+          }
+          
+          // Add the deducted amount to admin's balance
+          await client.query(
+            'UPDATE users SET balance = balance + $1 WHERE id = $2',
+            [amountInPaisa, req.user.id]
+          );
+          
+          // Record this addition in admin's transactions
+          await client.query(
+            'INSERT INTO transactions (user_id, amount, performed_by, description) VALUES ($1, $2, $3, $4)',
+            [req.user.id, amountInPaisa, req.user.id, `Funds received from ${userResult.rows[0].username}: ${notes}`]
+          );
+        }
         
         // Update user balance
         const updatedUserResult = await client.query(
@@ -579,10 +709,18 @@ export function setupWalletRoutes(app: express.Express) {
         // Get the updated balance
         const updatedBalance = updatedUserResult.rows[0].balance;
         
-        // Create transaction record with player's balance after the transaction
+        // Create transaction record with appropriate description
+        let transactionDescription;
+        
+        if (isAdminSelfFunding) {
+          transactionDescription = `Platform Investment: ${notes}`;
+        } else {
+          transactionDescription = `${transactionType === 'deposit' ? 'Added' : 'Deducted'} by ${req.user.username} (${req.user.role}): ${notes}`;
+        }
+        
         const transactionResult = await client.query(
           'INSERT INTO transactions (user_id, amount, balance_after, performed_by, description) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-          [userId, actualAmount, updatedBalance, req.user.id, `${transactionType === 'deposit' ? 'Added' : 'Deducted'} by ${req.user.username} (${req.user.role}): ${notes}`]
+          [userId, actualAmount, updatedBalance, req.user.id, transactionDescription]
         );
         
         await client.query('COMMIT');
@@ -590,7 +728,8 @@ export function setupWalletRoutes(app: express.Express) {
         // Return the transaction and updated user
         res.status(201).json({
           transaction: transactionResult.rows[0],
-          userBalance: updatedBalance / 100 // Convert back to rupees for display
+          userBalance: updatedBalance / 100, // Convert back to rupees for display
+          message: isAdminSelfFunding ? 'Platform investment recorded successfully.' : 'Transaction completed successfully.'
         });
         
       } catch (error) {
