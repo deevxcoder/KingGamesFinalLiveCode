@@ -56,6 +56,7 @@ export default function CoinFlipGame() {
   const [showLosePopup, setShowLosePopup] = useState(false);
   const [walletUpdating, setWalletUpdating] = useState(false);
   const [muted, setMuted] = useState(isSoundMuted());
+  const [gameOdds, setGameOdds] = useState(0);
   const [lastResult, setLastResult] = useState<{
     isWin: boolean;
     amount: number;
@@ -63,6 +64,38 @@ export default function CoinFlipGame() {
     result: string;
   } | null>(null);
   const coinRef = useRef<HTMLDivElement>(null);
+  
+  // Fetch the game odds for Coin Flip
+  const { data: coinFlipOddsData } = useQuery<any>({
+    queryKey: ['/api/game-odds/player', 'coin_flip', user?.id],
+    queryFn: async () => {
+      try {
+        const response = await apiRequest("GET", `/api/game-odds/player?gameType=coin_flip`)
+          .then(res => res.json())
+          .catch(err => {
+            console.error("Error fetching coin flip odds:", err);
+            return null;
+          });
+        
+        console.log("Coin flip odds from API:", response);
+        return response;
+      } catch (error) {
+        console.error("Failed to fetch coin flip odds:", error);
+        return null;
+      }
+    },
+    enabled: !!user
+  });
+  
+  // Update game odds when they load
+  useEffect(() => {
+    if (coinFlipOddsData && coinFlipOddsData.length > 0) {
+      // The odds are stored as integer with 2 decimal places (e.g. 195 means 1.95)
+      const odds = coinFlipOddsData[0]?.oddValue / 100;
+      console.log("Using coin flip odds:", odds);
+      setGameOdds(odds || 1.95); // Default to 1.95 if no odds are set
+    }
+  }, [coinFlipOddsData]);
   
   // Fetch recent games for the user, filtered by coin_flip game type
   const { data: games = [] } = useQuery<GameHistory[]>({
@@ -104,8 +137,11 @@ export default function CoinFlipGame() {
           playWinSound();
         }
         
-        // For win popup, display the amount won (not dividing by 100)
-        const winAmount = isWin ? betAmount * 0.95 : betAmount;
+        // For win popup, display the amount won using the odds from server
+        // If win, multiply by odds from the server, otherwise just show the bet amount
+        const actualOdds = gameOdds > 0 ? gameOdds : 1.95; // Use default 1.95 if odds not loaded
+        console.log(`Win calculation: isWin=${isWin}, betAmount=${betAmount}, odds=${actualOdds}`);
+        const winAmount = isWin ? betAmount * actualOdds : betAmount;
         
         setLastResult({
           isWin,
