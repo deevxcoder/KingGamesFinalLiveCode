@@ -14,6 +14,8 @@ const createCricketTossSchema = z.object({
   oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   imageUrl: z.string().optional(),
+  openTime: z.string().optional(),
+  closeTime: z.string().optional(),
 });
 
 export function setupCricketTossRoutes(app: express.Express) {
@@ -220,7 +222,7 @@ export function setupCricketTossRoutes(app: express.Express) {
         });
       }
       
-      const { teamA, teamB, description, tossTime, oddTeamA, oddTeamB, imageUrl } = validationResult.data;
+      const { teamA, teamB, description, tossTime, oddTeamA, oddTeamB, imageUrl, openTime, closeTime } = validationResult.data;
       
       // Create a standalone cricket toss game (not linked to team matches)
       const newGame = {
@@ -236,6 +238,8 @@ export function setupCricketTossRoutes(app: express.Express) {
           oddTeamA,
           oddTeamB,
           imageUrl: imageUrl || "",
+          openTime: openTime || tossTime, // If no specific open time, use toss time
+          closeTime: closeTime || tossTime, // If no specific close time, use toss time
           status: "open" // Game is open for betting
         },
         result: "pending",
@@ -339,6 +343,8 @@ export function setupCricketTossRoutes(app: express.Express) {
           oddTeamB: gameData.oddTeamB,
           description: gameData.description,
           tossTime: gameData.tossTime,
+          openTime: gameData.openTime,
+          closeTime: gameData.closeTime,
           status: 'pending'
         },
         result: "pending", // Use pending instead of null

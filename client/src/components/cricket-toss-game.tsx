@@ -48,28 +48,14 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
   const queryClient = useQueryClient();
   const { user } = useAuth() || {};
 
-  // Helper to check if the match is a cricket toss game (new API) or team match
-  const isCricketTossGame = (match: TeamMatch | CricketTossGame): match is CricketTossGame => {
-    return 'gameData' in match && match.gameType === 'cricket_toss';
-  };
-
-  // Get the proper API endpoint based on match type
+  // Get the API endpoint
   const getApiEndpoint = () => {
-    if (isCricketTossGame(match)) {
-      return `/api/cricket-toss-games/${match.id}/play`;
-    } else {
-      // For team matches, we need to use the team-match endpoint
-      return `/api/team-matches/${match.id}/play-toss`;
-    }
+    return `/api/cricket-toss-games/${match.id}/play`;
   };
 
-  // Get the match time based on match type
+  // Get the match time
   const getMatchTime = () => {
-    if (isCricketTossGame(match)) {
-      return new Date(match.gameData.tossTime);
-    } else {
-      return new Date(match.matchTime);
-    }
+    return new Date(match.gameData.tossTime);
   };
 
   const placeBetMutation = useMutation({
@@ -121,32 +107,20 @@ export default function CricketTossGame({ match, onClose }: CricketTossGameProps
 
   // Helper to get team names
   const getTeamA = () => {
-    if (isCricketTossGame(match)) {
-      return match.gameData.teamA;
-    }
-    return match.teamA;
+    return match.gameData.teamA;
   };
 
   const getTeamB = () => {
-    if (isCricketTossGame(match)) {
-      return match.gameData.teamB;
-    }
-    return match.teamB;
+    return match.gameData.teamB;
   };
 
   // Helper to get odds
   const getOddTeamA = () => {
-    if (isCricketTossGame(match)) {
-      return match.gameData.oddTeamA;
-    }
-    return match.oddTeamA;
+    return match.gameData.oddTeamA;
   };
 
   const getOddTeamB = () => {
-    if (isCricketTossGame(match)) {
-      return match.gameData.oddTeamB;
-    }
-    return match.oddTeamB;
+    return match.gameData.oddTeamB;
   };
 
   const getPredictionLabel = (pred: string) => {
