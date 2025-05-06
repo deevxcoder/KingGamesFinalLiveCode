@@ -82,6 +82,13 @@ export default function CoinFlipGame() {
         // Prepare result data
         const isWin = data.game.payout > 0;
         
+        // Play win or lose sound based on result
+        if (isWin) {
+          playWinSound();
+        } else {
+          playLoseSound();
+        }
+        
         // For win popup, display the amount won (not dividing by 100)
         const winAmount = isWin ? betAmount * 0.95 : betAmount;
         
@@ -183,6 +190,12 @@ export default function CoinFlipGame() {
       return;
     }
 
+    // Initialize audio context (must be called after user interaction)
+    initAudio();
+    
+    // Play coin flip sound
+    playCoinFlipSound();
+    
     // Start animation and play game
     setIsFlipping(true);
     setResult(null);
