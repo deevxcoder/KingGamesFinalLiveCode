@@ -26,13 +26,32 @@ export async function hashPassword(password: string) {
 
 async function comparePasswords(supplied: string, stored: string) {
   try {
+    // Ensure we have valid inputs
+    if (!supplied || !stored) {
+      console.log("Missing password or stored hash");
+      return false;
+    }
+
     // Check if it's our crypto.scrypt format (hex.salt)
     if (stored.includes('.')) {
       try {
         console.log("Checking crypto.scrypt password format");
-        const [hashedPart, salt] = stored.split('.');
+        const parts = stored.split('.');
+        if (parts.length !== 2) {
+          console.log("Invalid crypto.scrypt format (not hash.salt)");
+          return false;
+        }
+        
+        const [hashedPart, salt] = parts;
         const hashedBuf = Buffer.from(hashedPart, 'hex');
         const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
+        
+        // Ensure buffers are same length before comparison to avoid error
+        if (hashedBuf.length !== suppliedBuf.length) {
+          console.log("Buffer length mismatch in crypto.scrypt compare");
+          return false;
+        }
+        
         return timingSafeEqual(hashedBuf, suppliedBuf);
       } catch (err) {
         console.error('Error comparing crypto.scrypt password:', err);
