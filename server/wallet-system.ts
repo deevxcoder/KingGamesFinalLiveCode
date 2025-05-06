@@ -1,8 +1,8 @@
 import { db } from './db';
 import express, { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { UserRole, walletRequests, users, transactions, systemSettings } from '@shared/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { UserRole, walletRequests, users, transactions, systemSettings, depositCommissions } from '@shared/schema';
+import { eq, desc, and, isNull } from 'drizzle-orm';
 
 // Payment Modes
 export const PaymentMode = {
@@ -192,6 +192,27 @@ export async function getWalletRequests(userId?: number, status?: string, reques
   } catch (error) {
     console.error('Error getting wallet requests:', error);
     throw new Error('Failed to get wallet requests');
+  }
+}
+
+// Helper function to get deposit commission for a subadmin
+export async function getSubadminDepositCommission(subadminId: number): Promise<number> {
+  try {
+    // Fetch the deposit commission setting for this subadmin
+    const commissionResult = await db.select()
+      .from(depositCommissions)
+      .where(and(eq(depositCommissions.subadminId, subadminId), eq(depositCommissions.isActive, true)))
+      .limit(1);
+    
+    if (commissionResult.length > 0) {
+      return commissionResult[0].commissionRate;
+    }
+    
+    // If no specific commission is set, use the default value (30%)
+    return 3000; // Default 30% commission rate
+  } catch (error) {
+    console.error('Error getting subadmin commission rate:', error);
+    return 3000; // Default to 30% on error
   }
 }
 
@@ -652,23 +673,52 @@ export function setupWalletRoutes(app: express.Express) {
           // Get admin's current balance
           const adminResult = await client.query('SELECT balance FROM users WHERE id = $1', [req.user.id]);
           
-          if (adminResult.rowCount === 0 || adminResult.rows[0].balance < amountInPaisa) {
+          // Check if target user is a subadmin for commission calculations
+          const isTargetSubadmin = userResult.rows[0].role === UserRole.SUBADMIN;
+          
+          // For transfers to subadmins, we apply the commission logic where only a percentage of funds
+          // is deducted from the admin's wallet (commission-based system)
+          let adminDeductionAmount = amountInPaisa; // Default: deduct full amount for players
+          
+          if (isTargetSubadmin) {
+            // Get the commission rate for this subadmin (e.g., 30%)
+            const commissionRate = await getSubadminDepositCommission(userId);
+            
+            // Calculate the amount to deduct from admin (only the commission percentage)
+            adminDeductionAmount = Math.floor(amountInPaisa * (commissionRate / 10000));
+            
+            // Log the commission calculation for debugging
+            console.log(`Transfer to subadmin ${userId}: Total: ${amountInPaisa}, Commission rate: ${commissionRate/100}%, Admin deduction: ${adminDeductionAmount}`);
+          }
+          
+          // Check if admin has sufficient balance for the deduction
+          if (adminResult.rowCount === 0 || adminResult.rows[0].balance < adminDeductionAmount) {
             await client.query('ROLLBACK');
             return res.status(400).json({ 
               message: 'Insufficient balance to fund user. Please add funds to your admin wallet first.' 
             });
           }
           
-          // Deduct the amount from admin's balance
+          // Deduct the calculated amount from admin's balance
           await client.query(
             'UPDATE users SET balance = balance - $1 WHERE id = $2',
-            [amountInPaisa, req.user.id]
+            [adminDeductionAmount, req.user.id]
           );
           
           // Record this deduction in admin's transactions
+          const description = isTargetSubadmin 
+            ? `Funds transferred to ${userResult.rows[0].username} (${adminDeductionAmount/100} of ${amountInPaisa/100} - commission rate applied): ${notes}` 
+            : `Funds transferred to ${userResult.rows[0].username}: ${notes}`;
+            
           await client.query(
-            'INSERT INTO transactions (user_id, amount, performed_by, description) VALUES ($1, $2, $3, $4)',
-            [req.user.id, -amountInPaisa, req.user.id, `Funds transferred to ${userResult.rows[0].username}: ${notes}`]
+            'INSERT INTO transactions (user_id, amount, performed_by, description, balance_after) VALUES ($1, $2, $3, $4, $5)',
+            [
+              req.user.id, 
+              -adminDeductionAmount, 
+              req.user.id, 
+              description,
+              adminResult.rows[0].balance - adminDeductionAmount
+            ]
           );
         }
         
