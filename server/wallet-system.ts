@@ -854,8 +854,8 @@ export function setupWalletRoutes(app: express.Express) {
           
           // Record this deduction in admin's transactions
           const description = isTargetSubadmin 
-            ? `Fund transferred to ${userResult.rows[0].username} (Commission applied)` 
-            : `Fund transferred to ${userResult.rows[0].username}`;
+            ? `Fund transferred to ${userResult.rows[0].username} (${userResult.rows[0].role}) deducted from ${req.user.username} (${req.user.role}) (Commission applied)` 
+            : `Fund transferred to ${userResult.rows[0].username} (${userResult.rows[0].role}) deducted from ${req.user.username} (${req.user.role})`;
             
           await client.query(
             'INSERT INTO transactions (user_id, amount, performed_by, description, balance_after) VALUES ($1, $2, $3, $4, $5)',
@@ -910,8 +910,8 @@ export function setupWalletRoutes(app: express.Express) {
           
           // Record this addition in admin's transactions
           const description = isTargetSubadmin 
-            ? `Fund received from ${userResult.rows[0].username} (Commission applied)` 
-            : `Fund received from ${userResult.rows[0].username}`;
+            ? `Fund added to ${req.user.username} (${req.user.role}) deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) (Commission applied)` 
+            : `Fund added to ${req.user.username} (${req.user.role}) deducted from ${userResult.rows[0].username} (${userResult.rows[0].role})`;
           
           await client.query(
             'INSERT INTO transactions (user_id, amount, performed_by, description, balance_after) VALUES ($1, $2, $3, $4, $5)',
@@ -950,14 +950,14 @@ export function setupWalletRoutes(app: express.Express) {
             // For deposit, include special info about commission for subadmin
             const isSubadminReceivingFunds = userResult.rows[0].role === UserRole.SUBADMIN;
             transactionDescription = isSubadminReceivingFunds && req.user.role === UserRole.ADMIN
-              ? `Fund received from ${req.user.username} (Commission applied)`
-              : `Fund received from ${req.user.username}`;
+              ? `Fund added to ${userResult.rows[0].username} (${userResult.rows[0].role}) from ${req.user.username} (${req.user.role}) (Commission applied)`
+              : `Fund added to ${userResult.rows[0].username} (${userResult.rows[0].role}) from ${req.user.username} (${req.user.role})`;
           } else {
             // For withdraw, special handling for subadmin transactions with commission
             const isSubadminLosingFunds = userResult.rows[0].role === UserRole.SUBADMIN && req.user.role === UserRole.ADMIN;
             transactionDescription = isSubadminLosingFunds
-              ? `Fund transferred to ${req.user.username} (Commission applied)`
-              : `Fund transferred to ${req.user.username}`;
+              ? `Fund deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) added to ${req.user.username} (${req.user.role}) (Commission applied)`
+              : `Fund deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role})`;
           }
         }
         
