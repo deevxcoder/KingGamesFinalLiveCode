@@ -929,7 +929,7 @@ export default function SatamatkaGame() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Potential win (max):</span>
-                  <span className="font-medium text-amber-500">₹{(calculatePotentialWin(selectedGameMode, quickBetAmount) * totalCombinations / 100).toFixed(2)}</span>
+                  <span className="font-medium text-amber-500">₹{(calculatePotentialWin(selectedGameMode, quickBetAmount, gameOdds) * totalCombinations / 100).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -1189,7 +1189,7 @@ export default function SatamatkaGame() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Potential Win:</span>
                     <span className="font-medium ml-2 text-amber-500">
-                      {formatCurrency(calculatePotentialWin(selectedGameMode, Number(calculateTotalBetAmount())), 'satamatka')}
+                      {formatCurrency(calculatePotentialWin(selectedGameMode, Number(calculateTotalBetAmount()), gameOdds), 'satamatka')}
                     </span>
                   </div>
                 </div>
@@ -1348,7 +1348,7 @@ export default function SatamatkaGame() {
                       <TableCell className="font-medium">{displayNum}</TableCell>
                       <TableCell>₹{amount.toFixed(2)}</TableCell>
                       <TableCell className="text-amber-500">
-                        ₹{calculatePotentialWin(selectedGameMode, amount) / 100}
+                        ₹{calculatePotentialWin(selectedGameMode, amount, gameOdds) / 100}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -1378,7 +1378,7 @@ export default function SatamatkaGame() {
               <span className="text-sm font-medium">Potential Win:</span>
               <span className="font-bold text-amber-500">
                 ₹{Array.from(selectedNumbers.values()).reduce(
-                  (total, amount) => total + calculatePotentialWin(selectedGameMode, amount) / 100,
+                  (total, amount) => total + calculatePotentialWin(selectedGameMode, amount, gameOdds) / 100,
                   0
                 ).toFixed(2)}
               </span>
@@ -1448,7 +1448,7 @@ export default function SatamatkaGame() {
               <div className="text-right space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Potential Win</p>
                 <p className="text-lg font-bold text-amber-500">
-                  {betDetails ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount) / 100).toFixed(2)}` : ''}
+                  {betDetails ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount, gameOdds) / 100).toFixed(2)}` : ''}
                 </p>
               </div>
             </div>
