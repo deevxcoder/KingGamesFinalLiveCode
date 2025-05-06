@@ -67,7 +67,8 @@ export default function AdminSettingsPage() {
     satamatka_jodi: "3.5",
     satamatka_harf: "4.0",
     satamatka_crossing: "3.0",
-    satamatka_odd_even: "2.0"
+    satamatka_odd_even: "2.0",
+    deposit: "5.0" // Default deposit commission rate (5%)
   });
   
   // Query to fetch default commission rates
@@ -88,7 +89,8 @@ export default function AdminSettingsPage() {
         satamatka_jodi: (defaultCommissionData.satamatka_jodi / 100)?.toString() || "3.5",
         satamatka_harf: (defaultCommissionData.satamatka_harf / 100)?.toString() || "4.0",
         satamatka_crossing: (defaultCommissionData.satamatka_crossing / 100)?.toString() || "3.0",
-        satamatka_odd_even: (defaultCommissionData.satamatka_odd_even / 100)?.toString() || "2.0"
+        satamatka_odd_even: (defaultCommissionData.satamatka_odd_even / 100)?.toString() || "2.0",
+        deposit: (defaultCommissionData.deposit / 100)?.toString() || "5.0"
       });
     }
   }, [defaultCommissionData]);
@@ -1110,6 +1112,33 @@ export default function AdminSettingsPage() {
                       </div>
                     </div>
                   </div>
+                  
+                  {/* Deposit Commission */}
+                  <div>
+                    <h3 className="text-lg font-medium">Deposit Commission</h3>
+                    <Separator className="my-2" />
+                    <div className="space-y-2">
+                      <Label htmlFor="commission-deposit">
+                        Default Deposit Commission Rate
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          id="commission-deposit" 
+                          value={commissionRates.deposit} 
+                          onChange={(e) => setCommissionRates({...commissionRates, deposit: e.target.value})} 
+                          placeholder="5.0"
+                          className="max-w-[120px]"
+                        />
+                        <span>% of transaction amount</span>
+                      </div>
+                      <p className="text-sm text-slate-400">
+                        This rate applies to admin-subadmin fund transfers. When admin adds funds to subadmin, 
+                        full amount goes to subadmin but only commission percentage is deducted from admin.
+                        When admin removes funds from subadmin, full amount is removed from subadmin but only 
+                        commission percentage is added to admin.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -1125,7 +1154,8 @@ export default function AdminSettingsPage() {
                       satamatka_jodi: Math.round(parseFloat(commissionRates.satamatka_jodi) * 100),
                       satamatka_harf: Math.round(parseFloat(commissionRates.satamatka_harf) * 100),
                       satamatka_crossing: Math.round(parseFloat(commissionRates.satamatka_crossing) * 100),
-                      satamatka_odd_even: Math.round(parseFloat(commissionRates.satamatka_odd_even) * 100)
+                      satamatka_odd_even: Math.round(parseFloat(commissionRates.satamatka_odd_even) * 100),
+                      deposit: Math.round(parseFloat(commissionRates.deposit) * 100)
                     }
                   });
                 }}
