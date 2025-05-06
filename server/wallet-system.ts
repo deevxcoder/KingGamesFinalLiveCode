@@ -826,14 +826,16 @@ export function setupWalletRoutes(app: express.Express) {
           let adminDeductionAmount = amountInPaisa; // Default: deduct full amount for players
           
           if (isTargetSubadmin) {
-            // Get the commission rate for this subadmin (e.g., 30%)
+            // Get the commission rate for this subadmin (e.g., 50% = 5000)
             const commissionRate = await getSubadminDepositCommission(userId);
             
             // Calculate the amount to deduct from admin (only the commission percentage)
-            adminDeductionAmount = Math.floor(amountInPaisa * (commissionRate / 10000));
+            // BUG FIX: Calculate the correct commission - only deduct the commission percentage
+            // from admin's wallet, not the full amount
+            adminDeductionAmount = Math.floor((amountInPaisa * commissionRate) / 10000);
             
             // Log the commission calculation for debugging
-            console.log(`Transfer to subadmin ${userId}: Total: ${amountInPaisa}, Commission rate: ${commissionRate/100}%, Admin deduction: ${adminDeductionAmount}`);
+            console.log(`Transfer to subadmin ${userId}: Total amount: ${amountInPaisa}, Commission rate: ${commissionRate/100}%, Admin deduction: ${adminDeductionAmount}`);
           }
           
           // Check if admin has sufficient balance for the deduction
@@ -885,14 +887,16 @@ export function setupWalletRoutes(app: express.Express) {
           let adminAdditionAmount = amountInPaisa; // Default: add full amount for players
           
           if (isTargetSubadmin) {
-            // Get the commission rate for this subadmin (e.g., 30%)
+            // Get the commission rate for this subadmin (e.g., 50% = 5000)
             const commissionRate = await getSubadminDepositCommission(userId);
             
             // Calculate the amount to add to admin (only the commission percentage)
-            adminAdditionAmount = Math.floor(amountInPaisa * (commissionRate / 10000));
+            // BUG FIX: Calculate the correct commission - only add the commission percentage
+            // to admin's wallet, not the full amount
+            adminAdditionAmount = Math.floor((amountInPaisa * commissionRate) / 10000);
             
             // Log the commission calculation for debugging
-            console.log(`Withdrawal from subadmin ${userId}: Total: ${amountInPaisa}, Commission rate: ${commissionRate/100}%, Admin addition: ${adminAdditionAmount}`);
+            console.log(`Withdrawal from subadmin ${userId}: Total amount: ${amountInPaisa}, Commission rate: ${commissionRate/100}%, Admin addition: ${adminAdditionAmount}`);
           }
           
           // Get admin's current balance before update
