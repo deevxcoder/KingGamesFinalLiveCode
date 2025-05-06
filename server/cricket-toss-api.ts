@@ -11,8 +11,6 @@ const createCricketTossSchema = z.object({
   teamB: z.string().min(2, "Team B name must be at least 2 characters"),
   description: z.string().optional(),
   tossTime: z.string(),
-  oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
-  oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   imageUrl: z.string().optional(),
   openTime: z.string().optional(),
   closeTime: z.string().optional(),
@@ -114,7 +112,21 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         });
       }
       
-      const { teamA, teamB, description, tossTime, oddTeamA, oddTeamB, openTime, closeTime } = validationResult.data;
+      const { teamA, teamB, description, tossTime, openTime, closeTime } = validationResult.data;
+      
+      // Get odds from database settings
+      let odds = await storage.getGameOdds(GameType.CRICKET_TOSS);
+      
+      // If no odds found, use default values
+      let oddTeamA = 190; // Default 1.9x odd (stored as 190)
+      let oddTeamB = 190; // Default 1.9x odd (stored as 190)
+      
+      if (odds && odds.length > 0) {
+        // Use the first odds setting (admin setting should be prioritized in the getGameOdds function)
+        const oddSetting = odds[0];
+        oddTeamA = oddSetting.oddValue;
+        oddTeamB = oddSetting.oddValue;
+      }
       
       // Create the cricket toss game using the team match data
       const newGame = {
