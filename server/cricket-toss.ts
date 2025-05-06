@@ -135,16 +135,35 @@ export function setupCricketTossRoutes(app: express.Express) {
         });
       }
       
-      const { teamA, teamB, description, tossTime, oddTeamA, oddTeamB, imageUrl } = validationResult.data;
-      
       // Get the existing game
       const existingGame = await storage.getGame(gameId);
+      
       if (!existingGame) {
         return res.status(404).json({ message: "Game not found" });
       }
       
       if (existingGame.gameType !== GameType.CRICKET_TOSS) {
         return res.status(400).json({ message: "Game is not a cricket toss game" });
+      }
+      
+      const { teamA, teamB, description, tossTime, imageUrl, openTime, closeTime } = validationResult.data;
+      
+      // Get odds from database settings
+      let odds = await storage.getGameOdds(GameType.CRICKET_TOSS);
+      
+      // If no odds found, use existing values or default
+      let oddTeamA = 190; // Default 1.9x odd (stored as 190)
+      let oddTeamB = 190; // Default 1.9x odd (stored as 190)
+      
+      if (odds && odds.length > 0) {
+        // Use the first odds setting (admin setting should be prioritized in the getGameOdds function)
+        const oddSetting = odds[0];
+        oddTeamA = oddSetting.oddValue;
+        oddTeamB = oddSetting.oddValue;
+      } else if (existingGame.gameData && (existingGame.gameData as any).oddTeamA) {
+        // Preserve existing odds if available
+        oddTeamA = (existingGame.gameData as any).oddTeamA;
+        oddTeamB = (existingGame.gameData as any).oddTeamB;
       }
       
       // Update only the game data field, creating a new object
@@ -161,6 +180,8 @@ export function setupCricketTossRoutes(app: express.Express) {
         oddTeamA,
         oddTeamB,
         imageUrl: imageUrl || "",
+        openTime: openTime || tossTime, // Use provided openTime or default to toss time
+        closeTime: closeTime || tossTime, // Use provided closeTime or default to toss time
       };
       
       // Create a simpler method for updating the game data
@@ -222,7 +243,21 @@ export function setupCricketTossRoutes(app: express.Express) {
         });
       }
       
-      const { teamA, teamB, description, tossTime, oddTeamA, oddTeamB, imageUrl, openTime, closeTime } = validationResult.data;
+      const { teamA, teamB, description, tossTime, imageUrl, openTime, closeTime } = validationResult.data;
+      
+      // Get odds from database settings
+      let odds = await storage.getGameOdds(GameType.CRICKET_TOSS);
+      
+      // If no odds found, use default values
+      let oddTeamA = 190; // Default 1.9x odd (stored as 190)
+      let oddTeamB = 190; // Default 1.9x odd (stored as 190)
+      
+      if (odds && odds.length > 0) {
+        // Use the first odds setting (admin setting should be prioritized in the getGameOdds function)
+        const oddSetting = odds[0];
+        oddTeamA = oddSetting.oddValue;
+        oddTeamB = oddSetting.oddValue;
+      }
       
       // Create a standalone cricket toss game (not linked to team matches)
       const newGame = {
