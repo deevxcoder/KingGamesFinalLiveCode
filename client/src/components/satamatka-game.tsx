@@ -1151,7 +1151,7 @@ export default function SatamatkaGame() {
                     <span className="font-medium ml-2">
                       {selectedGameMode === "jodi" ? "90x" : 
                        selectedGameMode === "harf" ? "9x" : 
-                       selectedGameMode === "crossing" ? "4.5x" : 
+                       selectedGameMode === "crossing" ? "95x" : 
                        selectedGameMode === "odd_even" ? "1.8x" : "1x"}
                     </span>
                   </div>
@@ -1196,7 +1196,7 @@ export default function SatamatkaGame() {
       case "harf":
         return "Predict digits in specific positions (left/right). Select first digit, second digit, or both. Payout ratio: 9x";
       case "crossing":
-        return "Select multiple digits (0-9) to create two-digit combinations. For example, selecting 1,2,3 creates: 12, 21, 13, 31, 23, 32. Payout ratio: 4.5x";
+        return "Select multiple digits (0-9) to create two-digit combinations. For example, selecting 1,2,3 creates: 12, 21, 13, 31, 23, 32. Payout ratio: 95x";
       case "odd_even":
         return "Predict if the result will be odd or even. Payout ratio: 1.8x";
       default:
