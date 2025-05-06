@@ -49,11 +49,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup deposit commission endpoint for specific subadmin
   setupDepositCommissionEndpoints(app);
   
-  // Endpoint to manually seed cricket toss games
+  // Endpoint to manually seed cricket toss games (DISABLED)
   app.post("/api/admin/seed-cricket-toss", requireRole(UserRole.ADMIN), async (req, res, next) => {
     try {
-      await (storage as any).seedCricketTossGames();
-      res.status(200).json({ message: "Cricket toss games seeded successfully" });
+      // This endpoint is now disabled as per requirement to not auto-seed cricket games
+      // Admin should use the cricket toss management UI to create games manually
+      res.status(200).json({ 
+        message: "Automatic cricket toss game seeding has been disabled. Please create games manually through the admin interface.",
+        disabled: true 
+      });
     } catch (error) {
       next(error);
     }

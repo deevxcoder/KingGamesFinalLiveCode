@@ -142,8 +142,10 @@ export class DatabaseStorage implements IStorage {
     // Check if Satamatka markets exist and seed them if not
     this.checkAndSeedSatamatkaMarkets();
     
-    // Seed Cricket Toss games
-    this.seedCricketTossGames();
+    // NOTE: Cricket Toss games are no longer auto-seeded
+    // Admin will manually add all cricket games
+    // this.seedCricketTossGames();
+    console.log("Cricket toss games auto-seeding DISABLED - admin will add games manually");
     
     // Seed demo Satamatka markets with future times to ensure active markets
     this.seedDemoSatamatkaMarkets();
