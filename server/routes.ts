@@ -2705,7 +2705,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
             // No admin odds either, use default values
             completeOdds.push({
               gameType,
-              oddValue: gameType.includes('satamatka_jodi') || gameType.includes('satamatka_harf') || gameType.includes('satamatka_crossing') ? 9 : 1.9,
+              oddValue: gameType.includes('satamatka_jodi') ? 90 : (gameType.includes('satamatka_harf') ? 9 : (gameType.includes('satamatka_crossing') ? 95 : 1.9)),
               setByAdmin: false,
               subadminId
             });
