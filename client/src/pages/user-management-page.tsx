@@ -664,6 +664,11 @@ export default function UserManagementPage() {
             <DialogTitle>Add Funds</DialogTitle>
             <DialogDescription>
               Add funds to {selectedUser?.username}'s account
+              {user?.role === UserRole.ADMIN && selectedUser?.role === UserRole.SUBADMIN && (
+                <span className="block mt-2 text-sm font-medium text-yellow-600">
+                  Note: Commission rate applies to transfers to subadmins
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
@@ -717,6 +722,11 @@ export default function UserManagementPage() {
             <DialogTitle>Remove Funds</DialogTitle>
             <DialogDescription>
               Remove funds from {selectedUser?.username}'s account
+              {user?.role === UserRole.ADMIN && selectedUser?.role === UserRole.SUBADMIN && (
+                <span className="block mt-2 text-sm font-medium text-yellow-600">
+                  Note: Commission rate applies to withdrawals from subadmins
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
