@@ -402,7 +402,7 @@ export async function setupDepositCommissions(app: express.Express) {
     }
   });
   
-  // Set or update a deposit commission for a subadmin
+  // Set or update a deposit commission for a subadmin (general endpoint)
   app.post('/api/admin/deposit-commissions', async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.isAuthenticated()) {

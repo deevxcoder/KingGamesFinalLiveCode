@@ -25,6 +25,7 @@ import { setupCricketTossRoutes } from "./cricket-toss";
 import { setupCricketTossApiRoutes } from "./cricket-toss-api";
 import { setupWalletRoutes, setupDepositCommissions } from "./wallet-system";
 import { setupUploadRoutes } from "./upload-routes";
+import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -44,6 +45,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup file upload routes
   setupUploadRoutes(app);
+  
+  // Setup deposit commission endpoint for specific subadmin
+  setupDepositCommissionEndpoints(app);
   
   // Endpoint to manually seed cricket toss games
   app.post("/api/admin/seed-cricket-toss", requireRole(UserRole.ADMIN), async (req, res, next) => {
