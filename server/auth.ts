@@ -4,6 +4,7 @@ import { Express } from "express";
 import session from "express-session";
 import { scrypt, timingSafeEqual, randomBytes } from "crypto";
 import { promisify } from "util";
+import * as bcryptjs from "bcryptjs";
 import { storage } from "./storage";
 import { User as SelectUser, UserRole } from "@shared/schema";
 
@@ -28,6 +29,7 @@ async function comparePasswords(supplied: string, stored: string) {
     // Check if it's our crypto.scrypt format (hex.salt)
     if (stored.includes('.')) {
       try {
+        console.log("Checking crypto.scrypt password format");
         const [hashedPart, salt] = stored.split('.');
         const hashedBuf = Buffer.from(hashedPart, 'hex');
         const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
@@ -36,9 +38,19 @@ async function comparePasswords(supplied: string, stored: string) {
         console.error('Error comparing crypto.scrypt password:', err);
         return false;
       }
-    } else {
-      // This is either bcrypt or an unknown format - in either case, we
-      // simply set up a special debug log for it and return false
+    } 
+    // Check if it's a bcrypt hash (starts with $2a$, $2b$, or $2y$)
+    else if (stored.startsWith('$2a$') || stored.startsWith('$2b$') || stored.startsWith('$2y$')) {
+      try {
+        console.log("Checking bcrypt password format");
+        return await bcryptjs.compare(supplied, stored);
+      } catch (err) {
+        console.error('Error comparing bcrypt password:', err);
+        return false;
+      }
+    } 
+    // Unknown format
+    else {
       console.log(`Unsupported password format: ${stored.substring(0, 4)}...`);
       return false;
     }
@@ -261,6 +273,61 @@ export function setupAuth(app: Express) {
       // Return success response
       res.status(200).json({ 
         message: `Password for user ${user.username} was reset successfully` 
+      });
+    } catch (err) {
+      console.error("Error resetting password:", err);
+      next(err);
+    }
+  });
+  
+  // Subadmin password reset endpoint - allows subadmins to reset their players' password
+  app.patch("/api/subadmin/reset-password/:userId", async (req, res, next) => {
+    try {
+      // Check if user is authenticated and is a subadmin
+      if (!req.isAuthenticated() || req.user.role !== UserRole.SUBADMIN) {
+        return res.status(403).json({ message: "Forbidden: Only subadmins can access this endpoint" });
+      }
+      
+      const { userId } = req.params;
+      const { newPassword } = req.body;
+      
+      if (!newPassword) {
+        return res.status(400).json({ message: "New password is required" });
+      }
+      
+      // Find the user whose password will be reset
+      const user = await storage.getUser(parseInt(userId));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Verify that the user belongs to this subadmin
+      if (user.assignedTo !== req.user.id) {
+        return res.status(403).json({ 
+          message: "You can only reset passwords for players assigned to you" 
+        });
+      }
+      
+      // Verify that the user is a player (subadmins can only reset player passwords)
+      if (user.role !== UserRole.PLAYER) {
+        return res.status(403).json({ 
+          message: "You can only reset passwords for player accounts" 
+        });
+      }
+      
+      // Hash the new password
+      const hashedPassword = await hashPassword(newPassword);
+      
+      // Update the user's password in the database
+      const updatedUser = await storage.updateUserPassword(user.id, hashedPassword);
+      
+      if (!updatedUser) {
+        return res.status(500).json({ message: "Failed to reset password" });
+      }
+      
+      // Return success response
+      res.status(200).json({ 
+        message: `Password for player ${user.username} was reset successfully` 
       });
     } catch (err) {
       console.error("Error resetting password:", err);
