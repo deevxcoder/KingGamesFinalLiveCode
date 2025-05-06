@@ -31,27 +31,13 @@ type CricketTossGame = {
     oddTeamB: number;
     imageUrl?: string;
     status: string;
+    openTime?: string;
+    closeTime?: string;
   };
 };
 
-// For backwards compatibility
-type TeamMatch = {
-  id: number;
-  teamA: string;
-  teamB: string;
-  category: string;
-  description: string | null;
-  matchTime: string;
-  result: string;
-  oddTeamA: number;
-  oddTeamB: number;
-  oddDraw: number | null;
-  status: string;
-  createdAt: string;
-};
-
 type CricketTossGameProps = {
-  match: TeamMatch | CricketTossGame;
+  match: CricketTossGame;
   onClose: () => void;
 };
 

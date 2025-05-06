@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 
-// Type for standalone Cricket Toss Game
+// Type for Cricket Toss Game
 type CricketTossGame = {
   id: number;
   userId: number;
@@ -39,23 +39,9 @@ type CricketTossGame = {
     oddTeamB: number;
     imageUrl?: string;
     status: string;
+    openTime?: string;
+    closeTime?: string;
   };
-};
-
-// Type for Team Match (backward compatibility)
-type TeamMatch = {
-  id: number;
-  teamA: string;
-  teamB: string;
-  category: string;
-  description: string | null;
-  matchTime: string;
-  result: string;
-  oddTeamA: number;
-  oddTeamB: number;
-  oddDraw: number | null;
-  status: string;
-  createdAt: string;
 };
 
 export default function CricketTossPage() {
@@ -140,8 +126,8 @@ export default function CricketTossPage() {
 function CricketTossMatches() {
   const { toast } = useToast();
 
-  // Query for standalone cricket toss games (new API)
-  const { data: cricketTossGames = [], isLoading: isLoadingTossGames, error: tossGamesError } = useQuery<CricketTossGame[]>({
+  // Query for cricket toss games
+  const { data: cricketTossGames = [], isLoading, error } = useQuery<CricketTossGame[]>({
     queryKey: ['/api/cricket-toss-games'],
     queryFn: async () => {
       try {
@@ -156,42 +142,9 @@ function CricketTossMatches() {
       }
     },
   });
-
-  // For backward compatibility - query for cricket team matches
-  const { data: teamMatches = [], isLoading: isLoadingTeamMatches, error: teamMatchesError } = useQuery<TeamMatch[]>({
-    queryKey: ['/api/team-matches/category', 'cricket'],
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/team-matches/category/cricket');
-        if (!response.ok) {
-          throw new Error('Failed to fetch team matches');
-        }
-        return response.json();
-      } catch (error) {
-        console.error('Error fetching team matches:', error);
-        return [];
-      }
-    },
-  });
-
-  // Combine both data sources for the UI
-  const allGames = [
-    ...cricketTossGames.map(game => ({
-      id: game.id,
-      type: 'cricket_toss_game' as const,
-      data: game
-    })),
-    ...teamMatches.map(match => ({
-      id: match.id,
-      type: 'team_match' as const,
-      data: match
-    }))
-  ];
   
-  const isLoading = isLoadingTossGames || isLoadingTeamMatches;
-  
-  // Show error toast if both queries failed
-  if (tossGamesError && teamMatchesError) {
+  // Show error toast if query failed
+  if (error) {
     toast({
       title: "Error",
       description: "Failed to load cricket games. Please try again.",
@@ -199,56 +152,31 @@ function CricketTossMatches() {
     });
   }
 
-  // Helper function to get combined open games
+  // Helper function to get open games
   const getOpenGames = () => {
-    const openTossGames = cricketTossGames.filter(game => 
-      (game.gameData?.status === 'open')
-    );
-    
-    const openTeamMatches = teamMatches.filter(match => 
-      match.status === 'open' && match.category === 'cricket'
-    );
-    
-    return [
-      ...openTossGames.map(game => ({
+    return cricketTossGames
+      .filter(game => game.gameData?.status === 'open')
+      .map(game => ({
         id: game.id,
         type: 'cricket_toss_game' as const,
         data: game
-      })),
-      ...openTeamMatches.map(match => ({
-        id: match.id,
-        type: 'team_match' as const,
-        data: match
-      }))
-    ];
+      }));
   };
   
-  // Helper function to get combined live games
+  // Helper function to get live games
   const getLiveGames = () => {
     const now = new Date();
     
-    const liveTossGames = cricketTossGames.filter(game => {
-      const tossTime = new Date(game.gameData.tossTime);
-      return game.gameData?.status === 'open' && tossTime <= now;
-    });
-    
-    const liveTeamMatches = teamMatches.filter(match => {
-      const matchTime = new Date(match.matchTime);
-      return match.status === 'open' && matchTime <= now && match.category === 'cricket';
-    });
-    
-    return [
-      ...liveTossGames.map(game => ({
+    return cricketTossGames
+      .filter(game => {
+        const tossTime = new Date(game.gameData.tossTime);
+        return game.gameData?.status === 'open' && tossTime <= now;
+      })
+      .map(game => ({
         id: game.id,
         type: 'cricket_toss_game' as const,
         data: game
-      })),
-      ...liveTeamMatches.map(match => ({
-        id: match.id,
-        type: 'team_match' as const,
-        data: match
-      }))
-    ];
+      }));
   };
 
   const openGames = getOpenGames();
@@ -322,52 +250,34 @@ function CricketTossMatches() {
 
 type GameItem = {
   id: number;
-  type: 'cricket_toss_game' | 'team_match';
-  data: CricketTossGame | TeamMatch;
+  type: 'cricket_toss_game';
+  data: CricketTossGame;
 };
 
 function CricketTossCard({ game }: { game: GameItem }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Helper function to get data based on game type
+  // Get team names
   const getTeamA = () => {
-    if (game.type === 'cricket_toss_game') {
-      return (game.data as CricketTossGame).gameData.teamA;
-    } else {
-      return (game.data as TeamMatch).teamA;
-    }
+    return game.data.gameData.teamA;
   };
   
   const getTeamB = () => {
-    if (game.type === 'cricket_toss_game') {
-      return (game.data as CricketTossGame).gameData.teamB;
-    } else {
-      return (game.data as TeamMatch).teamB;
-    }
+    return game.data.gameData.teamB;
   };
   
+  // Get odds
   const getOddTeamA = () => {
-    if (game.type === 'cricket_toss_game') {
-      return (game.data as CricketTossGame).gameData.oddTeamA;
-    } else {
-      return (game.data as TeamMatch).oddTeamA;
-    }
+    return game.data.gameData.oddTeamA;
   };
   
   const getOddTeamB = () => {
-    if (game.type === 'cricket_toss_game') {
-      return (game.data as CricketTossGame).gameData.oddTeamB;
-    } else {
-      return (game.data as TeamMatch).oddTeamB;
-    }
+    return game.data.gameData.oddTeamB;
   };
   
+  // Get toss time
   const getTime = () => {
-    if (game.type === 'cricket_toss_game') {
-      return new Date((game.data as CricketTossGame).gameData.tossTime);
-    } else {
-      return new Date((game.data as TeamMatch).matchTime);
-    }
+    return new Date(game.data.gameData.tossTime);
   };
   
   const matchTime = getTime();
@@ -385,7 +295,7 @@ function CricketTossCard({ game }: { game: GameItem }) {
             <GiCricketBat className="h-12 w-12 text-white/50" />
           </div>
           <Badge className="absolute top-2 right-2 bg-indigo-600">
-            {game.type === 'cricket_toss_game' ? 'Standalone Toss' : 'Team Toss'}
+            Cricket Toss
           </Badge>
         </div>
         <CardContent className="p-4">
