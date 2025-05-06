@@ -950,13 +950,13 @@ export function setupWalletRoutes(app: express.Express) {
             // For deposit, include special info about commission for subadmin
             const isSubadminReceivingFunds = userResult.rows[0].role === UserRole.SUBADMIN;
             transactionDescription = isSubadminReceivingFunds && req.user.role === UserRole.ADMIN
-              ? `Fund added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role})`
+              ? `Fund transferred to ${userResult.rows[0].username} (${userResult.rows[0].role}) deducted from ${req.user.username} (${req.user.role}) (Commission applied)`
               : `Fund added to ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role})`;
           } else {
             // For withdraw, special handling for subadmin transactions with commission
             const isSubadminLosingFunds = userResult.rows[0].role === UserRole.SUBADMIN && req.user.role === UserRole.ADMIN;
             transactionDescription = isSubadminLosingFunds
-              ? `Fund deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role}) (Commission applied)`
+              ? `Fund added to ${req.user.username} (${req.user.role}) from ${userResult.rows[0].username} (${userResult.rows[0].role}) for withdrawal (Commission applied)`
               : `Fund deducted from ${userResult.rows[0].username} (${userResult.rows[0].role}) by ${req.user.username} (${req.user.role})`;
           }
         }
