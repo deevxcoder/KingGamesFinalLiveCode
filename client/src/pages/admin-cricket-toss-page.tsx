@@ -207,7 +207,21 @@ export default function AdminCricketTossPage() {
   // Mutation to declare result for a match
   const declareResultMutation = useMutation({
     mutationFn: async ({ matchId, result }: { matchId: number; result: string }) => {
-      return await apiRequest(`/api/cricket-toss/matches/${matchId}/result`, "POST", { result });
+      // Using direct fetch like we did for closeBetting to have more control
+      const response = await fetch(`/api/cricket-toss/matches/${matchId}/result`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ result })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Failed to declare result" }));
+        throw new Error(errorData.message || `HTTP Error: ${response.status}`);
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({
