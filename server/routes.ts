@@ -1370,9 +1370,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
       }
       
       // Ensure the market is in the correct status before allowing result declaration
-      if (existingMarket.status !== "closed" && existingMarket.status !== "waiting_result") {
+      if (existingMarket.status !== "closed") {
         return res.status(400).json({ 
-          message: "Results can only be declared for markets in 'Waiting Results' status. Please close the market first." 
+          message: "Results can only be declared for markets in 'closed' status. Please close the market first." 
         });
       }
       
