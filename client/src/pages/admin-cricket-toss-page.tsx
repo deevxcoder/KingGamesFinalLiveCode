@@ -753,7 +753,7 @@ export default function AdminCricketTossPage() {
           }
         }}
       >
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-primary scrollbar-track-secondary">
           <DialogHeader>
             <DialogTitle>{editingGame ? "Edit Cricket Toss Game" : "Add New Cricket Toss Game"}</DialogTitle>
             <DialogDescription>
@@ -772,7 +772,7 @@ export default function AdminCricketTossPage() {
           
           <Form {...gameForm}>
             <form onSubmit={gameForm.handleSubmit(onSubmitGame)} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={gameForm.control}
                   name="teamA"
@@ -817,7 +817,7 @@ export default function AdminCricketTossPage() {
               />
               
               {/* Toss Date and Time Selection */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={gameForm.control}
                   name="tossDate"
@@ -841,24 +841,13 @@ export default function AdminCricketTossPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Toss Time</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select time" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Array.from({ length: 24 }).map((_, hour) => (
-                            <div key={hour}>
-                              <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</SelectItem>
-                              <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>{hour.toString().padStart(2, '0')}:30</SelectItem>
-                            </div>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          step="60"
+                          {...field} 
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -866,7 +855,7 @@ export default function AdminCricketTossPage() {
               </div>
               
               {/* Open Betting Date and Time Selection */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={gameForm.control}
                   name="openDate"
@@ -893,24 +882,13 @@ export default function AdminCricketTossPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Open Betting Time (Optional)</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select time" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Array.from({ length: 24 }).map((_, hour) => (
-                            <div key={hour}>
-                              <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</SelectItem>
-                              <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>{hour.toString().padStart(2, '0')}:30</SelectItem>
-                            </div>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          step="60"
+                          {...field} 
+                        />
+                      </FormControl>
                       <FormDescription>
                         If not provided, toss time will be used
                       </FormDescription>
@@ -921,7 +899,7 @@ export default function AdminCricketTossPage() {
               </div>
               
               {/* Close Betting Date and Time Selection */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={gameForm.control}
                   name="closeDate"
@@ -948,24 +926,13 @@ export default function AdminCricketTossPage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Close Betting Time (Optional)</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select time" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {Array.from({ length: 24 }).map((_, hour) => (
-                            <div key={hour}>
-                              <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>{hour.toString().padStart(2, '0')}:00</SelectItem>
-                              <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>{hour.toString().padStart(2, '0')}:30</SelectItem>
-                            </div>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <FormControl>
+                        <Input 
+                          type="time" 
+                          step="60"
+                          {...field} 
+                        />
+                      </FormControl>
                       <FormDescription>
                         If not provided, toss time will be used
                       </FormDescription>
