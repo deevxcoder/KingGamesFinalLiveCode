@@ -93,6 +93,18 @@ type CricketTossGame = {
   };
 };
 
+// Define the props for the cricket toss table component
+interface CricketTossTableProps {
+  games: CricketTossGame[];
+  isLoading: boolean;
+  handleEditGame: (game: CricketTossGame) => void;
+  handleDeclareResult: (game: CricketTossGame) => void;
+  handleChangeStatus: (game: CricketTossGame) => void;
+  formatDate: (date: string | undefined) => string;
+  StatusBadge: React.FC<{ result: string | null }>;
+  getResultDisplay: (result: string | null, game: CricketTossGame) => string;
+}
+
 // Form schema for declaring toss results
 const resultFormSchema = z.object({
   result: z.string().min(1, "Result is required")
@@ -323,6 +335,30 @@ export default function AdminCricketTossPage() {
       });
     }
   };
+  
+  // Handle closing a match
+  const handleCloseMatch = (game: CricketTossGame) => {
+    try {
+      // Check if this is a standalone cricket toss game and use the appropriate API
+      const isStandalone = isStandaloneTossGame(game);
+      
+      // Confirm with the user before closing the match
+      if (confirm(`Are you sure you want to close the match between ${game.gameData.teamA} and ${game.gameData.teamB}? This will prevent further betting.`)) {
+        updateTossStatus.mutate({
+          id: game.id,
+          status: "closed",
+          isStandalone: isStandalone
+        });
+      }
+    } catch (error) {
+      console.error("Error closing match:", error);
+      toast({
+        title: "Error",
+        description: "Failed to close the match. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Helper to identify standalone cricket toss games vs legacy games
   const isStandaloneTossGame = (game: CricketTossGame): boolean => {
@@ -364,6 +400,38 @@ export default function AdminCricketTossPage() {
       toast({
         title: "Error",
         description: error.message || "Failed to declare result. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  // Mutation for updating game status (close/open)
+  const updateTossStatus = useMutation({
+    mutationFn: ({ id, status, isStandalone }: { id: number, status: string, isStandalone: boolean }) => {
+      // Use the appropriate API endpoint based on game type
+      const endpoint = isStandalone 
+        ? `/api/cricket-toss-games/${id}/status` // New standalone endpoint
+        : `/api/cricket-toss/${id}/status`;      // Legacy endpoint
+        
+      return apiRequest(
+        'PATCH',
+        endpoint,
+        { status }
+      );
+    },
+    onSuccess: () => {
+      // Invalidate both query keys to ensure all data is updated
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss-games"] });
+      toast({
+        title: "Status updated",
+        description: "Match status has been updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update status. Please try again.",
         variant: "destructive"
       });
     }
@@ -590,6 +658,7 @@ export default function AdminCricketTossPage() {
             isLoading={isLoadingGames}
             handleEditGame={handleEditGame}
             handleDeclareResult={handleDeclareResult}
+            handleChangeStatus={handleCloseMatch}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
             getResultDisplay={getResultDisplay}
@@ -602,6 +671,7 @@ export default function AdminCricketTossPage() {
             isLoading={isLoadingGames}
             handleEditGame={handleEditGame}
             handleDeclareResult={handleDeclareResult}
+            handleChangeStatus={handleCloseMatch}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
             getResultDisplay={getResultDisplay}
@@ -614,6 +684,7 @@ export default function AdminCricketTossPage() {
             isLoading={isLoadingGames}
             handleEditGame={handleEditGame}
             handleDeclareResult={handleDeclareResult}
+            handleChangeStatus={handleCloseMatch}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
             getResultDisplay={getResultDisplay}
@@ -626,6 +697,7 @@ export default function AdminCricketTossPage() {
             isLoading={isLoadingGames}
             handleEditGame={handleEditGame}
             handleDeclareResult={handleDeclareResult}
+            handleChangeStatus={handleCloseMatch}
             formatDate={formatDate}
             StatusBadge={StatusBadge}
             getResultDisplay={getResultDisplay}
@@ -931,16 +1003,6 @@ export default function AdminCricketTossPage() {
 }
 
 // Cricket Toss Table Component
-interface CricketTossTableProps {
-  games: CricketTossGame[];
-  isLoading: boolean;
-  handleEditGame: (game: CricketTossGame) => void;
-  handleDeclareResult: (game: CricketTossGame) => void;
-  handleChangeStatus: (game: CricketTossGame) => void;
-  formatDate: (date: string | undefined) => string;
-  StatusBadge: React.FC<{ result: string | null }>;
-  getResultDisplay: (result: string | null, game: CricketTossGame) => string;
-}
 
 function CricketTossTable({ 
   games, 
@@ -951,7 +1013,16 @@ function CricketTossTable({
   formatDate,
   StatusBadge,
   getResultDisplay
-}: CricketTossTableProps) {
+}: {
+  games: CricketTossGame[];
+  isLoading: boolean;
+  handleEditGame: (game: CricketTossGame) => void;
+  handleDeclareResult: (game: CricketTossGame) => void;
+  handleChangeStatus: (game: CricketTossGame) => void;
+  formatDate: (date: string | undefined) => string;
+  StatusBadge: React.FC<{ result: string | null }>;
+  getResultDisplay: (result: string | null, game: CricketTossGame) => string;
+}) {
   
   if (isLoading) {
     return (
@@ -976,7 +1047,7 @@ function CricketTossTable({
   }
 
   // Check if any games have gameData property - if at least one has it, we'll show the full table
-  const hasAnyGameData = games.some(game => game.gameData);
+  const hasAnyGameData = games.some((game: CricketTossGame) => game.gameData);
 
   return (
     <div className="border rounded-lg overflow-hidden">
@@ -992,7 +1063,7 @@ function CricketTossTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {games.map((game) => (
+          {games.map((game: CricketTossGame) => (
             <TableRow key={`${game.id}-${(game as any).source || 'default'}`}>
               <TableCell>
                 {game.gameData ? (
@@ -1041,6 +1112,19 @@ function CricketTossTable({
                       Edit
                     </Button>
                   )}
+                  
+                  {/* Close Match Button - Only shown for open matches */}
+                  {(game.result === null || game.result === "" || game.result === "pending") && (
+                    <Button 
+                      variant="secondary"
+                      size="sm" 
+                      onClick={() => handleChangeStatus(game)}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Close Match
+                    </Button>
+                  )}
+                  
                   <Button 
                     variant={(game.result === "team_a" || game.result === "team_b") ? "outline" : "default"}
                     size="sm" 
