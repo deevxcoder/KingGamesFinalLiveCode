@@ -832,17 +832,78 @@ app.get("/api/games/my-history", async (req, res, next) => {
         return res.status(401).json({ message: "Unauthorized" });
       }
 
-      const games = await storage.getGamesByUserId(req.user!.id);
-      
-      // Calculate statistics
-      const totalBets = games.length;
-      const totalWins = games.filter(game => game.payout > 0).length;
-      const winRate = totalBets > 0 ? Math.round((totalWins / totalBets) * 100) : 0;
-      
-      res.json({
-        totalBets,
-        winRate,
-      });
+      // For player role, we need to fix a permission issue
+      if (req.user!.role === UserRole.PLAYER) {
+        const userId = req.user!.id;
+        const games = await storage.getGamesByUserId(userId);
+        
+        // Calculate basic statistics
+        const totalBets = games.length;
+        const totalWins = games.filter(game => game.payout > 0).length;
+        const winRate = totalBets > 0 ? Math.round((totalWins / totalBets) * 100) : 0;
+        
+        // Calculate more advanced statistics
+        const totalWagered = games.reduce((sum, game) => sum + game.betAmount, 0);
+        const totalWon = games.reduce((sum, game) => sum + game.payout, 0);
+        const netProfit = totalWon - totalWagered;
+        
+        // Get game type distribution
+        const gameTypes = games.reduce((acc, game) => {
+          acc[game.gameType] = (acc[game.gameType] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+        
+        // Get recent activity trend - last 10 games
+        const recentGames = games
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+          .slice(0, 10);
+        
+        const recentWinRate = recentGames.length > 0 
+          ? Math.round((recentGames.filter(g => g.payout > 0).length / recentGames.length) * 100)
+          : 0;
+        
+        // Return enhanced stats
+        res.json({
+          totalBets,
+          winRate,
+          recentWinRate,
+          totalWagered,
+          totalWon,
+          netProfit,
+          gameTypeDistribution: gameTypes,
+          favoriteGame: Object.entries(gameTypes).sort((a, b) => b[1] - a[1])[0]?.[0] || null
+        });
+      } else {
+        // For admin/subadmin role
+        const userId = parseInt(req.query.userId as string);
+        
+        // Validate ID format
+        if (isNaN(userId)) {
+          return res.status(400).json({ message: "Invalid user ID format" });
+        }
+        
+        // Check permissions - admins can view any user's stats, subadmins only their assigned users
+        if (req.user!.role === UserRole.SUBADMIN) {
+          const assignedUsers = await storage.getUsersByAssignedTo(req.user!.id);
+          const isUserAssigned = assignedUsers.some(u => u.id === userId);
+          
+          if (!isUserAssigned) {
+            return res.status(403).json({ message: "Forbidden: Insufficient permissions" });
+          }
+        }
+        
+        const games = await storage.getGamesByUserId(userId);
+        
+        // Calculate basic statistics
+        const totalBets = games.length;
+        const totalWins = games.filter(game => game.payout > 0).length;
+        const winRate = totalBets > 0 ? Math.round((totalWins / totalBets) * 100) : 0;
+        
+        res.json({
+          totalBets,
+          winRate,
+        });
+      }
     } catch (err) {
       next(err);
     }

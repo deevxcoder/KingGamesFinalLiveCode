@@ -111,10 +111,30 @@ export default function HomePage() {
   const { user } = useAuth();
   const [_, setLocation] = useLocation();
   
-  // Fetch user statistics
-  const { data: stats = { winRate: 0, totalBets: 0 } } = useQuery({
+  // Fetch user statistics with proper typing
+  interface PlayerStats {
+    totalBets: number;
+    winRate: number;
+    recentWinRate: number;
+    totalWagered: number;
+    totalWon: number;
+    netProfit: number;
+    gameTypeDistribution: Record<string, number>;
+    favoriteGame: string | null;
+  }
+  
+  const { data: stats = { 
+    winRate: 0, 
+    totalBets: 0,
+    recentWinRate: 0,
+    totalWagered: 0,
+    totalWon: 0,
+    netProfit: 0,
+    gameTypeDistribution: {},
+    favoriteGame: null
+  } } = useQuery<PlayerStats>({
     queryKey: ["/api/users/stats"],
-    enabled: !!user,
+    enabled: !!user && user.role === UserRole.PLAYER,
   });
 
   // Fetch recent games for the user
@@ -473,7 +493,7 @@ export default function HomePage() {
               <DashboardStatsCard 
                 title="Current Balance" 
                 value={`₹${(user?.balance || 0) / 100}`}
-                icon={<IndianRupee className="h-5 w-5 text-emerald-400" />}
+                icon={<DollarSign className="h-5 w-5 text-emerald-400" />}
                 trend="neutral"
                 color="green"
               />
@@ -483,7 +503,7 @@ export default function HomePage() {
                 title="Win Rate" 
                 value={`${stats.winRate}%`}
                 icon={<Target className="h-5 w-5 text-blue-400" />}
-                trend="neutral"
+                trend={stats.recentWinRate > stats.winRate ? "up" : "neutral"}
                 color="blue"
               />
               
@@ -496,15 +516,13 @@ export default function HomePage() {
                 color="purple"
               />
               
-              {/* Recent Win/Loss Card */}
+              {/* Net Profit Card */}
               <DashboardStatsCard 
-                title="Recent Games" 
-                value={recentGames.length > 0 ? 
-                  (recentGames[0].payout > 0 ? "Last game: Win" : "Last game: Loss") : 
-                  "No games yet"}
+                title="Net Profit" 
+                value={`₹${(stats.netProfit / 100).toFixed(2)}`}
                 icon={<Activity className="h-5 w-5 text-amber-400" />}
-                trend="neutral"
-                color="amber"
+                trend={stats.netProfit > 0 ? "up" : "down"}
+                color={stats.netProfit > 0 ? "green" : "red"}
               />
             </div>
           </div>
