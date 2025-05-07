@@ -98,13 +98,13 @@ export default function AdminCricketTossPage() {
   });
 
   // Query to fetch cricket toss matches
-  const { data: cricketTossMatches, isLoading } = useQuery({
+  const { data: cricketTossMatches = [], isLoading } = useQuery({
     queryKey: ["/api/cricket-toss/matches"],
     staleTime: 10000,
   });
 
   // Query to fetch bet data for a selected match
-  const { data: betData, isLoading: isLoadingBets } = useQuery({
+  const { data: betData = [], isLoading: isLoadingBets } = useQuery({
     queryKey: ["/api/cricket-toss/bets", selectedMatch?.id],
     enabled: showBets && !!selectedMatch,
     staleTime: 5000,

@@ -3272,6 +3272,11 @@ app.get("/api/games/my-history", async (req, res, next) => {
     }
   });
 
+  // Register cricket toss API routes
+  await import('./cricket-toss-api').then((module) => {
+    app.use('/api/cricket-toss', module.default);
+  });
+
   // Register wallet system routes
   await import('./wallet-system').then(({ setupWalletRoutes }) => {
     setupWalletRoutes(app);

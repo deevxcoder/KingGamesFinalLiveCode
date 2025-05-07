@@ -68,13 +68,13 @@ export default function CricketTossPage() {
   const queryClient = useQueryClient();
 
   // Query to fetch open cricket toss matches
-  const { data: openMatches, isLoading: loadingMatches } = useQuery({
+  const { data: openMatches = [], isLoading: loadingMatches } = useQuery({
     queryKey: ["/api/cricket-toss/open-matches"],
     staleTime: 30000, // 30 seconds
   });
 
   // Query to fetch user's betting history
-  const { data: betHistory, isLoading: loadingHistory } = useQuery({
+  const { data: betHistory = [], isLoading: loadingHistory } = useQuery({
     queryKey: ["/api/cricket-toss/my-bets"],
     staleTime: 30000, // 30 seconds
   });
