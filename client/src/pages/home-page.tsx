@@ -215,7 +215,7 @@ export default function HomePage() {
             {/* Total Profit Card */}
             <DashboardStatsCard 
               title="Total Profit" 
-              value={`₹${(subadminStats.totalProfit || 0).toLocaleString()}`}
+              value={`₹${((subadminStats.totalProfit || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
               icon={<TrendingUp className="h-5 w-5 text-emerald-400" />}
               trend={subadminStats.totalProfit >= 0 ? "up" : "down"}
               color={subadminStats.totalProfit >= 0 ? "green" : "red"}
@@ -224,7 +224,7 @@ export default function HomePage() {
             {/* Total Deposits Card */}
             <DashboardStatsCard 
               title="Total Deposits" 
-              value={`₹${(subadminStats.totalDeposits || 0).toLocaleString()}`}
+              value={`₹${((subadminStats.totalDeposits || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
               icon={<DollarSign className="h-5 w-5 text-blue-400" />}
               trend="up" 
               color="blue"
@@ -274,7 +274,7 @@ export default function HomePage() {
                             {game.gameType.replace('_', ' ')}
                           </td>
                           <td className="py-3 px-4 text-sm">
-                            <span className="font-medium text-emerald-400">₹{game.betAmount}</span>
+                            <span className="font-medium text-emerald-400">₹{((game.betAmount || 0) / 100).toFixed(2)}</span>
                           </td>
                           <td className="py-3 px-4 text-sm">
                             {game.result === 'win' ? (
