@@ -24,7 +24,7 @@ async function addTestGames() {
       const usersResult = await client.query(`
         SELECT id, username, role 
         FROM users 
-        WHERE role = 'player' AND assignedTo IS NOT NULL
+        WHERE role = 'player' AND assigned_to IS NOT NULL
       `);
       
       if (usersResult.rows.length === 0) {
@@ -96,7 +96,7 @@ async function addTestGames() {
           
           await client.query(`
             INSERT INTO games
-            (user_id, game_type, bet_amount, prediction, result, payout, balance_after, created_at)
+            ("userId", "gameType", "betAmount", prediction, result, payout, "balanceAfter", "createdAt")
             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - INTERVAL '${i} hours')
           `, [player.id, 'coin_flip', betAmount, 'tails', 'loss', payout, currentBalance]);
         }
