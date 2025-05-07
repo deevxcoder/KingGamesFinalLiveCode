@@ -34,6 +34,8 @@ interface CricketTossMatch {
   teamB: string;
   description?: string;
   matchTime: string;
+  teamAImage?: string;
+  teamBImage?: string;
   oddTeamA: number;
   oddTeamB: number;
   result: string;
@@ -54,6 +56,8 @@ interface BetHistory {
   gameData: {
     teamA: string;
     teamB: string;
+    teamAImage?: string;
+    teamBImage?: string;
     oddTeamA: number;
     oddTeamB: number;
     matchTime: string;
