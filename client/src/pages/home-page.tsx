@@ -215,16 +215,16 @@ export default function HomePage() {
             {/* Total Profit Card */}
             <DashboardStatsCard 
               title="Total Profit" 
-              value={`₹${subadminStats.totalProfit.toLocaleString()}`}
+              value={`₹${(subadminStats.totalProfit || 0).toLocaleString()}`}
               icon={<TrendingUp className="h-5 w-5 text-emerald-400" />}
-              trend="up"
-              color="green"
+              trend={subadminStats.totalProfit >= 0 ? "up" : "down"}
+              color={subadminStats.totalProfit >= 0 ? "green" : "red"}
             />
             
             {/* Total Deposits Card */}
             <DashboardStatsCard 
               title="Total Deposits" 
-              value={`₹${subadminStats.totalDeposits.toLocaleString()}`}
+              value={`₹${(subadminStats.totalDeposits || 0).toLocaleString()}`}
               icon={<DollarSign className="h-5 w-5 text-blue-400" />}
               trend="up" 
               color="blue"
@@ -233,7 +233,7 @@ export default function HomePage() {
             {/* Total Users Card */}
             <DashboardStatsCard 
               title="Total Users" 
-              value={subadminStats.totalUsers.toString()}
+              value={(subadminStats.totalUsers || 0).toString()}
               icon={<Users className="h-5 w-5 text-purple-400" />}
               trend="up"
               color="purple"
@@ -242,7 +242,7 @@ export default function HomePage() {
             {/* Active Users Card */}
             <DashboardStatsCard 
               title="Active Users" 
-              value={subadminStats.activeUsers.toString()}
+              value={(subadminStats.activeUsers || 0).toString()}
               icon={<Activity className="h-5 w-5 text-amber-400" />}
               trend="neutral"
               color="amber"
@@ -292,7 +292,7 @@ export default function HomePage() {
                             )}
                           </td>
                           <td className="py-3 px-4 text-sm text-slate-400">
-                            {new Date(game.createdAt).toLocaleDateString()}
+                            {game.createdAt ? new Date(game.createdAt).toLocaleDateString() : 'N/A'}
                           </td>
                         </tr>
                       ))}

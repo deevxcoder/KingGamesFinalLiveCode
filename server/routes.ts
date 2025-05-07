@@ -914,10 +914,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
                           
           if (playerWon) {
             // House loss (negative profit): payout - betAmount
-            return sum - (game.payout - game.bet_amount);
+            return sum - ((game.payout || 0) - (game.betAmount || game.bet_amount || 0));
           } else if (houseWon) {
             // House win (positive profit): betAmount
-            return sum + game.bet_amount;
+            return sum + (game.betAmount || game.bet_amount || 0);
           }
           // Pending games don't affect profit calculation
           return sum;
@@ -926,7 +926,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
       
       // Count active users (users who played at least one game)
       const activeUserIds = games.length > 0 ? 
-        [...new Set(games.map(game => game.user_id))] : [];
+        [...new Set(games.map(game => game.userId || game.user_id))] : [];
       const activeUsers = activeUserIds.length;
       
       res.json({
