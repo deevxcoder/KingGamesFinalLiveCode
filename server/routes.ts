@@ -42,8 +42,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup deposit commission endpoint for specific subadmin
   setupDepositCommissionEndpoints(app);
   
-  // Setup cricket toss routes
-  app.use("/api/cricket-toss", cricketTossRoutes);
+  // Setup cricket toss routes - registered later in the file
+  // (see line ~3277 where it's properly registered)
   
   // Endpoint to manually seed demo Satamatka markets
   app.post("/api/admin/seed-satamatka-markets", requireRole(UserRole.ADMIN), async (req, res, next) => {
