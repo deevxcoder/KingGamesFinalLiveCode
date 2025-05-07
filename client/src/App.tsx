@@ -21,10 +21,9 @@ import RiskManagementPage from "@/pages/risk-management-page";
 import MarketListPage from "@/pages/market-list-page";
 import SatamatkaGamePage from "@/pages/satamatka-game-page";
 import TeamMatchPage from "@/pages/team-match-page";
-import CricketTossPage from "@/pages/cricket-toss-page";
+// Cricket Toss pages removed
 import AdminMarketManagementPage from "@/pages/admin-market-management-page";
 import AdminTeamMatchPage from "@/pages/admin-team-match-page";
-import AdminCricketTossPage from "@/pages/admin-cricket-toss-page";
 import JantriManagementPage from "@/pages/jantri-management-page";
 import WalletPage from "@/pages/wallet-page";
 import AdminSettingsPage from "@/pages/admin-settings-page";
@@ -101,11 +100,7 @@ function Router() {
         component={AdminTeamMatchPage} 
         allowedRoles={[UserRole.ADMIN]}
       />
-      <ProtectedRoute 
-        path="/manage-cricket-toss" 
-        component={AdminCricketTossPage} 
-        allowedRoles={[UserRole.ADMIN]}
-      />
+      {/* Cricket Toss Admin route removed */}
       
       {/* Settings routes - uses a dedicated router component */}
       <ProtectedRoute 
@@ -135,11 +130,7 @@ function Router() {
         component={TeamMatchPage}
         allowedRoles={[UserRole.PLAYER]} 
       />
-      <ProtectedRoute 
-        path="/cricket-toss" 
-        component={CricketTossPage}
-        allowedRoles={[UserRole.PLAYER]} 
-      />
+      {/* Cricket Toss Player route removed */}
       
       {/* New player pages - games and profile */}
       <ProtectedRoute

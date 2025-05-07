@@ -21,7 +21,6 @@ import {
 } from "@shared/schema";
 import { eq, and, gte, desc } from "drizzle-orm";
 import * as schema from "@shared/schema";
-// Cricket Toss routes removed
 import { setupWalletRoutes, setupDepositCommissions } from "./wallet-system";
 import { setupUploadRoutes } from "./upload-routes";
 import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";

@@ -75,13 +75,7 @@ export default function Sidebar() {
       icon: <Trophy className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
-    // Cricket Toss Management - Admin Only
-    {
-      name: "Manage Cricket Toss",
-      path: "/manage-cricket-toss",
-      icon: <GiCricketBat className="w-5 h-5 mr-3" />,
-      visible: isAdmin,
-    },
+    // Cricket Toss Management removed
     // Regular Users Only (Game Related)
     {
       name: "All Games",
@@ -107,12 +101,7 @@ export default function Sidebar() {
       icon: <Trophy className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
     },
-    {
-      name: "Cricket Toss",
-      path: "/cricket-toss",
-      icon: <GiCricketBat className="w-5 h-5 mr-3" />,
-      visible: isRegularUser,
-    },
+    // Cricket Toss removed
     {
       name: "Game History",
       path: "/game-history",
