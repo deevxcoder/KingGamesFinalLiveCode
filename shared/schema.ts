@@ -370,6 +370,8 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
     oddTeamB: true,
     oddDraw: true,
     status: true,
+    teamAImage: true,
+    teamBImage: true,
   })
   .extend({
     matchTime: z.union([
@@ -389,6 +391,8 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
       TeamMatchResult.PENDING
     ]).default(TeamMatchResult.PENDING),
     status: z.enum(["open", "closed", "resulted"]).default("open"),
+    teamAImage: z.string().optional(),
+    teamBImage: z.string().optional(),
   });
 
 export type InsertTeamMatch = z.infer<typeof insertTeamMatchSchema>;

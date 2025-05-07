@@ -232,10 +232,28 @@ export default function CricketTossPage() {
                       <Separator />
                       <div className="grid grid-cols-2 gap-2">
                         <div className="text-center p-2 rounded border">
+                          {match.teamAImage && (
+                            <div className="flex justify-center mb-2">
+                              <img 
+                                src={match.teamAImage} 
+                                alt={match.teamA}
+                                className="w-12 h-12 object-cover rounded-full" 
+                              />
+                            </div>
+                          )}
                           <div className="font-bold">{match.teamA}</div>
                           <div className="text-sm">Odds: {formatOdds(match.oddTeamA)}</div>
                         </div>
                         <div className="text-center p-2 rounded border">
+                          {match.teamBImage && (
+                            <div className="flex justify-center mb-2">
+                              <img 
+                                src={match.teamBImage} 
+                                alt={match.teamB}
+                                className="w-12 h-12 object-cover rounded-full" 
+                              />
+                            </div>
+                          )}
                           <div className="font-bold">{match.teamB}</div>
                           <div className="text-sm">Odds: {formatOdds(match.oddTeamB)}</div>
                         </div>
@@ -283,7 +301,14 @@ export default function CricketTossPage() {
                         className="h-16"
                         onClick={() => setSelectedTeam("team_a")}
                       >
-                        <div className="text-center">
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          {selectedMatch.teamAImage && (
+                            <img 
+                              src={selectedMatch.teamAImage} 
+                              alt={selectedMatch.teamA}
+                              className="w-8 h-8 object-cover rounded-full mb-1" 
+                            />
+                          )}
                           <div>{selectedMatch.teamA}</div>
                           <div className="text-sm">Odds: {formatOdds(selectedMatch.oddTeamA)}</div>
                         </div>
@@ -293,7 +318,14 @@ export default function CricketTossPage() {
                         className="h-16"
                         onClick={() => setSelectedTeam("team_b")}
                       >
-                        <div className="text-center">
+                        <div className="flex flex-col items-center justify-center gap-1">
+                          {selectedMatch.teamBImage && (
+                            <img 
+                              src={selectedMatch.teamBImage} 
+                              alt={selectedMatch.teamB}
+                              className="w-8 h-8 object-cover rounded-full mb-1" 
+                            />
+                          )}
                           <div>{selectedMatch.teamB}</div>
                           <div className="text-sm">Odds: {formatOdds(selectedMatch.oddTeamB)}</div>
                         </div>

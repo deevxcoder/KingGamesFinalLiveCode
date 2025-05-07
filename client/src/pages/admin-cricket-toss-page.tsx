@@ -427,9 +427,29 @@ export default function AdminCricketTossPage() {
                   <TableRow key={match.id}>
                     <TableCell>{match.id}</TableCell>
                     <TableCell>
-                      {match.teamA} vs {match.teamB}
+                      <div className="flex items-center gap-2">
+                        {match.teamAImage && (
+                          <img 
+                            src={match.teamAImage} 
+                            alt={match.teamA}
+                            className="w-8 h-8 object-cover rounded-full" 
+                          />
+                        )}
+                        <span>{match.teamA}</span>
+                      </div>
+                      <div className="text-center my-1 text-xs text-gray-500">vs</div>
+                      <div className="flex items-center gap-2">
+                        {match.teamBImage && (
+                          <img 
+                            src={match.teamBImage} 
+                            alt={match.teamB}
+                            className="w-8 h-8 object-cover rounded-full" 
+                          />
+                        )}
+                        <span>{match.teamB}</span>
+                      </div>
                       {match.description && (
-                        <div className="text-xs text-gray-500">{match.description}</div>
+                        <div className="text-xs text-gray-500 mt-1">{match.description}</div>
                       )}
                     </TableCell>
                     <TableCell>{formatDate(new Date(match.matchTime))}</TableCell>
@@ -576,15 +596,29 @@ export default function AdminCricketTossPage() {
             <div className="grid grid-cols-2 gap-4">
               <Button
                 onClick={() => handleDeclareResult("team_a")}
-                className="h-16"
+                className="h-16 flex flex-col items-center justify-center gap-2"
               >
-                {selectedMatch?.teamA} Wins
+                {selectedMatch?.teamAImage && (
+                  <img 
+                    src={selectedMatch.teamAImage} 
+                    alt={selectedMatch.teamA}
+                    className="w-6 h-6 object-cover rounded-full" 
+                  />
+                )}
+                <span>{selectedMatch?.teamA} Wins</span>
               </Button>
               <Button
                 onClick={() => handleDeclareResult("team_b")}
-                className="h-16"
+                className="h-16 flex flex-col items-center justify-center gap-2"
               >
-                {selectedMatch?.teamB} Wins
+                {selectedMatch?.teamBImage && (
+                  <img 
+                    src={selectedMatch.teamBImage} 
+                    alt={selectedMatch.teamB}
+                    className="w-6 h-6 object-cover rounded-full" 
+                  />
+                )}
+                <span>{selectedMatch?.teamB} Wins</span>
               </Button>
             </div>
           </div>
