@@ -87,7 +87,7 @@ type CricketTossGame = {
     oddTeamA: number;
     oddTeamB: number;
     imageUrl?: string;
-    status?: string;
+    status?: string; // "open" | "closed"
     openTime?: string;
     closeTime?: string;
   };
@@ -96,6 +96,13 @@ type CricketTossGame = {
 // Form schema for declaring toss results
 const resultFormSchema = z.object({
   result: z.string().min(1, "Result is required")
+});
+
+// Form schema for changing game status
+const statusFormSchema = z.object({
+  status: z.enum(["open", "closed"], {
+    required_error: "Status is required"
+  })
 });
 
 // Form schema for creating/editing cricket toss games
@@ -929,6 +936,7 @@ interface CricketTossTableProps {
   isLoading: boolean;
   handleEditGame: (game: CricketTossGame) => void;
   handleDeclareResult: (game: CricketTossGame) => void;
+  handleChangeStatus: (game: CricketTossGame) => void;
   formatDate: (date: string | undefined) => string;
   StatusBadge: React.FC<{ result: string | null }>;
   getResultDisplay: (result: string | null, game: CricketTossGame) => string;
@@ -939,6 +947,7 @@ function CricketTossTable({
   isLoading,
   handleEditGame,
   handleDeclareResult,
+  handleChangeStatus,
   formatDate,
   StatusBadge,
   getResultDisplay
