@@ -13,6 +13,7 @@ import DashboardStatsCard from "@/components/dashboard-stats-card";
 import PromoSlider from "@/components/promo-slider";
 import GameHistoryTable from "@/components/game-history-table";
 import { Button } from "@/components/ui/button";
+import { GiCricketBat } from "react-icons/gi";
 import { 
   Play, 
   Dice1, 
@@ -511,13 +512,22 @@ export default function HomePage() {
           </div>
           
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
             <Button 
               className="py-8 text-lg bg-gradient-to-r from-purple-700 to-fuchsia-600 hover:from-purple-600 hover:to-fuchsia-500"
               onClick={() => setLocation("/coinflip")}
             >
               <Dice1 className="h-5 w-5 mr-2" />
               Coin Flip
+            </Button>
+            
+            <Button 
+              variant="outline"
+              className="py-8 text-lg border-slate-700 text-indigo-300 hover:bg-slate-800/50 hover:text-indigo-200"
+              onClick={() => setLocation("/cricket-toss")}
+            >
+              <GiCricketBat className="h-5 w-5 mr-2" />
+              Cricket Toss
             </Button>
             
             <Button 
