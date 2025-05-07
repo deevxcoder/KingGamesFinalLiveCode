@@ -139,16 +139,13 @@ export class DatabaseStorage implements IStorage {
     // Seed the database with initial test data
     this.seedInitialData();
     
-    // Check if Satamatka markets exist and seed them if not
-    this.checkAndSeedSatamatkaMarkets();
+    // NOTE: Market games (Satamatka) auto-seeding DISABLED
+    // Admin will manually add all market games
+    console.log("Market games auto-seeding DISABLED - admin will add markets manually");
     
     // NOTE: Cricket Toss games are no longer auto-seeded
     // Admin will manually add all cricket games
-    // this.seedCricketTossGames();
     console.log("Cricket toss games auto-seeding DISABLED - admin will add games manually");
-    
-    // Seed demo Satamatka markets with future times to ensure active markets
-    this.seedDemoSatamatkaMarkets();
   }
   
   /**
@@ -364,9 +361,6 @@ export class DatabaseStorage implements IStorage {
         
         // Seed some games for player2
         await this.seedGamesForUser(player2.id, 5);
-        
-        // Seed Satamatka markets
-        await this.seedSatamatkaMarkets();
         
         console.log("Test users and data seeded successfully!");
         console.log("----------------------------------------");
