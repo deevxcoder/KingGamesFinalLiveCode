@@ -32,6 +32,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -40,6 +48,7 @@ import { formatDate } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/dashboard-layout";
+import { Check, X, MoreVertical } from "lucide-react";
 
 // Define the schema for creating a cricket toss match
 const createCricketTossSchema = z.object({
@@ -82,7 +91,6 @@ interface BetData {
 
 export default function AdminCricketTossPage() {
   const [selectedMatch, setSelectedMatch] = useState<CricketTossMatch | null>(null);
-  const [showBets, setShowBets] = useState(false);
   const [open, setOpen] = useState(false);
   const [declareOpen, setDeclareOpen] = useState(false);
   const [teamAPreview, setTeamAPreview] = useState<string | null>(null);
@@ -105,13 +113,6 @@ export default function AdminCricketTossPage() {
   const { data: cricketTossMatches = [], isLoading } = useQuery({
     queryKey: ["/api/cricket-toss/matches"],
     staleTime: 10000,
-  });
-
-  // Query to fetch bet data for a selected match
-  const { data: betData = [], isLoading: isLoadingBets } = useQuery({
-    queryKey: ["/api/cricket-toss/bets", selectedMatch?.id],
-    enabled: showBets && !!selectedMatch,
-    staleTime: 5000,
   });
 
   // Mutation to create a new cricket toss match
@@ -516,40 +517,41 @@ export default function AdminCricketTossPage() {
                           match.result
                         )}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedMatch(match);
-                              setShowBets(true);
-                            }}
-                          >
-                            View Bets
-                          </Button>
-                          {match.status === "open" && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleCloseBetting(match.id)}
-                            >
-                              Close Betting
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                              <span className="sr-only">Actions</span>
                             </Button>
-                          )}
-                          {match.status === "closed" && (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedMatch(match);
-                                setDeclareOpen(true);
-                              }}
-                            >
-                              Declare Result
-                            </Button>
-                          )}
-                        </div>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            
+                            <DropdownMenuSeparator />
+                            
+                            {match.status === "open" && (
+                              <DropdownMenuItem 
+                                onClick={() => handleCloseBetting(match.id)}
+                              >
+                                <X className="mr-2 h-4 w-4" />
+                                Close Betting
+                              </DropdownMenuItem>
+                            )}
+                            
+                            {match.status === "closed" && (
+                              <DropdownMenuItem 
+                                onClick={() => {
+                                  setSelectedMatch(match);
+                                  setDeclareOpen(true);
+                                }}
+                              >
+                                <Check className="mr-2 h-4 w-4" />
+                                Declare Result
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -564,77 +566,7 @@ export default function AdminCricketTossPage() {
           </div>
         )}
 
-        {showBets && selectedMatch && (
-          <div className="mt-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">
-                Bets for {selectedMatch.teamA} vs {selectedMatch.teamB}
-              </h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowBets(false)}
-              >
-                Hide Bets
-              </Button>
-            </div>
-            
-            {isLoadingBets ? (
-              <div className="p-8 text-center">Loading bets...</div>
-            ) : betData && betData.length > 0 ? (
-              <Card>
-                <CardContent className="pt-6">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>User</TableHead>
-                        <TableHead>Bet Amount</TableHead>
-                        <TableHead>Prediction</TableHead>
-                        <TableHead>Potential Win</TableHead>
-                        <TableHead>Result</TableHead>
-                        <TableHead>Payout</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {betData.map((bet: BetData) => (
-                        <TableRow key={bet.id}>
-                          <TableCell>{bet.username}</TableCell>
-                          <TableCell>{bet.betAmount}</TableCell>
-                          <TableCell>{formatPrediction(bet.prediction, selectedMatch)}</TableCell>
-                          <TableCell>{bet.potential}</TableCell>
-                          <TableCell>
-                            {bet.result === null ? (
-                              <span className="text-yellow-500">Pending</span>
-                            ) : bet.result === "win" ? (
-                              <span className="text-green-500">Win</span>
-                            ) : (
-                              <span className="text-red-500">Loss</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {bet.payout > 0 ? (
-                              <span className="text-green-500">{bet.payout}</span>
-                            ) : (
-                              "0"
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            ) : (
-              <Alert>
-                <ExclamationTriangleIcon className="h-4 w-4" />
-                <AlertTitle>No bets found</AlertTitle>
-                <AlertDescription>
-                  There are no bets placed on this match yet.
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        )}
+
 
         {/* Dialog for declaring result */}
         <Dialog open={declareOpen && !!selectedMatch} onOpenChange={setDeclareOpen}>
