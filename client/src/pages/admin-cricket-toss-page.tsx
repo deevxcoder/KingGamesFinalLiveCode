@@ -341,335 +341,370 @@ export default function AdminCricketTossPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="container px-4 py-6 mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Cricket Toss Management</h1>
-          <Dialog 
-            open={open} 
-            onOpenChange={(isOpen) => {
-              setOpen(isOpen);
-              if (!isOpen) {
-                setCoverImagePreview(null);
-              }
-            }}>
-            <DialogTrigger asChild>
-              <Button>Create New Match</Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>Create Cricket Toss Match</DialogTitle>
-              </DialogHeader>
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="teamA"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Team A</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter team A name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="teamB"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Team B</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter team B name" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Description (Optional)</FormLabel>
-                        <FormControl>
-                          <Input {...field} placeholder="Enter match description" />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="matchTime"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Match Time</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="datetime-local"
-                            min={new Date().toISOString().slice(0, 16)}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="coverImage"
-                    render={({ field: { value, onChange, ...field } }) => (
-                      <FormItem>
-                        <FormLabel>Cover Banner Image (Optional)</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="file"
-                            accept="image/*"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                onChange(file);
-                                // Create a preview URL for the selected image
-                                const reader = new FileReader();
-                                reader.onload = (e) => {
-                                  setCoverImagePreview(e.target?.result as string);
-                                };
-                                reader.readAsDataURL(file);
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        {coverImagePreview && (
-                          <div className="mt-2">
+    <DashboardLayout title="Cricket Toss Management">
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center text-muted-foreground">
+            <Calendar className="h-5 w-5 mr-2" />
+            <span>{dateString}</span>
+          </div>
+          
+          <Button 
+            onClick={() => setOpen(true)} 
+            className="bg-gradient-to-r from-blue-600 to-indigo-600"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Match
+          </Button>
+        </div>
+        <p className="text-muted-foreground">
+          Manage cricket toss matches, declare results, and create new matches
+        </p>
+      </div>
+
+      {/* Search and filter bar */}
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
+        <div className="relative flex items-center flex-1 min-w-[200px]">
+          <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search matches..." 
+            className="pl-10"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      {/* Tab navigation */}
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6 grid w-full grid-cols-4">
+          <TabsTrigger value="all" className="flex items-center justify-center">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <span>All ({cricketTossMatches.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="open" className="flex items-center justify-center">
+            <Clock className="h-4 w-4 mr-2" />
+            <span>Open ({openMatches.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="closed" className="flex items-center justify-center">
+            <X className="h-4 w-4 mr-2" />
+            <span>Closed ({closedMatches.length})</span>
+          </TabsTrigger>
+          <TabsTrigger value="resulted" className="flex items-center justify-center">
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            <span>Resulted ({resultedMatches.length})</span>
+          </TabsTrigger>
+        </TabsList>
+
+        {/* All tabs content */}
+        <TabsContent value={activeTab} className="space-y-6">
+          {isLoading ? (
+            <div className="flex justify-center p-8">Loading cricket toss matches...</div>
+          ) : filteredMatches.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Match</TableHead>
+                  <TableHead>Match Time</TableHead>
+                  <TableHead>Odds</TableHead>
+                  <TableHead>Result</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredMatches.map((match: CricketTossMatch) => (
+                  <TableRow key={match.id}>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium">{match.teamA} vs {match.teamB}</span>
+                        </div>
+                        {match.description && (
+                          <div className="text-xs text-gray-500 mt-1">{match.description}</div>
+                        )}
+                        {match.coverImage && (
+                          <div className="w-full mt-2">
                             <img 
-                              src={coverImagePreview} 
-                              alt="Cover Image Preview" 
-                              className="w-full h-32 object-cover rounded-md border border-gray-200"
+                              src={match.coverImage} 
+                              alt={`${match.teamA} vs ${match.teamB}`}
+                              className="w-full h-12 object-cover rounded-md" 
                             />
                           </div>
                         )}
-                        <FormDescription>Upload a banner image for this match</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
-                    <p className="text-sm text-slate-700 dark:text-slate-300">
-                      <span className="font-medium">Note:</span> Odds are fixed at 2.00 for both teams.
-                    </p>
-                  </div>
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      disabled={createCricketTossMutation.isPending}
-                    >
-                      {createCricketTossMutation.isPending ? "Creating..." : "Create Match"}
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {isLoading ? (
-          <div className="flex justify-center p-8">Loading cricket toss matches...</div>
-        ) : cricketTossMatches && cricketTossMatches.length > 0 ? (
-          <Card>
-            <CardHeader>
-              <CardTitle>Cricket Toss Matches</CardTitle>
-              <CardDescription>
-                Manage cricket toss matches and view betting activity
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Teams</TableHead>
-                    <TableHead>Match Time</TableHead>
-                    <TableHead>Odds</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Result</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {cricketTossMatches.map((match: CricketTossMatch) => (
-                    <TableRow key={match.id}>
-                      <TableCell>{match.id}</TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          {match.coverImage && (
-                            <div className="w-full mb-2">
-                              <img 
-                                src={match.coverImage} 
-                                alt={`${match.teamA} vs ${match.teamB}`}
-                                className="w-full h-16 object-cover rounded-md" 
-                              />
-                            </div>
-                          )}
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">{match.teamA}</span>
-                            <span className="mx-2 text-xs text-gray-500">vs</span>
-                            <span className="font-medium">{match.teamB}</span>
-                          </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{formatDate(new Date(match.matchTime))}</TableCell>
+                    <TableCell>
+                      {match.teamA}: {formatOdds(match.oddTeamA)} / {match.teamB}: {formatOdds(match.oddTeamB)}
+                    </TableCell>
+                    <TableCell>
+                      {match.result === "pending" ? (
+                        "Pending"
+                      ) : match.result === "team_a" ? (
+                        <span className="font-medium text-green-600">{match.teamA}</span>
+                      ) : match.result === "team_b" ? (
+                        <span className="font-medium text-green-600">{match.teamB}</span>
+                      ) : (
+                        match.result
+                      )}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(match.status)}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                            <span className="sr-only">Actions</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           
-                          {match.description && (
-                            <div className="text-xs text-gray-500 mt-1">{match.description}</div>
+                          <DropdownMenuSeparator />
+                          
+                          {match.status === "open" && (
+                            <DropdownMenuItem 
+                              onClick={() => handleCloseBetting(match.id)}
+                            >
+                              <X className="mr-2 h-4 w-4" />
+                              Close Betting
+                            </DropdownMenuItem>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatDate(new Date(match.matchTime))}</TableCell>
-                      <TableCell>
-                        {match.teamA}: {formatOdds(match.oddTeamA)} | {match.teamB}: {formatOdds(match.oddTeamB)}
-                      </TableCell>
-                      <TableCell>{getStatusBadge(match.status)}</TableCell>
-                      <TableCell>
-                        {match.result === "pending" ? (
-                          "Pending"
-                        ) : match.result === "team_a" ? (
-                          <span className="font-medium text-green-600">{match.teamA}</span>
-                        ) : match.result === "team_b" ? (
-                          <span className="font-medium text-green-600">{match.teamB}</span>
-                        ) : (
-                          match.result
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                              <span className="sr-only">Actions</span>
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            
-                            <DropdownMenuSeparator />
-                            
-                            {match.status === "open" && (
-                              <DropdownMenuItem 
-                                onClick={() => handleCloseBetting(match.id)}
-                              >
-                                <X className="mr-2 h-4 w-4" />
-                                Close Betting
-                              </DropdownMenuItem>
-                            )}
-                            
-                            {match.status === "closed" && (
-                              <DropdownMenuItem 
-                                onClick={() => {
-                                  setSelectedMatch(match);
-                                  setDeclareOpen(true);
-                                }}
-                              >
-                                <Check className="mr-2 h-4 w-4" />
-                                Declare Result
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="p-8 text-center">
-            <p className="text-gray-500 mb-4">No cricket toss matches found.</p>
-            <p className="text-sm text-gray-400">Create a new match to get started.</p>
-          </div>
-        )}
+                          
+                          {match.status === "closed" && (
+                            <DropdownMenuItem 
+                              onClick={() => {
+                                setSelectedMatch(match);
+                                setDeclareOpen(true);
+                              }}
+                            >
+                              <Check className="mr-2 h-4 w-4" />
+                              Declare Result
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="p-8 text-center">
+              <p className="text-gray-500 mb-4">No cricket toss matches found for this filter.</p>
+              <p className="text-sm text-gray-400">Try another filter or create a new match.</p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
-
-
-        {/* Dialog for declaring result */}
-        <Dialog open={declareOpen && !!selectedMatch} onOpenChange={setDeclareOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Declare Cricket Toss Result</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p className="mb-4">
-                Select the winner for {selectedMatch?.teamA} vs {selectedMatch?.teamB}:
-              </p>
-              {selectedMatch?.coverImage && (
-                <div className="mb-4">
-                  <img 
-                    src={selectedMatch.coverImage} 
-                    alt={`${selectedMatch.teamA} vs ${selectedMatch.teamB}`}
-                    className="w-full h-32 object-cover rounded-md" 
-                  />
-                </div>
-              )}
-              <div className="grid grid-cols-2 gap-4">
+      {/* Dialog for creating new match */}
+      <Dialog 
+        open={open} 
+        onOpenChange={(isOpen) => {
+          setOpen(isOpen);
+          if (!isOpen) {
+            setCoverImagePreview(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create Cricket Toss Match</DialogTitle>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="teamA"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Team A</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter team A name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="teamB"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Team B</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter team B name" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="Enter match description" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="matchTime"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Match Time</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="datetime-local"
+                        min={new Date().toISOString().slice(0, 16)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="coverImage"
+                render={({ field: { value, onChange, ...field } }) => (
+                  <FormItem>
+                    <FormLabel>Cover Banner Image (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            onChange(file);
+                            // Create a preview URL for the selected image
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                              setCoverImagePreview(e.target?.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    {coverImagePreview && (
+                      <div className="mt-2">
+                        <img 
+                          src={coverImagePreview} 
+                          alt="Cover Image Preview" 
+                          className="w-full h-32 object-cover rounded-md border border-gray-200"
+                        />
+                      </div>
+                    )}
+                    <FormDescription>Upload a banner image for this match</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
+                <p className="text-sm text-slate-700 dark:text-slate-300">
+                  <span className="font-medium">Note:</span> Odds are fixed at 2.00 for both teams.
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
                 <Button
-                  onClick={() => handleDeclareResult("team_a")}
-                  className="h-16 flex flex-col items-center justify-center gap-2"
+                  type="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}
                 >
-                  <span>{selectedMatch?.teamA} Wins</span>
+                  Cancel
                 </Button>
                 <Button
-                  onClick={() => handleDeclareResult("team_b")}
-                  className="h-16 flex flex-col items-center justify-center gap-2"
+                  type="submit"
+                  disabled={createCricketTossMutation.isPending}
                 >
-                  <span>{selectedMatch?.teamB} Wins</span>
+                  {createCricketTossMutation.isPending ? "Creating..." : "Create Match"}
                 </Button>
               </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-        
-        {/* Confirmation dialog for closing betting */}
-        <Dialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Close Betting</DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <p>Are you sure you want to close betting for this match?</p>
-              <p className="text-sm text-muted-foreground mt-2">
-                This will prevent players from placing new bets on this match.
-              </p>
-            </div>
-            <div className="flex justify-end gap-2 mt-4">
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for declaring result */}
+      <Dialog open={declareOpen && !!selectedMatch} onOpenChange={setDeclareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Declare Cricket Toss Result</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="mb-4">
+              Select the winner for {selectedMatch?.teamA} vs {selectedMatch?.teamB}:
+            </p>
+            {selectedMatch?.coverImage && (
+              <div className="mb-4">
+                <img 
+                  src={selectedMatch.coverImage} 
+                  alt={`${selectedMatch.teamA} vs ${selectedMatch.teamB}`}
+                  className="w-full h-32 object-cover rounded-md" 
+                />
+              </div>
+            )}
+            <div className="grid grid-cols-2 gap-4">
               <Button
-                variant="outline"
-                onClick={() => {
-                  setConfirmCloseOpen(false);
-                  setMatchToClose(null);
-                }}
+                onClick={() => handleDeclareResult("team_a")}
+                className="h-16 flex flex-col items-center justify-center gap-2"
               >
-                Cancel
+                <span>{selectedMatch?.teamA} Wins</span>
               </Button>
               <Button
-                variant="default"
-                onClick={confirmCloseBetting}
-                disabled={closeBettingMutation.isPending}
+                onClick={() => handleDeclareResult("team_b")}
+                className="h-16 flex flex-col items-center justify-center gap-2"
               >
-                {closeBettingMutation.isPending ? "Closing..." : "Close Betting"}
+                <span>{selectedMatch?.teamB} Wins</span>
               </Button>
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Confirmation dialog for closing betting */}
+      <Dialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Close Betting</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p>Are you sure you want to close betting for this match?</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              This will prevent players from placing new bets on this match.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setConfirmCloseOpen(false);
+                setMatchToClose(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="default"
+              onClick={confirmCloseBetting}
+              disabled={closeBettingMutation.isPending}
+            >
+              {closeBettingMutation.isPending ? "Closing..." : "Close Betting"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
