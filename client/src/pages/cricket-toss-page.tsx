@@ -398,10 +398,44 @@ export default function CricketTossPage() {
                   <TableRow key={bet.id}>
                     <TableCell>{formatDate(new Date(bet.createdAt))}</TableCell>
                     <TableCell>
-                      {bet.gameData.teamA} vs {bet.gameData.teamB}
+                      <div className="flex items-center gap-1">
+                        {bet.gameData.teamAImage && (
+                          <img 
+                            src={bet.gameData.teamAImage} 
+                            alt={bet.gameData.teamA}
+                            className="w-6 h-6 object-cover rounded-full" 
+                          />
+                        )}
+                        <span>{bet.gameData.teamA}</span>
+                        <span className="mx-1 text-xs text-gray-500">vs</span>
+                        {bet.gameData.teamBImage && (
+                          <img 
+                            src={bet.gameData.teamBImage} 
+                            alt={bet.gameData.teamB}
+                            className="w-6 h-6 object-cover rounded-full" 
+                          />
+                        )}
+                        <span>{bet.gameData.teamB}</span>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {formatPrediction(bet.prediction, bet)}
+                      <div className="flex items-center gap-1">
+                        {bet.prediction === "team_a" && bet.gameData.teamAImage && (
+                          <img 
+                            src={bet.gameData.teamAImage} 
+                            alt={bet.gameData.teamA}
+                            className="w-5 h-5 object-cover rounded-full" 
+                          />
+                        )}
+                        {bet.prediction === "team_b" && bet.gameData.teamBImage && (
+                          <img 
+                            src={bet.gameData.teamBImage} 
+                            alt={bet.gameData.teamB}
+                            className="w-5 h-5 object-cover rounded-full" 
+                          />
+                        )}
+                        <span>{formatPrediction(bet.prediction, bet)}</span>
+                      </div>
                     </TableCell>
                     <TableCell>₹{bet.betAmount}</TableCell>
                     <TableCell>

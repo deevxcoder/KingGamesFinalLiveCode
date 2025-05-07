@@ -397,6 +397,8 @@ router.post("/bet", async (req, res) => {
     const gameData = {
       teamA: matchData.teamA,
       teamB: matchData.teamB,
+      teamAImage: matchData.teamAImage,
+      teamBImage: matchData.teamBImage,
       matchId: matchData.id,
       oddTeamA: matchData.oddTeamA,
       oddTeamB: matchData.oddTeamB,
