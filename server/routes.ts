@@ -1300,9 +1300,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
       }
       
       // Get the current market to check if status transition is valid
-      if (status === "resulted" && existingMarket.status !== "waiting_result" && existingMarket.status !== "closed") {
+      if (status === "resulted" && existingMarket.status !== "closed") {
         return res.status(400).json({ 
-          message: "Market can only be set to 'resulted' from 'Waiting Results' status" 
+          message: "Market can only be set to 'resulted' from 'closed' status" 
         });
       }
       
