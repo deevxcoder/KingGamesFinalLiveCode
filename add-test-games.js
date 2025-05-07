@@ -58,17 +58,18 @@ async function addTestGames() {
         
         // Record the transaction
         await client.query(`
-          INSERT INTO wallet_transactions 
-          ("userId", amount, "transactionType", source, "balanceAfter", "createdAt")
+          INSERT INTO transactions 
+          (user_id, amount, description, performed_by, balance_after, created_at)
           VALUES ($1, $2, $3, $4, $5, NOW())
-        `, [player.id, creditAmount, 'credit', 'deposit', creditAmount]);
+        `, [player.id, creditAmount, 'Deposit for testing', player.id, creditAmount]);
         
         console.log(`Added ${creditAmount} to player ${player.username}`);
       }
       
       // Now create some test games for each player
+      const initialBalance = 1000000; // Initial balance after deposit
       for (const player of players) {
-        let currentBalance = creditAmount; // Starting with the deposit
+        let currentBalance = initialBalance; // Starting with the deposit
         
         // Create 5 winning games
         for (let i = 0; i < 5; i++) {
@@ -81,7 +82,7 @@ async function addTestGames() {
           
           await client.query(`
             INSERT INTO games
-            ("userId", "gameType", "betAmount", prediction, result, payout, "balanceAfter", "createdAt")
+            (user_id, game_type, bet_amount, prediction, result, payout, balance_after, created_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - INTERVAL '${5-i} hours')
           `, [player.id, 'coin_flip', betAmount, 'heads', 'win', payout, currentBalance]);
         }
@@ -96,7 +97,7 @@ async function addTestGames() {
           
           await client.query(`
             INSERT INTO games
-            ("userId", "gameType", "betAmount", prediction, result, payout, "balanceAfter", "createdAt")
+            (user_id, game_type, bet_amount, prediction, result, payout, balance_after, created_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW() - INTERVAL '${i} hours')
           `, [player.id, 'coin_flip', betAmount, 'tails', 'loss', payout, currentBalance]);
         }
