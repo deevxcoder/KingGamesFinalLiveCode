@@ -35,7 +35,7 @@ import {
 import session from "express-session";
 import connectPg from "connect-pg-simple";
 import { db, pool } from "./db";
-import { eq, and, desc, gte, lte, or } from "drizzle-orm";
+import { eq, and, desc, gte, lte, or, isNull } from "drizzle-orm";
 
 // Connect to PostgreSQL for session storage
 const PostgresSessionStore = connectPg(session);
@@ -1164,7 +1164,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllTeamMatches(): Promise<TeamMatch[]> {
-    return await db.select().from(teamMatches).orderBy(desc(teamMatches.createdAt));
+    return await db
+      .select()
+      .from(teamMatches)
+      .where(
+        or(
+          eq(teamMatches.category, "cricket"),
+          eq(teamMatches.category, "football"),
+          eq(teamMatches.category, "basketball"),
+          eq(teamMatches.category, "other"),
+          isNull(teamMatches.category)
+        )
+      )
+      .orderBy(desc(teamMatches.createdAt));
   }
 
   async getActiveTeamMatches(): Promise<TeamMatch[]> {
@@ -1175,7 +1187,14 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           gte(teamMatches.matchTime, now), // Match time is in the future
-          eq(teamMatches.status, "open")
+          eq(teamMatches.status, "open"),
+          or(
+            eq(teamMatches.category, "cricket"),
+            eq(teamMatches.category, "football"),
+            eq(teamMatches.category, "basketball"),
+            eq(teamMatches.category, "other"),
+            isNull(teamMatches.category)
+          )
         )
       )
       .orderBy(teamMatches.matchTime);
