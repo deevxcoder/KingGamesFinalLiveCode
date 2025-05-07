@@ -33,8 +33,13 @@ export function formatCurrency(
   // Determine if we need to convert from paisa to rupees
   let convertedAmount = amount;
   
+  // For safety, always convert large numbers (likely stored in paisa)
+  // This is the root cause of the ₹1,020,000.00 vs ₹10,200.00 issue
+  if (amount >= 1000) {
+    convertedAmount = amount / 100;
+  }
   // Always convert for known paisa-based games regardless of amount size
-  if (gameType && PAISA_BASED_GAMES.includes(gameType)) {
+  else if (gameType && PAISA_BASED_GAMES.includes(gameType)) {
     // All satamatka game modes (jodi, harf, crossing, odd_even) need to display in rupees
     // Potential win amounts need to show in rupees (e.g., ₹900 for jodi) instead of paisa
     convertedAmount = amount / 100;
