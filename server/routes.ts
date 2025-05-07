@@ -29,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
   
-  // Cricket Toss routes removed
+
   
   // Setup wallet routes for deposits and withdrawals
   setupWalletRoutes(app);
@@ -43,33 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup deposit commission endpoint for specific subadmin
   setupDepositCommissionEndpoints(app);
   
-  // Endpoint to manually seed cricket toss games (DISABLED)
-  app.post("/api/admin/seed-cricket-toss", requireRole(UserRole.ADMIN), async (req, res, next) => {
-    try {
-      // This endpoint is now disabled as per requirement to not auto-seed cricket games
-      // Admin should use the cricket toss management UI to create games manually
-      res.status(200).json({ 
-        message: "Automatic cricket toss game seeding has been disabled. Please create games manually through the admin interface.",
-        disabled: true 
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
-  
-  // Endpoint to manually seed open cricket toss games for immediate betting (DISABLED)
-  app.post("/api/admin/seed-open-cricket-toss", requireRole(UserRole.ADMIN), async (req, res, next) => {
-    try {
-      // This endpoint is now disabled as per requirement to not auto-seed cricket games
-      // Admin should use the cricket toss management UI to create games manually
-      res.status(200).json({ 
-        message: "Automatic cricket toss game seeding has been disabled. Please create games manually through the admin interface.",
-        disabled: true 
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
+  // Cricket toss seeding endpoints removed
   
   // Endpoint to manually seed demo Satamatka markets
   app.post("/api/admin/seed-satamatka-markets", requireRole(UserRole.ADMIN), async (req, res, next) => {
