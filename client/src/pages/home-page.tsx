@@ -481,52 +481,6 @@ export default function HomePage() {
       {/* Player Features - Only visible to players */}
       {isPlayer && (
         <>
-          {/* Player Statistics - Dashboard Cards */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold mb-4 flex items-center text-slate-200">
-              <BarChart2 className="h-5 w-5 mr-2 text-blue-500" />
-              Your Statistics
-            </h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Balance Card */}
-              <DashboardStatsCard 
-                title="Current Balance" 
-                value={`₹${(user?.balance || 0) / 100}`}
-                icon={<DollarSign className="h-5 w-5 text-emerald-400" />}
-                trend="neutral"
-                color="green"
-              />
-              
-              {/* Win Rate Card */}
-              <DashboardStatsCard 
-                title="Win Rate" 
-                value={`${stats.winRate}%`}
-                icon={<Target className="h-5 w-5 text-blue-400" />}
-                trend={stats.recentWinRate > stats.winRate ? "up" : "neutral"}
-                color="blue"
-              />
-              
-              {/* Total Games Played */}
-              <DashboardStatsCard 
-                title="Games Played" 
-                value={stats.totalBets.toString()}
-                icon={<Play className="h-5 w-5 text-purple-400" />}
-                trend="up"
-                color="purple"
-              />
-              
-              {/* Net Profit Card */}
-              <DashboardStatsCard 
-                title="Net Profit" 
-                value={`₹${(stats.netProfit / 100).toFixed(2)}`}
-                icon={<Activity className="h-5 w-5 text-amber-400" />}
-                trend={stats.netProfit > 0 ? "up" : "down"}
-                color={stats.netProfit > 0 ? "green" : "red"}
-              />
-            </div>
-          </div>
-          
           {/* Featured Games Section */}
           <div className="mb-8">
             <div className="mb-4">
