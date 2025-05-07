@@ -377,7 +377,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   /**
-   * Seed Satamatka markets
+   * Seed empty Satamatka markets with "00" default results
    */
   private async seedSatamatkaMarkets() {
     const now = new Date();
@@ -388,6 +388,10 @@ export class DatabaseStorage implements IStorage {
         openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0), // 9:00 AM
         closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 10, 30), // 10:30 AM
         status: "open",
+        openResult: "00",
+        closeResult: "00",
+        isRecurring: true,
+        recurrencePattern: "daily"
       },
       {
         name: "Gali Day",
@@ -395,6 +399,10 @@ export class DatabaseStorage implements IStorage {
         openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 11, 0), // 11:00 AM
         closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 30), // 12:30 PM
         status: "open",
+        openResult: "00",
+        closeResult: "00",
+        isRecurring: true,
+        recurrencePattern: "daily"
       },
       {
         name: "Mumbai Afternoon",
@@ -402,6 +410,10 @@ export class DatabaseStorage implements IStorage {
         openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 14, 0), // 2:00 PM
         closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 15, 30), // 3:30 PM
         status: "open",
+        openResult: "00",
+        closeResult: "00",
+        isRecurring: true,
+        recurrencePattern: "daily"
       },
       {
         name: "Kalyan Evening",
@@ -409,6 +421,10 @@ export class DatabaseStorage implements IStorage {
         openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0), // 5:00 PM
         closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 18, 30), // 6:30 PM
         status: "open",
+        openResult: "00",
+        closeResult: "00",
+        isRecurring: true,
+        recurrencePattern: "daily"
       },
       {
         name: "Dishawar Night",
@@ -416,6 +432,10 @@ export class DatabaseStorage implements IStorage {
         openTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 20, 0), // 8:00 PM
         closeTime: new Date(now.getFullYear(), now.getMonth(), now.getDate(), 21, 30), // 9:30 PM
         status: "open",
+        openResult: "00",
+        closeResult: "00",
+        isRecurring: true,
+        recurrencePattern: "daily"
       },
     ];
     
