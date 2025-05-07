@@ -11,8 +11,6 @@ const createCricketTossSchema = z.object({
   teamB: z.string().min(2, "Team B name must be at least 2 characters"),
   description: z.string().optional(),
   tossTime: z.string(),
-  oddTeamA: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
-  oddTeamB: z.number().min(100, "Odds must be at least 100").max(2000, "Odds can't exceed 2000"),
   imageUrl: z.string().optional(),
   openTime: z.string().optional(),
   closeTime: z.string().optional(),

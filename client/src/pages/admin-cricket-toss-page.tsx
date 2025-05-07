@@ -446,16 +446,13 @@ export default function AdminCricketTossPage() {
     // Convert toss time to ISO string
     const combinedTossDateTime = `${tossDate}T${tossTime}:00`;
     
-    // Create the data object with combined date/time and default odds
+    // Create the data object with combined date/time
     const data = {
       ...restData,
       tossTime: combinedTossDateTime,
       // Use toss time for open/close time as well - admin will manage these manually
       openTime: combinedTossDateTime,
       closeTime: combinedTossDateTime,
-      // Add default odds values (these will be overridden by DB settings)
-      oddTeamA: 200,
-      oddTeamB: 200,
     };
     
     if (editingGame) {
@@ -716,14 +713,6 @@ export default function AdminCricketTossPage() {
                 : "Fill in the details to create a new Cricket Toss game."}
             </DialogDescription>
           </DialogHeader>
-          
-          <Alert className="mb-4">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            <AlertDescription>
-              Cricket toss odds are now configured in the Admin Settings page and no longer set during game creation.
-            </AlertDescription>
-          </Alert>
-          
           <Form {...gameForm}>
             <form onSubmit={gameForm.handleSubmit(onSubmitGame)} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
