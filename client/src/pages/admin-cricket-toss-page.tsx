@@ -19,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
@@ -40,6 +41,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -48,7 +54,8 @@ import { formatDate } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/dashboard-layout";
-import { Check, X, MoreVertical } from "lucide-react";
+import { Check, X, MoreVertical, Calendar, Search, Clock, CheckCircle2, AlertCircle, Plus, Filter } from "lucide-react";
+import { format } from "date-fns";
 
 // Define the schema for creating a cricket toss match
 const createCricketTossSchema = z.object({
@@ -96,8 +103,13 @@ export default function AdminCricketTossPage() {
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [matchToClose, setMatchToClose] = useState<number | null>(null);
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Today's date formatted for display
+  const dateString = format(new Date(), "EEEE, MMMM d, yyyy");
 
   // Form setup for creating a new cricket toss match
   const form = useForm<z.infer<typeof createCricketTossSchema>>({
@@ -111,10 +123,43 @@ export default function AdminCricketTossPage() {
   });
 
   // Query to fetch cricket toss matches
-  const { data: cricketTossMatches = [], isLoading } = useQuery({
+  const { data: cricketTossMatches = [], isLoading } = useQuery<CricketTossMatch[]>({
     queryKey: ["/api/cricket-toss/matches"],
     staleTime: 10000,
   });
+  
+  // Filter matches based on status and search query
+  const openMatches = cricketTossMatches.filter(match => match.status === "open");
+  const closedMatches = cricketTossMatches.filter(match => match.status === "closed");
+  const resultedMatches = cricketTossMatches.filter(match => match.status === "resulted");
+  
+  // Filter based on active tab and search query
+  const getFilteredMatches = () => {
+    let matches = cricketTossMatches;
+    
+    // Filter by status based on active tab
+    if (activeTab === "open") {
+      matches = openMatches;
+    } else if (activeTab === "closed") {
+      matches = closedMatches;
+    } else if (activeTab === "resulted") {
+      matches = resultedMatches;
+    }
+    
+    // Apply search filter if query exists
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      matches = matches.filter(match => 
+        match.teamA.toLowerCase().includes(query) || 
+        match.teamB.toLowerCase().includes(query) || 
+        (match.description && match.description.toLowerCase().includes(query))
+      );
+    }
+    
+    return matches;
+  };
+  
+  const filteredMatches = getFilteredMatches();
 
   // Mutation to create a new cricket toss match
   const createCricketTossMutation = useMutation({
