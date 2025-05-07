@@ -25,7 +25,7 @@ export const GameType = {
   COIN_FLIP: "coin_flip",
   SATAMATKA: "satamatka",
   TEAM_MATCH: "team_match",
-  CRICKET_TOSS: "cricket_toss",
+  // CRICKET_TOSS removed
 } as const;
 
 export type GameTypeValue = typeof GameType[keyof typeof GameType];
@@ -153,7 +153,7 @@ export const insertGameSchema = createInsertSchema(games)
     gameData: true,
   })
   .extend({
-    gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA, GameType.TEAM_MATCH, GameType.CRICKET_TOSS]),
+    gameType: z.enum([GameType.COIN_FLIP, GameType.SATAMATKA, GameType.TEAM_MATCH]),
     gameMode: z.enum([
       SatamatkaGameMode.JODI,
       SatamatkaGameMode.HARF,

@@ -21,8 +21,7 @@ import {
 } from "@shared/schema";
 import { eq, and, gte, desc } from "drizzle-orm";
 import * as schema from "@shared/schema";
-import { setupCricketTossRoutes } from "./cricket-toss";
-import { setupCricketTossApiRoutes } from "./cricket-toss-api";
+// Cricket Toss routes removed
 import { setupWalletRoutes, setupDepositCommissions } from "./wallet-system";
 import { setupUploadRoutes } from "./upload-routes";
 import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
@@ -31,11 +30,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
   
-  // Setup Cricket Toss game routes
-  setupCricketTossRoutes(app);
-  
-  // Setup Cricket Toss API for admin management
-  setupCricketTossApiRoutes(app);
+  // Cricket Toss routes removed
   
   // Setup wallet routes for deposits and withdrawals
   setupWalletRoutes(app);
@@ -133,7 +128,7 @@ function formatGameType(gameType: string): string {
     case 'coin_flip': return 'Coin Flip';
     case 'satamatka': return 'Satamatka';
     case 'team_match': return 'Team Match';
-    case 'cricket_toss': return 'Cricket Toss';
+    // Cricket Toss removed
     default: return gameType.replace(/_/g, ' ');
   }
 }
