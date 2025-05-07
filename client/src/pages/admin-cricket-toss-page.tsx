@@ -93,6 +93,8 @@ export default function AdminCricketTossPage() {
   const [selectedMatch, setSelectedMatch] = useState<CricketTossMatch | null>(null);
   const [open, setOpen] = useState(false);
   const [declareOpen, setDeclareOpen] = useState(false);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const [matchToClose, setMatchToClose] = useState<number | null>(null);
   const [teamAPreview, setTeamAPreview] = useState<string | null>(null);
   const [teamBPreview, setTeamBPreview] = useState<string | null>(null);
   const { toast } = useToast();
@@ -217,10 +219,18 @@ export default function AdminCricketTossPage() {
     createCricketTossMutation.mutate(values);
   };
 
-  // Function to handle closing betting for a match
+  // Function to handle opening the close betting confirmation dialog
   const handleCloseBetting = (matchId: number) => {
-    if (confirm("Are you sure you want to close betting for this match?")) {
-      closeBettingMutation.mutate(matchId);
+    setMatchToClose(matchId);
+    setConfirmCloseOpen(true);
+  };
+  
+  // Function to confirm and execute the close betting action
+  const confirmCloseBetting = () => {
+    if (matchToClose) {
+      closeBettingMutation.mutate(matchToClose);
+      setConfirmCloseOpen(false);
+      setMatchToClose(null);
     }
   };
 
