@@ -68,12 +68,14 @@ export default function SubadminDashboardPage() {
   });
   
   const formatCurrency = (amount: number) => {
+    // Convert paise to rupees by dividing by 100
+    const amountInRupees = (amount || 0) / 100;
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(amount);
+    }).format(amountInRupees);
   };
   
   // Function to determine trend indicator and color
