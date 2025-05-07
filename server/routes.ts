@@ -24,12 +24,11 @@ import * as schema from "@shared/schema";
 import { setupWalletRoutes, setupDepositCommissions } from "./wallet-system";
 import { setupUploadRoutes } from "./upload-routes";
 import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
+import cricketTossRoutes from "./cricket-toss-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
   setupAuth(app);
-  
-
   
   // Setup wallet routes for deposits and withdrawals
   setupWalletRoutes(app);
@@ -43,7 +42,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup deposit commission endpoint for specific subadmin
   setupDepositCommissionEndpoints(app);
   
-  // Cricket toss seeding endpoints removed
+  // Setup cricket toss routes
+  app.use("/api/cricket-toss", cricketTossRoutes);
   
   // Endpoint to manually seed demo Satamatka markets
   app.post("/api/admin/seed-satamatka-markets", requireRole(UserRole.ADMIN), async (req, res, next) => {
@@ -101,7 +101,7 @@ function formatGameType(gameType: string): string {
     case 'coin_flip': return 'Coin Flip';
     case 'satamatka': return 'Satamatka';
     case 'team_match': return 'Team Match';
-    // Cricket Toss removed
+    case 'cricket_toss': return 'Cricket Toss';
     default: return gameType.replace(/_/g, ' ');
   }
 }
