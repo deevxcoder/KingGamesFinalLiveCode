@@ -84,6 +84,8 @@ export default function AdminCricketTossPage() {
   const [showBets, setShowBets] = useState(false);
   const [open, setOpen] = useState(false);
   const [declareOpen, setDeclareOpen] = useState(false);
+  const [teamAPreview, setTeamAPreview] = useState<string | null>(null);
+  const [teamBPreview, setTeamBPreview] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -149,6 +151,8 @@ export default function AdminCricketTossPage() {
       });
       form.reset();
       setOpen(false);
+      setTeamAPreview(null);
+      setTeamBPreview(null);
       queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/matches"] });
     },
     onError: (error: Error) => {
@@ -260,7 +264,15 @@ export default function AdminCricketTossPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Cricket Toss Management</h1>
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog 
+          open={open} 
+          onOpenChange={(isOpen) => {
+            setOpen(isOpen);
+            if (!isOpen) {
+              setTeamAPreview(null);
+              setTeamBPreview(null);
+            }
+          }}>
           <DialogTrigger asChild>
             <Button>Create New Match</Button>
           </DialogTrigger>
@@ -340,10 +352,27 @@ export default function AdminCricketTossPage() {
                             accept="image/*"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
-                              if (file) onChange(file);
+                              if (file) {
+                                onChange(file);
+                                // Create a preview URL for the selected image
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                  setTeamAPreview(e.target?.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
                             }}
                           />
                         </FormControl>
+                        {teamAPreview && (
+                          <div className="mt-2">
+                            <img 
+                              src={teamAPreview} 
+                              alt="Team A Preview" 
+                              className="w-16 h-16 object-cover rounded-full border border-gray-200"
+                            />
+                          </div>
+                        )}
                         <FormDescription>Upload team logo or image</FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -362,10 +391,27 @@ export default function AdminCricketTossPage() {
                             accept="image/*"
                             onChange={(e) => {
                               const file = e.target.files?.[0];
-                              if (file) onChange(file);
+                              if (file) {
+                                onChange(file);
+                                // Create a preview URL for the selected image
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                  setTeamBPreview(e.target?.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
                             }}
                           />
                         </FormControl>
+                        {teamBPreview && (
+                          <div className="mt-2">
+                            <img 
+                              src={teamBPreview} 
+                              alt="Team B Preview" 
+                              className="w-16 h-16 object-cover rounded-full border border-gray-200"
+                            />
+                          </div>
+                        )}
                         <FormDescription>Upload team logo or image</FormDescription>
                         <FormMessage />
                       </FormItem>
