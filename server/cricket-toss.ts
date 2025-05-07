@@ -17,6 +17,62 @@ const createCricketTossSchema = z.object({
 });
 
 export function setupCricketTossRoutes(app: express.Express) {
+  // Change cricket toss game status (open/close)
+  app.patch("/api/cricket-toss-games/:id/status", async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated() || req.user!.role !== "admin") {
+        return res.status(403).json({ message: "Only admin can change game status" });
+      }
+
+      const gameId = Number(req.params.id);
+      const { status } = req.body;
+
+      if (!status || !["open", "closed"].includes(status)) {
+        return res.status(400).json({ message: "Status must be 'open' or 'closed'" });
+      }
+
+      // Get the existing game
+      const game = await storage.getGame(gameId);
+      if (!game) {
+        return res.status(404).json({ message: "Game not found" });
+      }
+
+      if (game.gameType !== GameType.CRICKET_TOSS) {
+        return res.status(400).json({ message: "Game is not a cricket toss game" });
+      }
+
+      // Update the game data with new status
+      const gameData = typeof game.gameData === 'object' && game.gameData !== null 
+        ? { ...game.gameData as any } 
+        : {};
+
+      gameData.status = status;
+
+      // Update the game data
+      try {
+        const result = await pool.query(
+          `UPDATE games SET game_data = $1 WHERE id = $2 RETURNING *`,
+          [JSON.stringify(gameData), gameId]
+        );
+
+        if (result.rows.length === 0) {
+          return res.status(404).json({ message: "Failed to update game status" });
+        }
+
+        // Return the updated game
+        const updatedGame = await storage.getGame(gameId);
+        res.json(updatedGame);
+      } catch (error) {
+        console.error("Error updating game status:", error);
+        return res.status(500).json({ 
+          message: "Failed to update game status", 
+          error: error instanceof Error ? error.message : String(error) 
+        });
+      }
+    } catch (err) {
+      next(err);
+    }
+  });
   // Get all cricket toss games
   app.get("/api/cricket-toss-games", async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -80,13 +136,12 @@ export function setupCricketTossRoutes(app: express.Express) {
         const updatedBalance = user.balance + payout;
         await storage.updateUserBalance(user.id, updatedBalance);
         
-        // Update the game with result, balanceAfter, and status
+        // Update the game with result, balanceAfter
         const updateResult = await db.update(games)
           .set({
             result,
             payout,
             balanceAfter: updatedBalance, // Track the balance after this result is applied
-            status: "resulted" // Update the status to reflect the result has been declared
           })
           .where(eq(games.id, gameId))
           .returning();
@@ -268,8 +323,8 @@ export function setupCricketTossRoutes(app: express.Express) {
           teamB,
           description: description || "",
           tossTime,
-          oddTeamA,
-          oddTeamB,
+          oddTeamA,   // Use odds value from settings
+          oddTeamB,   // Use odds value from settings
           imageUrl: imageUrl || "",
           openTime: openTime || tossTime, // If no specific open time, use toss time
           closeTime: closeTime || tossTime, // If no specific close time, use toss time

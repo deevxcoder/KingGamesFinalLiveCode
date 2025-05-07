@@ -100,59 +100,14 @@ export function setupCricketTossApiRoutes(app: express.Express) {
     }
   });
 
-  // Create a new cricket toss game (admin only)
+  // Create a new cricket toss game (admin only) - REDIRECTS TO NEW API
   app.post("/api/cricket-toss", requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const validationResult = createCricketTossSchema.safeParse(req.body);
-      
-      if (!validationResult.success) {
-        return res.status(400).json({ 
-          error: "Invalid data", 
-          details: validationResult.error.format() 
-        });
-      }
-      
-      const { teamA, teamB, description, tossTime, openTime, closeTime } = validationResult.data;
-      
-      // Get odds from database settings
-      let odds = await storage.getGameOdds(GameType.CRICKET_TOSS);
-      
-      // If no odds found, use default values
-      let oddTeamA = 190; // Default 1.9x odd (stored as 190)
-      let oddTeamB = 190; // Default 1.9x odd (stored as 190)
-      
-      if (odds && odds.length > 0) {
-        // Use the first odds setting (admin setting should be prioritized in the getGameOdds function)
-        const oddSetting = odds[0];
-        oddTeamA = oddSetting.oddValue;
-        oddTeamB = oddSetting.oddValue;
-      }
-      
-      // Create the cricket toss game using the team match data
-      const newGame = {
-        userId: req.user!.id,
-        gameType: GameType.CRICKET_TOSS,
-        betAmount: 0, // This will be set when user places a bet
-        prediction: "pending", // Required by schema, using "pending" as placeholder
-        gameData: {
-          teamA,
-          teamB,
-          description: description || "",
-          tossTime,
-          oddTeamA,
-          oddTeamB,
-          imageUrl: validationResult.data.imageUrl || "",
-          openTime: openTime || tossTime, // If no specific open time, use toss time
-          closeTime: closeTime || tossTime, // If no specific close time, use toss time
-          status: "open"
-        },
-        status: "open",
-        result: "pending", // Required by schema, using "pending" as placeholder
-        payout: 0 // This will be calculated when the result is declared
-      };
-      
-      const createdGame = await storage.createGame(newGame);
-      res.status(201).json(createdGame);
+      // Redirect to the new API endpoint (standalone cricket toss games)
+      res.status(308).json({ 
+        message: "This API endpoint is deprecated. Please use /api/cricket-toss-games instead.",
+        redirectTo: "/api/cricket-toss-games" 
+      });
     } catch (err) {
       next(err);
     }
