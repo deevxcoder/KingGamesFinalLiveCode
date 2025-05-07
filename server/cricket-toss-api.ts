@@ -144,8 +144,36 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         return res.status(400).json({ error: "Game is not a Cricket Toss game" });
       }
       
-      const updatedGame = await storage.updateGameStatus(gameId, status);
-      res.json(updatedGame);
+      // Update the game data with new status similarly to cricket-toss.ts
+      // Get the game data
+      const gameData = typeof game.gameData === 'object' && game.gameData !== null 
+        ? { ...game.gameData as any } 
+        : {};
+      
+      // Update the status in the gameData
+      gameData.status = status;
+      
+      // Update the game data
+      try {
+        const result = await pool.query(
+          `UPDATE games SET game_data = $1 WHERE id = $2 RETURNING *`,
+          [JSON.stringify(gameData), gameId]
+        );
+
+        if (result.rows.length === 0) {
+          return res.status(404).json({ error: "Failed to update game status" });
+        }
+
+        // Return the updated game
+        const updatedGame = await storage.getGame(gameId);
+        res.json(updatedGame);
+      } catch (error) {
+        console.error("Error updating game status:", error);
+        return res.status(500).json({ 
+          error: "Failed to update game status", 
+          details: error instanceof Error ? error.message : String(error) 
+        });
+      }
     } catch (err) {
       next(err);
     }
@@ -205,13 +233,21 @@ export function setupCricketTossApiRoutes(app: express.Express) {
         const updatedBalance = user.balance + payout;
         await storage.updateUserBalance(user.id, updatedBalance);
         
-        // Update the game status to resulted as well
+        // Get the existing game data
+        const gameData = typeof game.gameData === 'object' && game.gameData !== null 
+          ? { ...game.gameData as any } 
+          : {};
+        
+        // Update the status in the gameData
+        gameData.status = "resulted";
+        
+        // Update the game with result, payout, and updated gameData
         const updateResult = await db.update(games)
           .set({
             result,
             payout,
             balanceAfter: updatedBalance, // Track the balance after this result is applied
-            status: "resulted" // Update the status to reflect the result has been declared
+            gameData: JSON.stringify(gameData) // Update gameData with the resulted status
           })
           .where(eq(games.id, gameId))
           .returning();
