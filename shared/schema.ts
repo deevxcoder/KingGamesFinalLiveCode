@@ -355,6 +355,7 @@ export const teamMatches = pgTable("team_matches", {
   status: text("status").notNull().default("open"), // open, closed, resulted
   teamAImage: text("team_a_image"), // URL to team A image
   teamBImage: text("team_b_image"), // URL to team B image
+  coverImage: text("cover_image"), // URL to cover image (primarily for cricket toss matches)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -372,6 +373,7 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
     status: true,
     teamAImage: true,
     teamBImage: true,
+    coverImage: true,
   })
   .extend({
     matchTime: z.union([
@@ -393,6 +395,7 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
     status: z.enum(["open", "closed", "resulted"]).default("open"),
     teamAImage: z.string().optional(),
     teamBImage: z.string().optional(),
+    coverImage: z.string().optional(),
   });
 
 export type InsertTeamMatch = z.infer<typeof insertTeamMatchSchema>;
