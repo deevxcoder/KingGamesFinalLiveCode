@@ -46,8 +46,9 @@ const createCricketTossSchema = z.object({
   teamB: z.string().min(1, "Team B is required"),
   description: z.string().optional(),
   matchTime: z.string().min(1, "Match time is required"),
-  oddTeamA: z.string().min(1, "Odd for Team A is required"),
-  oddTeamB: z.string().min(1, "Odd for Team B is required"),
+  teamAImage: z.instanceof(File).optional(),
+  teamBImage: z.instanceof(File).optional(),
+  // We'll use fixed odds: 2.00 for both teams
 });
 
 // Type for a cricket toss match
@@ -57,6 +58,8 @@ interface CricketTossMatch {
   teamB: string;
   description?: string;
   matchTime: string;
+  teamAImage?: string;
+  teamBImage?: string;
   oddTeamA: number;
   oddTeamB: number;
   result: string;
@@ -92,8 +95,6 @@ export default function AdminCricketTossPage() {
       teamB: "",
       description: "",
       matchTime: "",
-      oddTeamA: "200", // Default 2.00 odds
-      oddTeamB: "200", // Default 2.00 odds
     },
   });
 
@@ -113,12 +114,33 @@ export default function AdminCricketTossPage() {
   // Mutation to create a new cricket toss match
   const createCricketTossMutation = useMutation({
     mutationFn: async (values: z.infer<typeof createCricketTossSchema>) => {
-      const payload = {
-        ...values,
-        oddTeamA: parseInt(values.oddTeamA),
-        oddTeamB: parseInt(values.oddTeamB),
-      };
-      return await apiRequest("/api/cricket-toss/matches", "POST", payload);
+      // Create form data to handle file uploads
+      const formData = new FormData();
+      formData.append("teamA", values.teamA);
+      formData.append("teamB", values.teamB);
+      formData.append("matchTime", values.matchTime);
+      if (values.description) formData.append("description", values.description);
+      
+      // Use fixed odds: 2.00 for both teams
+      formData.append("oddTeamA", "200");
+      formData.append("oddTeamB", "200");
+      
+      // Append image files if provided
+      if (values.teamAImage) formData.append("teamAImage", values.teamAImage);
+      if (values.teamBImage) formData.append("teamBImage", values.teamBImage);
+      
+      // Use fetch directly for FormData
+      const response = await fetch("/api/cricket-toss/matches", {
+        method: "POST",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to create cricket toss match");
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({
@@ -307,44 +329,54 @@ export default function AdminCricketTossPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
-                    name="oddTeamA"
-                    render={({ field }) => (
+                    name="teamAImage"
+                    render={({ field: { value, onChange, ...field } }) => (
                       <FormItem>
-                        <FormLabel>Odd for Team A</FormLabel>
+                        <FormLabel>Team A Image (Optional)</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            type="number"
-                            min="100"
-                            step="1"
-                            placeholder="200 (2.00)"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) onChange(file);
+                            }}
                           />
                         </FormControl>
-                        <FormDescription>Enter as 200 for 2.00 odds</FormDescription>
+                        <FormDescription>Upload team logo or image</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                   <FormField
                     control={form.control}
-                    name="oddTeamB"
-                    render={({ field }) => (
+                    name="teamBImage"
+                    render={({ field: { value, onChange, ...field } }) => (
                       <FormItem>
-                        <FormLabel>Odd for Team B</FormLabel>
+                        <FormLabel>Team B Image (Optional)</FormLabel>
                         <FormControl>
                           <Input
                             {...field}
-                            type="number"
-                            min="100"
-                            step="1"
-                            placeholder="200 (2.00)"
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) onChange(file);
+                            }}
                           />
                         </FormControl>
-                        <FormDescription>Enter as 200 for 2.00 odds</FormDescription>
+                        <FormDescription>Upload team logo or image</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
+                </div>
+                
+                <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
+                    <span className="font-medium">Note:</span> Odds are fixed at 2.00 for both teams.
+                  </p>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button
