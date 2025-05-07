@@ -171,13 +171,28 @@ export default function AdminCricketTossPage() {
   // Mutation to close betting for a match
   const closeBettingMutation = useMutation({
     mutationFn: async (matchId: number) => {
-      return await apiRequest(`/api/cricket-toss/matches/${matchId}/close`, "POST");
+      // Use fetch directly to make sure we have more control over the request
+      const response = await fetch(`/api/cricket-toss/matches/${matchId}/close`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Failed to close betting" }));
+        throw new Error(errorData.message || `HTTP Error: ${response.status}`);
+      }
+      
+      return await response.json();
     },
     onSuccess: () => {
       toast({
         title: "Betting Closed",
         description: "Betting has been closed for this match.",
       });
+      setConfirmCloseOpen(false);
+      setMatchToClose(null);
       queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/matches"] });
     },
     onError: (error: Error) => {
@@ -229,8 +244,7 @@ export default function AdminCricketTossPage() {
   const confirmCloseBetting = () => {
     if (matchToClose) {
       closeBettingMutation.mutate(matchToClose);
-      setConfirmCloseOpen(false);
-      setMatchToClose(null);
+      // We'll set these in the onSuccess handler to avoid UI race conditions
     }
   };
 
@@ -238,12 +252,10 @@ export default function AdminCricketTossPage() {
   const handleDeclareResult = (result: string) => {
     if (!selectedMatch) return;
     
-    if (confirm(`Are you sure you want to declare ${result === 'team_a' ? selectedMatch.teamA : selectedMatch.teamB} as the winner?`)) {
-      declareResultMutation.mutate({
-        matchId: selectedMatch.id,
-        result,
-      });
-    }
+    declareResultMutation.mutate({
+      matchId: selectedMatch.id,
+      result,
+    });
   };
 
   // Function to format odds for display (converts from integer to decimal representation)
@@ -616,6 +628,39 @@ export default function AdminCricketTossPage() {
                   <span>{selectedMatch?.teamB} Wins</span>
                 </Button>
               </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Confirmation dialog for closing betting */}
+        <Dialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Close Betting</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p>Are you sure you want to close betting for this match?</p>
+              <p className="text-sm text-muted-foreground mt-2">
+                This will prevent players from placing new bets on this match.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setConfirmCloseOpen(false);
+                  setMatchToClose(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                onClick={confirmCloseBetting}
+                disabled={closeBettingMutation.isPending}
+              >
+                {closeBettingMutation.isPending ? "Closing..." : "Close Betting"}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>
