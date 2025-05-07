@@ -36,6 +36,7 @@ interface CricketTossMatch {
   matchTime: string;
   teamAImage?: string;
   teamBImage?: string;
+  coverImage?: string;
   oddTeamA: number;
   oddTeamB: number;
   result: string;
@@ -58,6 +59,7 @@ interface BetHistory {
     teamB: string;
     teamAImage?: string;
     teamBImage?: string;
+    coverImage?: string;
     oddTeamA: number;
     oddTeamB: number;
     matchTime: string;
@@ -234,30 +236,21 @@ export default function CricketTossPage() {
                         <span>{formatDate(new Date(match.matchTime))}</span>
                       </div>
                       <Separator />
+                      {match.coverImage && (
+                        <div className="mb-4">
+                          <img 
+                            src={match.coverImage} 
+                            alt={`${match.teamA} vs ${match.teamB}`}
+                            className="w-full h-32 object-cover rounded-md" 
+                          />
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-2">
                         <div className="text-center p-2 rounded border">
-                          {match.teamAImage && (
-                            <div className="flex justify-center mb-2">
-                              <img 
-                                src={match.teamAImage} 
-                                alt={match.teamA}
-                                className="w-12 h-12 object-cover rounded-full" 
-                              />
-                            </div>
-                          )}
                           <div className="font-bold">{match.teamA}</div>
                           <div className="text-sm">Odds: {formatOdds(match.oddTeamA)}</div>
                         </div>
                         <div className="text-center p-2 rounded border">
-                          {match.teamBImage && (
-                            <div className="flex justify-center mb-2">
-                              <img 
-                                src={match.teamBImage} 
-                                alt={match.teamB}
-                                className="w-12 h-12 object-cover rounded-full" 
-                              />
-                            </div>
-                          )}
                           <div className="font-bold">{match.teamB}</div>
                           <div className="text-sm">Odds: {formatOdds(match.oddTeamB)}</div>
                         </div>
@@ -299,6 +292,15 @@ export default function CricketTossPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-4">
+                    {selectedMatch.coverImage && (
+                      <div className="mb-2">
+                        <img 
+                          src={selectedMatch.coverImage} 
+                          alt={`${selectedMatch.teamA} vs ${selectedMatch.teamB}`}
+                          className="w-full h-32 object-cover rounded-md" 
+                        />
+                      </div>
+                    )}
                     <div className="grid grid-cols-2 gap-4">
                       <Button
                         variant={selectedTeam === "team_a" ? "default" : "outline"}
@@ -306,13 +308,6 @@ export default function CricketTossPage() {
                         onClick={() => setSelectedTeam("team_a")}
                       >
                         <div className="flex flex-col items-center justify-center gap-1">
-                          {selectedMatch.teamAImage && (
-                            <img 
-                              src={selectedMatch.teamAImage} 
-                              alt={selectedMatch.teamA}
-                              className="w-8 h-8 object-cover rounded-full mb-1" 
-                            />
-                          )}
                           <div>{selectedMatch.teamA}</div>
                           <div className="text-sm">Odds: {formatOdds(selectedMatch.oddTeamA)}</div>
                         </div>
@@ -323,13 +318,6 @@ export default function CricketTossPage() {
                         onClick={() => setSelectedTeam("team_b")}
                       >
                         <div className="flex flex-col items-center justify-center gap-1">
-                          {selectedMatch.teamBImage && (
-                            <img 
-                              src={selectedMatch.teamBImage} 
-                              alt={selectedMatch.teamB}
-                              className="w-8 h-8 object-cover rounded-full mb-1" 
-                            />
-                          )}
                           <div>{selectedMatch.teamB}</div>
                           <div className="text-sm">Odds: {formatOdds(selectedMatch.oddTeamB)}</div>
                         </div>
@@ -398,42 +386,23 @@ export default function CricketTossPage() {
                   <TableRow key={bet.id}>
                     <TableCell>{formatDate(new Date(bet.createdAt))}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        {bet.gameData.teamAImage && (
+                      <div className="flex flex-col gap-1">
+                        {bet.gameData.coverImage && (
                           <img 
-                            src={bet.gameData.teamAImage} 
-                            alt={bet.gameData.teamA}
-                            className="w-6 h-6 object-cover rounded-full" 
+                            src={bet.gameData.coverImage} 
+                            alt={`${bet.gameData.teamA} vs ${bet.gameData.teamB}`}
+                            className="h-10 w-full max-w-[120px] object-cover rounded-md mb-1" 
                           />
                         )}
-                        <span>{bet.gameData.teamA}</span>
-                        <span className="mx-1 text-xs text-gray-500">vs</span>
-                        {bet.gameData.teamBImage && (
-                          <img 
-                            src={bet.gameData.teamBImage} 
-                            alt={bet.gameData.teamB}
-                            className="w-6 h-6 object-cover rounded-full" 
-                          />
-                        )}
-                        <span>{bet.gameData.teamB}</span>
+                        <div className="flex items-center">
+                          <span>{bet.gameData.teamA}</span>
+                          <span className="mx-1 text-xs text-gray-500">vs</span>
+                          <span>{bet.gameData.teamB}</span>
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        {bet.prediction === "team_a" && bet.gameData.teamAImage && (
-                          <img 
-                            src={bet.gameData.teamAImage} 
-                            alt={bet.gameData.teamA}
-                            className="w-5 h-5 object-cover rounded-full" 
-                          />
-                        )}
-                        {bet.prediction === "team_b" && bet.gameData.teamBImage && (
-                          <img 
-                            src={bet.gameData.teamBImage} 
-                            alt={bet.gameData.teamB}
-                            className="w-5 h-5 object-cover rounded-full" 
-                          />
-                        )}
                         <span>{formatPrediction(bet.prediction, bet)}</span>
                       </div>
                     </TableCell>
