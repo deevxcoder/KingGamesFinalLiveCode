@@ -11,8 +11,49 @@ import {
 } from "../shared/schema";
 import { eq, and, desc } from "drizzle-orm";
 import { requireRole } from "./auth";
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 const router = express.Router();
+
+// Setup multer for image uploads
+const uploadsDir = path.join(process.cwd(), 'uploads');
+const cricketTossUploadsDir = path.join(uploadsDir, 'cricket-toss');
+
+// Ensure uploads directory exists
+if (!fs.existsSync(cricketTossUploadsDir)) {
+  fs.mkdirSync(cricketTossUploadsDir, { recursive: true });
+}
+
+// Configure storage for cricket toss team images
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, cricketTossUploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `cricket-toss-${uniqueSuffix}${ext}`);
+  }
+});
+
+// File filter to accept only images
+const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('Only image files are allowed!'));
+  }
+};
+
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB max file size
+  },
+  fileFilter: fileFilter
+});
 
 // Schema for creating a cricket toss match
 const createCricketTossMatchSchema = z.object({
@@ -22,6 +63,8 @@ const createCricketTossMatchSchema = z.object({
   matchTime: z.string().transform(val => new Date(val)),
   oddTeamA: z.number().min(100, "Odds must be at least 1.00"),
   oddTeamB: z.number().min(100, "Odds must be at least 1.00"),
+  teamAImage: z.string().optional(),
+  teamBImage: z.string().optional(),
 });
 
 // Schema for placing a bet
@@ -77,22 +120,57 @@ router.get("/open-matches", async (req, res) => {
 });
 
 // Create a new cricket toss match
-router.post("/matches", requireRole(["admin", "subadmin"]), async (req, res) => {
+router.post("/matches", requireRole(["admin", "subadmin"]), upload.fields([
+  { name: 'teamAImage', maxCount: 1 },
+  { name: 'teamBImage', maxCount: 1 }
+]), async (req, res) => {
   try {
-    const validatedData = createCricketTossMatchSchema.parse(req.body);
+    // Handle form-data
+    const teamA = req.body.teamA;
+    const teamB = req.body.teamB;
+    const description = req.body.description;
+    const matchTime = req.body.matchTime;
+    // Use fixed odds of 2.00 for both teams
+    const oddTeamA = 200;
+    const oddTeamB = 200;
     
-    const insertedMatch = await db.insert(teamMatches).values({
-      teamA: validatedData.teamA,
-      teamB: validatedData.teamB,
-      description: validatedData.description,
-      matchTime: validatedData.matchTime,
-      oddTeamA: validatedData.oddTeamA,
-      oddTeamB: validatedData.oddTeamB,
+    // Process any team images if they were uploaded
+    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    
+    // Add team image paths if provided
+    let teamAImage: string | undefined;
+    let teamBImage: string | undefined;
+    
+    if (files && files.teamAImage && files.teamAImage.length > 0) {
+      teamAImage = `/uploads/cricket-toss/${files.teamAImage[0].filename}`;
+    }
+    
+    if (files && files.teamBImage && files.teamBImage.length > 0) {
+      teamBImage = `/uploads/cricket-toss/${files.teamBImage[0].filename}`;
+    }
+    
+    // Validate the data
+    if (!teamA || !teamB || !matchTime) {
+      return res.status(400).json({ message: "Missing required fields: teamA, teamB, or matchTime" });
+    }
+    
+    // Create object for insertion
+    const matchData = {
+      teamA,
+      teamB,
+      description,
+      matchTime: new Date(matchTime),
+      oddTeamA,
+      oddTeamB,
       oddDraw: null, // No draw option for cricket toss
       category: "cricket_toss", // This is the key difference from regular team matches
       result: TeamMatchResult.PENDING,
       status: "open",
-    }).returning();
+      teamAImage,
+      teamBImage
+    };
+
+    const insertedMatch = await db.insert(teamMatches).values(matchData).returning();
     
     res.status(201).json(insertedMatch[0]);
   } catch (error) {

@@ -353,6 +353,8 @@ export const teamMatches = pgTable("team_matches", {
   oddTeamB: integer("odd_team_b").notNull().default(200), // 2.00 decimal odds
   oddDraw: integer("odd_draw").default(300), // 3.00 decimal odds
   status: text("status").notNull().default("open"), // open, closed, resulted
+  teamAImage: text("team_a_image"), // URL to team A image
+  teamBImage: text("team_b_image"), // URL to team B image
   createdAt: timestamp("created_at").defaultNow(),
 });
 
