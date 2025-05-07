@@ -189,13 +189,16 @@ router.post("/matches/:id/result", requireRole(["admin", "subadmin"]), async (re
       .where(
         and(
           eq(games.matchId, matchId),
-          eq(games.gameType, GameType.CRICKET_TOSS),
-          eq(games.result, null)  // Only process unresolved bets
+          eq(games.gameType, GameType.CRICKET_TOSS)
+          // We'll filter unresolved bets after the query
         )
       );
     
     // For each bet, determine win/loss and update user balance
     for (const bet of bets) {
+      // Skip bets that already have a result
+      if (bet.result !== null) continue;
+      
       let payout = 0;
       const win = bet.prediction === validatedData.result;
       

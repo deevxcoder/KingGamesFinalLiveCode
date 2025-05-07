@@ -101,7 +101,12 @@ export default function Sidebar() {
       icon: <Trophy className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
     },
-    // Cricket Toss removed
+    {
+      name: "Cricket Toss",
+      path: "/cricket-toss",
+      icon: <GiCricketBat className="w-5 h-5 mr-3" />,
+      visible: isRegularUser,
+    },
     {
       name: "Game History",
       path: "/game-history",

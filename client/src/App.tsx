@@ -18,6 +18,8 @@ import SubadminManagementPage from "@/pages/subadmin-management-page";
 import SubadminDashboardPage from "@/pages/subadmin-dashboard-page";
 import GameHistoryPage from "@/pages/game-history-page";
 import RiskManagementPage from "@/pages/risk-management-page";
+import CricketTossPage from "@/pages/cricket-toss-page";
+import AdminCricketTossPage from "@/pages/admin-cricket-toss-page";
 import MarketListPage from "@/pages/market-list-page";
 import SatamatkaGamePage from "@/pages/satamatka-game-page";
 import TeamMatchPage from "@/pages/team-match-page";
@@ -48,6 +50,11 @@ function Router() {
       <ProtectedRoute 
         path="/coinflip" 
         component={GamePage} 
+        allowedRoles={[UserRole.PLAYER]}
+      />
+      <ProtectedRoute 
+        path="/cricket-toss" 
+        component={CricketTossPage} 
         allowedRoles={[UserRole.PLAYER]}
       />
       <ProtectedRoute 
@@ -100,7 +107,11 @@ function Router() {
         component={AdminTeamMatchPage} 
         allowedRoles={[UserRole.ADMIN]}
       />
-      {/* Cricket Toss Admin route removed */}
+      <ProtectedRoute 
+        path="/admin-cricket-toss" 
+        component={AdminCricketTossPage} 
+        allowedRoles={[UserRole.ADMIN]}
+      />
       
       {/* Settings routes - uses a dedicated router component */}
       <ProtectedRoute 

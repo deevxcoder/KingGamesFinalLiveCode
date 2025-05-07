@@ -399,7 +399,7 @@ export default function HomePage() {
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-cyan-300 hover:bg-slate-800 hover:text-cyan-200"
-                onClick={() => setLocation("/manage-cricket-toss")}
+                onClick={() => setLocation("/admin-cricket-toss")}
               >
                 <Activity className="h-5 w-5 mr-2" />
                 Cricket Toss Management
