@@ -100,11 +100,12 @@ export function setupCricketTossApiRoutes(app: express.Express) {
     }
   });
 
-  // Create a new cricket toss game (admin only) - REDIRECTS TO NEW API
+  // Create a new cricket toss game (admin only) - DISABLED
   app.post("/api/cricket-toss", requireAdmin, async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // Redirect to the new API endpoint (standalone cricket toss games)
-      res.status(308).json({ 
+      // Just return a message telling users to use the new endpoint
+      // Don't redirect or create games here to prevent duplicates
+      res.status(410).json({ 
         message: "This API endpoint is deprecated. Please use /api/cricket-toss-games instead.",
         redirectTo: "/api/cricket-toss-games" 
       });
