@@ -78,7 +78,7 @@ export default function Sidebar() {
     // Cricket Toss Management - Admin Only
     {
       name: "Manage Cricket Toss",
-      path: "/admin/cricket-toss",
+      path: "/admin-cricket-toss",
       icon: <GiCricketBat className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
