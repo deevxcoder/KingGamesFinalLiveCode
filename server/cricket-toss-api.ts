@@ -63,8 +63,7 @@ const createCricketTossMatchSchema = z.object({
   matchTime: z.string().transform(val => new Date(val)),
   oddTeamA: z.number().min(100, "Odds must be at least 1.00"),
   oddTeamB: z.number().min(100, "Odds must be at least 1.00"),
-  teamAImage: z.string().optional(),
-  teamBImage: z.string().optional(),
+  coverImage: z.string().optional(),
 });
 
 // Schema for placing a bet
@@ -120,10 +119,7 @@ router.get("/open-matches", async (req, res) => {
 });
 
 // Create a new cricket toss match
-router.post("/matches", requireRole(["admin", "subadmin"]), upload.fields([
-  { name: 'teamAImage', maxCount: 1 },
-  { name: 'teamBImage', maxCount: 1 }
-]), async (req, res) => {
+router.post("/matches", requireRole(["admin", "subadmin"]), upload.single('coverImage'), async (req, res) => {
   try {
     // Handle form-data
     const teamA = req.body.teamA;
@@ -134,19 +130,11 @@ router.post("/matches", requireRole(["admin", "subadmin"]), upload.fields([
     const oddTeamA = 200;
     const oddTeamB = 200;
     
-    // Process any team images if they were uploaded
-    const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    // Process cover image if it was uploaded
+    let coverImage: string | undefined;
     
-    // Add team image paths if provided
-    let teamAImage: string | undefined;
-    let teamBImage: string | undefined;
-    
-    if (files && files.teamAImage && files.teamAImage.length > 0) {
-      teamAImage = `/uploads/cricket-toss/${files.teamAImage[0].filename}`;
-    }
-    
-    if (files && files.teamBImage && files.teamBImage.length > 0) {
-      teamBImage = `/uploads/cricket-toss/${files.teamBImage[0].filename}`;
+    if (req.file) {
+      coverImage = `/uploads/cricket-toss/${req.file.filename}`;
     }
     
     // Validate the data
@@ -166,8 +154,9 @@ router.post("/matches", requireRole(["admin", "subadmin"]), upload.fields([
       category: "cricket_toss", // This is the key difference from regular team matches
       result: TeamMatchResult.PENDING,
       status: "open",
-      teamAImage,
-      teamBImage
+      coverImage, // Store the cover image path
+      teamAImage: undefined, // Set to undefined since we're not using them anymore
+      teamBImage: undefined
     };
 
     const insertedMatch = await db.insert(teamMatches).values(matchData).returning();
@@ -397,8 +386,7 @@ router.post("/bet", async (req, res) => {
     const gameData = {
       teamA: matchData.teamA,
       teamB: matchData.teamB,
-      teamAImage: matchData.teamAImage,
-      teamBImage: matchData.teamBImage,
+      coverImage: matchData.coverImage,
       matchId: matchData.id,
       oddTeamA: matchData.oddTeamA,
       oddTeamB: matchData.oddTeamB,

@@ -56,8 +56,7 @@ const createCricketTossSchema = z.object({
   teamB: z.string().min(1, "Team B is required"),
   description: z.string().optional(),
   matchTime: z.string().min(1, "Match time is required"),
-  teamAImage: z.instanceof(File).optional(),
-  teamBImage: z.instanceof(File).optional(),
+  coverImage: z.instanceof(File).optional(),
   // We'll use fixed odds: 2.00 for both teams
 });
 
@@ -95,8 +94,7 @@ export default function AdminCricketTossPage() {
   const [declareOpen, setDeclareOpen] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [matchToClose, setMatchToClose] = useState<number | null>(null);
-  const [teamAPreview, setTeamAPreview] = useState<string | null>(null);
-  const [teamBPreview, setTeamBPreview] = useState<string | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -131,9 +129,8 @@ export default function AdminCricketTossPage() {
       formData.append("oddTeamA", "200");
       formData.append("oddTeamB", "200");
       
-      // Append image files if provided
-      if (values.teamAImage) formData.append("teamAImage", values.teamAImage);
-      if (values.teamBImage) formData.append("teamBImage", values.teamBImage);
+      // Append cover image if provided
+      if (values.coverImage) formData.append("coverImage", values.coverImage);
       
       // Use fetch directly for FormData
       const response = await fetch("/api/cricket-toss/matches", {
@@ -155,8 +152,7 @@ export default function AdminCricketTossPage() {
       });
       form.reset();
       setOpen(false);
-      setTeamAPreview(null);
-      setTeamBPreview(null);
+      setCoverImagePreview(null);
       queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/matches"] });
     },
     onError: (error: Error) => {
@@ -308,8 +304,7 @@ export default function AdminCricketTossPage() {
             onOpenChange={(isOpen) => {
               setOpen(isOpen);
               if (!isOpen) {
-                setTeamAPreview(null);
-                setTeamBPreview(null);
+                setCoverImagePreview(null);
               }
             }}>
             <DialogTrigger asChild>
@@ -377,86 +372,45 @@ export default function AdminCricketTossPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="teamAImage"
-                      render={({ field: { value, onChange, ...field } }) => (
-                        <FormItem>
-                          <FormLabel>Team A Image (Optional)</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  onChange(file);
-                                  // Create a preview URL for the selected image
-                                  const reader = new FileReader();
-                                  reader.onload = (e) => {
-                                    setTeamAPreview(e.target?.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
+                  <FormField
+                    control={form.control}
+                    name="coverImage"
+                    render={({ field: { value, onChange, ...field } }) => (
+                      <FormItem>
+                        <FormLabel>Cover Banner Image (Optional)</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                onChange(file);
+                                // Create a preview URL for the selected image
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                  setCoverImagePreview(e.target?.result as string);
+                                };
+                                reader.readAsDataURL(file);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        {coverImagePreview && (
+                          <div className="mt-2">
+                            <img 
+                              src={coverImagePreview} 
+                              alt="Cover Image Preview" 
+                              className="w-full h-32 object-cover rounded-md border border-gray-200"
                             />
-                          </FormControl>
-                          {teamAPreview && (
-                            <div className="mt-2">
-                              <img 
-                                src={teamAPreview} 
-                                alt="Team A Preview" 
-                                className="w-16 h-16 object-cover rounded-full border border-gray-200"
-                              />
-                            </div>
-                          )}
-                          <FormDescription>Upload team logo or image</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="teamBImage"
-                      render={({ field: { value, onChange, ...field } }) => (
-                        <FormItem>
-                          <FormLabel>Team B Image (Optional)</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                  onChange(file);
-                                  // Create a preview URL for the selected image
-                                  const reader = new FileReader();
-                                  reader.onload = (e) => {
-                                    setTeamBPreview(e.target?.result as string);
-                                  };
-                                  reader.readAsDataURL(file);
-                                }
-                              }}
-                            />
-                          </FormControl>
-                          {teamBPreview && (
-                            <div className="mt-2">
-                              <img 
-                                src={teamBPreview} 
-                                alt="Team B Preview" 
-                                className="w-16 h-16 object-cover rounded-full border border-gray-200"
-                              />
-                            </div>
-                          )}
-                          <FormDescription>Upload team logo or image</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                          </div>
+                        )}
+                        <FormDescription>Upload a banner image for this match</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   
                   <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
                     <p className="text-sm text-slate-700 dark:text-slate-300">
