@@ -114,6 +114,13 @@ function Router() {
         allowedRoles={[UserRole.ADMIN]}
       />
       
+      {/* Reset Zone route - admin only */}
+      <ProtectedRoute 
+        path="/reset-zone" 
+        component={ResetZonePage} 
+        allowedRoles={[UserRole.ADMIN]}
+      />
+      
       {/* Settings routes - uses a dedicated router component */}
       <ProtectedRoute 
         path="/settings" 

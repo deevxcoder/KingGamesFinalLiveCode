@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiRequest } from "@/lib/query-client";
+import { apiRequest } from "@/lib/queryClient";
 import DashboardLayout from "@/components/dashboard-layout";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/use-auth";
@@ -36,7 +36,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { UserRole } from "@shared/schema";
+import { UserRole } from "@/lib/types";
 
 export default function ResetZonePage() {
   const { toast } = useToast();
@@ -71,17 +71,20 @@ export default function ResetZonePage() {
     
     try {
       setIsLoading(true);
-      const response = await apiRequest("/api/admin/reset-system", {
-        method: "POST",
-        data: {
+      const response = await apiRequest(
+        "POST",
+        "/api/admin/reset-system",
+        {
           resetType,
           confirmationCode,
-        },
-      });
+        }
+      );
+      
+      const responseData = await response.json();
       
       toast({
         title: "Reset Successful",
-        description: response.message,
+        description: responseData.message,
       });
       
       // Clear confirmation code after successful reset
