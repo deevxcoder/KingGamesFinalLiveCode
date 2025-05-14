@@ -780,7 +780,7 @@ export default function WalletPage() {
                   </div>
                   <div>
                     <p className="text-sm text-slate-400">Current Balance</p>
-                    <p className="text-3xl font-bold text-fuchsia-300">₹{user?.balance ? (user.balance / 100).toFixed(2) : '0.00'}</p>
+                    <p className="text-3xl font-bold text-fuchsia-300">₹{user?.balance ? user.balance.toFixed(2) : '0.00'}</p>
                     <p className="text-xs text-slate-500 mt-1">
                       Last updated: {new Date().toLocaleDateString('en-IN')}
                     </p>
