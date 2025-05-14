@@ -97,10 +97,22 @@ export default function CricketTossPage() {
       betAmount: number;
       prediction: string;
     }) => {
-      return await apiRequest("/api/cricket-toss/bet", "POST", {
-        matchId,
-        betAmount,
-        prediction,
+      return await fetch(`/api/cricket-toss/${matchId}/play`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          prediction,
+          betAmount
+        }),
+        credentials: "include"
+      }).then(async (res) => {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || res.statusText);
+        }
+        return res.json();
       });
     },
     onSuccess: () => {
@@ -316,7 +328,7 @@ export default function CricketTossPage() {
                         </Button>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 items-center">
+                      <div className="grid grid-cols-2 gap-4 items-start">
                         <div>
                           <label htmlFor="betAmount" className="text-sm font-medium mb-1 block">
                             Bet Amount (₹)
@@ -328,14 +340,34 @@ export default function CricketTossPage() {
                             onChange={(e) => setBetAmount(e.target.value)}
                             min="10"
                             step="10"
+                            className="mb-2"
                           />
+                          
+                          {/* Quick bet amount selection */}
+                          <div className="grid grid-cols-3 gap-2 mt-1">
+                            {[100, 500, 1000, 2000, 5000, 10000].map((amount) => (
+                              <Button
+                                key={amount}
+                                type="button"
+                                size="sm"
+                                variant={parseInt(betAmount) === amount ? "default" : "outline"}
+                                onClick={() => setBetAmount(amount.toString())}
+                                className="text-xs py-1"
+                              >
+                                ₹{amount}
+                              </Button>
+                            ))}
+                          </div>
                         </div>
                         <div>
                           <label className="text-sm font-medium mb-1 block">
                             Potential Win
                           </label>
-                          <div className="text-xl font-bold">
+                          <div className="text-xl font-bold mb-2">
                             ₹{calculatePotentialWin(betAmount, selectedTeam).toFixed(2)}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-4">
+                            Select a team and enter your bet amount to calculate potential winnings.
                           </div>
                         </div>
                       </div>
