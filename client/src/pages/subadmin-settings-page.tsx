@@ -747,7 +747,21 @@ export default function SubadminSettingsPage() {
                                 name="teamMatch"
                                 render={({ field }) => (
                                   <FormItem>
-                                    <FormLabel>Team Match</FormLabel>
+                                    <FormLabel>Team Match Win</FormLabel>
+                                    <FormControl>
+                                      <Input type="number" step="0.01" min="1.0" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+
+                              <FormField
+                                control={oddsForm.control}
+                                name="teamMatchDraw"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Team Match Draw</FormLabel>
                                     <FormControl>
                                       <Input type="number" step="0.01" min="1.0" {...field} />
                                     </FormControl>
