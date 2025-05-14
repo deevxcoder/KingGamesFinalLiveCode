@@ -98,6 +98,7 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getTransactionsByUserId(userId: number): Promise<Transaction[]>;
   getAllTransactions(limit?: number): Promise<Transaction[]>;
+  getWalletTransactionsByUserIds(userIds: number[]): Promise<Transaction[]>;
 
   // System Settings methods
   getSystemSetting(settingType: string, settingKey: string): Promise<SystemSetting | undefined>;
@@ -483,6 +484,15 @@ export class DatabaseStorage implements IStorage {
     }
     
     return await query;
+  }
+  
+  async getWalletTransactionsByUserIds(userIds: number[]): Promise<Transaction[]> {
+    if (!userIds.length) return [];
+    
+    return await db.select()
+      .from(transactions)
+      .where(sql`${transactions.userId} IN (${userIds.join(', ')})`)
+      .orderBy(desc(transactions.createdAt));
   }
 
   // System Settings methods
