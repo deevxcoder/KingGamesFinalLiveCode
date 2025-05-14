@@ -1,7 +1,7 @@
 import { db } from './db';
 import express, { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { UserRole, walletRequests, users, transactions, systemSettings, depositCommissions } from '@shared/schema';
+import { UserRole, walletRequests, users, transactions, systemSettings, depositCommissions, playerDepositDiscounts } from '@shared/schema';
 import { eq, desc, and, isNull } from 'drizzle-orm';
 
 // Payment Modes
