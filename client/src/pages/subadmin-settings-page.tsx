@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+
 import DashboardLayout from "@/components/dashboard-layout";
 import { 
   Card, 
@@ -77,6 +78,12 @@ interface Player {
   createdAt?: string;
 }
 
+interface DepositCommission {
+  subadminId: number;
+  commissionRate: number;
+  isActive: boolean;
+}
+
 // Form schema for the commission form
 const commissionFormSchema = z.object({
   teamMatch: z.coerce.number().min(0).max(100),
@@ -137,10 +144,16 @@ export default function SubadminSettingsPage() {
     enabled: !!subadminId,
   });
 
-  // Get commission settings
+  // Get commission settings for games
   const { data: commissions, isLoading: isLoadingCommissions } = useQuery({
     queryKey: [`/api/commissions/subadmin/${subadminId}`],
     enabled: !!subadminId,
+  });
+  
+  // Get deposit commission rate (fixed commission on admin-subadmin transactions)
+  const { data: depositCommission, isLoading: isLoadingDepositCommission } = useQuery<DepositCommission>({
+    queryKey: ['/api/deposit-commission'],
+    enabled: !!subadminId && user?.role === 'subadmin',
   });
   
   // Get admin game odds
@@ -549,7 +562,7 @@ export default function SubadminSettingsPage() {
               </TabsList>
               
               <TabsContent value="commission">
-                {isLoadingCommissions ? (
+                {isLoadingCommissions || isLoadingDepositCommission ? (
                   <div className="flex justify-center py-4">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                   </div>
@@ -580,7 +593,7 @@ export default function SubadminSettingsPage() {
                                 <div className="flex items-center justify-between border-b pb-2">
                                   <span className="text-muted-foreground">Base Commission Rate:</span>
                                   <span className="text-xl font-bold text-primary">
-                                    {(getCommissionForGameType('deposit') / 100).toFixed(2)}%
+                                    {depositCommission ? (depositCommission.commissionRate / 100).toFixed(2) : "0.00"}%
                                   </span>
                                 </div>
                                 
@@ -623,7 +636,7 @@ export default function SubadminSettingsPage() {
                         <AlertDescription>
                           <ul className="list-disc pl-5 space-y-1 mt-2">
                             <li>Your commission rate applies only to deposits from admin to your account</li>
-                            <li>Example: If your rate is {(getCommissionForGameType('deposit') / 100).toFixed(2)}% and admin adds ₹1000, you receive ₹{(1000 + 1000 * getCommissionForGameType('deposit') / 10000).toFixed(0)}</li>
+                            <li>Example: If your rate is {depositCommission ? (depositCommission.commissionRate / 100).toFixed(2) : "0.00"}% and admin adds ₹1000, you receive ₹{depositCommission ? (1000 + 1000 * depositCommission.commissionRate / 10000).toFixed(0) : "1000"}</li>
                             <li>Player deposits and withdrawals do not generate commission for you</li>
                             <li>Commission rates are set by the administrator and cannot be changed by subadmins</li>
                           </ul>
