@@ -410,7 +410,7 @@ export default function HomePage() {
             {/* Total Deposits Card */}
             <DashboardStatsCard 
               title="Total Deposits" 
-              value={`₹${((adminStats.totalDeposits || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+              value={`₹${(adminStats.totalDeposits || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
               icon={<DollarSign className="h-5 w-5 text-blue-400" />}
               trend="up" 
               color="blue"
