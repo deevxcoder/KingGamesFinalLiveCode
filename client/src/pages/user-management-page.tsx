@@ -503,6 +503,23 @@ export default function UserManagementPage() {
     }
   };
 
+  // Fetch player deposit discount rate for a player
+  const fetchPlayerDepositDiscount = async (playerId: number) => {
+    try {
+      if (user?.role === UserRole.SUBADMIN) {
+        const response = await apiRequest("GET", `/api/subadmin/deposit-discount/${playerId}`);
+        const data = await response.json();
+        if (data && data.discountRate !== undefined) {
+          return data.discountRate;
+        }
+      }
+      return 0;
+    } catch (error) {
+      console.error("Error fetching player deposit discount:", error);
+      return 0;
+    }
+  };
+
   const openAddFundsDialog = async (targetUser: any) => {
     setSelectedUser(targetUser);
     setAmount(0);
@@ -511,8 +528,16 @@ export default function UserManagementPage() {
     if (targetUser?.role === UserRole.SUBADMIN && user?.role === UserRole.ADMIN) {
       const commissionRate = await fetchDepositCommissionRate(targetUser.id);
       setSelectedSubadminCommissionRate(commissionRate);
+      setDepositDiscountRate(0);
+    } 
+    // If subadmin is opening dialog for a player, fetch the deposit discount
+    else if (targetUser?.role === UserRole.PLAYER && user?.role === UserRole.SUBADMIN) {
+      const discountRate = await fetchPlayerDepositDiscount(targetUser.id);
+      setSelectedSubadminCommissionRate(null);
+      setDepositDiscountRate(discountRate);
     } else {
       setSelectedSubadminCommissionRate(null);
+      setDepositDiscountRate(0);
     }
     
     setIsAddFundsDialogOpen(true);
@@ -794,6 +819,11 @@ export default function UserManagementPage() {
                   Note: Commission rate of {selectedSubadminCommissionRate !== null ? `${selectedSubadminCommissionRate}%` : "..."} applies to this transfer
                 </span>
               )}
+              {user?.role === UserRole.SUBADMIN && selectedUser?.role === UserRole.PLAYER && depositDiscountRate > 0 && (
+                <span className="block mt-2 text-sm font-medium text-green-600">
+                  Note: Deposit discount of {depositDiscountRate}% applies to this player
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
@@ -819,6 +849,20 @@ export default function UserManagementPage() {
                     Subadmin receives: ₹{amount.toFixed(2)}
                     <br />
                     Admin pays: ₹{((amount * selectedSubadminCommissionRate) / 100).toFixed(2)} ({selectedSubadminCommissionRate}% of ₹{amount.toFixed(2)})
+                  </p>
+                </div>
+              )}
+              
+              {user?.role === UserRole.SUBADMIN && selectedUser?.role === UserRole.PLAYER && depositDiscountRate > 0 && amount > 0 && (
+                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-md text-sm">
+                  <p className="text-green-800">
+                    <span className="font-medium">Discount calculation:</span> 
+                    <br />
+                    Base amount: ₹{amount.toFixed(2)}
+                    <br />
+                    Bonus ({depositDiscountRate}%): ₹{((amount * depositDiscountRate) / 100).toFixed(2)}
+                    <br />
+                    <span className="font-medium">Player receives: ₹{(amount + (amount * depositDiscountRate) / 100).toFixed(2)}</span>
                   </p>
                 </div>
               )}
