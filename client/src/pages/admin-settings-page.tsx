@@ -52,6 +52,7 @@ export default function AdminSettingsPage() {
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.95");
   const [cricketTossOdds, setCricketTossOdds] = useState("1.90");
   const [teamMatchOdds, setTeamMatchOdds] = useState("1.85");
+  const [teamMatchDrawOdds, setTeamMatchDrawOdds] = useState("3.00"); // Added draw multiplier
   const [satamatkaOdds, setSatamatkaOdds] = useState({
     jodi: "90.00",
     harf: "9.00",
