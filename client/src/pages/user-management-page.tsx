@@ -52,6 +52,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { 
   Ban, 
   CheckCircle, 
@@ -713,30 +719,37 @@ export default function UserManagementPage() {
                             >
                               <Info className="h-4 w-4" />
                             </Button>
-                            {/* Only show commission button for subadmins and players */}
+                            {/* Only show commission button for subadmins and discount button for players */}
                             {(user.role === UserRole.SUBADMIN || user.role === UserRole.PLAYER) && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openCommissionDialog(user)}
-                                title={user.role === UserRole.SUBADMIN ? "Set Commission" : "Set Game Discount"}
-                                className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
-                              >
-                                <Percent className="h-4 w-4" />
-                              </Button>
-                            )}
-                            
-                            {/* Show deposit discount button only for players when logged in as subadmin */}
-                            {user.role === UserRole.PLAYER && currentUserRole === UserRole.SUBADMIN && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openDepositDiscountDialog(user)}
-                                title="Set Deposit Discount"
-                                className="text-amber-500 border-amber-500/20 hover:bg-amber-500/10"
-                              >
-                                <Coins className="h-4 w-4" />
-                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    title={user.role === UserRole.SUBADMIN ? "Set Commission" : "Set Discount"}
+                                    className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
+                                  >
+                                    <Percent className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  {user.role === UserRole.SUBADMIN && (
+                                    <DropdownMenuItem onClick={() => openCommissionDialog(user)}>
+                                      Set Game Commission
+                                    </DropdownMenuItem>
+                                  )}
+                                  {user.role === UserRole.PLAYER && (
+                                    <DropdownMenuItem onClick={() => openCommissionDialog(user)}>
+                                      Set Game Discount
+                                    </DropdownMenuItem>
+                                  )}
+                                  {user.role === UserRole.PLAYER && (
+                                    <DropdownMenuItem onClick={() => openDepositDiscountDialog(user)}>
+                                      Set Deposit Discount
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             )}
                             {user.isBlocked ? (
                               <Button
