@@ -15,6 +15,7 @@ interface MarketCardProps {
   closeResult?: string;
   status: string;
   showFullInfo?: boolean;
+  coverImage?: string;
 }
 
 export default function MarketCard({
@@ -27,6 +28,7 @@ export default function MarketCard({
   closeResult,
   status,
   showFullInfo = false,
+  coverImage,
 }: MarketCardProps) {
   const [_, setLocation] = useLocation();
 
@@ -77,10 +79,19 @@ export default function MarketCard({
     }
   };
   
-  // Get cover style based on market type
+  // Get cover style based on market type or admin-provided cover image
   const getMarketCoverStyle = () => {
     const gradientOverlay = "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7))";
     
+    // If admin provided a cover image, use it
+    if (coverImage) {
+      return { 
+        backgroundImage: `${gradientOverlay}, url("${coverImage}")`,
+        className: "bg-slate-900 bg-cover bg-center"
+      };
+    }
+    
+    // Otherwise, use default patterns based on market type
     let backgroundImage;
     let bgColor;
     
@@ -183,6 +194,7 @@ export default function MarketCard({
       )}
       
       <CardFooter className="bg-muted/50 pt-2 pb-2 mt-auto">
+        {/* For open markets, show Place Bet button */}
         {status === "open" && (
           <Button 
             className="w-full"
@@ -191,7 +203,9 @@ export default function MarketCard({
             Place Bet <ArrowRightCircle className="ml-2 h-4 w-4" />
           </Button>
         )}
-        {status !== "open" && showFullInfo && (
+        
+        {/* "View Games" button - only show for resulted markets, and only when in admin view (showFullInfo) */}
+        {status === "resulted" && showFullInfo && (
           <Button 
             className="w-full" 
             variant="outline"
@@ -200,7 +214,9 @@ export default function MarketCard({
             View Games
           </Button>
         )}
-        {status !== "open" && !showFullInfo && (
+        
+        {/* "View Market" button - Don't show for "waiting" or "closed" statuses */}
+        {status !== "open" && status !== "waiting" && status !== "closed" && !showFullInfo && (
           <Button 
             className="w-full" 
             variant="outline"

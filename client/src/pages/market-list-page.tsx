@@ -19,6 +19,7 @@ interface SatamatkaMarket {
   closeResult?: string;
   status: string;
   createdAt: string;
+  coverImage?: string;
 }
 
 export default function MarketListPage() {
