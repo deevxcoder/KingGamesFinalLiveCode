@@ -3567,16 +3567,19 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      // Get total deposits
+      // Get total deposits - only count deposits from direct admin players
       const depositTransactions = await storage.getAllTransactionsByType("deposit");
-      const totalDeposits = depositTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+      const totalDeposits = depositTransactions
+        .filter(tx => directAdminPlayerIds.includes(tx.userId))
+        .reduce((sum, tx) => sum + tx.amount, 0);
       
-      // Get active bet amount (sum of all bet amounts for games with status "pending")
+      // Get active bet amount (sum of all bet amounts for games with status "pending") - only from direct admin players
       const activeGames = await storage.getActiveGames();
-      const activeBetAmount = activeGames.reduce((sum, game) => sum + game.betAmount, 0);
+      const filteredActiveGames = activeGames.filter(game => directAdminPlayerIds.includes(game.userId));
+      const activeBetAmount = filteredActiveGames.reduce((sum, game) => sum + game.betAmount, 0);
       
-      // Calculate potential payout (maximum possible payout from all active games)
-      const potentialPayout = activeGames.reduce((sum, game) => {
+      // Calculate potential payout (maximum possible payout from all active games) - only from direct admin players
+      const potentialPayout = filteredActiveGames.reduce((sum, game) => {
         // Calculate the maximum possible payout based on game type and odds
         let maxPayout = 0;
         
