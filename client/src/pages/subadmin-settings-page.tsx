@@ -727,7 +727,7 @@ export default function SubadminSettingsPage() {
                                   <FormItem>
                                     <FormLabel>Team Match</FormLabel>
                                     <FormControl>
-                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                      <Input type="number" step="0.01" min="1.0" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -741,7 +741,7 @@ export default function SubadminSettingsPage() {
                                   <FormItem>
                                     <FormLabel>Cricket Toss</FormLabel>
                                     <FormControl>
-                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                      <Input type="number" step="0.01" min="1.0" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -755,7 +755,7 @@ export default function SubadminSettingsPage() {
                                   <FormItem>
                                     <FormLabel>Coin Flip</FormLabel>
                                     <FormControl>
-                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                      <Input type="number" step="0.01" min="1.0" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -769,7 +769,7 @@ export default function SubadminSettingsPage() {
                                   <FormItem>
                                     <FormLabel>Jodi (Pair)</FormLabel>
                                     <FormControl>
-                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                      <Input type="number" step="0.01" min="1.0" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -783,7 +783,7 @@ export default function SubadminSettingsPage() {
                                   <FormItem>
                                     <FormLabel>Harf</FormLabel>
                                     <FormControl>
-                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                      <Input type="number" step="0.01" min="1.0" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -797,7 +797,7 @@ export default function SubadminSettingsPage() {
                                   <FormItem>
                                     <FormLabel>Odd/Even</FormLabel>
                                     <FormControl>
-                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                      <Input type="number" step="0.01" min="1.0" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
@@ -811,7 +811,7 @@ export default function SubadminSettingsPage() {
                                   <FormItem>
                                     <FormLabel>Crossing Bet</FormLabel>
                                     <FormControl>
-                                      <Input type="number" step="0.1" min="1.0" {...field} />
+                                      <Input type="number" step="0.01" min="1.0" {...field} />
                                     </FormControl>
                                     <FormMessage />
                                   </FormItem>
