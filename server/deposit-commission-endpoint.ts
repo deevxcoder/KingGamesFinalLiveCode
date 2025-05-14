@@ -1,10 +1,57 @@
 import { db } from './db';
 import express, { Request, Response, NextFunction } from 'express';
-import { UserRole, depositCommissions, users } from '@shared/schema';
+import { UserRole, depositCommissions, users, systemSettings } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 // Set or update a deposit commission for a specific subadmin (using URL parameter)
 export function setupDepositCommissionEndpoints(app: express.Express) {
+  // New endpoint for subadmin to get their own deposit commission rate
+  app.get('/api/deposit-commission', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // User must be a subadmin
+      if (req.user?.role !== UserRole.SUBADMIN) {
+        return res.status(403).json({ message: 'Forbidden - Only subadmins can view their deposit commission' });
+      }
+      
+      const subadminId = req.user.id;
+      
+      // Get commission if it exists
+      const commissionResult = await db.select()
+        .from(depositCommissions)
+        .where(eq(depositCommissions.subadminId, subadminId))
+        .limit(1);
+      
+      // Get default commission from system settings if no specific commission exists
+      let defaultCommissionRate = 0;
+      if (commissionResult.length === 0) {
+        const defaultSetting = await db.select()
+          .from(systemSettings)
+          .where(and(
+            eq(systemSettings.settingType, 'commission_default'),
+            eq(systemSettings.settingKey, 'deposit')
+          ))
+          .limit(1);
+          
+        if (defaultSetting.length > 0) {
+          defaultCommissionRate = parseInt(defaultSetting[0].settingValue);
+        }
+      }
+      
+      const commission = commissionResult.length > 0 ? commissionResult[0] : null;
+      
+      res.json({ 
+        subadminId,
+        commissionRate: commission ? commission.commissionRate : defaultCommissionRate, // Use default if not found
+        isActive: commission ? commission.isActive : true
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
   // GET endpoint to retrieve a subadmin's deposit commission rate
   app.get('/api/admin/deposit-commissions/:subadminId', async (req: Request, res: Response, next: NextFunction) => {
     try {
