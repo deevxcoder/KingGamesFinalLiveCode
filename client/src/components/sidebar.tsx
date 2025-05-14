@@ -151,6 +151,13 @@ export default function Sidebar() {
       icon: <Landmark className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
+    // Reset Zone - Admin Only
+    {
+      name: "Reset Zone",
+      path: "/reset-zone",
+      icon: <X className="w-5 h-5 mr-3" />,
+      visible: isAdmin,
+    },
     // Settings
     {
       name: "Settings",
