@@ -402,6 +402,17 @@ export type InsertTeamMatch = z.infer<typeof insertTeamMatchSchema>;
 export type TeamMatch = typeof teamMatches.$inferSelect;
 
 // Define relations after all tables are defined
+// Session table for connect-pg-simple
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey().notNull(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
 export const usersRelations = relations(users, ({ one, many }) => ({
   // Self-relation for assignedTo
   assignedToUser: one(users, {
