@@ -568,16 +568,21 @@ export default function UserManagementPage() {
     setIsCommissionDialogOpen(true);
   };
   
-  const openDepositDiscountDialog = (user: any) => {
+  const openDepositDiscountDialog = async (user: any) => {
     setSelectedUser(user);
     setDepositDiscountRate(0);
-    
-    // Initialize with current deposit discount if available
-    if (depositDiscount?.discountRate !== undefined) {
-      setDepositDiscountRate(depositDiscount.discountRate);
-    }
-    
     setIsDepositDiscountDialogOpen(true);
+    
+    // Fetch the current deposit discount for this user
+    try {
+      const res = await apiRequest("GET", `/api/subadmin/deposit-discount/${user.id}`);
+      const data = await res.json();
+      if (data && data.discountRate !== undefined) {
+        setDepositDiscountRate(data.discountRate / 100); // Convert from basis points to percentage
+      }
+    } catch (error) {
+      console.error("Failed to fetch deposit discount:", error);
+    }
   };
   
   const handleSetDepositDiscount = () => {
@@ -585,7 +590,7 @@ export default function UserManagementPage() {
     
     setDepositDiscountMutation.mutate({
       userId: selectedUser.id,
-      discountRate: depositDiscountRate
+      discountRate: Math.round(depositDiscountRate * 100) // Convert percentage to basis points (5% = 500)
     });
   };
   
@@ -719,37 +724,30 @@ export default function UserManagementPage() {
                             >
                               <Info className="h-4 w-4" />
                             </Button>
-                            {/* Only show commission button for subadmins and discount button for players */}
-                            {(user.role === UserRole.SUBADMIN || user.role === UserRole.PLAYER) && (
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    title={user.role === UserRole.SUBADMIN ? "Set Commission" : "Set Discount"}
-                                    className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
-                                  >
-                                    <Percent className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                  {user.role === UserRole.SUBADMIN && (
-                                    <DropdownMenuItem onClick={() => openCommissionDialog(user)}>
-                                      Set Game Commission
-                                    </DropdownMenuItem>
-                                  )}
-                                  {user.role === UserRole.PLAYER && (
-                                    <DropdownMenuItem onClick={() => openCommissionDialog(user)}>
-                                      Set Game Discount
-                                    </DropdownMenuItem>
-                                  )}
-                                  {user.role === UserRole.PLAYER && (
-                                    <DropdownMenuItem onClick={() => openDepositDiscountDialog(user)}>
-                                      Set Deposit Discount
-                                    </DropdownMenuItem>
-                                  )}
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                            {/* Show commission button for subadmins */}
+                            {user.role === UserRole.SUBADMIN && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openCommissionDialog(user)}
+                                title="Set Commission"
+                                className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
+                              >
+                                <Percent className="h-4 w-4" />
+                              </Button>
+                            )}
+                            
+                            {/* Show deposit discount button for players */}
+                            {user.role === UserRole.PLAYER && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openDepositDiscountDialog(user)}
+                                title="Set Deposit Discount"
+                                className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
+                              >
+                                <Percent className="h-4 w-4" />
+                              </Button>
                             )}
                             {user.isBlocked ? (
                               <Button
@@ -1052,6 +1050,46 @@ export default function UserManagementPage() {
               </DialogFooter>
             </form>
           </Form>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Deposit Discount Dialog */}
+      <Dialog open={isDepositDiscountDialogOpen} onOpenChange={setIsDepositDiscountDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Deposit Discount Rate</DialogTitle>
+            <DialogDescription>
+              Set deposit discount rate for {selectedUser?.username}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div>
+              <Label htmlFor="deposit-discount-rate">Deposit Discount Rate (%)</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <Percent className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="deposit-discount-rate"
+                  type="number"
+                  value={depositDiscountRate}
+                  onChange={(e) => setDepositDiscountRate(Number(e.target.value))}
+                  placeholder="Rate in percentage"
+                  min="0"
+                  max="100"
+                />
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                This discount will be applied when you add funds to this player's account.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDepositDiscountDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSetDepositDiscount}>
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       
