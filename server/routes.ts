@@ -3559,19 +3559,47 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
           if (match && match[1]) {
             const commissionAmount = parseInt(match[1], 10);
             if (!isNaN(commissionAmount)) {
-              console.log(`Found commission transaction: ${tx.description}, amount: ${commissionAmount}`);
-              // Add the commission as profit
-              totalProfitLoss += commissionAmount; 
+              // Check that we're only counting positive transactions for subadmin deposits
+              // We don't want to double count withdrawals
+              if (tx.amount > 0 || (tx.description && tx.description.includes('transferred to'))) {
+                console.log(`Found commission transaction: ${tx.description}, amount: ${commissionAmount}`);
+                // Add the commission as profit
+                totalProfitLoss += commissionAmount;
+              }
             }
           }
         }
       }
       
-      // Get total deposits - only count deposits from direct admin players
+      // Calculate total deposits properly:
+      // 1. For direct admin players, count the full deposit amount
+      // 2. For subadmin transactions, only count the actual amount deducted from admin (commission amount)
       const depositTransactions = await storage.getAllTransactionsByType("deposit");
-      const totalDeposits = depositTransactions
-        .filter(tx => directAdminPlayerIds.includes(tx.userId))
-        .reduce((sum, tx) => sum + tx.amount, 0);
+      
+      // Track admin total deposit calculation
+      let totalDeposits = 0;
+      
+      // Process each deposit transaction
+      for (const tx of depositTransactions) {
+        // For direct admin players, count the full deposit amount
+        if (directAdminPlayerIds.includes(tx.userId)) {
+          totalDeposits += tx.amount;
+        } 
+        // For subadmin-related transactions, look for commission information in the description
+        else if (tx.description && tx.description.includes('commission rate applied')) {
+          // Format: "Funds transferred to subadmin (X of Y - commission rate applied, commission: Z)"
+          const match = tx.description.match(/\((\d+) of (\d+) - commission rate applied/);
+          
+          if (match && match[1] && match[2]) {
+            // Only count the actual amount deducted from admin (match[1]), not the full amount (match[2])
+            const actualDeduction = parseInt(match[1], 10);
+            if (!isNaN(actualDeduction)) {
+              totalDeposits += actualDeduction;
+              console.log(`Counting subadmin transaction: ${tx.description}, actual deduction: ${actualDeduction}`);
+            }
+          }
+        }
+      }
       
       // Get active bet amount (sum of all bet amounts for games with status "pending") - only from direct admin players
       const activeGames = await storage.getActiveGames();
