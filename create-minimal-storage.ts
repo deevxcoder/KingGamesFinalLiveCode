@@ -1,4 +1,11 @@
-import { db } from "./db";
+// This script creates a minimal but working storage.ts file
+import fs from 'fs';
+
+function createMinimalStorage() {
+  try {
+    console.log("Creating minimal storage.ts file...");
+    
+    const minimalStorageContent = `import { db } from "./db";
 import { 
   users, 
   games, 
@@ -269,7 +276,7 @@ export class DatabaseStorage implements IStorage {
     
     return await db.select()
       .from(games)
-      .where(sql`${games.userId} IN (${userIds.join(', ')})`)
+      .where(sql\`\${games.userId} IN (\${userIds.join(', ')})\`)
       .orderBy(desc(games.createdAt));
   }
 
@@ -816,4 +823,15 @@ export class DatabaseStorage implements IStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new DatabaseStorage();`;
+    
+    // Write the minimal storage file
+    fs.writeFileSync('./server/storage.ts', minimalStorageContent);
+    console.log("Created minimal storage.ts file");
+    
+  } catch (error) {
+    console.error("Error creating minimal storage:", error);
+  }
+}
+
+createMinimalStorage();
