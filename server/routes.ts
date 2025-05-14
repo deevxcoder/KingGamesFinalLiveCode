@@ -3434,6 +3434,83 @@ app.get("/api/games/my-history", async (req, res, next) => {
     res.sendFile("login-test.html", { root: process.cwd() });
   });
   
+  // System reset endpoint (admin only)
+  app.post("/api/admin/reset-system", requireRole([UserRole.ADMIN]), async (req, res) => {
+    try {
+      const { resetType, confirmationCode } = req.body;
+      
+      // Verify confirmation code
+      if (confirmationCode !== "RESET_CONFIRM") {
+        return res.status(400).json({ message: "Invalid confirmation code. Type RESET_CONFIRM to proceed." });
+      }
+      
+      // Execute system reset based on type
+      if (resetType === "all") {
+        // Reset all data including balances
+        await db.delete(schema.transactions);
+        await db.delete(schema.games);
+        await db.delete(schema.satamatkaMarkets);
+        await db.delete(schema.teamMatches);
+        await db.delete(schema.walletRequests);
+        await db.delete(schema.gameOdds);
+        
+        // Reset user balances to 0 except admin
+        const allUsers = await storage.getAllUsers();
+        for (const user of allUsers) {
+          if (user.role !== UserRole.ADMIN) {
+            await storage.updateUserBalance(user.id, 0);
+          }
+        }
+        
+        console.log("Full system reset completed");
+        return res.json({ message: "Full system reset completed successfully" });
+      } 
+      else if (resetType === "games") {
+        // Reset only game data
+        await db.delete(schema.games);
+        await db.delete(schema.satamatkaMarkets);
+        await db.delete(schema.teamMatches);
+        
+        console.log("Game data reset completed");
+        return res.json({ message: "Game data reset completed successfully" });
+      }
+      else if (resetType === "transactions") {
+        // Reset only transactions
+        await db.delete(schema.transactions);
+        await db.delete(schema.walletRequests);
+        
+        // Reset user balances to 0 except admin
+        const allUsers = await storage.getAllUsers();
+        for (const user of allUsers) {
+          if (user.role !== UserRole.ADMIN) {
+            await storage.updateUserBalance(user.id, 0);
+          }
+        }
+        
+        console.log("Transactions reset completed");
+        return res.json({ message: "Transactions reset completed successfully" });
+      }
+      else if (resetType === "balance") {
+        // Reset only balances
+        const allUsers = await storage.getAllUsers();
+        for (const user of allUsers) {
+          if (user.role !== UserRole.ADMIN) {
+            await storage.updateUserBalance(user.id, 0);
+          }
+        }
+        
+        console.log("User balances reset completed");
+        return res.json({ message: "User balances reset completed successfully" });
+      }
+      else {
+        return res.status(400).json({ message: "Invalid reset type" });
+      }
+    } catch (err) {
+      console.error("Error during system reset:", err);
+      return res.status(500).json({ message: "An error occurred during system reset" });
+    }
+  });
+  
   // Admin dashboard statistics
   app.get("/api/admin/stats", requireRole(UserRole.ADMIN), async (req, res) => {
     try {
