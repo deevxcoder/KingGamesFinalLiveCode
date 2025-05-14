@@ -5,7 +5,11 @@ import { cn } from "@/lib/utils";
 import { UserRole } from "@shared/schema";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-export default function MobileNav() {
+interface MobileNavProps {
+  activeTab?: string;
+}
+
+export default function MobileNav({ activeTab }: MobileNavProps = {}) {
   const [location] = useLocation();
   const { user } = useAuth();
 

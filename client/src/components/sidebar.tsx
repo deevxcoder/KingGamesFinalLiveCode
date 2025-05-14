@@ -31,7 +31,11 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
-export default function Sidebar() {
+interface SidebarProps {
+  activeTab?: string;
+}
+
+export default function Sidebar({ activeTab }: SidebarProps = {}) {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

@@ -140,10 +140,13 @@ export default function SubadminSettingsPage() {
   const [selectedPlayerId, setSelectedPlayerId] = useState<number | null>(userId);
 
   // Get subadmin details
-  const { data: subadmin, isLoading: isLoadingSubadmin } = useQuery({
+  const { data, isLoading: isLoadingSubadmin } = useQuery<Subadmin>({
     queryKey: ['/api/users', subadminId],
     enabled: !!subadminId,
   });
+  
+  // Ensure proper typing for the subadmin data
+  const subadmin = data as Subadmin | undefined;
 
   // Get commission settings for games
   const { data: commissions, isLoading: isLoadingCommissions } = useQuery({
@@ -550,7 +553,7 @@ export default function SubadminSettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {user?.role === 'admin' ? `Settings for ${subadmin.username}` : 'Settings'}
+              {user?.role === 'admin' && subadmin?.username ? `Settings for ${subadmin.username}` : 'Settings'}
             </CardTitle>
             <CardDescription>
               Manage account settings, commission rates, and game odds
