@@ -204,17 +204,6 @@ export default function MarketCard({
           </Button>
         )}
         
-        {/* "View Games" button - only show for resulted markets, and only when in admin view (showFullInfo) */}
-        {status === "resulted" && showFullInfo && (
-          <Button 
-            className="w-full" 
-            variant="outline"
-            onClick={() => setLocation(`/game/satamatka/${id}/games`)}
-          >
-            View Games
-          </Button>
-        )}
-        
         {/* "View Market" button - Don't show for "waiting" or "closed" statuses */}
         {status !== "open" && status !== "waiting" && status !== "closed" && !showFullInfo && (
           <Button 
