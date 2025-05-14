@@ -98,6 +98,7 @@ const commissionFormSchema = z.object({
 // Form schema for the odds form
 const oddsFormSchema = z.object({
   teamMatch: z.coerce.number().min(1),
+  teamMatchDraw: z.coerce.number().min(1), // Added draw multiplier
   cricketToss: z.coerce.number().min(1),
   coinFlip: z.coerce.number().min(1),
   satamatkaJodi: z.coerce.number().min(1),
@@ -199,6 +200,7 @@ export default function SubadminSettingsPage() {
     resolver: zodResolver(oddsFormSchema),
     defaultValues: {
       teamMatch: 1.9,
+      teamMatchDraw: 3.0, // Added draw multiplier default
       cricketToss: 1.9,
       coinFlip: 1.9,
       satamatkaJodi: 9,

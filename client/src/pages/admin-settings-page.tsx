@@ -155,6 +155,13 @@ export default function AdminSettingsPage() {
     queryFn: () => apiRequest("GET", '/api/game-odds?gameType=team_match')
       .then(res => res.json()),
   });
+  
+  // Load team match draw odds
+  const { data: teamMatchDrawOddsData } = useQuery<any[]>({
+    queryKey: ['/api/game-odds', 'team_match_draw'],
+    queryFn: () => apiRequest("GET", '/api/game-odds?gameType=team_match_draw')
+      .then(res => res.json()),
+  });
 
   // Process coin flip odds when they load
   useEffect(() => {
@@ -180,6 +187,14 @@ export default function AdminSettingsPage() {
       setTeamMatchOdds(oddValueDecimal);
     }
   }, [teamMatchOddsData]);
+  
+  // Process team match draw odds when they load
+  useEffect(() => {
+    if (teamMatchDrawOddsData && teamMatchDrawOddsData.length > 0) {
+      const oddValueDecimal = (teamMatchDrawOddsData[0].oddValue / 100).toFixed(2);
+      setTeamMatchDrawOdds(oddValueDecimal);
+    }
+  }, [teamMatchDrawOddsData]);
 
   // Load satamatka odds
   const { data: satamatkaOddsData } = useQuery<any>({
@@ -499,6 +514,14 @@ export default function AdminSettingsPage() {
     saveOddsMutation.mutate({
       gameType: "team_match",
       oddValue: teamMatchOddValue,
+      setByAdmin: true
+    });
+    
+    // Save Team Match Draw odds
+    const teamMatchDrawOddValue = Math.round(parseFloat(teamMatchDrawOdds) * 100);
+    saveOddsMutation.mutate({
+      gameType: "team_match_draw",
+      oddValue: teamMatchDrawOddValue,
       setByAdmin: true
     });
     
@@ -880,17 +903,32 @@ export default function AdminSettingsPage() {
                     <div>
                       <h3 className="text-lg font-medium">Team Match Game</h3>
                       <Separator className="my-2" />
-                      <div className="space-y-2">
-                        <Label htmlFor="teamMatchOdds">Win Multiplier</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="teamMatchOdds" 
-                            value={teamMatchOdds} 
-                            onChange={(e) => setTeamMatchOdds(e.target.value)} 
-                            placeholder="1.85"
-                            className="max-w-[120px]"
-                          />
-                          <span>times the bet amount</span>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="teamMatchOdds">Win Multiplier</Label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              id="teamMatchOdds" 
+                              value={teamMatchOdds} 
+                              onChange={(e) => setTeamMatchOdds(e.target.value)} 
+                              placeholder="1.85"
+                              className="max-w-[120px]"
+                            />
+                            <span>times the bet amount</span>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="teamMatchDrawOdds">Draw Multiplier</Label>
+                          <div className="flex items-center gap-2">
+                            <Input 
+                              id="teamMatchDrawOdds" 
+                              value={teamMatchDrawOdds} 
+                              onChange={(e) => setTeamMatchDrawOdds(e.target.value)} 
+                              placeholder="3.00"
+                              className="max-w-[120px]"
+                            />
+                            <span>times the bet amount</span>
+                          </div>
                         </div>
                       </div>
                     </div>
