@@ -25,6 +25,10 @@ async function createTestData() {
     try {
       await client.query('BEGIN');
       
+      // Clear existing transactions
+      console.log('Clearing existing transactions...');
+      await client.query('DELETE FROM transactions WHERE description LIKE \'%test%\' OR description LIKE \'%Direct deposit%\' OR description LIKE \'%Funds transferred to%\'');
+      
       // Get admin user
       const adminResult = await client.query('SELECT id FROM users WHERE role = \'admin\' LIMIT 1');
       if (adminResult.rows.length === 0) {
@@ -35,12 +39,27 @@ async function createTestData() {
       // 1. Create a player and deposit directly - should count 100% to deposit total
       console.log('Creating direct player and deposit...');
       
-      // Create player
-      const insertPlayerResult = await client.query(
-        'INSERT INTO users (username, password, role, balance) VALUES ($1, $2, $3, $4) RETURNING id',
-        ['test_direct_player', '$2b$10$abcdefghijklmnopqrstuv', 'player', 0]
+      // Check if player already exists, create or update
+      let directPlayerId;
+      const checkPlayerResult = await client.query(
+        'SELECT id FROM users WHERE username = $1', ['test_direct_player']
       );
-      const directPlayerId = insertPlayerResult.rows[0].id;
+      
+      if (checkPlayerResult.rows.length > 0) {
+        // Player exists, update
+        directPlayerId = checkPlayerResult.rows[0].id;
+        await client.query(
+          'UPDATE users SET balance = 0 WHERE id = $1', [directPlayerId]
+        );
+        console.log(`Using existing direct player (ID: ${directPlayerId})`);
+      } else {
+        // Create new player
+        const insertPlayerResult = await client.query(
+          'INSERT INTO users (username, password, role, balance) VALUES ($1, $2, $3, $4) RETURNING id',
+          ['test_direct_player', '$2b$10$abcdefghijklmnopqrstuv', 'player', 0]
+        );
+        directPlayerId = insertPlayerResult.rows[0].id;
+      }
       
       // Direct deposit to player (10,000)
       const directDeposit = 10000;
@@ -60,12 +79,27 @@ async function createTestData() {
       // 2. Create subadmin and deposit with commission - should count only commission % to deposit total
       console.log('Creating subadmin and deposit with commission...');
       
-      // Create subadmin
-      const insertSubadminResult = await client.query(
-        'INSERT INTO users (username, password, role, balance) VALUES ($1, $2, $3, $4) RETURNING id',
-        ['test_subadmin', '$2b$10$abcdefghijklmnopqrstuv', 'subadmin', 0]
+      // Check if subadmin already exists, create or update
+      let subadminId;
+      const checkSubadminResult = await client.query(
+        'SELECT id FROM users WHERE username = $1', ['test_subadmin']
       );
-      const subadminId = insertSubadminResult.rows[0].id;
+      
+      if (checkSubadminResult.rows.length > 0) {
+        // Subadmin exists, update
+        subadminId = checkSubadminResult.rows[0].id;
+        await client.query(
+          'UPDATE users SET balance = 0 WHERE id = $1', [subadminId]
+        );
+        console.log(`Using existing subadmin (ID: ${subadminId})`);
+      } else {
+        // Create new subadmin
+        const insertSubadminResult = await client.query(
+          'INSERT INTO users (username, password, role, balance) VALUES ($1, $2, $3, $4) RETURNING id',
+          ['test_subadmin', '$2b$10$abcdefghijklmnopqrstuv', 'subadmin', 0]
+        );
+        subadminId = insertSubadminResult.rows[0].id;
+      }
       
       // Deposit to subadmin (50,000) with 20% commission (10,000)
       const subadminDeposit = 50000;

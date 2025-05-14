@@ -3612,8 +3612,9 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
       
       // Process each transaction - using the transactions array we already loaded above
       for (const tx of transactions) {
-        // For direct players, count deposit amounts
-        if (directPlayers.includes(tx.userId) && tx.amount > 0 && tx.description && tx.description.includes('Deposit')) {
+        // For direct players, count deposit amounts - check for any deposit-related descriptions
+        if (directPlayers.includes(tx.userId) && tx.amount > 0 && tx.description && 
+            (tx.description.includes('Deposit') || tx.description.toLowerCase().includes('deposit'))) {
           totalDeposits += tx.amount;
           console.log(`Counting direct player deposit: userId=${tx.userId}, amount=${tx.amount}`);
         }
