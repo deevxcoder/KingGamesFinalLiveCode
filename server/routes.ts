@@ -3546,11 +3546,17 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      // 3. Add commission profits/losses from transactions with subadmins
-      const allTransactions = await storage.getAllTransactions();
+      // 3. Calculate profit/losses from all sources
+      // This includes both games from direct players and commission profits/losses from subadmins
+      
+      // Track profit from direct player games (already calculated above)
+      let commissionProfit = 0;
+      
+      // Get all transactions - we need these for both commission profit and deposit calculation
+      const transactions = await storage.getAllTransactions();
       
       // Look for transactions with commission in the description
-      for (const tx of allTransactions) {
+      for (const tx of transactions) {
         if (tx.description && tx.description.includes('commission:')) {
           // Extract the commission amount from the description
           // Format is "..., commission: X)"
@@ -3564,29 +3570,43 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
               if (tx.amount > 0 || (tx.description && tx.description.includes('transferred to'))) {
                 console.log(`Found commission transaction: ${tx.description}, amount: ${commissionAmount}`);
                 // Add the commission as profit
-                totalProfitLoss += commissionAmount;
+                commissionProfit += commissionAmount;
               }
             }
           }
         }
       }
       
+      console.log(`Profit breakdown: Direct games profit: ${totalProfitLoss}, Commission profit: ${commissionProfit}`);
+      // Add commission profit to total profit/loss
+      totalProfitLoss += commissionProfit;
+      
       // Calculate total deposits properly:
       // 1. For direct admin players, count the full deposit amount
       // 2. For subadmin transactions, only count the actual amount deducted from admin (commission amount)
-      const depositTransactions = await storage.getAllTransactionsByType("deposit");
+      // 3. Include regular player deposits (players not assigned to any subadmin)
       
       // Track admin total deposit calculation
       let totalDeposits = 0;
       
-      // Process each deposit transaction
-      for (const tx of depositTransactions) {
-        // For direct admin players, count the full deposit amount
-        if (directAdminPlayerIds.includes(tx.userId)) {
+      // Get all direct players (players with no subadmin assigned or assigned to admin)
+      const directPlayers = allUsers
+        .filter(user => user.role === UserRole.PLAYER && (!user.assignedTo || user.assignedTo === req.user!.id))
+        .map(user => user.id);
+      
+      console.log(`Direct players to admin: ${directPlayers.join(', ')}`);
+      
+      // Process each transaction - using the transactions array we already loaded above
+      for (const tx of transactions) {
+        // For direct players, count deposit amounts
+        if (directPlayers.includes(tx.userId) && tx.amount > 0 && tx.description && tx.description.includes('Deposit')) {
           totalDeposits += tx.amount;
-        } 
+          console.log(`Counting direct player deposit: userId=${tx.userId}, amount=${tx.amount}`);
+        }
+        
         // For subadmin-related transactions, look for commission information in the description
-        else if (tx.description && tx.description.includes('commission rate applied')) {
+        if (tx.description && tx.description.includes('commission rate applied')) {
+          // Extract the actual deduction amount (what admin paid) from the transaction description
           // Format: "Funds transferred to subadmin (X of Y - commission rate applied, commission: Z)"
           const match = tx.description.match(/\((\d+) of (\d+) - commission rate applied/);
           
