@@ -172,6 +172,7 @@ export default function MarketListPage() {
                   openResult={market.openResult}
                   closeResult={market.closeResult}
                   status={market.status}
+                  coverImage={market.coverImage}
                 />
               ))
             ) : (
@@ -215,6 +216,7 @@ export default function MarketListPage() {
                   closeResult={market.closeResult}
                   status={market.status}
                   showFullInfo={true}
+                  coverImage={market.coverImage}
                 />
               ))
             ) : (
@@ -258,6 +260,7 @@ export default function MarketListPage() {
                   closeResult={market.closeResult}
                   status={market.status}
                   showFullInfo={true}
+                  coverImage={market.coverImage}
                 />
               ))
             ) : (
@@ -301,6 +304,7 @@ export default function MarketListPage() {
                   closeResult={market.closeResult}
                   status={market.status}
                   showFullInfo={true}
+                  coverImage={market.coverImage}
                 />
               ))
             ) : (
@@ -344,6 +348,7 @@ export default function MarketListPage() {
                   closeResult={market.closeResult}
                   status={market.status}
                   showFullInfo={true}
+                  coverImage={market.coverImage}
                 />
               ))
             ) : (
