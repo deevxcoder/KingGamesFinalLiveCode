@@ -330,9 +330,8 @@ export default function PublicHomePage() {
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
             {gameCards.map((game) => (
-              <div className="mx-auto w-full max-w-[400px] sm:max-w-none">
+              <div key={game.id} className="mx-auto w-full max-w-[400px] sm:max-w-none">
                 <GameCard 
-                  key={game.id}
                   id={game.id}
                   title={game.title}
                   description={game.description}
