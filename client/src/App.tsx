@@ -35,6 +35,7 @@ import FundManagementPage from "@/pages/fund-management-page";
 import LeaderboardPage from "@/pages/leaderboard-page";
 import SettingsRouter from "@/pages/settings-router";
 import UserDetailsPage from "@/pages/user-details-page";
+import ResetZonePage from "@/pages/reset-zone-page";
 
 function Router() {
   return (
