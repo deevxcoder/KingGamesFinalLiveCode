@@ -26,6 +26,7 @@ import { setupUploadRoutes } from "./upload-routes";
 import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
 import depositDiscountRouter from "./deposit-discount-endpoint";
 import cricketTossRoutes from "./cricket-toss-api";
+import resetSystemRoutes from "./reset-system";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -42,6 +43,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Setup deposit commission endpoint for specific subadmin
   setupDepositCommissionEndpoints(app);
+  
+  // Setup reset system routes
+  app.use("/api/admin", resetSystemRoutes);
   
   // Setup cricket toss routes - registered later in the file
   // (see line ~3277 where it's properly registered)

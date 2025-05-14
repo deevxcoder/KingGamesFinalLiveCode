@@ -23,7 +23,8 @@ import {
   Landmark,
   Gamepad2,
   User,
-  Calendar
+  Calendar,
+  RefreshCw
 } from "lucide-react";
 import { GiCricketBat } from "react-icons/gi";
 import { Button } from "@/components/ui/button";
@@ -80,6 +81,13 @@ export default function Sidebar() {
       name: "Manage Cricket Toss",
       path: "/admin-cricket-toss",
       icon: <GiCricketBat className="w-5 h-5 mr-3" />,
+      visible: isAdmin,
+    },
+    // Reset Zone - Admin Only
+    {
+      name: "Reset Zone",
+      path: "/reset-zone",
+      icon: <RefreshCw className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
     // Regular Users Only (Game Related)
