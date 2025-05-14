@@ -288,6 +288,13 @@ export class DatabaseStorage implements IStorage {
     return await query;
   }
 
+  async getActiveGames(): Promise<Game[]> {
+    return await db.select()
+      .from(games)
+      .where(isNull(games.result)) // Games without a result are considered active
+      .orderBy(desc(games.createdAt));
+  }
+
   async getRecentGames(userId: number, limit?: number): Promise<Game[]> {
     let query = db.select()
       .from(games)
@@ -494,6 +501,19 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(transactions)
       .where(sql`${transactions.userId} IN (${userIds.join(', ')})`)
+      .orderBy(desc(transactions.createdAt));
+  }
+
+  async getAllTransactionsByType(type: string): Promise<Transaction[]> {
+    const queryType = type === "deposit" ? ">" : "<";
+    
+    return await db.select()
+      .from(transactions)
+      .where(
+        type === "deposit" 
+          ? gt(transactions.amount, 0) 
+          : lt(transactions.amount, 0)
+      )
       .orderBy(desc(transactions.createdAt));
   }
 
