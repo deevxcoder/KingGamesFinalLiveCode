@@ -3546,40 +3546,29 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      // 3. Calculate profit/losses from all sources
-      // This includes both games from direct players and commission profits/losses from subadmins
+      // Calculate profit/losses only from game results of direct players
+      // We are no longer considering commission as profit since it's not real profit
+      // The real profit is only from games played by direct admin players
       
-      // Track profit from direct player games (already calculated above)
-      let commissionProfit = 0;
+      // Reset the total profit calculation to only include direct player game profits
+      totalProfitLoss = 0;
       
-      // Get all transactions - we need these for both commission profit and deposit calculation
+      // Get all transactions - we need these for both profit and deposit calculation
       const transactions = await storage.getAllTransactions();
       
-      // Look for transactions with commission in the description
-      for (const tx of transactions) {
-        if (tx.description && tx.description.includes('commission:')) {
-          // Extract the commission amount from the description
-          // Format is "..., commission: X)"
-          const match = tx.description.match(/commission: (\d+)/);
-          
-          if (match && match[1]) {
-            const commissionAmount = parseInt(match[1], 10);
-            if (!isNaN(commissionAmount)) {
-              // Check that we're only counting positive transactions for subadmin deposits
-              // We don't want to double count withdrawals
-              if (tx.amount > 0 || (tx.description && tx.description.includes('transferred to'))) {
-                console.log(`Found commission transaction: ${tx.description}, amount: ${commissionAmount}`);
-                // Add the commission as profit
-                commissionProfit += commissionAmount;
-              }
-            }
-          }
+      // Recalculate profit from direct player games only
+      for (const game of games) {
+        // Only count games from players directly under admin
+        if (directAdminPlayerIds.includes(game.userId)) {
+          // For each game, the platform profit is the bet amount minus any payout
+          // A positive value means the platform made money (player lost)
+          const gameProfit = game.betAmount - (game.payout || 0);
+          totalProfitLoss += gameProfit;
+          console.log(`Counting game profit from direct player ${game.userId}: ${gameProfit}`);
         }
       }
       
-      console.log(`Profit breakdown: Direct games profit: ${totalProfitLoss}, Commission profit: ${commissionProfit}`);
-      // Add commission profit to total profit/loss
-      totalProfitLoss += commissionProfit;
+      console.log(`Total profit (from direct player games only): ${totalProfitLoss}`);
       
       // Calculate total deposits properly:
       // 1. For direct admin players, count the full deposit amount
