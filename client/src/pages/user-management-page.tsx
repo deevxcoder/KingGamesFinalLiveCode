@@ -719,10 +719,23 @@ export default function UserManagementPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => openCommissionDialog(user)}
-                                title={user.role === UserRole.SUBADMIN ? "Set Commission" : "Set Discount"}
+                                title={user.role === UserRole.SUBADMIN ? "Set Commission" : "Set Game Discount"}
                                 className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
                               >
                                 <Percent className="h-4 w-4" />
+                              </Button>
+                            )}
+                            
+                            {/* Show deposit discount button only for players when logged in as subadmin */}
+                            {user.role === UserRole.PLAYER && currentUserRole === UserRole.SUBADMIN && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openDepositDiscountDialog(user)}
+                                title="Set Deposit Discount"
+                                className="text-amber-500 border-amber-500/20 hover:bg-amber-500/10"
+                              >
+                                <Coins className="h-4 w-4" />
                               </Button>
                             )}
                             {user.isBlocked ? (
