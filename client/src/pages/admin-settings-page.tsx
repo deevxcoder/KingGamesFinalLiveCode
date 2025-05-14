@@ -972,9 +972,9 @@ export default function AdminSettingsPage() {
         <TabsContent value="commission">
           <Card>
             <CardHeader>
-              <CardTitle>Subadmin Commission Settings</CardTitle>
+              <CardTitle>Platform Default Commission</CardTitle>
               <CardDescription>
-                Set the commission percentage for subadmins on different game types
+                Set the default commission percentage that applies to all subadmins
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -992,151 +992,79 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  {/* Royal Toss Commission */}
-                  <div>
-                    <h3 className="text-lg font-medium">Royal Toss Commission</h3>
-                    <Separator className="my-2" />
-                    <div className="space-y-2">
-                      <Label htmlFor="commission-coin-flip">Commission Rate</Label>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          id="commission-coin-flip" 
-                          value={commissionRates.coin_flip} 
-                          onChange={(e) => setCommissionRates({...commissionRates, coin_flip: e.target.value})} 
-                          placeholder="2.5"
-                          className="max-w-[120px]"
-                        />
-                        <span>% of bet amount</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Cricket Toss Commission */}
-                  <div>
-                    <h3 className="text-lg font-medium">Cricket Toss Commission</h3>
-                    <Separator className="my-2" />
-                    <div className="space-y-2">
-                      <Label htmlFor="commission-cricket-toss">Commission Rate</Label>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          id="commission-cricket-toss" 
-                          value={commissionRates.cricket_toss} 
-                          onChange={(e) => setCommissionRates({...commissionRates, cricket_toss: e.target.value})} 
-                          placeholder="3.0"
-                          className="max-w-[120px]"
-                        />
-                        <span>% of bet amount</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Team Match Commission */}
-                  <div>
-                    <h3 className="text-lg font-medium">Team Match Commission</h3>
-                    <Separator className="my-2" />
-                    <div className="space-y-2">
-                      <Label htmlFor="commission-team-match">Commission Rate</Label>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          id="commission-team-match" 
-                          value={commissionRates.team_match} 
-                          onChange={(e) => setCommissionRates({...commissionRates, team_match: e.target.value})} 
-                          placeholder="3.0"
-                          className="max-w-[120px]"
-                        />
-                        <span>% of bet amount</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Satamatka Commission */}
-                  <div>
-                    <h3 className="text-lg font-medium">Satamatka Commission</h3>
-                    <Separator className="my-2" />
-                    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="commission-satamatka-jodi">Jodi (00-99)</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="commission-satamatka-jodi" 
-                            value={commissionRates.satamatka_jodi} 
-                            onChange={(e) => setCommissionRates({...commissionRates, satamatka_jodi: e.target.value})} 
-                            placeholder="3.5"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
+                <div className="space-y-8">
+                  {/* Platform Default Commission */}
+                  <div className="bg-slate-800/50 p-6 rounded-lg border border-slate-700">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-lg font-medium">Default Subadmin Commission</h3>
+                        <p className="text-sm text-slate-400 mt-1">
+                          This is the default commission rate that applies to all subadmins on the platform.
+                          Individual rates can be set in the Subadmin Management section.
+                        </p>
+                        <Separator className="my-4" />
                       </div>
                       
-                      <div className="space-y-2">
-                        <Label htmlFor="commission-satamatka-harf">Harf</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="commission-satamatka-harf" 
-                            value={commissionRates.satamatka_harf} 
-                            onChange={(e) => setCommissionRates({...commissionRates, satamatka_harf: e.target.value})} 
-                            placeholder="4.0"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="commission-satamatka-crossing">Crossing</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="commission-satamatka-crossing" 
-                            value={commissionRates.satamatka_crossing} 
-                            onChange={(e) => setCommissionRates({...commissionRates, satamatka_crossing: e.target.value})} 
-                            placeholder="3.0"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="commission-satamatka-odd-even">Odd-Even</Label>
-                        <div className="flex items-center gap-2">
-                          <Input 
-                            id="commission-satamatka-odd-even" 
-                            value={commissionRates.satamatka_odd_even} 
-                            onChange={(e) => setCommissionRates({...commissionRates, satamatka_odd_even: e.target.value})} 
-                            placeholder="2.0"
-                            className="max-w-[120px]"
-                          />
-                          <span>%</span>
+                      <div className="space-y-4">
+                        <div className="flex items-start">
+                          <div className="flex-1 space-y-2">
+                            <Label htmlFor="commission-deposit" className="text-base">
+                              Default Subadmin Commission Rate
+                            </Label>
+                            <div className="flex items-center gap-2">
+                              <Input 
+                                id="commission-deposit" 
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                max="100"
+                                value={commissionRates.deposit} 
+                                onChange={(e) => setCommissionRates({...commissionRates, deposit: e.target.value})} 
+                                placeholder="30.0"
+                                className="max-w-[120px]"
+                              />
+                              <span>% of transaction amount</span>
+                            </div>
+                            <p className="text-sm text-slate-400">
+                              This rate applies to admin-subadmin fund transfers. When admin adds funds to a subadmin, 
+                              the subadmin receives the base amount plus this commission percentage.
+                            </p>
+                          </div>
+                          
+                          <div className="bg-slate-800/80 p-4 rounded-lg border border-slate-700 min-w-[260px]">
+                            <h4 className="text-sm font-medium text-primary mb-2">Example Calculation</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Admin deposits:</span>
+                                <span>₹1,000</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Commission ({commissionRates.deposit}%):</span>
+                                <span>₹{(1000 * parseFloat(commissionRates.deposit || "0") / 100).toFixed(2)}</span>
+                              </div>
+                              <Separator className="my-1" />
+                              <div className="flex justify-between font-medium">
+                                <span className="text-slate-300">Subadmin receives:</span>
+                                <span className="text-primary">₹{(1000 + 1000 * parseFloat(commissionRates.deposit || "0") / 100).toFixed(2)}</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                   
-                  {/* Deposit Commission */}
-                  <div>
-                    <h3 className="text-lg font-medium">Deposit Commission</h3>
-                    <Separator className="my-2" />
-                    <div className="space-y-2">
-                      <Label htmlFor="commission-deposit">
-                        Default Deposit Commission Rate
-                      </Label>
-                      <div className="flex items-center gap-2">
-                        <Input 
-                          id="commission-deposit" 
-                          value={commissionRates.deposit} 
-                          onChange={(e) => setCommissionRates({...commissionRates, deposit: e.target.value})} 
-                          placeholder="5.0"
-                          className="max-w-[120px]"
-                        />
-                        <span>% of transaction amount</span>
+                  <div className="bg-blue-950/40 p-4 rounded-lg border border-blue-800">
+                    <div className="flex items-start gap-3">
+                      <Info className="h-5 w-5 text-blue-400 mt-0.5" />
+                      <div>
+                        <h3 className="text-sm font-medium text-blue-400">About Commission Settings</h3>
+                        <p className="text-sm text-slate-300 mt-1">
+                          The commission rate applies to all deposit transactions between admin and subadmins. 
+                          For individual subadmin commission rates, please visit the Subadmin Management page and 
+                          set a custom rate for each subadmin.
+                        </p>
                       </div>
-                      <p className="text-sm text-slate-400">
-                        This rate applies to admin-subadmin fund transfers. When admin adds funds to subadmin, 
-                        full amount goes to subadmin but only commission percentage is deducted from admin.
-                        When admin removes funds from subadmin, full amount is removed from subadmin but only 
-                        commission percentage is added to admin.
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -1145,16 +1073,9 @@ export default function AdminSettingsPage() {
             <CardFooter>
               <Button 
                 onClick={() => {
-                  // Save commission rates for each game type
+                  // Save platform-wide default commission rate
                   saveCommissionMutation.mutate({
                     defaultRates: {
-                      coin_flip: Math.round(parseFloat(commissionRates.coin_flip) * 100),
-                      cricket_toss: Math.round(parseFloat(commissionRates.cricket_toss) * 100),
-                      team_match: Math.round(parseFloat(commissionRates.team_match) * 100),
-                      satamatka_jodi: Math.round(parseFloat(commissionRates.satamatka_jodi) * 100),
-                      satamatka_harf: Math.round(parseFloat(commissionRates.satamatka_harf) * 100),
-                      satamatka_crossing: Math.round(parseFloat(commissionRates.satamatka_crossing) * 100),
-                      satamatka_odd_even: Math.round(parseFloat(commissionRates.satamatka_odd_even) * 100),
                       deposit: Math.round(parseFloat(commissionRates.deposit) * 100)
                     }
                   });
@@ -1162,7 +1083,7 @@ export default function AdminSettingsPage() {
                 disabled={saveCommissionMutation.isPending}
               >
                 {saveCommissionMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save Commission Rates
+                Save Commission Rate
               </Button>
             </CardFooter>
           </Card>
