@@ -139,7 +139,7 @@ export default function SubadminSettingsPage() {
 
   // Get commission settings
   const { data: commissions, isLoading: isLoadingCommissions } = useQuery({
-    queryKey: ['/api/commissions/subadmin', subadminId],
+    queryKey: [`/api/commissions/subadmin/${subadminId}`],
     enabled: !!subadminId,
   });
   
@@ -239,7 +239,7 @@ export default function SubadminSettingsPage() {
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/commissions/subadmin', subadminId] });
+      queryClient.invalidateQueries({ queryKey: [`/api/commissions/subadmin/${subadminId}`] });
       toast({
         title: "Commission settings updated",
         variant: "success",
@@ -390,6 +390,13 @@ export default function SubadminSettingsPage() {
       default:
         return gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase());
     }
+  };
+  
+  // Helper function to get commission for a specific game type
+  const getCommissionForGameType = (gameType: string): number => {
+    if (!commissions || !Array.isArray(commissions)) return 0;
+    const commission = commissions.find((c: any) => c.gameType === gameType);
+    return commission ? commission.commissionRate : 0;
   };
   
   // Helper function to get maximum allowed discount based on commission percentage
@@ -560,7 +567,7 @@ export default function SubadminSettingsPage() {
                       <div>
                         <h3 className="text-lg font-medium mb-4">Your Commission Structure</h3>
                         
-                        {commissions && Array.isArray(commissions) && commissions.length > 0 ? (
+                        {commissions && Array.isArray(commissions) ? (
                           <Card className="bg-muted/20">
                             <CardHeader className="pb-2">
                               <CardTitle className="text-base">Deposit Commission from Admin</CardTitle>
@@ -573,7 +580,7 @@ export default function SubadminSettingsPage() {
                                 <div className="flex items-center justify-between border-b pb-2">
                                   <span className="text-muted-foreground">Base Commission Rate:</span>
                                   <span className="text-xl font-bold text-primary">
-                                    {commissions.length > 0 ? (commissions[0].commissionRate / 10000).toFixed(2) : 0}%
+                                    {(getCommissionForGameType('deposit') / 100).toFixed(2)}%
                                   </span>
                                 </div>
                                 
@@ -616,7 +623,7 @@ export default function SubadminSettingsPage() {
                         <AlertDescription>
                           <ul className="list-disc pl-5 space-y-1 mt-2">
                             <li>Your commission rate applies only to deposits from admin to your account</li>
-                            <li>Example: If your rate is {commissions.length > 0 ? (commissions[0].commissionRate / 10000).toFixed(2) : 0}% and admin adds ₹1000, you receive ₹{commissions.length > 0 ? (1000 + 1000 * commissions[0].commissionRate / 1000000).toFixed(0) : 1000}</li>
+                            <li>Example: If your rate is {(getCommissionForGameType('deposit') / 100).toFixed(2)}% and admin adds ₹1000, you receive ₹{(1000 + 1000 * getCommissionForGameType('deposit') / 10000).toFixed(0)}</li>
                             <li>Player deposits and withdrawals do not generate commission for you</li>
                             <li>Commission rates are set by the administrator and cannot be changed by subadmins</li>
                           </ul>
