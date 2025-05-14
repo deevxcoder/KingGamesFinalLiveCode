@@ -282,6 +282,7 @@ export default function SubadminSettingsPage() {
         body: JSON.stringify({
           odds: [
             { gameType: 'team_match', oddValue: values.teamMatch },
+            { gameType: 'team_match_draw', oddValue: values.teamMatchDraw },
             { gameType: 'cricket_toss', oddValue: values.cricketToss },
             { gameType: 'coin_flip', oddValue: values.coinFlip },
             { gameType: 'satamatka_jodi', oddValue: values.satamatkaJodi },
@@ -462,6 +463,7 @@ export default function SubadminSettingsPage() {
     if (subadminOdds && Array.isArray(subadminOdds) && subadminOdds.length > 0) {
       const formValues: any = {
         teamMatch: 1.9,
+        teamMatchDraw: 3.0,
         cricketToss: 1.9,
         coinFlip: 1.9,
         satamatkaJodi: 9,
@@ -473,6 +475,8 @@ export default function SubadminSettingsPage() {
       subadminOdds.forEach((odd: any) => {
         if (odd.gameType === 'team_match') {
           formValues.teamMatch = odd.oddValue;
+        } else if (odd.gameType === 'team_match_draw') {
+          formValues.teamMatchDraw = odd.oddValue;
         } else if (odd.gameType === 'cricket_toss') {
           formValues.cricketToss = odd.oddValue;
         } else if (odd.gameType === 'coin_flip') {

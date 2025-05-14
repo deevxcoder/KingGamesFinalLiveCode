@@ -15,9 +15,10 @@ import {
 interface DashboardLayoutProps {
   children: ReactNode;
   title?: string;
+  activeTab?: string;
 }
 
-export default function DashboardLayout({ children, title }: DashboardLayoutProps) {
+export default function DashboardLayout({ children, title, activeTab }: DashboardLayoutProps) {
   const { user, logoutMutation } = useAuth();
   const [_, setLocation] = useLocation();
   
@@ -28,7 +29,7 @@ export default function DashboardLayout({ children, title }: DashboardLayoutProp
     <div className="flex min-h-screen h-screen bg-slate-950 text-slate-200">
       {/* Sidebar - Hidden on mobile */}
       <div className="hidden lg:block h-screen">
-        <Sidebar />
+        <Sidebar activeTab={activeTab} />
       </div>
       <div className="flex flex-col flex-1 overflow-hidden">
         
@@ -92,7 +93,7 @@ export default function DashboardLayout({ children, title }: DashboardLayoutProp
       </div>
       
       {/* Mobile Bottom Navigation */}
-      <MobileNav />
+      <MobileNav activeTab={activeTab} />
     </div>
   );
 }
