@@ -62,6 +62,7 @@ const createCricketTossSchema = z.object({
   teamA: z.string().min(1, "Team A is required"),
   teamB: z.string().min(1, "Team B is required"),
   description: z.string().optional(),
+  matchDate: z.string().min(1, "Match date is required"),
   matchTime: z.string().min(1, "Match time is required"),
   coverImage: z.instanceof(File).optional(),
   // We'll use fixed odds: 2.00 for both teams
@@ -118,7 +119,8 @@ export default function AdminCricketTossPage() {
       teamA: "",
       teamB: "",
       description: "",
-      matchTime: "",
+      matchDate: new Date().toISOString().split("T")[0],
+      matchTime: "12:00",
     },
   });
 
@@ -168,7 +170,11 @@ export default function AdminCricketTossPage() {
       const formData = new FormData();
       formData.append("teamA", values.teamA);
       formData.append("teamB", values.teamB);
-      formData.append("matchTime", values.matchTime);
+      
+      // Combine date and time into one string
+      const combinedDateTime = `${values.matchDate}T${values.matchTime}:00`;
+      formData.append("matchTime", combinedDateTime);
+      
       if (values.description) formData.append("description", values.description);
       
       // Use fixed odds: 2.00 for both teams
