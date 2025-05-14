@@ -24,6 +24,7 @@ import * as schema from "@shared/schema";
 import { setupWalletRoutes, setupDepositCommissions } from "./wallet-system";
 import { setupUploadRoutes } from "./upload-routes";
 import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
+import depositDiscountRouter from "./deposit-discount-endpoint";
 import cricketTossRoutes from "./cricket-toss-api";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -3355,6 +3356,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
   await import('./wallet-system').then(({ setupWalletRoutes }) => {
     setupWalletRoutes(app);
   });
+  
+  // Register deposit discount routes
+  app.use('/api/subadmin', depositDiscountRouter);
   
   // Serve login test page for debugging
   app.get("/login-test", (_req, res) => {
