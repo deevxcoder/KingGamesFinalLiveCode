@@ -213,11 +213,19 @@ export class DatabaseStorage implements IStorage {
 
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    // Implementation omitted for brevity
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1);
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    // Implementation omitted for brevity
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.username, username))
+      .limit(1);
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
