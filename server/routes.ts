@@ -2817,23 +2817,24 @@ app.get("/api/games/my-history", async (req, res, next) => {
   });
   
   // Get admin odds endpoint
-  app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+  // This array should include 'team_match_draw' for the draw multiplier feature
+const DEFAULT_GAME_TYPES = [
+  'team_match',
+  'team_match_draw',
+  'cricket_toss',
+  'coin_flip',
+  'satamatka_jodi',
+  'satamatka_harf',
+  'satamatka_odd_even',
+  'satamatka_crossing'
+];
+
+app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
-      // Get game odds where setByAdmin is true
-      const gameTypes = [
-        'team_match',
-        'cricket_toss',
-        'coin_flip',
-        'satamatka_jodi',
-        'satamatka_harf',
-        'satamatka_odd_even',
-        'satamatka_crossing'
-      ];
-      
       // Fetch all admin odds
       const adminOdds = [];
       
-      for (const gameType of gameTypes) {
+      for (const gameType of DEFAULT_GAME_TYPES) {
         const odds = await storage.getGameOdds(gameType);
         const adminOdd = odds.find(odd => odd.setByAdmin === true);
         
@@ -2943,7 +2944,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
       // Create a complete set of odds using subadmin specific odds where available, falling back to admin odds
       const completeOdds = [];
       
-      for (const gameType of gameTypes) {
+      // Use the default game types array
+      const gameTypesToUse = DEFAULT_GAME_TYPES;
+      
+      for (const gameType of gameTypesToUse) {
         // Check if subadmin has specific odds for this game type
         const subadminOdd = subadminOddsFromDB.find(odd => odd.gameType === gameType);
         
