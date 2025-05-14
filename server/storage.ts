@@ -70,6 +70,7 @@ export interface IStorage {
   getGamesByUserId(userId: number): Promise<Game[]>;
   getGamesByUserIds(userIds: number[]): Promise<Game[]>;
   getAllGames(limit?: number): Promise<Game[]>;
+  getActiveGames(): Promise<Game[]>;
   getRecentGames(userId: number, limit?: number): Promise<Game[]>;
   updateGameStatus(gameId: number, status: string): Promise<Game | undefined>;
   updateGameResult(gameId: number, result: string, payout?: number): Promise<Game | undefined>;
@@ -98,6 +99,7 @@ export interface IStorage {
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
   getTransactionsByUserId(userId: number): Promise<Transaction[]>;
   getAllTransactions(limit?: number): Promise<Transaction[]>;
+  getAllTransactionsByType(type: string): Promise<Transaction[]>;
   getWalletTransactionsByUserIds(userIds: number[]): Promise<Transaction[]>;
 
   // System Settings methods
