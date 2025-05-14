@@ -36,6 +36,9 @@ type TeamMatch = {
   oddTeamB: number;
   oddDraw: number | null;
   status: string;
+  coverImage: string | null;
+  teamAImage: string | null;
+  teamBImage: string | null;
   createdAt: string;
 };
 
@@ -176,9 +179,11 @@ function TeamMatchTabs() {
               <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
             </div>
           ) : matches.length > 0 ? (
-            matches.map((match) => (
-              <MatchCard key={match.id} match={match} />
-            ))
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {matches.map((match) => (
+                <MatchCard key={match.id} match={match} />
+              ))}
+            </div>
           ) : (
             <Card className="bg-gray-900 border-gray-800">
               <CardContent className="pt-6 text-center">
@@ -519,20 +524,33 @@ function MatchCard({ match }: { match: TeamMatch }) {
   };
 
   return (
-    <Card className="bg-gray-900 border-gray-800 overflow-hidden">
-      <CardHeader className="pb-3">
+    <Card className="bg-gray-900 border-gray-800 overflow-hidden h-full flex flex-col">
+      {match.coverImage && (
+        <div className="relative w-full h-32 overflow-hidden">
+          <img 
+            src={match.coverImage} 
+            alt={`${match.teamA} vs ${match.teamB}`} 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+          <div className="absolute top-2 right-2">
+            {getStatusBadge(match.status)}
+          </div>
+        </div>
+      )}
+      <CardHeader className={`pb-3 ${match.coverImage ? 'pt-3' : ''}`}>
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             {getCategoryIcon()}
             <CardTitle className="text-lg text-white">{match.teamA} vs {match.teamB}</CardTitle>
           </div>
-          {getStatusBadge(match.status)}
+          {!match.coverImage && getStatusBadge(match.status)}
         </div>
         <CardDescription className="text-gray-400">
           {match.description || `${match.category.charAt(0).toUpperCase() + match.category.slice(1)} Match`}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow">
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="flex items-center text-gray-300">
             <Calendar className="h-4 w-4 mr-2 text-gray-500" />
