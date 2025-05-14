@@ -563,6 +563,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
   });
 
   app.patch("/api/users/:id/balance", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    // Initialize this variable at function level to avoid duplicate declarations
+    let discountBonusAmount = 0;
+    
     try {
       const userId = Number(req.params.id);
       const { amount, description } = req.body;
@@ -596,6 +599,8 @@ app.get("/api/games/my-history", async (req, res, next) => {
           
           // Check if the recipient is a subadmin - we need to apply commission logic
           const isRecipientSubadmin = user.role === UserRole.SUBADMIN;
+          // Check if the recipient is a player - we need to apply deposit discount logic
+          const isRecipientPlayer = user.role === UserRole.PLAYER;
           
           // Calculate deduction amount based on commission (if target is subadmin)
           let deductionAmount = amount;
@@ -620,6 +625,28 @@ app.get("/api/games/my-history", async (req, res, next) => {
             }
           }
           
+          // Apply deposit discount if user is a player and transferrer is a subadmin
+          if (req.user!.role === UserRole.SUBADMIN && isRecipientPlayer) {
+            try {
+              // Import deposit discount helper functions
+              const { getPlayerDepositDiscount, calculateDepositBonus } = await import('./deposit-discount-helper');
+              
+              // Get the discount rate for this player
+              const discountRate = await getPlayerDepositDiscount(userId, req.user!.id);
+              
+              if (discountRate > 0) {
+                // Calculate bonus amount based on discount rate
+                discountBonusAmount = calculateDepositBonus(amount, discountRate);
+                
+                console.log(`Transfer to player ${userId}: Amount: ${amount}, Discount rate: ${discountRate/100}%, Bonus amount: ${discountBonusAmount}`);
+              }
+            } catch (error) {
+              console.error('Error calculating deposit discount:', error);
+              // If there's an error, no bonus will be added
+              discountBonusAmount = 0;
+            }
+          }
+          
           if (!isAdminSelfFunding && adminOrSubadmin.balance < deductionAmount) {
             return res.status(400).json({ 
               message: "Insufficient balance in your account. Please add funds to your wallet first."
@@ -634,8 +661,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
             // Record transaction for admin/subadmin (negative amount = deduction)
             const description = isRecipientSubadmin 
               ? `Funds transferred to ${user.username} (${deductionAmount} of ${amount} - commission rate applied)` 
-              : `Funds transferred to ${user.username}`;
-              
+              : discountBonusAmount > 0
+                ? `Funds transferred to ${user.username} (Deposit discount applied: +${discountBonusAmount})`
+                : `Funds transferred to ${user.username}`;
+                
             await storage.createTransaction({
               userId: adminOrSubadmin.id,
               amount: -deductionAmount,
@@ -694,8 +723,18 @@ app.get("/api/games/my-history", async (req, res, next) => {
         }
       }
 
+      // Add bonus amount from deposit discount if applicable
+      let totalAmount = amount;
+      let bonusDescription = "";
+      
+      // Apply bonus only if it's a deposit (positive amount) and there's a bonus to add
+      if (amount > 0 && discountBonusAmount > 0) {
+        totalAmount += discountBonusAmount;
+        bonusDescription = ` (includes ${discountBonusAmount} bonus)`;
+      }
+      
       // Prevent negative balance for the player
-      const newBalance = user.balance + amount;
+      const newBalance = user.balance + totalAmount;
       if (newBalance < 0) {
         return res.status(400).json({ message: "Cannot reduce balance below zero" });
       }
@@ -710,14 +749,33 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const transactionDesc = description || (amount > 0 
         ? `Funds added by ${req.user!.username}` 
         : `Funds deducted by ${req.user!.username}`);
-
-      // Record transaction for the player
-      await storage.createTransaction({
-        userId,
-        amount,
-        performedBy: req.user!.id,
-        description: transactionDesc
-      });
+        
+      // If a bonus was added, create two separate transaction records
+      if (amount > 0 && discountBonusAmount > 0) {
+        // First transaction for the original deposit
+        await storage.createTransaction({
+          userId,
+          amount,
+          performedBy: req.user!.id,
+          description: transactionDesc
+        });
+        
+        // Second transaction for the bonus amount
+        await storage.createTransaction({
+          userId,
+          amount: discountBonusAmount,
+          performedBy: req.user!.id,
+          description: `Deposit bonus (${(discountBonusAmount * 100 / amount).toFixed(2)}% of ${amount})`
+        });
+      } else {
+        // Regular transaction (no bonus or withdrawal)
+        await storage.createTransaction({
+          userId,
+          amount,
+          performedBy: req.user!.id,
+          description: transactionDesc
+        });
+      }
 
       // Remove password from response
       const { password, ...userWithoutPassword } = updatedUser;
