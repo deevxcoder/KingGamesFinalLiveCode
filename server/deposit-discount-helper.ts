@@ -36,14 +36,14 @@ export async function getPlayerDepositDiscount(playerId: number, subadminId: num
 
 /**
  * Calculate the bonus amount based on deposit amount and discount rate
- * @param depositAmount The amount being deposited (in paisa/cents)
- * @param discountRate The discount rate (in basis points, e.g. 500 = 5%)
+ * @param depositAmount The amount being deposited (in rupees)
+ * @param discountRate The discount rate (0-100%)
  * @returns The bonus amount to add
  */
 export function calculateDepositBonus(depositAmount: number, discountRate: number): number {
   if (discountRate <= 0) return 0;
   
   // Calculate bonus amount
-  // Example: 10000 (100 rupees) * 500 (5%) / 10000 = 500 (5 rupees)
-  return Math.floor((depositAmount * discountRate) / 10000);
+  // Example: 1000 rupees * 10% / 100 = 100 rupees
+  return Math.floor((depositAmount * discountRate) / 100);
 }
