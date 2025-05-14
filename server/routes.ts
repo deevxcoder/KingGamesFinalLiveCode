@@ -716,9 +716,13 @@ app.get("/api/games/my-history", async (req, res, next) => {
             await storage.updateUserBalance(adminOrSubadmin.id, adminOrSubadmin.balance + additionAmount);
             
             // Record transaction for admin/subadmin (positive amount = addition)
-            const description = isSourceSubadmin 
-              ? `Funds recovered from ${user.username} (${additionAmount} of ${Math.abs(amount)} - commission rate applied)` 
-              : `Funds recovered from ${user.username}`;
+            let description = '';
+            if (isSourceSubadmin) {
+              const commissionAmount = additionAmount - Math.abs(amount);
+              description = `Funds recovered from ${user.username} (${additionAmount} of ${Math.abs(amount)} - commission rate applied, commission: ${commissionAmount})`;
+            } else {
+              description = `Funds recovered from ${user.username}`;
+            }
               
             await storage.createTransaction({
               userId: adminOrSubadmin.id,
@@ -3449,12 +3453,18 @@ app.get("/api/games/my-history", async (req, res, next) => {
       
       // Look for transactions with commission in the description
       for (const tx of allTransactions) {
-        if (tx.description && tx.description.includes('commission')) {
-          // If description contains something like "30% commission: 9600"
+        if (tx.description && tx.description.includes('commission:')) {
+          // Extract the commission amount from the description
+          // Format is "..., commission: X)"
           const match = tx.description.match(/commission: (\d+)/);
+          
           if (match && match[1]) {
             const commissionAmount = parseInt(match[1], 10);
-            totalProfitLoss += commissionAmount;
+            if (!isNaN(commissionAmount)) {
+              console.log(`Found commission transaction: ${tx.description}, amount: ${commissionAmount}`);
+              // Add the commission as profit
+              totalProfitLoss += commissionAmount; 
+            }
           }
         }
       }
