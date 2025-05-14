@@ -100,6 +100,7 @@ export interface IStorage {
   getTransactionsByUserId(userId: number): Promise<Transaction[]>;
   getAllTransactions(limit?: number): Promise<Transaction[]>;
   getAllTransactionsByType(type: string): Promise<Transaction[]>;
+  getRecentTransactions(limit?: number): Promise<any[]>;
   getWalletTransactionsByUserIds(userIds: number[]): Promise<Transaction[]>;
 
   // System Settings methods
@@ -515,6 +516,28 @@ export class DatabaseStorage implements IStorage {
           : lt(transactions.amount, 0)
       )
       .orderBy(desc(transactions.createdAt));
+  }
+  
+  async getRecentTransactions(limit: number = 10): Promise<any[]> {
+    // Get transactions with user information
+    const result = await db.select({
+      id: transactions.id,
+      userId: transactions.userId,
+      amount: transactions.amount,
+      description: transactions.description,
+      createdAt: transactions.createdAt,
+      username: users.username
+    })
+    .from(transactions)
+    .leftJoin(users, eq(transactions.userId, users.id))
+    .orderBy(desc(transactions.createdAt))
+    .limit(limit);
+    
+    // Transform results to include transaction type based on amount
+    return result.map(tx => ({
+      ...tx,
+      type: tx.amount > 0 ? 'deposit' : 'withdrawal'
+    }));
   }
 
   // System Settings methods
