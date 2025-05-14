@@ -33,7 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, ArrowLeft, Percent, Save, Info } from "lucide-react";
+import { AlertCircle, ArrowLeft, Percent, Save, Info, Check } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Define types for the API responses
@@ -558,33 +558,45 @@ export default function SubadminSettingsPage() {
                     
                     <div className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-medium mb-4">Your Commission Rates</h3>
+                        <h3 className="text-lg font-medium mb-4">Your Commission Structure</h3>
                         
                         {commissions && Array.isArray(commissions) && commissions.length > 0 ? (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {Array.isArray(commissions) && commissions.map((comm: CommissionItem) => (
-                              <Card key={comm.gameType} className="bg-muted/20">
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="text-base">
-                                    {comm.gameType === 'team_match' ? 'Team Match' : 
-                                     comm.gameType === 'cricket_toss' ? 'Cricket Toss' : 
-                                     comm.gameType === 'coin_flip' ? 'Coin Flip' : 
-                                     comm.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
-                                     comm.gameType === 'satamatka_harf' ? 'Harf' : 
-                                     comm.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                     comm.gameType === 'satamatka_crossing' ? 'Crossing' : 
-                                     comm.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-muted-foreground">Commission:</span>
-                                    <span className="text-xl font-bold">{(comm.commissionRate / 10000).toFixed(2)}%</span>
-                                  </div>
-                                </CardContent>
-                              </Card>
-                            ))}
-                          </div>
+                          <Card className="bg-muted/20">
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base">Commission from Admin</CardTitle>
+                              <CardDescription>
+                                This is your commission percentage from all game transactions
+                              </CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="flex flex-col space-y-4">
+                                <div className="flex items-center justify-between border-b pb-2">
+                                  <span className="text-muted-foreground">Base Commission Rate:</span>
+                                  <span className="text-xl font-bold text-primary">
+                                    {commissions.length > 0 ? (commissions[0].commissionRate / 10000).toFixed(2) : 0}%
+                                  </span>
+                                </div>
+                                
+                                <div className="bg-muted/40 p-4 rounded-md">
+                                  <h4 className="font-semibold mb-2">How Commissions Work</h4>
+                                  <ul className="space-y-2 text-sm text-muted-foreground">
+                                    <li className="flex items-start">
+                                      <Check className="h-4 w-4 mr-2 mt-0.5 text-green-500" />
+                                      You earn a percentage of the total betting amount from your players
+                                    </li>
+                                    <li className="flex items-start">
+                                      <Check className="h-4 w-4 mr-2 mt-0.5 text-green-500" />
+                                      Commission is calculated on the total betting volume, not per game type
+                                    </li>
+                                    <li className="flex items-start">
+                                      <Check className="h-4 w-4 mr-2 mt-0.5 text-green-500" />
+                                      Commissions are automatically added to your account balance
+                                    </li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
                         ) : (
                           <div className="p-4 border rounded-md">
                             <p className="text-center text-muted-foreground">
@@ -596,9 +608,14 @@ export default function SubadminSettingsPage() {
                       
                       <Alert variant="default" className="bg-muted">
                         <AlertCircle className="h-5 w-5" />
-                        <AlertTitle>Note</AlertTitle>
+                        <AlertTitle>Important Information</AlertTitle>
                         <AlertDescription>
-                          You cannot modify your commission rates. Please contact the administrator if you need your commission rates adjusted.
+                          <ul className="list-disc pl-5 space-y-1 mt-2">
+                            <li>Your commission is applied to the total betting amount from your assigned players</li>
+                            <li>The commission is calculated and credited automatically when bets are placed</li>
+                            <li>Commission rates can only be modified by administrators</li>
+                            <li>Contact the admin if you need your commission rate adjusted</li>
+                          </ul>
                         </AlertDescription>
                       </Alert>
                     </div>
