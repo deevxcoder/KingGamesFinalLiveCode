@@ -617,7 +617,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
               // Only deduct the commission percentage from admin's wallet, not the full amount
               deductionAmount = Math.floor((amount * commissionRate) / 10000);
               
-              console.log(`Transfer to subadmin ${userId}: Total: ${amount}, Commission rate: ${commissionRate/100}%, Admin deduction: ${deductionAmount}`);
+              // Calculate the commission amount (the difference between full amount and what admin pays)
+              const commissionAmount = amount - deductionAmount;
+              
+              console.log(`Transfer to subadmin ${userId}: Total: ${amount}, Commission rate: ${commissionRate/100}%, Admin deduction: ${deductionAmount}, Commission saved: ${commissionAmount}`);
             } catch (error) {
               console.error('Error calculating commission rate:', error);
               // If there's an error, use default behavior (deduct full amount)
@@ -659,11 +662,15 @@ app.get("/api/games/my-history", async (req, res, next) => {
             await storage.updateUserBalance(adminOrSubadmin.id, adminOrSubadmin.balance - deductionAmount);
             
             // Record transaction for admin/subadmin (negative amount = deduction)
-            const description = isRecipientSubadmin 
-              ? `Funds transferred to ${user.username} (${deductionAmount} of ${amount} - commission rate applied)` 
-              : discountBonusAmount > 0
-                ? `Funds transferred to ${user.username} (Deposit discount applied: +${discountBonusAmount})`
-                : `Funds transferred to ${user.username}`;
+            let description = '';
+            if (isRecipientSubadmin) {
+              const commissionAmount = amount - deductionAmount;
+              description = `Funds transferred to ${user.username} (${deductionAmount} of ${amount} - commission rate applied, commission: ${commissionAmount})`;
+            } else if (discountBonusAmount > 0) {
+              description = `Funds transferred to ${user.username} (Deposit discount applied: +${discountBonusAmount})`;
+            } else {
+              description = `Funds transferred to ${user.username}`;
+            }
                 
             await storage.createTransaction({
               userId: adminOrSubadmin.id,
@@ -3434,6 +3441,22 @@ app.get("/api/games/my-history", async (req, res, next) => {
         // For each game, the platform profit is the bet amount minus any payout
         // A positive value means the platform made money (player lost)
         totalProfitLoss += game.betAmount - (game.payout || 0);
+      }
+      
+      // Add commission profits/losses from transactions
+      // Get all transactions to analyze commission-based profit
+      const allTransactions = await storage.getAllTransactions();
+      
+      // Look for transactions with commission in the description
+      for (const tx of allTransactions) {
+        if (tx.description && tx.description.includes('commission')) {
+          // If description contains something like "30% commission: 9600"
+          const match = tx.description.match(/commission: (\d+)/);
+          if (match && match[1]) {
+            const commissionAmount = parseInt(match[1], 10);
+            totalProfitLoss += commissionAmount;
+          }
+        }
       }
       
       // Get total deposits
