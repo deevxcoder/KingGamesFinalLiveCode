@@ -573,7 +573,7 @@ export default function SubadminSettingsPage() {
                                 <div className="flex items-center justify-between border-b pb-2">
                                   <span className="text-muted-foreground">Base Commission Rate:</span>
                                   <span className="text-xl font-bold text-primary">
-                                    30.00%
+                                    {commissions.length > 0 ? (commissions[0].commissionRate / 10000).toFixed(2) : 0}%
                                   </span>
                                 </div>
                                 
@@ -582,7 +582,7 @@ export default function SubadminSettingsPage() {
                                   <ul className="space-y-2 text-sm text-muted-foreground">
                                     <li className="flex items-start">
                                       <Check className="h-4 w-4 mr-2 mt-0.5 text-green-500" />
-                                      You receive 30% commission when admin deposits funds to your account
+                                      You receive commission at the rate set by admin when funds are deposited to your account
                                     </li>
                                     <li className="flex items-start">
                                       <Check className="h-4 w-4 mr-2 mt-0.5 text-green-500" />
@@ -615,8 +615,8 @@ export default function SubadminSettingsPage() {
                         <AlertTitle>Important Information</AlertTitle>
                         <AlertDescription>
                           <ul className="list-disc pl-5 space-y-1 mt-2">
-                            <li>The 30% commission applies only to deposits from admin to your account</li>
-                            <li>When admin adds ₹1000 to your account, you actually receive ₹1300 (₹1000 + ₹300 commission)</li>
+                            <li>Your commission rate applies only to deposits from admin to your account</li>
+                            <li>Example: If your rate is {commissions.length > 0 ? (commissions[0].commissionRate / 10000).toFixed(2) : 0}% and admin adds ₹1000, you receive ₹{commissions.length > 0 ? (1000 + 1000 * commissions[0].commissionRate / 1000000).toFixed(0) : 1000}</li>
                             <li>Player deposits and withdrawals do not generate commission for you</li>
                             <li>Commission rates are set by the administrator and cannot be changed by subadmins</li>
                           </ul>
