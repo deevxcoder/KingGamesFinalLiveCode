@@ -3437,18 +3437,31 @@ app.get("/api/games/my-history", async (req, res, next) => {
   // Admin dashboard statistics
   app.get("/api/admin/stats", requireRole(UserRole.ADMIN), async (req, res) => {
     try {
-      // Get total profit/loss (sum of all payouts - sum of all bets)
-      const games = await storage.getAllGames();
       let totalProfitLoss = 0;
       
+      // 1. Get all users to determine which ones are direct admin players
+      const allUsers = await storage.getAllUsers();
+      const directAdminPlayerIds = allUsers
+        .filter(user => user.role === UserRole.PLAYER && (!user.assignedTo || user.assignedTo === req.user!.id))
+        .map(user => user.id);
+      
+      console.log(`Direct admin player IDs: ${directAdminPlayerIds.join(', ')}`);
+      
+      // 2. Get games from direct admin players only
+      const games = await storage.getAllGames();
+      
       for (const game of games) {
-        // For each game, the platform profit is the bet amount minus any payout
-        // A positive value means the platform made money (player lost)
-        totalProfitLoss += game.betAmount - (game.payout || 0);
+        // Only count games from players directly under admin
+        if (directAdminPlayerIds.includes(game.userId)) {
+          // For each game, the platform profit is the bet amount minus any payout
+          // A positive value means the platform made money (player lost)
+          const gameProfit = game.betAmount - (game.payout || 0);
+          totalProfitLoss += gameProfit;
+          console.log(`Counting game profit from direct player ${game.userId}: ${gameProfit}`);
+        }
       }
       
-      // Add commission profits/losses from transactions
-      // Get all transactions to analyze commission-based profit
+      // 3. Add commission profits/losses from transactions with subadmins
       const allTransactions = await storage.getAllTransactions();
       
       // Look for transactions with commission in the description
