@@ -51,8 +51,8 @@ async function createTestData() {
       
       // Record transaction
       await client.query(
-        'INSERT INTO transactions ("userId", amount, "transactionType", description, "createdAt") VALUES ($1, $2, $3, $4, $5)',
-        [directPlayerId, directDeposit, 'deposit', 'Direct deposit from admin', new Date()]
+        'INSERT INTO transactions (user_id, amount, description, created_at, performed_by) VALUES ($1, $2, $3, $4, $5)',
+        [directPlayerId, directDeposit, 'Direct deposit from admin', new Date(), adminId]
       );
       
       console.log(`Created direct player (ID: ${directPlayerId}) with ${directDeposit} deposit`);
@@ -86,8 +86,8 @@ async function createTestData() {
       
       // Record transaction
       await client.query(
-        'INSERT INTO transactions ("userId", amount, "transactionType", description, "createdAt") VALUES ($1, $2, $3, $4, $5)',
-        [subadminId, subadminDeposit, 'deposit', `Funds transferred to subadmin (${commissionAmount} of ${subadminDeposit} - commission rate applied, commission: ${commissionAmount})`, new Date()]
+        'INSERT INTO transactions (user_id, amount, description, created_at, performed_by) VALUES ($1, $2, $3, $4, $5)',
+        [subadminId, subadminDeposit, `Funds transferred to subadmin (${commissionAmount} of ${subadminDeposit} - commission rate applied, commission: ${commissionAmount})`, new Date(), adminId]
       );
       
       console.log(`Created subadmin (ID: ${subadminId}) with ${subadminDeposit} deposit and ${commissionAmount} commission`);
@@ -98,7 +98,7 @@ async function createTestData() {
       // First game: player loses 5,000 (admin wins)
       const gameLoss = 5000;
       await client.query(
-        'INSERT INTO games ("userId", "betAmount", payout, "gameType", prediction, result, "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        'INSERT INTO games (user_id, bet_amount, payout, game_type, prediction, result, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [directPlayerId, gameLoss, 0, 'coinflip', 'heads', 'tails', new Date()]
       );
       
@@ -114,7 +114,7 @@ async function createTestData() {
       const gameBet = 1000;
       const gameWin = 2000;
       await client.query(
-        'INSERT INTO games ("userId", "betAmount", payout, "gameType", prediction, result, "createdAt") VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        'INSERT INTO games (user_id, bet_amount, payout, game_type, prediction, result, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [directPlayerId, gameBet, gameWin, 'coinflip', 'heads', 'heads', new Date()]
       );
       
