@@ -3546,17 +3546,14 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      // Calculate profit/losses only from game results of direct players
-      // We are no longer considering commission as profit since it's not real profit
-      // The real profit is only from games played by direct admin players
-      
-      // Reset the total profit calculation to only include direct player game profits
+      // Calculate profit/losses from both direct player games and commission
+      // Reset the total profit calculation 
       totalProfitLoss = 0;
       
       // Get all transactions - we need these for both profit and deposit calculation
       const transactions = await storage.getAllTransactions();
       
-      // Recalculate profit from direct player games only
+      // 1. Calculate profit from direct player games
       for (const game of games) {
         // Only count games from players directly under admin
         if (directAdminPlayerIds.includes(game.userId)) {
@@ -3568,7 +3565,35 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      console.log(`Total profit (from direct player games only): ${totalProfitLoss}`);
+      // 2. Add commission as profit (based on user's requirement)
+      let commissionProfit = 0;
+      
+      // Look for transactions with commission in the description
+      for (const tx of transactions) {
+        if (tx.description && tx.description.includes('commission:')) {
+          // Extract the commission amount from the description
+          // Format is "..., commission: X)"
+          const match = tx.description.match(/commission: (\d+)/);
+          
+          if (match && match[1]) {
+            const commissionAmount = parseInt(match[1], 10);
+            if (!isNaN(commissionAmount)) {
+              // Check that we're only counting positive transactions for subadmin deposits
+              // We don't want to double count withdrawals
+              if (tx.amount > 0 || (tx.description && tx.description.includes('transferred to'))) {
+                console.log(`Found commission transaction: ${tx.description}, amount: ${commissionAmount}`);
+                // Add the commission as profit
+                commissionProfit += commissionAmount;
+              }
+            }
+          }
+        }
+      }
+      
+      // Add commission profit to total profit/loss
+      totalProfitLoss += commissionProfit;
+      
+      console.log(`Profit breakdown: Game profit: ${totalProfitLoss - commissionProfit}, Commission profit: ${commissionProfit}, Total: ${totalProfitLoss}`);
       
       // Calculate total deposits properly:
       // 1. For direct admin players, count the full deposit amount
