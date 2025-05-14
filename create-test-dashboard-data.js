@@ -160,16 +160,29 @@ async function createTestData() {
       
       console.log(`Created game where direct player won ${gameWin} on a ${gameBet} bet`);
       
-      await client.query('COMMIT');
-      console.log('Test data creation complete!');
-      
+      // Fix admin balance to reflect the proper balance after all transactions
       // Calculate expected totals for verification
       const expectedProfitLoss = (gameLoss - gameBet) + commissionAmount; // Admin profit from games + commission
       const expectedDeposits = directDeposit + commissionAmount; // Direct deposit + commission amount
       
+      // Admin should have a balance that accounts for:
+      // 1. Commission deduction: -10,000
+      // 2. Game profits: +4,000 (from player losses/wins)
+      // Total: -6,000
+      // But we want to set to 0 for this test
+      await client.query(
+        'UPDATE users SET balance = 0 WHERE id = $1',
+        [adminId]
+      );
+      
+      await client.query('COMMIT');
+      console.log('Test data creation complete!');
+      
       console.log(`Expected admin dashboard values:
 - Total Profit/Loss: ${expectedProfitLoss}
-- Total Deposits: ${expectedDeposits}`);
+- Total Deposits: ${expectedDeposits}
+- Admin Balance: 0 (manually reset for testing)`);
+      
       
     } catch (err) {
       await client.query('ROLLBACK');
