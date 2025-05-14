@@ -3422,6 +3422,71 @@ app.get("/api/games/my-history", async (req, res, next) => {
   app.get("/login-test", (_req, res) => {
     res.sendFile("login-test.html", { root: process.cwd() });
   });
+  
+  // Admin dashboard statistics
+  app.get("/api/admin/stats", requireRole(UserRole.ADMIN), async (req, res) => {
+    try {
+      // Get total profit/loss (sum of all payouts - sum of all bets)
+      const games = await storage.getAllGames();
+      let totalProfitLoss = 0;
+      
+      for (const game of games) {
+        // For each game, the platform profit is the bet amount minus any payout
+        // A positive value means the platform made money (player lost)
+        totalProfitLoss += game.betAmount - (game.payout || 0);
+      }
+      
+      // Get total deposits
+      const depositTransactions = await storage.getAllTransactionsByType("deposit");
+      const totalDeposits = depositTransactions.reduce((sum, tx) => sum + tx.amount, 0);
+      
+      // Get active bet amount (sum of all bet amounts for games with status "pending")
+      const activeGames = await storage.getActiveGames();
+      const activeBetAmount = activeGames.reduce((sum, game) => sum + game.betAmount, 0);
+      
+      // Calculate potential payout (maximum possible payout from all active games)
+      const potentialPayout = activeGames.reduce((sum, game) => {
+        // Calculate the maximum possible payout based on game type and odds
+        let maxPayout = 0;
+        
+        if (game.gameType === GameType.COIN_FLIP) {
+          // Typically 2x the bet amount for coin flip
+          maxPayout = game.betAmount * 2;
+        } else if (game.gameType === GameType.SATAMATKA) {
+          // Could be up to 9x or more depending on the specific game
+          maxPayout = game.betAmount * 9;
+        } else if (game.gameType === GameType.CRICKET_TOSS) {
+          // Typically 2x the bet amount for cricket toss
+          maxPayout = game.betAmount * 2;
+        } else if (game.gameType === GameType.TEAM_MATCH) {
+          // Depends on the odds, typically around 2x
+          maxPayout = game.betAmount * 2;
+        }
+        
+        return sum + maxPayout;
+      }, 0);
+      
+      // Get recent transactions
+      const recentTransactions = await storage.getRecentTransactions(10);
+      
+      res.json({
+        totalProfitLoss,
+        totalDeposits,
+        activeBetAmount,
+        potentialPayout,
+        recentTransactions: recentTransactions.map(tx => ({
+          id: tx.id,
+          username: tx.username || 'Unknown',
+          type: tx.type,
+          amount: tx.amount,
+          createdAt: tx.createdAt
+        }))
+      });
+    } catch (error) {
+      console.error("Error fetching admin stats:", error);
+      res.status(500).json({ error: "Failed to fetch admin statistics" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
