@@ -446,6 +446,139 @@ router.get("/my-bets", async (req, res) => {
   }
 });
 
+// Play (place a bet on) a cricket toss match by ID
+router.post("/:id/play", async (req, res) => {
+  try {
+    // Ensure user is authenticated
+    if (!req.user) {
+      return res.status(401).json({ message: "You must be logged in to place a bet" });
+    }
+    
+    const matchId = parseInt(req.params.id);
+    if (isNaN(matchId)) {
+      return res.status(400).json({ message: "Invalid match ID" });
+    }
+    
+    // Define schema for bet validation
+    const playSchema = z.object({
+      betAmount: z.number().min(10, "Minimum bet amount is 10"),
+      betOn: z.enum(["team_a", "team_b"], {
+        errorMap: () => ({ message: "Bet must be on either team_a or team_b" })
+      })
+    });
+    
+    // Handle potential parsing errors (client may send string instead of number)
+    const parsedBody = {
+      ...req.body,
+      betAmount: typeof req.body.betAmount === 'string' 
+        ? parseInt(req.body.betAmount, 10)
+        : req.body.betAmount
+    };
+    
+    const validationResult = playSchema.safeParse(parsedBody);
+    
+    if (!validationResult.success) {
+      return res.status(400).json({ 
+        message: "Invalid bet amount or prediction" 
+      });
+    }
+    
+    const { betAmount, betOn } = validationResult.data;
+    
+    // Check if the match exists and is open for betting
+    const match = await db.select()
+      .from(teamMatches)
+      .where(
+        and(
+          eq(teamMatches.id, matchId),
+          eq(teamMatches.category, "cricket_toss"),
+          eq(teamMatches.status, "open")
+        )
+      )
+      .limit(1);
+    
+    if (match.length === 0) {
+      return res.status(404).json({ 
+        message: "Match not found or not open for betting" 
+      });
+    }
+    
+    const matchData = match[0] as TeamMatch;
+    
+    // Check if the user has enough balance
+    const userResult = await db.select({ balance: users.balance })
+      .from(users)
+      .where(eq(users.id, req.user.id))
+      .limit(1);
+    
+    if (userResult.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    
+    const currentBalance = userResult[0].balance;
+    
+    if (currentBalance < betAmount) {
+      return res.status(400).json({ 
+        message: "Insufficient balance to place this bet" 
+      });
+    }
+    
+    // Calculate potential payout
+    const odds = betOn === "team_a" 
+      ? matchData.oddTeamA 
+      : matchData.oddTeamB;
+    
+    const potentialWin = Math.floor(betAmount * (odds / 100));
+    
+    // Deduct bet amount from user balance
+    const newBalance = currentBalance - betAmount;
+    
+    await db.update(users)
+      .set({ balance: newBalance })
+      .where(eq(users.id, req.user.id));
+    
+    // Create the bet record
+    const gameData = {
+      teamA: matchData.teamA,
+      teamB: matchData.teamB,
+      coverImage: matchData.coverImage,
+      matchId: matchData.id,
+      oddTeamA: matchData.oddTeamA,
+      oddTeamB: matchData.oddTeamB,
+      matchTime: matchData.matchTime,
+      status: matchData.status,
+    };
+    
+    const createdBet = await db.insert(games)
+      .values({
+        userId: req.user.id,
+        gameType: GameType.CRICKET_TOSS,
+        matchId: matchId,
+        betAmount: betAmount,
+        prediction: betOn,
+        gameData: gameData,
+        balanceAfter: newBalance,
+      })
+      .returning();
+    
+    res.status(200).json({
+      game: createdBet[0],
+      user: {
+        ...req.user,
+        balance: newBalance
+      },
+      potentialWin: potentialWin
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ message: error.errors[0].message });
+    } else {
+      console.error("Error placing cricket toss bet:", error);
+      res.status(500).json({ message: "Failed to place bet" });
+    }
+  }
+});
+
 // Get all bets for a specific match (admin/subadmin only)
 router.get("/bets/:matchId", requireRole(["admin", "subadmin"]), async (req, res) => {
   try {
