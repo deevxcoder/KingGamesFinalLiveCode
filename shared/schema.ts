@@ -547,9 +547,24 @@ export const userDiscounts = pgTable("user_discounts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Table for player deposit discounts (separate from game-specific discounts)
+export const playerDepositDiscounts = pgTable("player_deposit_discounts", {
+  id: serial("id").primaryKey(),
+  subadminId: integer("subadmin_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  discountRate: integer("discount_rate").notNull(), // percentage (stored as integer, e.g. 1000 = 10.00%)
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 export const insertUserDiscountSchema = createInsertSchema(userDiscounts);
 export type InsertUserDiscount = z.infer<typeof insertUserDiscountSchema>;
 export type UserDiscount = typeof userDiscounts.$inferSelect;
+
+export const insertPlayerDepositDiscountSchema = createInsertSchema(playerDepositDiscounts);
+export type InsertPlayerDepositDiscount = z.infer<typeof insertPlayerDepositDiscountSchema>;
+export type PlayerDepositDiscount = typeof playerDepositDiscounts.$inferSelect;
 
 // Game Odds Schema
 export const gameOdds = pgTable("game_odds", {
@@ -579,6 +594,11 @@ export const depositCommissionsRelations = relations(depositCommissions, ({ one 
 export const userDiscountsRelations = relations(userDiscounts, ({ one }) => ({
   subadmin: one(users, { fields: [userDiscounts.subadminId], references: [users.id] }),
   user: one(users, { fields: [userDiscounts.userId], references: [users.id] }),
+}));
+
+export const playerDepositDiscountsRelations = relations(playerDepositDiscounts, ({ one }) => ({
+  subadmin: one(users, { fields: [playerDepositDiscounts.subadminId], references: [users.id] }),
+  user: one(users, { fields: [playerDepositDiscounts.userId], references: [users.id] }),
 }));
 
 export const gameOddsRelations = relations(gameOdds, ({ one }) => ({

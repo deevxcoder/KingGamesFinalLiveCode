@@ -113,6 +113,10 @@ export interface IStorage {
   getUserDiscounts(userId: number, subadminId: number): Promise<UserDiscount[]>;
   upsertUserDiscount(subadminId: number, userId: number, gameType: string, discountRate: number): Promise<UserDiscount>;
   
+  // Player deposit discount methods
+  getPlayerDepositDiscount(userId: number, subadminId: number): Promise<PlayerDepositDiscount | undefined>;
+  upsertPlayerDepositDiscount(subadminId: number, userId: number, discountRate: number): Promise<PlayerDepositDiscount>;
+  
   // Game Odds methods
   getGameOdds(gameType: string): Promise<GameOdd[]>;
   getGameOddsBySubadmin(subadminId: number, gameType?: string): Promise<GameOdd[]>;
