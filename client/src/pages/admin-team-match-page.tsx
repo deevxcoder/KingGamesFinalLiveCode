@@ -594,7 +594,7 @@ export default function AdminTeamMatchPage() {
 
       {/* Declare Result Dialog */}
       <Dialog open={!!declareResultMatch} onOpenChange={(open) => !open && setDeclareResultMatch(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-600 scrollbar-track-slate-300 dark:scrollbar-track-slate-800 pr-6">
           <DialogHeader>
             <DialogTitle>Declare Match Result</DialogTitle>
             <DialogDescription>
@@ -670,7 +670,7 @@ export default function AdminTeamMatchPage() {
           }
         }}
       >
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto scrollbar-thin scrollbar-thumb-indigo-600 scrollbar-track-slate-300 dark:scrollbar-track-slate-800 pr-6">
           <DialogHeader>
             <DialogTitle>{editingMatch ? "Edit Match" : "Add New Match"}</DialogTitle>
             <DialogDescription>
