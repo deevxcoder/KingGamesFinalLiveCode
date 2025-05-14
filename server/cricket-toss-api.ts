@@ -459,67 +459,52 @@ router.post("/:id/play", async (req, res) => {
       return res.status(400).json({ message: "Invalid match ID" });
     }
     
-    // Log the request body to see what the client is sending
-    console.log("Cricket toss play request body:", req.body);
+    // Log the request body and headers for debugging
+    console.log("Cricket toss play request:", {
+      body: req.body,
+      headers: req.headers,
+      contentType: req.headers['content-type']
+    });
     
-    // More flexible schema that accepts different forms of input
-    const playSchema = z.object({
-      betAmount: z.union([
-        z.number().min(10, "Minimum bet amount is 10"),
-        z.string().transform(val => parseInt(val, 10))
-      ]).refine(val => !isNaN(val) && val >= 10, {
-        message: "Bet amount must be at least 10"
-      }),
-      betOn: z.union([
-        z.enum(["team_a", "team_b"]),
-        z.enum(["TeamA", "TeamB"]).transform(val => val === "TeamA" ? "team_a" : "team_b"),
-        z.enum(["West Indies", "India"]).transform(val => val === "West Indies" ? "team_a" : "team_b")
-      ], {
-        errorMap: () => ({ message: "Invalid team selection" })
-      })
-    }).or(
-      // Allow alternative format
-      z.object({
-        amount: z.union([
-          z.number().min(10, "Minimum bet amount is 10"),
-          z.string().transform(val => parseInt(val, 10))
-        ]).refine(val => !isNaN(val) && val >= 10, {
-          message: "Bet amount must be at least 10"
-        }),
-        prediction: z.union([
-          z.enum(["team_a", "team_b"]),
-          z.enum(["TeamA", "TeamB"]).transform(val => val === "TeamA" ? "team_a" : "team_b"),
-          z.enum(["West Indies", "India"]).transform(val => val === "West Indies" ? "team_a" : "team_b")
-        ], {
-          errorMap: () => ({ message: "Invalid team selection" })
-        })
-      })
-    );
+    // For simplicity, extract data directly from the request
+    // This bypasses the schema validation temporarily until we understand the data format
+    let betAmount = 0;
+    let betOn = "";
     
-    let validationResult;
-    try {
-      validationResult = playSchema.safeParse(req.body);
-    } catch (err) {
-      console.error("Schema validation error:", err);
-      return res.status(400).json({ message: "Invalid request format" });
+    // Try to extract values from the request body based on different possible formats
+    if (req.body) {
+      if (typeof req.body === 'string') {
+        try {
+          // Try to parse JSON string
+          const parsedBody = JSON.parse(req.body);
+          betAmount = parsedBody.betAmount || parsedBody.amount || 0;
+          betOn = parsedBody.betOn || parsedBody.prediction || "";
+        } catch (e) {
+          console.error("Error parsing JSON body:", e);
+          // Handle form-urlencoded format
+          const params = new URLSearchParams(req.body);
+          betAmount = parseInt(params.get('betAmount') || params.get('amount') || '0');
+          betOn = params.get('betOn') || params.get('prediction') || '';
+        }
+      } else {
+        // Object format
+        betAmount = req.body.betAmount || req.body.amount || 0;
+        betOn = req.body.betOn || req.body.prediction || "";
+      }
     }
     
-    if (!validationResult.success) {
-      console.error("Validation failed:", validationResult.error);
-      return res.status(400).json({ 
-        message: "Invalid bet amount or prediction" 
-      });
+    // Simple validation
+    if (!betAmount || betAmount < 10) {
+      return res.status(400).json({ message: "Bet amount must be at least 10" });
     }
     
-    // Extract bet details from either format
-    let betAmount, betOn;
-    if ('betAmount' in validationResult.data) {
-      betAmount = validationResult.data.betAmount;
-      betOn = validationResult.data.betOn;
-    } else {
-      betAmount = validationResult.data.amount;
-      betOn = validationResult.data.prediction;
+    if (!betOn || (betOn !== "team_a" && betOn !== "team_b" && betOn !== "TeamA" && betOn !== "TeamB")) {
+      return res.status(400).json({ message: "Invalid team selection" });
     }
+    
+    // Normalize betOn value
+    if (betOn === "TeamA") betOn = "team_a";
+    if (betOn === "TeamB") betOn = "team_b";
     
     // Check if the match exists and is open for betting
     const match = await db.select()
