@@ -165,10 +165,32 @@ export default function HomePage() {
     }>;
   }
   
+  // Define the interface for admin statistics
+  interface AdminStats {
+    totalProfitLoss: number;
+    totalDeposits: number;
+    activeBetAmount: number;
+    potentialPayout: number;
+    recentTransactions: Array<{
+      id: number;
+      username: string;
+      type: string;
+      amount: number;
+      createdAt: string;
+    }>;
+  }
+  
   // Fetch subadmin statistics with proper typing
   const subadminStatsQuery = useQuery<SubadminStats>({
     queryKey: ["/api/subadmin/stats"],
     enabled: !!user && user.role === UserRole.SUBADMIN,
+  });
+  
+  // Fetch admin statistics with proper typing
+  const adminStatsQuery = useQuery<AdminStats>({
+    queryKey: ["/api/admin/stats"],
+    enabled: !!user && user.role === UserRole.ADMIN,
+    refetchInterval: 30000, // Refresh every 30 seconds
   });
   
   const subadminStats: SubadminStats = subadminStatsQuery.data || { 
@@ -177,6 +199,14 @@ export default function HomePage() {
     totalUsers: 0, 
     activeUsers: 0, 
     recentGames: [] 
+  };
+  
+  const adminStats: AdminStats = adminStatsQuery.data || {
+    totalProfitLoss: 0,
+    totalDeposits: 0,
+    activeBetAmount: 0,
+    potentialPayout: 0,
+    recentTransactions: []
   };
 
   const isAdmin = user?.role === UserRole.ADMIN;
@@ -356,6 +386,54 @@ export default function HomePage() {
             path="/coinflip"
             gradient="bg-gradient-to-r from-amber-700 to-yellow-600"
           />
+        </div>
+      )}
+      
+      {/* Admin Dashboard Statistics - Only visible to admin */}
+      {isAdmin && (
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-4 flex items-center text-slate-200">
+            <BarChart2 className="h-5 w-5 mr-2 text-blue-500" />
+            Dashboard Statistics
+          </h2>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Total Profit/Loss Card */}
+            <DashboardStatsCard 
+              title="Total Profit/Loss" 
+              value={`₹${((adminStats.totalProfitLoss || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+              icon={<TrendingUp className="h-5 w-5 text-emerald-400" />}
+              trend={adminStats.totalProfitLoss >= 0 ? "up" : "down"}
+              color={adminStats.totalProfitLoss >= 0 ? "green" : "red"}
+            />
+            
+            {/* Total Deposits Card */}
+            <DashboardStatsCard 
+              title="Total Deposits" 
+              value={`₹${((adminStats.totalDeposits || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+              icon={<DollarSign className="h-5 w-5 text-blue-400" />}
+              trend="up" 
+              color="blue"
+            />
+            
+            {/* Active Bet Amount Card */}
+            <DashboardStatsCard 
+              title="Active Bet Amount" 
+              value={`₹${((adminStats.activeBetAmount || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+              icon={<Club className="h-5 w-5 text-purple-400" />}
+              trend="neutral"
+              color="purple"
+            />
+            
+            {/* Potential Payout Card */}
+            <DashboardStatsCard 
+              title="Potential Payout" 
+              value={`₹${((adminStats.potentialPayout || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+              icon={<Award className="h-5 w-5 text-amber-400" />}
+              trend="neutral"
+              color="amber"
+            />
+          </div>
         </div>
       )}
       
