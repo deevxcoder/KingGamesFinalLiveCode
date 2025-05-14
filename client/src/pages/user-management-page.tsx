@@ -93,8 +93,10 @@ export default function UserManagementPage() {
   const [isUserDetailsDialogOpen, setIsUserDetailsDialogOpen] = useState(false);
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
+  const [isDepositDiscountDialogOpen, setIsDepositDiscountDialogOpen] = useState(false);
   const [detailsTab, setDetailsTab] = useState("transactions");
   const [commissionRate, setCommissionRate] = useState<number>(0);
+  const [depositDiscountRate, setDepositDiscountRate] = useState<number>(0);
   const [selectedGameType, setSelectedGameType] = useState<string>("satamatka_jodi");
   const [selectedSubadminCommissionRate, setSelectedSubadminCommissionRate] = useState<number | null>(null);
   
