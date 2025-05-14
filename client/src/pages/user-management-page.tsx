@@ -590,7 +590,7 @@ export default function UserManagementPage() {
     
     setDepositDiscountMutation.mutate({
       userId: selectedUser.id,
-      discountRate: Math.round(depositDiscountRate * 100) // Convert percentage to basis points (5% = 500)
+      discountRate: depositDiscountRate // Send the direct percentage value (0-100)
     });
   };
   
