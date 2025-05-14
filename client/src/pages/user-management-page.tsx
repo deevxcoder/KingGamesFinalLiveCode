@@ -206,6 +206,19 @@ export default function UserManagementPage() {
     },
     enabled: !!selectedUser && isCommissionDialogOpen,
   });
+  
+  // Fetch player deposit discount
+  const { data: depositDiscount, isLoading: isLoadingDepositDiscount } = useQuery({
+    queryKey: ["/api/subadmin/deposit-discount", selectedUser?.id],
+    queryFn: async () => {
+      if (!selectedUser || selectedUser.role !== UserRole.PLAYER || user?.role !== UserRole.SUBADMIN) return null;
+      
+      const res = await apiRequest("GET", `/api/subadmin/deposit-discount/${selectedUser.id}`);
+      return await res.json();
+    },
+    enabled: !!selectedUser && isDepositDiscountDialogOpen && 
+             selectedUser.role === UserRole.PLAYER && user?.role === UserRole.SUBADMIN,
+  });
 
   // Block user mutation
   const blockUserMutation = useMutation({
@@ -329,6 +342,35 @@ export default function UserManagementPage() {
         variant: "destructive",
       });
     }
+  });
+  
+  // Set deposit discount mutation
+  const setDepositDiscountMutation = useMutation({
+    mutationFn: async ({ userId, discountRate }: { userId: number; discountRate: number }) => {
+      if (user?.role !== UserRole.SUBADMIN) {
+        throw new Error("Only subadmins can set deposit discounts");
+      }
+      
+      const res = await apiRequest("POST", `/api/subadmin/deposit-discount/${userId}`, { 
+        discountRate 
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/subadmin/deposit-discount", selectedUser?.id] });
+      setIsDepositDiscountDialogOpen(false);
+      toast({
+        title: "Deposit discount updated",
+        description: "The deposit discount has been updated successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to update deposit discount",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
   
   // Set commission/discount mutation
@@ -518,6 +560,27 @@ export default function UserManagementPage() {
     setCommissionRate(0);
     setSelectedGameType("satamatka_jodi");
     setIsCommissionDialogOpen(true);
+  };
+  
+  const openDepositDiscountDialog = (user: any) => {
+    setSelectedUser(user);
+    setDepositDiscountRate(0);
+    
+    // Initialize with current deposit discount if available
+    if (depositDiscount?.discountRate !== undefined) {
+      setDepositDiscountRate(depositDiscount.discountRate);
+    }
+    
+    setIsDepositDiscountDialogOpen(true);
+  };
+  
+  const handleSetDepositDiscount = () => {
+    if (!selectedUser || depositDiscountRate < 0 || depositDiscountRate > 100) return;
+    
+    setDepositDiscountMutation.mutate({
+      userId: selectedUser.id,
+      discountRate: depositDiscountRate
+    });
   };
   
   const handleSetCommission = () => {
