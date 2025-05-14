@@ -515,130 +515,173 @@ export default function AdminCricketTossPage() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Create Cricket Toss Match</DialogTitle>
           </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="teamA"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Team A</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter team A name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="teamB"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Team B</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter team B name" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Enter match description" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="matchTime"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Match Time</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="datetime-local"
-                        min={new Date().toISOString().slice(0, 16)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="coverImage"
-                render={({ field: { value, onChange, ...field } }) => (
-                  <FormItem>
-                    <FormLabel>Cover Banner Image (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        {...field}
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            onChange(file);
-                            // Create a preview URL for the selected image
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
-                              setCoverImagePreview(e.target?.result as string);
-                            };
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                    </FormControl>
-                    {coverImagePreview && (
-                      <div className="mt-2">
-                        <img 
-                          src={coverImagePreview} 
-                          alt="Cover Image Preview" 
-                          className="w-full h-32 object-cover rounded-md border border-gray-200"
-                        />
-                      </div>
+          <div className="max-h-[80vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary scrollbar-track-transparent">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                {/* Two column layout for team names */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="teamA"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Team A</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter team A name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
                     )}
-                    <FormDescription>Upload a banner image for this match</FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
-                <p className="text-sm text-slate-700 dark:text-slate-300">
-                  <span className="font-medium">Note:</span> Odds are fixed at 2.00 for both teams.
-                </p>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createCricketTossMutation.isPending}
-                >
-                  {createCricketTossMutation.isPending ? "Creating..." : "Create Match"}
-                </Button>
-              </div>
-            </form>
-          </Form>
+                  />
+                  <FormField
+                    control={form.control}
+                    name="teamB"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Team B</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter team B name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter match description" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Two column layout for date and time */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="matchDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Match Date</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="date"
+                            min={new Date().toISOString().split("T")[0]}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="matchTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Match Time</FormLabel>
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select time" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Array.from({ length: 24 }).map((_, hour) => (
+                                <React.Fragment key={hour}>
+                                  <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>
+                                    {hour.toString().padStart(2, '0')}:00
+                                  </SelectItem>
+                                  <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>
+                                    {hour.toString().padStart(2, '0')}:30
+                                  </SelectItem>
+                                </React.Fragment>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="coverImage"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Cover Banner Image (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              onChange(file);
+                              // Create a preview URL for the selected image
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                setCoverImagePreview(e.target?.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      {coverImagePreview && (
+                        <div className="mt-2">
+                          <img 
+                            src={coverImagePreview} 
+                            alt="Cover Image Preview" 
+                            className="w-full h-32 object-cover rounded-md border border-gray-200"
+                          />
+                        </div>
+                      )}
+                      <FormDescription>Upload a banner image for this match</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
+                  <p className="text-sm text-slate-700 dark:text-slate-300">
+                    <span className="font-medium">Note:</span> Odds are fixed at 2.00 for both teams.
+                  </p>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={createCricketTossMutation.isPending}
+                  >
+                    {createCricketTossMutation.isPending ? "Creating..." : "Create Match"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
         </DialogContent>
       </Dialog>
 
