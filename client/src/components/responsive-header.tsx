@@ -156,7 +156,7 @@ export default function ResponsiveHeader() {
                     <Wallet className="h-5 w-5 mr-2 text-primary" />
                     <span className="font-medium">Balance</span>
                   </div>
-                  <span className="font-bold">₹{user.balance.toFixed(2)}</span>
+                  <span className="font-bold">₹{(user.balance / 100).toFixed(2)}</span>
                 </div>
                 
                 <div className="space-y-3 mt-4">
