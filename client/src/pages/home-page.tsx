@@ -227,7 +227,7 @@ export default function HomePage() {
         ) : (
           // Balance card for Admin/Subadmin
           <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 w-full lg:w-auto">
-            <BalanceCard balance={user?.balance || 0} />
+            <BalanceCard balance={(user?.balance || 0) / 100} />
           </div>
         )}
         
