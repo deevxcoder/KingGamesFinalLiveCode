@@ -20,7 +20,7 @@ export default function BalanceCard({ balance }: BalanceCardProps) {
           </div>
           <div>
             <p className="text-sm text-slate-400">Your Balance</p>
-            <p className="text-xl font-bold text-fuchsia-300">₹{(balance / 100).toFixed(2)}</p>
+            <p className="text-xl font-bold text-fuchsia-300">₹{balance.toFixed(2)}</p>
           </div>
           <Link href={walletUrl}>
             <Button 
