@@ -166,8 +166,9 @@ export default function AdminSettingsPage() {
   // Process coin flip odds when they load
   useEffect(() => {
     if (coinFlipOddsData && coinFlipOddsData.length > 0) {
-      // Convert integer odds to decimal (250 -> "2.50")
-      const oddValueDecimal = (coinFlipOddsData[0].oddValue / 100).toFixed(2);
+      // Convert integer odds to decimal (19000 -> "1.90")
+      // Database stores odds as (original odds * 100)
+      const oddValueDecimal = (coinFlipOddsData[0].oddValue / 10000).toFixed(2);
       setCoinFlipOdds(oddValueDecimal);
     }
   }, [coinFlipOddsData]);
@@ -175,7 +176,7 @@ export default function AdminSettingsPage() {
   // Process cricket toss odds when they load
   useEffect(() => {
     if (cricketTossOddsData && cricketTossOddsData.length > 0) {
-      const oddValueDecimal = (cricketTossOddsData[0].oddValue / 100).toFixed(2);
+      const oddValueDecimal = (cricketTossOddsData[0].oddValue / 10000).toFixed(2);
       setCricketTossOdds(oddValueDecimal);
     }
   }, [cricketTossOddsData]);
@@ -183,7 +184,7 @@ export default function AdminSettingsPage() {
   // Process team match odds when they load
   useEffect(() => {
     if (teamMatchOddsData && teamMatchOddsData.length > 0) {
-      const oddValueDecimal = (teamMatchOddsData[0].oddValue / 100).toFixed(2);
+      const oddValueDecimal = (teamMatchOddsData[0].oddValue / 10000).toFixed(2);
       setTeamMatchOdds(oddValueDecimal);
     }
   }, [teamMatchOddsData]);
@@ -191,7 +192,7 @@ export default function AdminSettingsPage() {
   // Process team match draw odds when they load
   useEffect(() => {
     if (teamMatchDrawOddsData && teamMatchDrawOddsData.length > 0) {
-      const oddValueDecimal = (teamMatchDrawOddsData[0].oddValue / 100).toFixed(2);
+      const oddValueDecimal = (teamMatchDrawOddsData[0].oddValue / 10000).toFixed(2);
       setTeamMatchDrawOdds(oddValueDecimal);
     }
   }, [teamMatchDrawOddsData]);
@@ -223,19 +224,19 @@ export default function AdminSettingsPage() {
       const updatedOdds = { ...satamatkaOdds };
       
       if (satamatkaOddsData.jodi && satamatkaOddsData.jodi.length > 0) {
-        updatedOdds.jodi = (satamatkaOddsData.jodi[0].oddValue / 100).toFixed(2);
+        updatedOdds.jodi = (satamatkaOddsData.jodi[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.harf && satamatkaOddsData.harf.length > 0) {
-        updatedOdds.harf = (satamatkaOddsData.harf[0].oddValue / 100).toFixed(2);
+        updatedOdds.harf = (satamatkaOddsData.harf[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.crossing && satamatkaOddsData.crossing.length > 0) {
-        updatedOdds.crossing = (satamatkaOddsData.crossing[0].oddValue / 100).toFixed(2);
+        updatedOdds.crossing = (satamatkaOddsData.crossing[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.odd_even && satamatkaOddsData.odd_even.length > 0) {
-        updatedOdds.odd_even = (satamatkaOddsData.odd_even[0].oddValue / 100).toFixed(2);
+        updatedOdds.odd_even = (satamatkaOddsData.odd_even[0].oddValue / 10000).toFixed(2);
       }
       
       setSatamatkaOdds(updatedOdds);
