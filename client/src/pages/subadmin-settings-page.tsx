@@ -491,7 +491,7 @@ export default function SubadminSettingsPage() {
         } else if (odd.gameType === 'satamatka_odd_even') {
           formValues.satamatkaOddEven = (odd.oddValue / 100);
         } else if (odd.gameType === 'satamatka_crossing') {
-          formValues.satamatkaCrossing = (odd.oddValue / 1000);
+          formValues.satamatkaCrossing = (odd.oddValue / 100);
         }
       });
 
