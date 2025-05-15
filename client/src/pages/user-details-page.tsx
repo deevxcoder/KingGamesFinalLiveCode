@@ -183,7 +183,7 @@ export default function UserDetailsPage() {
               <div className="text-sm text-muted-foreground mb-1">Current Balance</div>
               <div className="font-semibold flex items-center gap-2">
                 <IndianRupee className="h-4 w-4 text-green-400" />
-                <span>₹{selectedUser.balance.toFixed(2)}</span>
+                <span>₹{(selectedUser.balance / 100).toFixed(2)}</span>
               </div>
             </div>
             
