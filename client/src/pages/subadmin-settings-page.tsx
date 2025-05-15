@@ -477,21 +477,21 @@ export default function SubadminSettingsPage() {
 
       subadminOdds.forEach((odd: any) => {
         if (odd.gameType === 'team_match') {
-          formValues.teamMatch = (odd.oddValue / 100);
+          formValues.teamMatch = (odd.oddValue / 10000);
         } else if (odd.gameType === 'team_match_draw') {
-          formValues.teamMatchDraw = (odd.oddValue / 100);
+          formValues.teamMatchDraw = (odd.oddValue / 10000);
         } else if (odd.gameType === 'cricket_toss') {
-          formValues.cricketToss = (odd.oddValue / 100);
+          formValues.cricketToss = (odd.oddValue / 10000);
         } else if (odd.gameType === 'coin_flip') {
-          formValues.coinFlip = (odd.oddValue / 100);
+          formValues.coinFlip = (odd.oddValue / 10000);
         } else if (odd.gameType === 'satamatka_jodi') {
-          formValues.satamatkaJodi = (odd.oddValue / 100);
+          formValues.satamatkaJodi = (odd.oddValue / 10000);
         } else if (odd.gameType === 'satamatka_harf') {
-          formValues.satamatkaHarf = (odd.oddValue / 100);
+          formValues.satamatkaHarf = (odd.oddValue / 10000);
         } else if (odd.gameType === 'satamatka_odd_even') {
-          formValues.satamatkaOddEven = (odd.oddValue / 100);
+          formValues.satamatkaOddEven = (odd.oddValue / 10000);
         } else if (odd.gameType === 'satamatka_crossing') {
-          formValues.satamatkaCrossing = (odd.oddValue / 100);
+          formValues.satamatkaCrossing = (odd.oddValue / 10000);
         }
       });
 
