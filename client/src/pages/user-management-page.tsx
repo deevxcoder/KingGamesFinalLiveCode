@@ -704,7 +704,7 @@ export default function UserManagementPage() {
                             {user.role}
                           </Badge>
                         </TableCell>
-                        <TableCell>₹{user.balance.toFixed(2)}</TableCell>
+                        <TableCell>₹{(user.balance / 100).toFixed(2)}</TableCell>
                         <TableCell>
                           {user.isBlocked ? (
                             <Badge variant="destructive">Blocked</Badge>

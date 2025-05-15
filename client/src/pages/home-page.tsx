@@ -401,7 +401,7 @@ export default function HomePage() {
             {/* Total Profit/Loss Card */}
             <DashboardStatsCard 
               title="Total Profit/Loss" 
-              value={`₹${(adminStats.totalProfitLoss || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+              value={`₹${((adminStats.totalProfitLoss || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
               icon={<TrendingUp className="h-5 w-5 text-emerald-400" />}
               trend={adminStats.totalProfitLoss >= 0 ? "up" : "down"}
               color={adminStats.totalProfitLoss >= 0 ? "green" : "red"}
@@ -410,7 +410,7 @@ export default function HomePage() {
             {/* Total Deposits Card */}
             <DashboardStatsCard 
               title="Total Deposits" 
-              value={`₹${(adminStats.totalDeposits || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
+              value={`₹${((adminStats.totalDeposits || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`}
               icon={<DollarSign className="h-5 w-5 text-blue-400" />}
               trend="up" 
               color="blue"
