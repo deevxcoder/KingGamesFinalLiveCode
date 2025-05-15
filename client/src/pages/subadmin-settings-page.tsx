@@ -485,13 +485,13 @@ export default function SubadminSettingsPage() {
         } else if (odd.gameType === 'coin_flip') {
           formValues.coinFlip = (odd.oddValue / 10);
         } else if (odd.gameType === 'satamatka_jodi') {
-          formValues.satamatkaJodi = (odd.oddValue / 100);
+          formValues.satamatkaJodi = (odd.oddValue / 10);
         } else if (odd.gameType === 'satamatka_harf') {
-          formValues.satamatkaHarf = (odd.oddValue / 100);
+          formValues.satamatkaHarf = (odd.oddValue / 10);
         } else if (odd.gameType === 'satamatka_odd_even') {
-          formValues.satamatkaOddEven = (odd.oddValue / 100);
+          formValues.satamatkaOddEven = (odd.oddValue / 10);
         } else if (odd.gameType === 'satamatka_crossing') {
-          formValues.satamatkaCrossing = (odd.oddValue / 100);
+          formValues.satamatkaCrossing = (odd.oddValue / 10);
         }
       });
 
