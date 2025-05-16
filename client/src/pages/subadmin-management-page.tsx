@@ -62,6 +62,9 @@ import {
   Loader2,
   AlertCircle,
   Trash2,
+  CreditCard,
+  Unlock,
+  Lock,
 } from "lucide-react";
 
 // Schema for creating a new subadmin
@@ -538,6 +541,58 @@ export default function SubadminManagementPage() {
         user.username.toLowerCase().includes(userSearchTerm.toLowerCase())
       )
     : [];
+    
+  // Block user mutation
+  const blockUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return await apiRequest("PATCH", `/api/users/${userId}/block`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "User blocked successfully",
+        description: "The user has been blocked",
+      });
+      refetchSubadminUsers();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to block user",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Unblock user mutation
+  const unblockUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return await apiRequest("PATCH", `/api/users/${userId}/unblock`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "User unblocked successfully",
+        description: "The user has been unblocked",
+      });
+      refetchSubadminUsers();
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to unblock user",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Handle block user
+  const handleBlockUser = (userId: number) => {
+    blockUserMutation.mutate(userId);
+  };
+  
+  // Handle unblock user
+  const handleUnblockUser = (userId: number) => {
+    unblockUserMutation.mutate(userId);
+  };
 
   return (
     <DashboardLayout title="Management">
@@ -1337,11 +1392,36 @@ export default function SubadminManagementPage() {
                 ) : (
                   <Card>
                     <CardHeader>
-                      <div className="flex justify-between">
-                        <CardTitle>Users List</CardTitle>
-                        <Badge variant="outline" className="text-primary">
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+                        <div>
+                          <CardTitle>Users List</CardTitle>
+                          <CardDescription>
+                            Users assigned to {selectedSubadminName}
+                          </CardDescription>
+                        </div>
+                        <Badge variant="outline" className="text-primary self-start sm:self-auto">
                           {Array.isArray(subadminUsers) ? subadminUsers.length : 0} Users
                         </Badge>
+                      </div>
+                      
+                      {/* User search */}
+                      <div className="mt-4 relative">
+                        <Input
+                          type="text"
+                          placeholder="Search users by username..."
+                          value={userSearchTerm}
+                          onChange={(e) => setUserSearchTerm(e.target.value)}
+                          className="pl-10"
+                        />
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                       </div>
                     </CardHeader>
                     <CardContent>
@@ -1357,62 +1437,84 @@ export default function SubadminManagementPage() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                            {Array.isArray(subadminUsers) && subadminUsers.map((user: any) => (
-                              <TableRow key={user.id}>
-                                <TableCell className="font-medium">
-                                  {user.username}
-                                </TableCell>
-                                <TableCell>
-                                  ₹{user.balance?.toFixed(2) || '0.00'}
-                                </TableCell>
-                                <TableCell>
-                                  {new Date(user.createdAt).toLocaleDateString()}
-                                </TableCell>
-                                <TableCell>
-                                  {user.isBlocked ? (
-                                    <Badge variant="destructive">Blocked</Badge>
-                                  ) : (
-                                    <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                                      Active
-                                    </Badge>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  <div className="flex space-x-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
-                                    >
-                                      <Settings className="h-4 w-4 mr-2" />
-                                      Discounts
-                                    </Button>
-                                    
-                                    {user.isBlocked ? (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleUnblockSubadmin(user.id)}
-                                        className="text-green-500 border-green-500/20 hover:bg-green-500/10"
-                                      >
-                                        <CheckCircle className="h-4 w-4 mr-2" />
-                                        Unblock
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => handleBlockSubadmin(user.id)}
-                                        className="text-red-500 border-red-500/20 hover:bg-red-500/10"
-                                      >
-                                        <Ban className="h-4 w-4 mr-2" />
-                                        Block
-                                      </Button>
-                                    )}
-                                  </div>
+                            {filteredSubadminUsers.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={5} className="text-center py-4">
+                                  {userSearchTerm ? 
+                                    `No users found matching "${userSearchTerm}"` : 
+                                    "No users assigned to this subadmin"
+                                  }
                                 </TableCell>
                               </TableRow>
-                            ))}
+                            ) : (
+                              filteredSubadminUsers.map((user: any) => {
+                                return (
+                                  <TableRow key={user.id}>
+                                    <TableCell className="font-medium">
+                                      {user.username}
+                                    </TableCell>
+                                    <TableCell>
+                                      ₹{user.balance?.toFixed(2) || '0.00'}
+                                    </TableCell>
+                                    <TableCell>
+                                      {new Date(user.createdAt).toLocaleDateString()}
+                                    </TableCell>
+                                    <TableCell>
+                                      {user.isBlocked ? (
+                                        <Badge variant="destructive">Blocked</Badge>
+                                      ) : (
+                                        <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                                          Active
+                                        </Badge>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex space-x-2">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
+                                        >
+                                          <Settings className="h-4 w-4 mr-2" />
+                                          Discounts
+                                        </Button>
+                                        
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="text-green-500 border-green-500/20 hover:bg-green-500/10"
+                                        >
+                                          <CreditCard className="h-4 w-4 mr-2" />
+                                          Add Balance
+                                        </Button>
+                                        
+                                        {user.isBlocked ? (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleUnblockUser(user.id)}
+                                            className="text-emerald-500 border-emerald-500/20 hover:bg-emerald-500/10"
+                                          >
+                                            <Unlock className="h-4 w-4 mr-2" />
+                                            Unblock
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleBlockUser(user.id)}
+                                            className="text-red-500 border-red-500/20 hover:bg-red-500/10"
+                                          >
+                                            <Ban className="h-4 w-4 mr-2" />
+                                            Block
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })
+                            )}
                           </TableBody>
                         </Table>
                       </div>
