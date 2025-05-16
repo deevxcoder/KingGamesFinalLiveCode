@@ -60,6 +60,7 @@ import {
   Save,
   Loader2,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 
 // Schema for creating a new subadmin
@@ -217,6 +218,34 @@ export default function SubadminManagementPage() {
       });
     },
   });
+  
+  // Delete subadmin mutation
+  const deleteSubadminMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return apiRequest("DELETE", `/api/users/${userId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "Subadmin Deleted",
+        description: "Subadmin has been deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Deleting Subadmin",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handle delete subadmin
+  const handleDeleteSubadmin = (userId: number) => {
+    if (confirm("Are you sure you want to delete this subadmin? This will also remove all associated players and data. This action cannot be undone.")) {
+      deleteSubadminMutation.mutate(userId);
+    }
+  };
 
   const onSubmit = (data: z.infer<typeof createSubadminSchema>) => {
     createSubadminMutation.mutate(data);
