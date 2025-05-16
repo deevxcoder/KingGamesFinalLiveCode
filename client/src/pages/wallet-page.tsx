@@ -86,6 +86,12 @@ export default function WalletPage() {
   const getTabFromUrl = () => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
+    
+    // Prevent subadmins from accessing deposit/withdraw tabs
+    if (user?.role === "subadmin" && (tab === 'deposit' || tab === 'withdraw')) {
+      return 'balance';
+    }
+    
     // Only allow valid tabs
     return tab === 'deposit' || tab === 'withdraw' || tab === 'history' ? tab : 'balance';
   };
@@ -699,49 +705,55 @@ export default function WalletPage() {
             </div>
           </div>
           
-          <div 
-            className={`p-4 rounded-lg border cursor-pointer transition-all ${
-              activeTab === "deposit" 
-                ? "bg-slate-900/90 border-primary shadow-md" 
-                : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
-            }`}
-            onClick={() => setActiveTab("deposit")}
-          >
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className={`p-3 rounded-full mb-2 ${
+          {/* Deposit option - Only for players, not for subadmins */}
+          {user?.role !== "subadmin" && (
+            <div 
+              className={`p-4 rounded-lg border cursor-pointer transition-all ${
                 activeTab === "deposit" 
-                  ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
-                  : "bg-slate-800"
-              }`}>
-                <ArrowDown className="w-5 h-5 text-white" />
+                  ? "bg-slate-900/90 border-primary shadow-md" 
+                  : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+              }`}
+              onClick={() => setActiveTab("deposit")}
+            >
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className={`p-3 rounded-full mb-2 ${
+                  activeTab === "deposit" 
+                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                    : "bg-slate-800"
+                }`}>
+                  <ArrowDown className="w-5 h-5 text-white" />
+                </div>
+                <span className={`font-medium ${
+                  activeTab === "deposit" ? "text-primary" : "text-slate-300"
+                }`}>Deposit</span>
               </div>
-              <span className={`font-medium ${
-                activeTab === "deposit" ? "text-primary" : "text-slate-300"
-              }`}>Deposit</span>
             </div>
-          </div>
+          )}
           
-          <div 
-            className={`p-4 rounded-lg border cursor-pointer transition-all ${
-              activeTab === "withdraw" 
-                ? "bg-slate-900/90 border-primary shadow-md" 
-                : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
-            }`}
-            onClick={() => setActiveTab("withdraw")}
-          >
-            <div className="flex flex-col items-center justify-center text-center">
-              <div className={`p-3 rounded-full mb-2 ${
+          {/* Withdraw option - Only for players, not for subadmins */}
+          {user?.role !== "subadmin" && (
+            <div 
+              className={`p-4 rounded-lg border cursor-pointer transition-all ${
                 activeTab === "withdraw" 
-                  ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
-                  : "bg-slate-800"
-              }`}>
-                <ArrowUp className="w-5 h-5 text-white" />
+                  ? "bg-slate-900/90 border-primary shadow-md" 
+                  : "bg-slate-900/50 border-slate-800 hover:border-primary/40"
+              }`}
+              onClick={() => setActiveTab("withdraw")}
+            >
+              <div className="flex flex-col items-center justify-center text-center">
+                <div className={`p-3 rounded-full mb-2 ${
+                  activeTab === "withdraw" 
+                    ? "bg-gradient-to-r from-violet-600 to-fuchsia-600" 
+                    : "bg-slate-800"
+                }`}>
+                  <ArrowUp className="w-5 h-5 text-white" />
+                </div>
+                <span className={`font-medium ${
+                  activeTab === "withdraw" ? "text-primary" : "text-slate-300"
+                }`}>Withdraw</span>
               </div>
-              <span className={`font-medium ${
-                activeTab === "withdraw" ? "text-primary" : "text-slate-300"
-              }`}>Withdraw</span>
             </div>
-          </div>
+          )}
           
           <div 
             className={`p-4 rounded-lg border cursor-pointer transition-all ${
@@ -786,23 +798,25 @@ export default function WalletPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={() => updateTab("deposit")}
-                    className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white"
-                  >
-                    <ArrowDown className="mr-2 h-4 w-4" />
-                    Deposit
-                  </Button>
-                  <Button 
-                    onClick={() => updateTab("withdraw")} 
-                    variant="outline"
-                    className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
-                  >
-                    <ArrowUp className="mr-2 h-4 w-4" />
-                    Withdraw
-                  </Button>
-                </div>
+                {user?.role !== "subadmin" && (
+                  <div className="flex gap-3">
+                    <Button 
+                      onClick={() => updateTab("deposit")}
+                      className="bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-700 hover:to-fuchsia-700 text-white"
+                    >
+                      <ArrowDown className="mr-2 h-4 w-4" />
+                      Deposit
+                    </Button>
+                    <Button 
+                      onClick={() => updateTab("withdraw")} 
+                      variant="outline"
+                      className="border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+                    >
+                      <ArrowUp className="mr-2 h-4 w-4" />
+                      Withdraw
+                    </Button>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
