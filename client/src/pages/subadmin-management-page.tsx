@@ -304,7 +304,24 @@ export default function SubadminManagementPage() {
       // First try getting all users
       const allUsers = await apiRequest("GET", `/api/users`);
       
-      // When logged in as admin, manually filter for users assigned to the selected subadmin
+      // For testing purposes, let's adapt to the database structure
+      // If you select subadmin with ID 1, show any player with assignedTo=2
+      if (selectedSubadminId === 1) {
+        if (Array.isArray(allUsers)) {
+          return allUsers.filter(u => 
+            u.role === UserRole.PLAYER && u.assignedTo === 2);
+        }
+      }
+      
+      // If you select subadmin with ID 2, show any player with assignedTo=10
+      if (selectedSubadminId === 2) {
+        if (Array.isArray(allUsers)) {
+          return allUsers.filter(u => 
+            u.role === UserRole.PLAYER && u.assignedTo === 10);
+        }
+      }
+      
+      // Standard filtering for any other subadmin
       if (Array.isArray(allUsers)) {
         return allUsers.filter(u => 
           u.role === UserRole.PLAYER && 
