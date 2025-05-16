@@ -65,6 +65,8 @@ import {
 // Schema for creating a new subadmin
 const createSubadminSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  mobile: z.string().min(10, "Mobile number must be at least 10 digits").max(15, "Mobile number cannot exceed 15 digits"),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -115,6 +117,8 @@ export default function SubadminManagementPage() {
     resolver: zodResolver(createSubadminSchema),
     defaultValues: {
       username: "",
+      email: "",
+      mobile: "",
       password: "",
     },
   });
@@ -144,6 +148,8 @@ export default function SubadminManagementPage() {
       // Create subadmin without commissions
       const res = await apiRequest("POST", "/api/register", {
         username: data.username,
+        email: data.email,
+        mobile: data.mobile,
         password: data.password,
         role: UserRole.SUBADMIN,
       });
@@ -737,6 +743,34 @@ export default function SubadminManagementPage() {
                     <FormLabel>Username</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Enter email address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="mobile"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mobile</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter mobile number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
