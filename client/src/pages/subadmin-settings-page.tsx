@@ -87,7 +87,6 @@ interface DepositCommission {
 
 // Form schema for the commission form
 const commissionFormSchema = z.object({
-  teamMatch: z.coerce.number().min(0).max(100),
   cricketToss: z.coerce.number().min(0).max(100),
   coinFlip: z.coerce.number().min(0).max(100),
   satamatkaJodi: z.coerce.number().min(0).max(100),
@@ -98,8 +97,7 @@ const commissionFormSchema = z.object({
 
 // Form schema for the odds form
 const oddsFormSchema = z.object({
-  teamMatch: z.coerce.number().min(1),
-  teamMatchDraw: z.coerce.number().min(1), // Added draw multiplier
+  // Team match fields removed
   cricketToss: z.coerce.number().min(1),
   coinFlip: z.coerce.number().min(1),
   satamatkaJodi: z.coerce.number().min(1),
@@ -110,7 +108,7 @@ const oddsFormSchema = z.object({
 
 // Form schema for the discount form
 const discountFormSchema = z.object({
-  teamMatch: z.coerce.number().min(0).max(100),
+  // teamMatch field removed
   cricketToss: z.coerce.number().min(0).max(100),
   coinFlip: z.coerce.number().min(0).max(100),
   satamatkaJodi: z.coerce.number().min(0).max(100),
@@ -189,7 +187,6 @@ export default function SubadminSettingsPage() {
   const commissionForm = useForm<CommissionFormValues>({
     resolver: zodResolver(commissionFormSchema),
     defaultValues: {
-      teamMatch: 0,
       cricketToss: 0,
       coinFlip: 0,
       satamatkaJodi: 0,
