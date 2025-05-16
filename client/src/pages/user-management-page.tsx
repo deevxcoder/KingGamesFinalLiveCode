@@ -115,6 +115,8 @@ export default function UserManagementPage() {
   // Define the schema for creating a new user
   const createUserSchema = z.object({
     username: z.string().min(3, "Username must be at least 3 characters"),
+    email: z.string().email("Please enter a valid email address"),
+    mobile: z.string().min(10, "Mobile number must be at least 10 digits").max(15, "Mobile number cannot exceed 15 digits"),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string().min(6, "Confirm password must be at least 6 characters"),
   }).refine(data => data.password === data.confirmPassword, {
@@ -127,6 +129,8 @@ export default function UserManagementPage() {
     resolver: zodResolver(createUserSchema),
     defaultValues: {
       username: "",
+      email: "",
+      mobile: "",
       password: "",
       confirmPassword: "",
     },

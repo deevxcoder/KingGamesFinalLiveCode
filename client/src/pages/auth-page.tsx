@@ -25,6 +25,8 @@ const loginSchema = z.object({
 
 const registerSchema = z.object({
   username: z.string().min(3, "Username must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  mobile: z.string().min(10, "Mobile number must be at least 10 digits").max(15, "Mobile number cannot exceed 15 digits"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Password must be at least 6 characters"),
 }).refine(data => data.password === data.confirmPassword, {
@@ -49,6 +51,8 @@ export default function AuthPage() {
     resolver: zodResolver(registerSchema),
     defaultValues: {
       username: "",
+      email: "",
+      mobile: "",
       password: "",
       confirmPassword: "",
     },
@@ -158,6 +162,32 @@ export default function AuthPage() {
                       />
                       {registerForm.formState.errors.username && (
                         <p className="text-red-500 text-sm">{registerForm.formState.errors.username.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="register-email">Email</Label>
+                      <Input
+                        id="register-email"
+                        type="email"
+                        placeholder="Enter your email address"
+                        {...registerForm.register("email")}
+                      />
+                      {registerForm.formState.errors.email && (
+                        <p className="text-red-500 text-sm">{registerForm.formState.errors.email.message}</p>
+                      )}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="register-mobile">Mobile Number</Label>
+                      <Input
+                        id="register-mobile"
+                        type="tel"
+                        placeholder="Enter your mobile number"
+                        {...registerForm.register("mobile")}
+                      />
+                      {registerForm.formState.errors.mobile && (
+                        <p className="text-red-500 text-sm">{registerForm.formState.errors.mobile.message}</p>
                       )}
                     </div>
                     
