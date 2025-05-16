@@ -327,6 +327,34 @@ export default function UserManagementPage() {
       });
     },
   });
+  
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      return apiRequest("DELETE", `/api/users/${userId}`, {});
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      toast({
+        title: "User Deleted",
+        description: "User has been deleted successfully",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Deleting User",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handle delete user
+  const handleDeleteUser = (userId: number) => {
+    if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
+      deleteUserMutation.mutate(userId);
+    }
+  };
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -692,28 +720,28 @@ export default function UserManagementPage() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    (users as any[]).map((user: any) => (
-                      <TableRow key={user.id}>
+                    (users as any[]).map((tableUser: any) => (
+                      <TableRow key={tableUser.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4" />
-                            {user.username}
+                            {tableUser.username}
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant={
-                            user.role === UserRole.ADMIN 
+                            tableUser.role === UserRole.ADMIN 
                               ? "default" 
-                              : user.role === UserRole.SUBADMIN 
+                              : tableUser.role === UserRole.SUBADMIN 
                                 ? "outline" 
                                 : "secondary"
                           }>
-                            {user.role}
+                            {tableUser.role}
                           </Badge>
                         </TableCell>
-                        <TableCell>₹{(user.balance / 100).toFixed(2)}</TableCell>
+                        <TableCell>₹{(tableUser.balance / 100).toFixed(2)}</TableCell>
                         <TableCell>
-                          {user.isBlocked ? (
+                          {tableUser.isBlocked ? (
                             <Badge variant="destructive">Blocked</Badge>
                           ) : (
                             <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
@@ -726,7 +754,7 @@ export default function UserManagementPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => openAddFundsDialog(user)}
+                              onClick={() => openAddFundsDialog(tableUser)}
                               title="Add funds"
                             >
                               <PlusCircle className="h-4 w-4" />
@@ -734,7 +762,7 @@ export default function UserManagementPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => openRemoveFundsDialog(user)}
+                              onClick={() => openRemoveFundsDialog(tableUser)}
                               title="Remove funds"
                             >
                               <MinusCircle className="h-4 w-4" />
@@ -742,7 +770,7 @@ export default function UserManagementPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => openEditUserDialog(user)}
+                              onClick={() => openEditUserDialog(tableUser)}
                               title="Edit user"
                             >
                               <Edit className="h-4 w-4" />
@@ -750,18 +778,18 @@ export default function UserManagementPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => openUserDetailsDialog(user)}
+                              onClick={() => openUserDetailsDialog(tableUser)}
                               title="View details"
                               className="text-blue-500 border-blue-500/20 hover:bg-blue-500/10"
                             >
                               <Info className="h-4 w-4" />
                             </Button>
                             {/* Show commission button for subadmins */}
-                            {user.role === UserRole.SUBADMIN && (
+                            {tableUser.role === UserRole.SUBADMIN && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => openCommissionDialog(user)}
+                                onClick={() => openCommissionDialog(tableUser)}
                                 title="Set Commission"
                                 className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
                               >
@@ -770,22 +798,22 @@ export default function UserManagementPage() {
                             )}
                             
                             {/* Show deposit discount button for players */}
-                            {user.role === UserRole.PLAYER && (
+                            {tableUser.role === UserRole.PLAYER && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => openDepositDiscountDialog(user)}
+                                onClick={() => openDepositDiscountDialog(tableUser)}
                                 title="Set Deposit Discount"
                                 className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
                               >
                                 <Percent className="h-4 w-4" />
                               </Button>
                             )}
-                            {user.isBlocked ? (
+                            {tableUser.isBlocked ? (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleUnblockUser(user.id)}
+                                onClick={() => handleUnblockUser(tableUser.id)}
                                 className="text-green-500 border-green-500/20 hover:bg-green-500/10"
                                 title="Unblock user"
                               >
@@ -795,11 +823,27 @@ export default function UserManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleBlockUser(user.id)}
+                                onClick={() => handleBlockUser(tableUser.id)}
                                 className="text-red-500 border-red-500/20 hover:bg-red-500/10"
                                 title="Block user"
                               >
                                 <Ban className="h-4 w-4" />
+                              </Button>
+                            )}
+                            
+                            {/* Delete button - Only for admins or for subadmins' players */}
+                            {(user?.role === UserRole.ADMIN || 
+                              (user?.role === UserRole.SUBADMIN && 
+                               tableUser.assignedTo === user?.id && 
+                               tableUser.role === UserRole.PLAYER)) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteUser(tableUser.id)}
+                                className="text-red-500 border-red-500/20 hover:bg-red-500/10"
+                                title="Delete user"
+                              >
+                                <Trash2 className="h-4 w-4" />
                               </Button>
                             )}
                           </div>
