@@ -81,7 +81,8 @@ import {
   MessageSquare,
   Percent,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Trash2
 } from "lucide-react";
 
 export default function UserManagementPage() {
