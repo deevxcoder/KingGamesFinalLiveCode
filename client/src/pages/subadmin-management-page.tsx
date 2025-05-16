@@ -1369,14 +1369,14 @@ export default function SubadminManagementPage() {
       {/* Full-Screen User List Dialog */}
       <Dialog open={isUserListDialogOpen} onOpenChange={setIsUserListDialogOpen}>
         <DialogContent className="max-w-full h-[100vh] p-0 overflow-hidden flex flex-col">
-          <DialogHeader className="bg-slate-900 text-white p-6 flex flex-row items-center justify-between">
+          <div className="bg-slate-900 text-white p-6 flex flex-row items-center justify-between">
             <div>
-              <DialogTitle className="text-2xl font-bold text-white">
+              <h2 className="text-2xl font-bold text-white">
                 Users assigned to {selectedSubadminName}
-              </DialogTitle>
-              <DialogDescription className="text-slate-300 text-sm mt-1">
+              </h2>
+              <p className="text-slate-300 text-sm mt-1">
                 Manage users assigned to this subadmin
-              </DialogDescription>
+              </p>
             </div>
             <Button 
               variant="ghost" 
@@ -1386,7 +1386,7 @@ export default function SubadminManagementPage() {
             >
               <X className="w-6 h-6" />
             </Button>
-          </DialogHeader>
+          </div>
           
           <div className="flex-1 overflow-auto p-6 scrollbar-thin scrollbar-thumb-primary scrollbar-track-secondary">
             {isLoadingSubadminUsers ? (
