@@ -113,6 +113,7 @@ export default function SubadminManagementPage() {
   const [isUserListDialogOpen, setIsUserListDialogOpen] = useState(false);
   const [selectedSubadminId, setSelectedSubadminId] = useState<number | null>(null);
   const [selectedSubadminName, setSelectedSubadminName] = useState<string>("");
+  const [userSearchTerm, setUserSearchTerm] = useState<string>("");
   const [activeTab, setActiveTab] = useState("subadmins");
 
   const form = useForm<z.infer<typeof createSubadminSchema>>({
@@ -526,9 +527,17 @@ export default function SubadminManagementPage() {
   const openUserListDialog = (subadmin: any) => {
     setSelectedSubadminId(subadmin.id);
     setSelectedSubadminName(subadmin.username);
+    setUserSearchTerm(""); // Reset search term when opening the dialog
     setIsUserListDialogOpen(true);
     refetchSubadminUsers();
   };
+  
+  // Filter the subadmin's users based on search term
+  const filteredSubadminUsers = Array.isArray(subadminUsers) 
+    ? subadminUsers.filter((user: any) => 
+        user.username.toLowerCase().includes(userSearchTerm.toLowerCase())
+      )
+    : [];
 
   return (
     <DashboardLayout title="Management">
