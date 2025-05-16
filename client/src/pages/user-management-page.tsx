@@ -143,17 +143,17 @@ export default function UserManagementPage() {
   const [roleFilter, setRoleFilter] = useState<string | null>(null);
 
   // Fetch users
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/users"],
     enabled: !!user,
   });
   
   // Filter users based on search term and role filter
-  const filteredUsers = users.filter((user: any) => {
+  const filteredUsers = Array.isArray(users) ? users.filter((user: any) => {
     const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = roleFilter === null || user.role === roleFilter;
     return matchesSearch && matchesRole;
-  });
+  }) : [];
   
   // Fetch user transactions
   const { data: userTransactions = [], isLoading: isLoadingTransactions } = useQuery({
@@ -654,6 +654,16 @@ export default function UserManagementPage() {
   };
   
   const openDepositDiscountDialog = async (user: any) => {
+    // Only allow setting deposit discount for players
+    if (user.role !== UserRole.PLAYER) {
+      toast({
+        title: "Action not allowed",
+        description: "Deposit discount can only be set for players",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSelectedUser(user);
     setDepositDiscountRate(0);
     setIsDepositDiscountDialogOpen(true);
