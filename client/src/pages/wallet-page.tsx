@@ -87,8 +87,8 @@ export default function WalletPage() {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
     
-    // Prevent subadmins from accessing deposit/withdraw tabs
-    if (user?.role === "subadmin" && (tab === 'deposit' || tab === 'withdraw')) {
+    // Only players can access deposit/withdraw tabs
+    if (user?.role !== "player" && (tab === 'deposit' || tab === 'withdraw')) {
       return 'balance';
     }
     
@@ -705,8 +705,8 @@ export default function WalletPage() {
             </div>
           </div>
           
-          {/* Deposit option - Only for players, not for subadmins */}
-          {user?.role !== "subadmin" && (
+          {/* Deposit option - Only for players */}
+          {user?.role === "player" && (
             <div 
               className={`p-4 rounded-lg border cursor-pointer transition-all ${
                 activeTab === "deposit" 
@@ -730,8 +730,8 @@ export default function WalletPage() {
             </div>
           )}
           
-          {/* Withdraw option - Only for players, not for subadmins */}
-          {user?.role !== "subadmin" && (
+          {/* Withdraw option - Only for players */}
+          {user?.role === "player" && (
             <div 
               className={`p-4 rounded-lg border cursor-pointer transition-all ${
                 activeTab === "withdraw" 
@@ -798,7 +798,7 @@ export default function WalletPage() {
                     </p>
                   </div>
                 </div>
-                {user?.role !== "subadmin" && (
+                {user?.role === "player" && (
                   <div className="flex gap-3">
                     <Button 
                       onClick={() => updateTab("deposit")}
