@@ -104,7 +104,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                     switch(gameType) {
                       case 'coin_flip': return 'Coin Flip';
                       case 'satamatka': return 'Satamatka';
-                      case 'team_match': return 'Team Match';
+                      // Team Match game type removed
                       case 'cricket_toss': return 'Cricket Toss';
                       default: return gameType.replace(/_/g, ' ');
                     }
