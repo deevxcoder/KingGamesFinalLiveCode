@@ -750,7 +750,7 @@ export default function UserManagementPage() {
                   <SelectValue placeholder="Filter by role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value=" ">All Roles</SelectItem>
                   <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
                   <SelectItem value={UserRole.SUBADMIN}>Subadmin</SelectItem>
                   <SelectItem value={UserRole.PLAYER}>Player</SelectItem>
@@ -777,14 +777,14 @@ export default function UserManagementPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(users as any[]).length === 0 ? (
+                  {filteredUsers.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={5} className="text-center py-4">
                         No users found
                       </TableCell>
                     </TableRow>
                   ) : (
-                    (users as any[]).map((tableUser: any) => (
+                    filteredUsers.map((tableUser: any) => (
                       <TableRow key={tableUser.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
