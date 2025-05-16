@@ -505,17 +505,7 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Sports Management - Admin Only */}
-            {isAdmin && (
-              <Button 
-                variant="outline"
-                className="py-6 border-slate-700 text-indigo-300 hover:bg-slate-800 hover:text-indigo-200"
-                onClick={() => setLocation("/manage-sports")}
-              >
-                <BarChart className="h-5 w-5 mr-2" />
-                Sports Management
-              </Button>
-            )}
+            {/* Sports Management removed - Team Match functionality no longer used */}
             
             {/* Market Management - Admin Only */}
             {isAdmin && (
