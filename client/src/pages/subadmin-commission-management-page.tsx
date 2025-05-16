@@ -94,7 +94,6 @@ export default function SubadminCommissionManagementPage() {
         method: 'POST',
         data: {
           commissions: [
-            { gameType: 'team_match', commissionRate: Math.round(values.teamMatch * 100) },
             { gameType: 'cricket_toss', commissionRate: Math.round(values.cricketToss * 100) },
             { gameType: 'coin_flip', commissionRate: Math.round(values.coinFlip * 100) },
             { gameType: 'satamatka_jodi', commissionRate: Math.round(values.satamatkaJodi * 100) },
@@ -132,7 +131,6 @@ export default function SubadminCommissionManagementPage() {
   useEffect(() => {
     if (commissions && Array.isArray(commissions) && commissions.length > 0) {
       const formValues: any = {
-        teamMatch: 0,
         cricketToss: 0,
         coinFlip: 0,
         satamatkaJodi: 0,
@@ -145,9 +143,7 @@ export default function SubadminCommissionManagementPage() {
       console.log('Commission data received:', commissions);
 
       commissions.forEach((commission: any) => {
-        if (commission.gameType === 'team_match') {
-          formValues.teamMatch = commission.commissionRate / 100;
-        } else if (commission.gameType === 'cricket_toss') {
+        if (commission.gameType === 'cricket_toss') {
           formValues.cricketToss = commission.commissionRate / 100;
         } else if (commission.gameType === 'coin_flip') {
           formValues.coinFlip = commission.commissionRate / 100;
@@ -232,25 +228,6 @@ export default function SubadminCommissionManagementPage() {
                         <div>
                           <h3 className="text-lg font-medium mb-2">Sports Betting Games</h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name="teamMatch"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Team Match Commission</FormLabel>
-                                  <div className="flex items-center gap-2">
-                                    <FormControl>
-                                      <Input {...field} type="number" min="0" max="100" step="0.1" />
-                                    </FormControl>
-                                    <Percent className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                  <FormDescription>
-                                    Commission for football, cricket, and other team sports
-                                  </FormDescription>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
                             
                             <FormField
                               control={form.control}
