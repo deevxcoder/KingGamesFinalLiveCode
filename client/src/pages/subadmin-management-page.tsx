@@ -82,7 +82,6 @@ const commissionSchema = z.object({
 
 // Game Odds schema for subadmin
 const gameOddsSchema = z.object({
-  teamMatch: z.coerce.number().min(0),
   cricketToss: z.coerce.number().min(0),
   coinFlip: z.coerce.number().min(0),
   satamatkaJodi: z.coerce.number().min(0),
@@ -405,7 +404,6 @@ export default function SubadminManagementPage() {
   const gameOddsForm = useForm<GameOdds>({
     resolver: zodResolver(gameOddsSchema),
     defaultValues: {
-      teamMatch: 0,
       cricketToss: 0,
       coinFlip: 0,
       satamatkaJodi: 0,
@@ -430,7 +428,6 @@ export default function SubadminManagementPage() {
       
       return apiRequest("POST", `/api/game-odds/subadmin/${selectedSubadminId}`, {
         odds: [
-          { gameType: 'team_match', oddValue: Math.round(values.teamMatch * 100) },
           { gameType: 'cricket_toss', oddValue: Math.round(values.cricketToss * 100) },
           { gameType: 'coin_flip', oddValue: Math.round(values.coinFlip * 100) },
           { gameType: 'satamatka_jodi', oddValue: Math.round(values.satamatkaJodi * 100) },

@@ -383,8 +383,6 @@ export default function SubadminSettingsPage() {
   // Helper function to format game types for display
   const formatGameType = (gameType: string): string => {
     switch (gameType) {
-      case 'team_match':
-        return 'Team Match';
       case 'cricket_toss':
         return 'Cricket Toss';
       case 'coin_flip':
@@ -421,7 +419,6 @@ export default function SubadminSettingsPage() {
   useEffect(() => {
     if (commissions && Array.isArray(commissions) && commissions.length > 0) {
       const formValues: any = {
-        teamMatch: 0,
         cricketToss: 0,
         coinFlip: 0,
         satamatkaJodi: 0,
@@ -431,9 +428,7 @@ export default function SubadminSettingsPage() {
       };
 
       commissions.forEach((commission: any) => {
-        if (commission.gameType === 'team_match') {
-          formValues.teamMatch = commission.commissionRate / 100;
-        } else if (commission.gameType === 'cricket_toss') {
+        if (commission.gameType === 'cricket_toss') {
           formValues.cricketToss = commission.commissionRate / 100;
         } else if (commission.gameType === 'coin_flip') {
           formValues.coinFlip = commission.commissionRate / 100;
@@ -456,8 +451,6 @@ export default function SubadminSettingsPage() {
   useEffect(() => {
     if (subadminOdds && Array.isArray(subadminOdds) && subadminOdds.length > 0) {
       const formValues: any = {
-        teamMatch: 1.9,
-        teamMatchDraw: 3.0,
         cricketToss: 1.9,
         coinFlip: 1.9,
         satamatkaJodi: 9,
@@ -467,11 +460,7 @@ export default function SubadminSettingsPage() {
       };
 
       subadminOdds.forEach((odd: any) => {
-        if (odd.gameType === 'team_match') {
-          formValues.teamMatch = (odd.oddValue / 100);
-        } else if (odd.gameType === 'team_match_draw') {
-          formValues.teamMatchDraw = (odd.oddValue / 100);
-        } else if (odd.gameType === 'cricket_toss') {
+        if (odd.gameType === 'cricket_toss') {
           formValues.cricketToss = (odd.oddValue / 100);
         } else if (odd.gameType === 'coin_flip') {
           formValues.coinFlip = (odd.oddValue / 100);
@@ -755,33 +744,6 @@ export default function SubadminSettingsPage() {
                           <Form {...oddsForm}>
                             <form onSubmit={oddsForm.handleSubmit(onSubmitOdds)} className="space-y-4">
                               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <FormField
-                                  control={oddsForm.control}
-                                  name="teamMatch"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Team Match Win</FormLabel>
-                                      <FormControl>
-                                        <Input type="number" step="0.01" min="1.0" {...field} />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
-
-                                <FormField
-                                  control={oddsForm.control}
-                                  name="teamMatchDraw"
-                                  render={({ field }) => (
-                                    <FormItem>
-                                      <FormLabel>Team Match Draw</FormLabel>
-                                      <FormControl>
-                                        <Input type="number" step="0.01" min="1.0" {...field} />
-                                      </FormControl>
-                                      <FormMessage />
-                                    </FormItem>
-                                  )}
-                                />
                                 
                                 <FormField
                                   control={oddsForm.control}
