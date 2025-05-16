@@ -413,8 +413,17 @@ export default function UserManagementPage() {
   // Set deposit discount mutation
   const setDepositDiscountMutation = useMutation({
     mutationFn: async ({ userId, discountRate }: { userId: number; discountRate: number }) => {
+      // Only subadmins can set discounts and only for players
       if (user?.role !== UserRole.SUBADMIN) {
         throw new Error("Only subadmins can set deposit discounts");
+      }
+      
+      // Get user details to verify it's a player
+      const userRes = await apiRequest("GET", `/api/users/${userId}`);
+      const userData = await userRes.json();
+      
+      if (userData.role !== UserRole.PLAYER) {
+        throw new Error("Deposit discounts can only be set for players");
       }
       
       const res = await apiRequest("POST", `/api/subadmin/deposit-discount/${userId}`, { 
