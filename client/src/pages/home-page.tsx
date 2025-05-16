@@ -481,8 +481,8 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Jantri Management - Admin and Subadmin */}
-            {(isAdmin || isSubadmin) && (
+            {/* Jantri Management - Admin Only */}
+            {isAdmin && (
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-rose-300 hover:bg-slate-800 hover:text-rose-200"

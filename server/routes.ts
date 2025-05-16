@@ -2599,8 +2599,8 @@ app.get("/api/games/my-history", async (req, res, next) => {
     }
   });
   
-  // Jantri Management Routes
-  app.get("/api/jantri/stats", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+  // Jantri Management Routes - Admin Only
+  app.get("/api/jantri/stats", requireRole([UserRole.ADMIN]), async (req, res, next) => {
     try {
       // Get active markets
       const markets = await storage.getActiveSatamatkaMarkets();
