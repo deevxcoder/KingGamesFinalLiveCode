@@ -71,7 +71,7 @@ function Router() {
       <ProtectedRoute 
         path="/jantri-management" 
         component={JantriManagementPage}
-        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
+        allowedRoles={[UserRole.ADMIN]}
       />
       <ProtectedRoute 
         path="/fund-management" 

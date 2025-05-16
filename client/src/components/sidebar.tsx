@@ -144,12 +144,12 @@ export default function Sidebar({ activeTab }: SidebarProps = {}) {
       icon: <Wallet className="w-5 h-5 mr-3" />,
       visible: true,
     },
-    // Admin and Subadmin Management
+    // Admin Management
     {
       name: "Jantri Management",
       path: "/jantri-management",
       icon: <Calculator className="w-5 h-5 mr-3" />,
-      visible: isAdmin || isSubadmin,
+      visible: isAdmin,
     },
     {
       name: "Risk Management",
