@@ -268,6 +268,8 @@ export default function SubadminManagementPage() {
     mutationFn: async (data: Omit<z.infer<typeof createUserSchema>, "confirmPassword">) => {
       return apiRequest("POST", "/api/register", {
         username: data.username,
+        email: data.email,
+        mobile: data.mobile,
         password: data.password,
         role: UserRole.PLAYER,
         assignedTo: user?.id // Ensure created players are assigned to the current subadmin
@@ -801,6 +803,34 @@ export default function SubadminManagementPage() {
                     <FormLabel>Username</FormLabel>
                     <FormControl>
                       <Input placeholder="Enter username" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createUserForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="Enter email address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={createUserForm.control}
+                name="mobile"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mobile</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter mobile number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
