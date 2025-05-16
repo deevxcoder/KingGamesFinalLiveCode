@@ -38,7 +38,6 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // Commission schema
 const commissionSchema = z.object({
-  teamMatch: z.coerce.number().min(0).max(100),
   cricketToss: z.coerce.number().min(0).max(100),
   coinFlip: z.coerce.number().min(0).max(100),
   satamatkaJodi: z.coerce.number().min(0).max(100),
@@ -78,7 +77,6 @@ export default function SubadminCommissionManagementPage() {
   const form = useForm<Commission>({
     resolver: zodResolver(commissionSchema),
     defaultValues: {
-      teamMatch: 0,
       cricketToss: 0,
       coinFlip: 0,
       satamatkaJodi: 0,

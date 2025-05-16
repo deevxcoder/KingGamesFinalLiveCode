@@ -465,7 +465,6 @@ export default function SubadminManagementPage() {
   useEffect(() => {
     if (gameOdds && Array.isArray(gameOdds) && gameOdds.length > 0) {
       const formValues: any = {
-        teamMatch: 0,
         cricketToss: 0,
         coinFlip: 0,
         satamatkaJodi: 0,
@@ -475,9 +474,7 @@ export default function SubadminManagementPage() {
       };
 
       gameOdds.forEach((odd: any) => {
-        if (odd.gameType === 'team_match') {
-          formValues.teamMatch = (odd.oddValue / 100).toFixed(2);
-        } else if (odd.gameType === 'cricket_toss') {
+        if (odd.gameType === 'cricket_toss') {
           formValues.cricketToss = (odd.oddValue / 100).toFixed(2);
         } else if (odd.gameType === 'coin_flip') {
           formValues.coinFlip = (odd.oddValue / 100).toFixed(2);
@@ -1068,25 +1065,6 @@ export default function SubadminManagementPage() {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={gameOddsForm.control}
-                      name="teamMatch"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Team Match Odds</FormLabel>
-                          <div className="flex items-center gap-2">
-                            <FormControl>
-                              <Input type="number" min="0" step="0.01" {...field} />
-                            </FormControl>
-                            <span>x</span>
-                          </div>
-                          <FormDescription className="text-xs">
-                            Multiplier for team match bets
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
                     
                     <FormField
                       control={gameOddsForm.control}
