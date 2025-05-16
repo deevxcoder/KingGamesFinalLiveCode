@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { UserRole } from "@shared/schema";
 
 import DashboardLayout from "@/components/dashboard-layout";
 import { 
@@ -740,141 +741,157 @@ export default function SubadminSettingsPage() {
                         </div>
                       </div>
                       
-                      <div className="mt-6 border rounded-lg p-4 bg-card">
-                        <h3 className="text-lg font-medium mb-4">Edit Your Players' Game Odds</h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Modify the odds that apply to your assigned players. If you set odds higher than the platform defaults, any losses will be covered by your account.
-                        </p>
-                        
-                        <Form {...oddsForm}>
-                          <form onSubmit={oddsForm.handleSubmit(onSubmitOdds)} className="space-y-4">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                              <FormField
-                                control={oddsForm.control}
-                                name="teamMatch"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Team Match Win</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" min="1.0" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
+                      {/* Notice for subadmins about new odds permission rules */}
+                      {user?.role === UserRole.SUBADMIN && (
+                        <div className="mt-6 border rounded-lg p-4 bg-card">
+                          <Alert>
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertTitle>Game Odds Configuration Change</AlertTitle>
+                            <AlertDescription>
+                              Game odds can now only be set by the platform administrator. Please contact the administrator if you need to adjust game odds for your players.
+                            </AlertDescription>
+                          </Alert>
+                        </div>
+                      )}
+                      
+                      {/* Game odds edit form - only for admins */}
+                      {user?.role === UserRole.ADMIN && (
+                        <div className="mt-6 border rounded-lg p-4 bg-card">
+                          <h3 className="text-lg font-medium mb-4">Edit Subadmin Game Odds</h3>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Modify the odds that apply to this subadmin's assigned players. If odds are set higher than the platform defaults, any losses will be covered by the subadmin's account.
+                          </p>
+                          
+                          <Form {...oddsForm}>
+                            <form onSubmit={oddsForm.handleSubmit(onSubmitOdds)} className="space-y-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormField
+                                  control={oddsForm.control}
+                                  name="teamMatch"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Team Match Win</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" step="0.01" min="1.0" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
-                              <FormField
-                                control={oddsForm.control}
-                                name="teamMatchDraw"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Team Match Draw</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" min="1.0" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
+                                <FormField
+                                  control={oddsForm.control}
+                                  name="teamMatchDraw"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Team Match Draw</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" step="0.01" min="1.0" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={oddsForm.control}
+                                  name="cricketToss"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Cricket Toss</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" step="0.01" min="1.0" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={oddsForm.control}
+                                  name="coinFlip"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Coin Flip</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" step="0.01" min="1.0" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={oddsForm.control}
+                                  name="satamatkaJodi"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Jodi (Pair)</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" step="0.01" min="1.0" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={oddsForm.control}
+                                  name="satamatkaHarf"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Harf</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" step="0.01" min="1.0" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={oddsForm.control}
+                                  name="satamatkaOddEven"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Odd/Even</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" step="0.01" min="1.0" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                                
+                                <FormField
+                                  control={oddsForm.control}
+                                  name="satamatkaCrossing"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Crossing Bet</FormLabel>
+                                      <FormControl>
+                                        <Input type="number" step="0.01" min="1.0" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+                              </div>
                               
-                              <FormField
-                                control={oddsForm.control}
-                                name="cricketToss"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Cricket Toss</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" min="1.0" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={oddsForm.control}
-                                name="coinFlip"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Coin Flip</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" min="1.0" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={oddsForm.control}
-                                name="satamatkaJodi"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Jodi (Pair)</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" min="1.0" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={oddsForm.control}
-                                name="satamatkaHarf"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Harf</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" min="1.0" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={oddsForm.control}
-                                name="satamatkaOddEven"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Odd/Even</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" min="1.0" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                              
-                              <FormField
-                                control={oddsForm.control}
-                                name="satamatkaCrossing"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Crossing Bet</FormLabel>
-                                    <FormControl>
-                                      <Input type="number" step="0.01" min="1.0" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                            
-                            <div className="flex justify-end">
-                              <Button 
-                                type="submit" 
-                                disabled={updateOddsMutation.isPending}
-                                className="flex items-center gap-2"
-                              >
-                                {updateOddsMutation.isPending && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>}
-                                <Save className="h-4 w-4 mr-1" /> Save Game Odds
-                              </Button>
-                            </div>
-                          </form>
-                        </Form>
-                      </div>
+                              <div className="flex justify-end">
+                                <Button 
+                                  type="submit" 
+                                  disabled={updateOddsMutation.isPending}
+                                  className="flex items-center gap-2"
+                                >
+                                  {updateOddsMutation.isPending && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>}
+                                  <Save className="h-4 w-4 mr-1" /> Save Game Odds
+                                </Button>
+                              </div>
+                            </form>
+                          </Form>
+                        </div>
+                      )}
                       
                       <Alert variant="default" className="bg-muted mt-4">
                         <AlertCircle className="h-5 w-5" />
