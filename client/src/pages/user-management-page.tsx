@@ -654,8 +654,8 @@ export default function UserManagementPage() {
               </CardDescription>
             </div>
             
-            {/* Add User Button - Only shown for Subadmins */}
-            {user?.role === UserRole.SUBADMIN && (
+            {/* Add User Button - Shown for Admins and Subadmins */}
+            {(user?.role === UserRole.ADMIN || user?.role === UserRole.SUBADMIN) && (
               <Button
                 onClick={() => setIsCreateUserDialogOpen(true)}
                 className="bg-gradient-to-r from-primary to-blue-500 hover:from-primary/90 hover:to-blue-500/90"
