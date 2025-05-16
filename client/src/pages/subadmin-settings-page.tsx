@@ -232,7 +232,6 @@ export default function SubadminSettingsPage() {
         },
         body: JSON.stringify({
           commissions: [
-            { gameType: 'team_match', commissionRate: values.teamMatch },
             { gameType: 'cricket_toss', commissionRate: values.cricketToss },
             { gameType: 'coin_flip', commissionRate: values.coinFlip },
             { gameType: 'satamatka_jodi', commissionRate: values.satamatkaJodi },
@@ -279,8 +278,6 @@ export default function SubadminSettingsPage() {
         },
         body: JSON.stringify({
           odds: [
-            { gameType: 'team_match', oddValue: values.teamMatch },
-            { gameType: 'team_match_draw', oddValue: values.teamMatchDraw },
             { gameType: 'cricket_toss', oddValue: values.cricketToss },
             { gameType: 'coin_flip', oddValue: values.coinFlip },
             { gameType: 'satamatka_jodi', oddValue: values.satamatkaJodi },
@@ -332,7 +329,6 @@ export default function SubadminSettingsPage() {
         body: JSON.stringify({
           subadminId,
           discounts: [
-            { gameType: 'team_match', discountRate: values.teamMatch },
             { gameType: 'cricket_toss', discountRate: values.cricketToss },
             { gameType: 'coin_flip', discountRate: values.coinFlip },
             { gameType: 'satamatka_jodi', discountRate: values.satamatkaJodi },
