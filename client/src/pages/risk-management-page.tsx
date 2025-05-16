@@ -1348,9 +1348,7 @@ export default function RiskManagementPage() {
               <TabsContent value="cricket" className="mt-4">
                 {renderTable()}
               </TabsContent>
-              <TabsContent value="sports" className="mt-4">
-                {renderTable()}
-              </TabsContent>
+              {/* Sports tab removed - team match functionality no longer used */}
             </Tabs>
           </CardContent>
           <CardFooter className="flex flex-col sm:flex-row sm:justify-between gap-3 border-t px-6 py-4">
