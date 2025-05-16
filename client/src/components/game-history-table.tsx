@@ -134,22 +134,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                         // If market info is missing, provide a fallback with game mode
                         return `Satamatka ${game.gameMode ? `(${formatGameMode(game.gameMode)})` : ''}`;
                       }
-                    } else if (game.gameType === 'team_match') {
-                      // For Team Match games, prioritize showing team names
-                      if (game.match && game.match.teamA && game.match.teamB) {
-                        return `${game.match.teamA} vs ${game.match.teamB}`;
-                      } else if (game.gameData && game.gameData.teamA && game.gameData.teamB) {
-                        return `${game.gameData.teamA} vs ${game.gameData.teamB}`;
-                      } else {
-                        // Look for a match name in the prediction if available
-                        if (game.prediction === 'team_a' || game.prediction === 'team_b') {
-                          const teamName = formatPrediction(game.prediction, game);
-                          if (teamName && teamName !== 'Team A' && teamName !== 'Team B') {
-                            return `${teamName} Match`;
-                          }
-                        }
-                        return 'Team Match';
-                      }
+                    /* Team Match games section removed */
                     } else if (game.gameType === 'cricket_toss') {
                       // For Cricket Toss games with gameData
                       if (game.gameData && game.gameData.teamA && game.gameData.teamB) {
@@ -172,7 +157,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
                       return value === GameOutcome.HEADS
                         ? "bg-purple-900/30 text-purple-300 border-purple-500/30"
                         : "bg-cyan-900/30 text-cyan-300 border-cyan-500/30";
-                    } else if (gameType === 'team_match' || gameType === 'cricket_toss') {
+                    } else if (gameType === 'cricket_toss') {
                       if (value === 'team_a') return "bg-indigo-900/30 text-indigo-300 border-indigo-500/30";
                       if (value === 'team_b') return "bg-pink-900/30 text-pink-300 border-pink-500/30";
                       if (value === 'draw') return "bg-amber-900/30 text-amber-300 border-amber-500/30";
@@ -183,22 +168,7 @@ export default function GameHistoryTable({ games, showFullHistory = false }: Gam
 
                   // Format prediction display
                   const formatPrediction = (prediction: string, game: Game) => {
-                    // For team match games, display the actual team name
-                    if (game.gameType === 'team_match') {
-                      if (prediction === 'team_a') {
-                        // Try to get team name from match data or game data
-                        if (game.match?.teamA) return game.match.teamA;
-                        if (game.gameData?.teamA) return game.gameData.teamA;
-                        return 'Team A';
-                      }
-                      if (prediction === 'team_b') {
-                        // Try to get team name from match data or game data
-                        if (game.match?.teamB) return game.match.teamB;
-                        if (game.gameData?.teamB) return game.gameData.teamB;
-                        return 'Team B';
-                      }
-                      if (prediction === 'draw') return 'Draw';
-                    }
+                    // Team match games section removed
                     
                     // For cricket toss games, display the actual team name
                     if (game.gameType === 'cricket_toss') {

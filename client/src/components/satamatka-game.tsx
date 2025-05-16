@@ -1798,8 +1798,7 @@ function formatGameType(gameType: string): string {
       return "Satamatka";
     case "cricket_toss":
       return "Cricket Toss";
-    case "team_match":
-      return "Team Match";
+    // team_match case removed
     case "coin_flip":
       return "Coin Flip";
     default:

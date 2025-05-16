@@ -99,7 +99,7 @@ export default function GameHistoryPage() {
     switch(gameType) {
       case 'coin_flip': return 'Coin Flip';
       case 'satamatka': return 'Satamatka';
-      case 'team_match': return 'Team Match';
+      // team_match case removed
       case 'cricket_toss': return 'Cricket Toss';
       default: return gameType.replace(/_/g, ' ');
     }
