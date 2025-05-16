@@ -873,33 +873,37 @@ export default function UserManagementPage() {
                                 <Percent className="h-4 w-4" />
                               </Button>
                             )}
-                            {tableUser.isBlocked ? (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleUnblockUser(tableUser.id)}
-                                className="text-green-500 border-green-500/20 hover:bg-green-500/10"
-                                title="Unblock user"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                            ) : (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleBlockUser(tableUser.id)}
-                                className="text-red-500 border-red-500/20 hover:bg-red-500/10"
-                                title="Block user"
-                              >
-                                <Ban className="h-4 w-4" />
-                              </Button>
+                            {/* Don't show block/unblock buttons for admin users */}
+                            {tableUser.role !== UserRole.ADMIN && (
+                              tableUser.isBlocked ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleUnblockUser(tableUser.id)}
+                                  className="text-green-500 border-green-500/20 hover:bg-green-500/10"
+                                  title="Unblock user"
+                                >
+                                  <CheckCircle className="h-4 w-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleBlockUser(tableUser.id)}
+                                  className="text-red-500 border-red-500/20 hover:bg-red-500/10"
+                                  title="Block user"
+                                >
+                                  <Ban className="h-4 w-4" />
+                                </Button>
+                              )
                             )}
                             
-                            {/* Delete button - Only for admins or for subadmins' players */}
-                            {(user?.role === UserRole.ADMIN || 
+                            {/* Delete button - Only for admins or for subadmins' players, never for admin users */}
+                            {(tableUser.role !== UserRole.ADMIN && 
+                             (user?.role === UserRole.ADMIN || 
                               (user?.role === UserRole.SUBADMIN && 
                                tableUser.assignedTo === user?.id && 
-                               tableUser.role === UserRole.PLAYER)) && (
+                               tableUser.role === UserRole.PLAYER))) && (
                               <Button
                                 variant="outline"
                                 size="sm"
