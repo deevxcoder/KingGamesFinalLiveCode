@@ -73,13 +73,7 @@ export default function Sidebar({ activeTab }: SidebarProps = {}) {
       icon: <Target className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
-    // Team Match Management - Admin Only
-    {
-      name: "Manage Sports",
-      path: "/manage-teams",
-      icon: <Trophy className="w-5 h-5 mr-3" />,
-      visible: isAdmin,
-    },
+    // Team Match Management removed - functionality no longer used
     // Cricket Toss Management - Admin Only
     {
       name: "Manage Cricket Toss",
@@ -113,12 +107,7 @@ export default function Sidebar({ activeTab }: SidebarProps = {}) {
       icon: <Calendar className="w-5 h-5 mr-3" />,
       visible: isRegularUser,
     },
-    {
-      name: "Sports Betting",
-      path: "/sports",
-      icon: <Trophy className="w-5 h-5 mr-3" />,
-      visible: isRegularUser,
-    },
+    // Sports Betting removed - team match functionality no longer used
     {
       name: "Cricket Toss",
       path: "/cricket-toss",
