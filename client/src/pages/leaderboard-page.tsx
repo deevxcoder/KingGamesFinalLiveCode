@@ -317,18 +317,10 @@ export default function LeaderboardPage() {
     }
   });
 
-  const { 
-    data: teamMatchLeaderboardData = [], 
-    isLoading: isLoadingTeamMatchLeaderboard,
-    error: teamMatchLeaderboardError
-  } = useQuery({
-    queryKey: ['/api/leaderboard', timeFrame, sortBy, 'team_match'],
-    queryFn: async () => {
-      const response = await fetch(`/api/leaderboard?timeFrame=${timeFrame}&sortBy=${sortBy}&gameType=team_match`);
-      if (!response.ok) throw new Error('Failed to fetch team match leaderboard data');
-      return response.json();
-    }
-  });
+  // Team match leaderboard query removed
+  const teamMatchLeaderboardData = [];
+  const isLoadingTeamMatchLeaderboard = false;
+  const teamMatchLeaderboardError = null;
 
   // Fetch recent big wins data
   const {
@@ -701,66 +693,7 @@ export default function LeaderboardPage() {
                 </CardContent>
               </Card>
               
-              {/* Sports Betting Leaders */}
-              <Card>
-                <CardHeader className="pb-4">
-                  <CardTitle className="flex items-center">
-                    <Trophy className="h-5 w-5 mr-2 text-amber-400" />
-                    Sports Betting Leaders
-                  </CardTitle>
-                  <CardDescription>Top players in sports betting</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {isLoadingTeamMatchLeaderboard ? (
-                    <div className="py-12 flex justify-center">
-                      <div className="animate-spin h-8 w-8 border-2 border-primary rounded-full border-t-transparent"></div>
-                    </div>
-                  ) : teamMatchLeaderboardError ? (
-                    <div className="py-6 text-center text-red-400">
-                      <p>Failed to load sports betting leaderboard data.</p>
-                    </div>
-                  ) : teamMatchLeaderboardData.length === 0 ? (
-                    <div className="py-6 text-center text-slate-400">
-                      <p>No sports betting leaderboard data available.</p>
-                    </div>
-                  ) : (
-                    teamMatchLeaderboardData.slice(0, 3).map((player, index) => (
-                      <div 
-                        key={player.userId}
-                        className="flex items-center justify-between py-3 border-b border-slate-800 last:border-0"
-                      >
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full flex items-center justify-center mr-3 bg-slate-800/60">
-                            {index === 0 ? (
-                              <Trophy className="h-4 w-4 text-amber-400" />
-                            ) : index === 1 ? (
-                              <Medal className="h-4 w-4 text-slate-300" />
-                            ) : (
-                              <Award className="h-4 w-4 text-amber-700" />
-                            )}
-                          </div>
-                          <div className="flex items-center">
-                            <div className="h-10 w-10 rounded-full overflow-hidden mr-3 bg-slate-800">
-                              <img 
-                                src={player.avatar} 
-                                alt={player.username}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <div>
-                              <p className="font-medium">{player.username}</p>
-                              <p className="text-xs text-slate-400">{player.totalWins} wins • {player.winRate}% win rate</p>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="text-right font-medium">
-                          {formatCurrency(player.totalWinnings)}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </CardContent>
-              </Card>
+              {/* Sports Betting Leaders section removed */}
             </div>
           </TabsContent>
           
