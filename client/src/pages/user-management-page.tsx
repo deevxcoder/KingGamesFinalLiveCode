@@ -138,10 +138,21 @@ export default function UserManagementPage() {
     },
   });
 
+  // Search and filter states
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<string | null>(null);
+
   // Fetch users
   const { data: users = [], isLoading } = useQuery({
     queryKey: ["/api/users"],
     enabled: !!user,
+  });
+  
+  // Filter users based on search term and role filter
+  const filteredUsers = users.filter((user: any) => {
+    const matchesSearch = user.username.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = roleFilter === null || user.role === roleFilter;
+    return matchesSearch && matchesRole;
   });
   
   // Fetch user transactions
@@ -707,6 +718,45 @@ export default function UserManagementPage() {
                 Add User
               </Button>
             )}
+          </div>
+          
+          {/* Search and Filter Controls */}
+          <div className="mt-4 flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Input
+                type="text"
+                placeholder="Search by username..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-5 w-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            
+            <div className="w-full sm:w-48">
+              <Select 
+                value={roleFilter || ""} 
+                onValueChange={(value) => setRoleFilter(value === "" ? null : value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value={UserRole.ADMIN}>Admin</SelectItem>
+                  <SelectItem value={UserRole.SUBADMIN}>Subadmin</SelectItem>
+                  <SelectItem value={UserRole.PLAYER}>Player</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
