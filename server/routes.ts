@@ -2860,19 +2860,14 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
     }
   });
   
-  // Post endpoint for subadmin odds
-  app.post("/api/odds/subadmin/:subadminId", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+  // Post endpoint for subadmin odds - ADMIN ONLY
+  app.post("/api/odds/subadmin/:subadminId", requireRole([UserRole.ADMIN]), async (req, res, next) => {
     try {
       const subadminId = parseInt(req.params.subadminId);
       const { odds } = req.body;
       
       if (!Array.isArray(odds)) {
         return res.status(400).json({ message: "odds must be an array of odds settings" });
-      }
-
-      // Check if the user is authorized to access this resource
-      if (req.user.role === UserRole.SUBADMIN && req.user.id !== subadminId) {
-        return res.status(403).json({ message: "Unauthorized: You can only update your own odds settings" });
       }
       
       // Verify the subadmin exists and is actually a subadmin
