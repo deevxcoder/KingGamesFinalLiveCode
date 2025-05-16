@@ -51,8 +51,7 @@ export default function AdminSettingsPage() {
   // Game Odds Settings
   const [coinFlipOdds, setCoinFlipOdds] = useState("1.95");
   const [cricketTossOdds, setCricketTossOdds] = useState("1.90");
-  const [teamMatchOdds, setTeamMatchOdds] = useState("1.85");
-  const [teamMatchDrawOdds, setTeamMatchDrawOdds] = useState("3.00"); // Added draw multiplier
+  // Team Match odds removed
   const [satamatkaOdds, setSatamatkaOdds] = useState({
     jodi: "90.00",
     harf: "9.00",
@@ -86,7 +85,7 @@ export default function AdminSettingsPage() {
       setCommissionRates({
         coin_flip: (defaultCommissionData.coin_flip / 100)?.toString() || "2.5",
         cricket_toss: (defaultCommissionData.cricket_toss / 100)?.toString() || "3.0",
-        team_match: (defaultCommissionData.team_match / 100)?.toString() || "3.0",
+        // team_match removed
         satamatka_jodi: (defaultCommissionData.satamatka_jodi / 100)?.toString() || "3.5",
         satamatka_harf: (defaultCommissionData.satamatka_harf / 100)?.toString() || "4.0",
         satamatka_crossing: (defaultCommissionData.satamatka_crossing / 100)?.toString() || "3.0",
@@ -149,19 +148,7 @@ export default function AdminSettingsPage() {
       .then(res => res.json()),
   });
 
-  // Load team match odds
-  const { data: teamMatchOddsData } = useQuery<any[]>({
-    queryKey: ['/api/game-odds', 'team_match'],
-    queryFn: () => apiRequest("GET", '/api/game-odds?gameType=team_match')
-      .then(res => res.json()),
-  });
-  
-  // Load team match draw odds
-  const { data: teamMatchDrawOddsData } = useQuery<any[]>({
-    queryKey: ['/api/game-odds', 'team_match_draw'],
-    queryFn: () => apiRequest("GET", '/api/game-odds?gameType=team_match_draw')
-      .then(res => res.json()),
-  });
+  // Team match odds queries removed
 
   // Process coin flip odds when they load
   useEffect(() => {
@@ -181,21 +168,7 @@ export default function AdminSettingsPage() {
     }
   }, [cricketTossOddsData]);
   
-  // Process team match odds when they load
-  useEffect(() => {
-    if (teamMatchOddsData && teamMatchOddsData.length > 0) {
-      const oddValueDecimal = (teamMatchOddsData[0].oddValue / 10000).toFixed(2);
-      setTeamMatchOdds(oddValueDecimal);
-    }
-  }, [teamMatchOddsData]);
-  
-  // Process team match draw odds when they load
-  useEffect(() => {
-    if (teamMatchDrawOddsData && teamMatchDrawOddsData.length > 0) {
-      const oddValueDecimal = (teamMatchDrawOddsData[0].oddValue / 10000).toFixed(2);
-      setTeamMatchDrawOdds(oddValueDecimal);
-    }
-  }, [teamMatchDrawOddsData]);
+  // Team match odds processing removed
 
   // Load satamatka odds
   const { data: satamatkaOddsData } = useQuery<any>({
@@ -510,21 +483,7 @@ export default function AdminSettingsPage() {
       setByAdmin: true
     });
     
-    // Save Team Match odds
-    const teamMatchOddValue = Math.round(parseFloat(teamMatchOdds) * 100);
-    saveOddsMutation.mutate({
-      gameType: "team_match",
-      oddValue: teamMatchOddValue,
-      setByAdmin: true
-    });
-    
-    // Save Team Match Draw odds
-    const teamMatchDrawOddValue = Math.round(parseFloat(teamMatchDrawOdds) * 100);
-    saveOddsMutation.mutate({
-      gameType: "team_match_draw",
-      oddValue: teamMatchDrawOddValue,
-      setByAdmin: true
-    });
+    // Team match odds saving removed
     
     // Save Satamatka odds
     const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 100);
