@@ -2,14 +2,19 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { IndianRupee } from "lucide-react";
 import { Link } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
 interface BalanceCardProps {
   balance: number;
 }
 
 export default function BalanceCard({ balance }: BalanceCardProps) {
+  const { user } = useAuth();
   // Link directly to the wallet page with deposit tab pre-selected
   const walletUrl = "/wallet?tab=deposit";
+  
+  // Only show deposit button for players
+  const isPlayer = user?.role === "player";
   
   return (
     <Card className="bg-slate-900/70 shadow-lg border border-slate-800 w-full lg:w-auto">
@@ -22,15 +27,17 @@ export default function BalanceCard({ balance }: BalanceCardProps) {
             <p className="text-sm text-slate-400">Your Balance</p>
             <p className="text-xl font-bold text-fuchsia-300">₹{balance.toFixed(2)}</p>
           </div>
-          <Link href={walletUrl}>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="ml-4 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
-            >
-              Deposit
-            </Button>
-          </Link>
+          {isPlayer && (
+            <Link href={walletUrl}>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="ml-4 border-slate-700 text-slate-300 hover:bg-slate-800 hover:text-white"
+              >
+                Deposit
+              </Button>
+            </Link>
+          )}
         </div>
       </CardContent>
     </Card>
