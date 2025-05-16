@@ -707,15 +707,7 @@ export default function SubadminManagementPage() {
                                 Game Odds
                               </Button>
                               
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => openUserListDialog(subadmin)}
-                                className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
-                              >
-                                <Users className="h-4 w-4 mr-2" />
-                                View Users
-                              </Button>
+
                               
                               {subadmin.isBlocked ? (
                                 <Button
