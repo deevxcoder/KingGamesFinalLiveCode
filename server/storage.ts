@@ -63,6 +63,7 @@ export interface IStorage {
   unblockUser(userId: number): Promise<User | undefined>;
   getBlockedByUser(userId: number): Promise<number | null>;
   assignUserToAdmin(userId: number, adminId: number): Promise<User | undefined>;
+  deleteUser(userId: number): Promise<boolean>;
   
   // Game methods
   createGame(game: InsertGame): Promise<Game>;
@@ -243,6 +244,17 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, userId))
       .returning();
     return assignedUser;
+  }
+  
+  async deleteUser(userId: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users)
+        .where(eq(users.id, userId));
+      return true;
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return false;
+    }
   }
 
   // Game methods

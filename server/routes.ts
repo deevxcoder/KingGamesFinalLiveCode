@@ -497,6 +497,47 @@ app.get("/api/games/my-history", async (req, res, next) => {
       next(err);
     }
   });
+  
+  // Delete a user
+  app.delete("/api/users/:id", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const userId = parseInt(req.params.id);
+      
+      // Validate ID format
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID format" });
+      }
+      
+      // Get the user to check if it exists
+      const user = await storage.getUser(userId);
+      
+      // Check if user exists
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Only admin can delete users
+      if (req.user!.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: "Only administrators can delete users" });
+      }
+      
+      // Don't allow deleting self
+      if (user.id === req.user!.id) {
+        return res.status(403).json({ message: "Cannot delete your own account" });
+      }
+      
+      // Delete the user
+      const result = await storage.deleteUser(userId);
+      
+      if (result) {
+        return res.status(200).json({ message: "User deleted successfully" });
+      } else {
+        return res.status(500).json({ message: "Failed to delete user" });
+      }
+    } catch (err) {
+      next(err);
+    }
+  });
 
   app.patch("/api/users/:id/block", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
