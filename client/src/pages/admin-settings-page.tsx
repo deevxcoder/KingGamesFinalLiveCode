@@ -63,7 +63,7 @@ export default function AdminSettingsPage() {
   const [commissionRates, setCommissionRates] = useState({
     coin_flip: "2.5",
     cricket_toss: "3.0",
-    team_match: "3.0",
+    // team_match removed
     satamatka_jodi: "3.5",
     satamatka_harf: "4.0",
     satamatka_crossing: "3.0",
@@ -861,36 +861,7 @@ export default function AdminSettingsPage() {
                     </div>
 
                     <div>
-                      <h3 className="text-lg font-medium">Team Match Game</h3>
-                      <Separator className="my-2" />
-                      <div className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="teamMatchOdds">Win Multiplier</Label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              id="teamMatchOdds" 
-                              value={teamMatchOdds} 
-                              onChange={(e) => setTeamMatchOdds(e.target.value)} 
-                              placeholder="1.85"
-                              className="max-w-[120px]"
-                            />
-                            <span>times the bet amount</span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="teamMatchDrawOdds">Draw Multiplier</Label>
-                          <div className="flex items-center gap-2">
-                            <Input 
-                              id="teamMatchDrawOdds" 
-                              value={teamMatchDrawOdds} 
-                              onChange={(e) => setTeamMatchDrawOdds(e.target.value)} 
-                              placeholder="3.00"
-                              className="max-w-[120px]"
-                            />
-                            <span>times the bet amount</span>
-                          </div>
-                        </div>
-                      </div>
+                      {/* Team Match Game section removed */}
                     </div>
 
                     <div>
