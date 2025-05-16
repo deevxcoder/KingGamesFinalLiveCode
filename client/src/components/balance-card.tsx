@@ -13,8 +13,9 @@ export default function BalanceCard({ balance }: BalanceCardProps) {
   // Link directly to the wallet page with deposit tab pre-selected
   const walletUrl = "/wallet?tab=deposit";
   
-  // Only show deposit button for players
-  const isPlayer = user?.role === "player";
+  // Only show deposit button for players who are direct players (assigned to admin or null)
+  // Players assigned to a subadmin should not see the deposit button
+  const canDeposit = user?.role === "player" && (!user.assignedTo || user.assignedTo === 1);
   
   return (
     <Card className="bg-slate-900/70 shadow-lg border border-slate-800 w-full lg:w-auto">
@@ -27,7 +28,7 @@ export default function BalanceCard({ balance }: BalanceCardProps) {
             <p className="text-sm text-slate-400">Your Balance</p>
             <p className="text-xl font-bold text-fuchsia-300">₹{balance.toFixed(2)}</p>
           </div>
-          {isPlayer && (
+          {canDeposit && (
             <Link href={walletUrl}>
               <Button 
                 variant="outline" 

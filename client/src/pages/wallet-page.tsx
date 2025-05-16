@@ -87,8 +87,11 @@ export default function WalletPage() {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get('tab');
     
-    // Only players can access deposit/withdraw tabs
-    if (user?.role !== "player" && (tab === 'deposit' || tab === 'withdraw')) {
+    // Check if user is a direct player (assigned to admin or null)
+    const isDirectPlayer = user?.role === "player" && (!user.assignedTo || user.assignedTo === 1);
+    
+    // Only direct players can access deposit/withdraw tabs
+    if (!isDirectPlayer && (tab === 'deposit' || tab === 'withdraw')) {
       return 'balance';
     }
     
@@ -705,8 +708,8 @@ export default function WalletPage() {
             </div>
           </div>
           
-          {/* Deposit option - Only for players */}
-          {user?.role === "player" && (
+          {/* Deposit option - Only for direct players (assigned to admin or null) */}
+          {user?.role === "player" && (!user.assignedTo || user.assignedTo === 1) && (
             <div 
               className={`p-4 rounded-lg border cursor-pointer transition-all ${
                 activeTab === "deposit" 
@@ -730,8 +733,8 @@ export default function WalletPage() {
             </div>
           )}
           
-          {/* Withdraw option - Only for players */}
-          {user?.role === "player" && (
+          {/* Withdraw option - Only for direct players (assigned to admin or null) */}
+          {user?.role === "player" && (!user.assignedTo || user.assignedTo === 1) && (
             <div 
               className={`p-4 rounded-lg border cursor-pointer transition-all ${
                 activeTab === "withdraw" 
