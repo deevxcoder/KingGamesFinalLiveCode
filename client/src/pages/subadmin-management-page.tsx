@@ -766,6 +766,18 @@ export default function SubadminManagementPage() {
         </Card>
       )}
       
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteSubadmin}
+        title="Delete Subadmin"
+        description="Are you sure you want to delete this subadmin? This will also remove all associated players and data. This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
+      
       {/* Create Subadmin Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent>
