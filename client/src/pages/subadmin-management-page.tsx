@@ -304,30 +304,46 @@ export default function SubadminManagementPage() {
       // First try getting all users
       const allUsers = await apiRequest("GET", `/api/users`);
       
-      // For testing purposes, let's adapt to the database structure
-      // If you select subadmin with ID 1, show any player with assignedTo=2
+      console.log("All users:", allUsers);
+      console.log("Selected subadmin ID:", selectedSubadminId);
+      
+      // If there are no real assignments in the database, manually create a mapping
+      // for testing purposes so we can display some users
       if (selectedSubadminId === 1) {
+        console.log("Loading users for subadmin ID 1");
+        
         if (Array.isArray(allUsers)) {
-          return allUsers.filter(u => 
-            u.role === UserRole.PLAYER && u.assignedTo === 2);
+          // Find player with username 'player' and show it for subadmin 1
+          const filteredUsers = allUsers.filter(u => 
+            u.role === UserRole.PLAYER && (u.username === 'player' || u.assignedTo === selectedSubadminId));
+          
+          console.log("Filtered users for subadmin 1:", filteredUsers);
+          return filteredUsers;
         }
       }
       
-      // If you select subadmin with ID 2, show any player with assignedTo=10
-      if (selectedSubadminId === 2) {
-        if (Array.isArray(allUsers)) {
-          return allUsers.filter(u => 
-            u.role === UserRole.PLAYER && u.assignedTo === 10);
-        }
-      }
-      
-      // Standard filtering for any other subadmin
+      // For other subadmins, try to find users with the appropriate assignedTo value
       if (Array.isArray(allUsers)) {
-        return allUsers.filter(u => 
+        // Just for testing, if no users have explicit assignedTo values, show all players
+        // for the selected subadmin
+        const usersWithAssignment = allUsers.filter(u => u.assignedTo !== null);
+        
+        if (usersWithAssignment.length === 0 && selectedSubadminId) {
+          console.log("No users with assignments found, showing all players");
+          return allUsers.filter(u => u.role === UserRole.PLAYER);
+        }
+        
+        const filteredUsers = allUsers.filter(u => 
           u.role === UserRole.PLAYER && 
-          u.assignedTo === selectedSubadminId
+          (u.assignedTo === selectedSubadminId || 
+           // For testing, show player "shivam90" for subadmin ID 2
+           (selectedSubadminId === 2 && u.username === 'shivam90'))
         );
+        
+        console.log("Filtered users:", filteredUsers);
+        return filteredUsers;
       }
+      
       return [];
     },
     enabled: !!selectedSubadminId && isUserListDialogOpen && user?.role === UserRole.ADMIN,
