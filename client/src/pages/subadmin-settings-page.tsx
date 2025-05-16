@@ -200,8 +200,6 @@ export default function SubadminSettingsPage() {
   const oddsForm = useForm<OddsFormValues>({
     resolver: zodResolver(oddsFormSchema),
     defaultValues: {
-      teamMatch: 1.9,
-      teamMatchDraw: 3.0, // Added draw multiplier default
       cricketToss: 1.9,
       coinFlip: 1.9,
       satamatkaJodi: 9,
@@ -215,7 +213,6 @@ export default function SubadminSettingsPage() {
   const discountForm = useForm<DiscountFormValues>({
     resolver: zodResolver(discountFormSchema),
     defaultValues: {
-      teamMatch: 0,
       cricketToss: 0,
       coinFlip: 0,
       satamatkaJodi: 0,
