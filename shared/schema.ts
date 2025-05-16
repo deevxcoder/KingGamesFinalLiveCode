@@ -29,7 +29,8 @@ export const GameType = {
 
 export type GameTypeValue = typeof GameType[keyof typeof GameType];
 
-// Team Match results
+// Note: Team Match functionality has been removed from the application
+// These constants are kept for compatibility with existing code
 export const TeamMatchResult = {
   TEAM_A: "team_a",
   TEAM_B: "team_b",
@@ -339,22 +340,22 @@ export type WalletRequest = typeof walletRequests.$inferSelect;
 export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
 export type Transaction = typeof transactions.$inferSelect;
 
-// Team Matches Schema
+// Team Matches Schema (kept for compatibility)
 export const teamMatches = pgTable("team_matches", {
   id: serial("id").primaryKey(),
   teamA: text("team_a").notNull(),
   teamB: text("team_b").notNull(),
-  category: text("category").notNull().default(MatchCategory.CRICKET), // cricket, football, basketball, other
+  category: text("category").notNull().default(MatchCategory.CRICKET),
   description: text("description"),
   matchTime: timestamp("match_time").notNull(),
-  result: text("result").notNull().default(TeamMatchResult.PENDING), // team_a, team_b, draw, pending
-  oddTeamA: integer("odd_team_a").notNull().default(200), // 2.00 decimal odds represented as integer (200)
-  oddTeamB: integer("odd_team_b").notNull().default(200), // 2.00 decimal odds
-  oddDraw: integer("odd_draw").default(300), // 3.00 decimal odds
-  status: text("status").notNull().default("open"), // open, closed, resulted
-  teamAImage: text("team_a_image"), // URL to team A image
-  teamBImage: text("team_b_image"), // URL to team B image
-  coverImage: text("cover_image"), // URL to cover image (primarily for cricket toss matches)
+  result: text("result").notNull().default(TeamMatchResult.PENDING),
+  oddTeamA: integer("odd_team_a").notNull().default(200),
+  oddTeamB: integer("odd_team_b").notNull().default(200),
+  oddDraw: integer("odd_draw").default(300),
+  status: text("status").notNull().default("open"),
+  teamAImage: text("team_a_image"),
+  teamBImage: text("team_b_image"),
+  coverImage: text("cover_image"),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -364,7 +365,7 @@ export const insertTeamMatchSchema = createInsertSchema(teamMatches)
     teamB: true,
     category: true,
     description: true,
-    matchTime: true, // Make sure matchTime is included here
+    matchTime: true,
     result: true,
     oddTeamA: true,
     oddTeamB: true,
