@@ -113,10 +113,8 @@ export default function SubadminManagementPage() {
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
   const [isGameOddsDialogOpen, setIsGameOddsDialogOpen] = useState(false);
-  const [isUserListDialogOpen, setIsUserListDialogOpen] = useState(false);
   const [selectedSubadminId, setSelectedSubadminId] = useState<number | null>(null);
   const [selectedSubadminName, setSelectedSubadminName] = useState<string>("");
-  const [userSearchTerm, setUserSearchTerm] = useState<string>("");
   const [activeTab, setActiveTab] = useState("subadmins");
 
   const form = useForm<z.infer<typeof createSubadminSchema>>({
@@ -297,57 +295,7 @@ export default function SubadminManagementPage() {
     },
   });
   
-  // Fetch players assigned to the selected subadmin (for admin view)
-  const { data: subadminUsers = [], isLoading: isLoadingSubadminUsers, refetch: refetchSubadminUsers } = useQuery({
-    queryKey: [`/api/users?assignedTo=${selectedSubadminId}`],
-    queryFn: async () => {
-      // First try getting all users
-      const allUsers = await apiRequest("GET", `/api/users`);
-      
-      console.log("All users:", allUsers);
-      console.log("Selected subadmin ID:", selectedSubadminId);
-      
-      // If there are no real assignments in the database, manually create a mapping
-      // for testing purposes so we can display some users
-      if (selectedSubadminId === 1) {
-        console.log("Loading users for subadmin ID 1");
-        
-        if (Array.isArray(allUsers)) {
-          // Find player with username 'player' and show it for subadmin 1
-          const filteredUsers = allUsers.filter(u => 
-            u.role === UserRole.PLAYER && (u.username === 'player' || u.assignedTo === selectedSubadminId));
-          
-          console.log("Filtered users for subadmin 1:", filteredUsers);
-          return filteredUsers;
-        }
-      }
-      
-      // For other subadmins, try to find users with the appropriate assignedTo value
-      if (Array.isArray(allUsers)) {
-        // Just for testing, if no users have explicit assignedTo values, show all players
-        // for the selected subadmin
-        const usersWithAssignment = allUsers.filter(u => u.assignedTo !== null);
-        
-        if (usersWithAssignment.length === 0 && selectedSubadminId) {
-          console.log("No users with assignments found, showing all players");
-          return allUsers.filter(u => u.role === UserRole.PLAYER);
-        }
-        
-        const filteredUsers = allUsers.filter(u => 
-          u.role === UserRole.PLAYER && 
-          (u.assignedTo === selectedSubadminId || 
-           // For testing, show player "shivam90" for subadmin ID 2
-           (selectedSubadminId === 2 && u.username === 'shivam90'))
-        );
-        
-        console.log("Filtered users:", filteredUsers);
-        return filteredUsers;
-      }
-      
-      return [];
-    },
-    enabled: !!selectedSubadminId && isUserListDialogOpen && user?.role === UserRole.ADMIN,
-  });
+
   
   // Create user mutation
   const createUserMutation = useMutation({
@@ -559,73 +507,11 @@ export default function SubadminManagementPage() {
     refetchGameOdds();
   };
   
-  // Open user list dialog for a specific subadmin
-  const openUserListDialog = (subadmin: any) => {
-    setSelectedSubadminId(subadmin.id);
-    setSelectedSubadminName(subadmin.username);
-    setUserSearchTerm(""); // Reset search term when opening the dialog
-    setIsUserListDialogOpen(true);
-    refetchSubadminUsers();
-  };
-  
-  // Filter the subadmin's users based on search term
-  const filteredSubadminUsers = Array.isArray(subadminUsers) 
-    ? subadminUsers.filter((user: any) => 
-        user.username.toLowerCase().includes(userSearchTerm.toLowerCase())
-      )
-    : [];
-    
-  // Block user mutation
-  const blockUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      return await apiRequest("PATCH", `/api/users/${userId}/block`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "User blocked successfully",
-        description: "The user has been blocked",
-      });
-      refetchSubadminUsers();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to block user",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-  
-  // Unblock user mutation
-  const unblockUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
-      return await apiRequest("PATCH", `/api/users/${userId}/unblock`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "User unblocked successfully",
-        description: "The user has been unblocked",
-      });
-      refetchSubadminUsers();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Failed to unblock user",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
 
-  // Handle block user
-  const handleBlockUser = (userId: number) => {
-    blockUserMutation.mutate(userId);
-  };
   
-  // Handle unblock user
-  const handleUnblockUser = (userId: number) => {
-    unblockUserMutation.mutate(userId);
-  };
+
+    
+
 
   return (
     <DashboardLayout title="Management">
