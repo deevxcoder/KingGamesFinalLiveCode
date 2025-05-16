@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ConfirmDialog from "@/components/confirm-dialog";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -335,6 +336,8 @@ export default function UserManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      // Force refetch to update the UI
+      queryClient.refetchQueries({ queryKey: ["/api/users"] });
       toast({
         title: "User Deleted",
         description: "User has been deleted successfully",
@@ -349,10 +352,21 @@ export default function UserManagementPage() {
     }
   });
   
+  // Delete confirmation state
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+
   // Handle delete user
   const handleDeleteUser = (userId: number) => {
-    if (confirm("Are you sure you want to delete this user? This action cannot be undone.")) {
-      deleteUserMutation.mutate(userId);
+    setUserToDelete(userId);
+    setIsDeleteConfirmOpen(true);
+  };
+  
+  // Confirm delete user
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate(userToDelete);
+      setUserToDelete(null);
     }
   };
 
@@ -1177,6 +1191,18 @@ export default function UserManagementPage() {
       </Dialog>
       
       {/* Deposit Discount Dialog */}
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => setIsDeleteConfirmOpen(false)}
+        onConfirm={confirmDeleteUser}
+        title="Delete User"
+        description="Are you sure you want to delete this user? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="destructive"
+      />
+      
       <Dialog open={isDepositDiscountDialogOpen} onOpenChange={setIsDepositDiscountDialogOpen}>
         <DialogContent>
           <DialogHeader>

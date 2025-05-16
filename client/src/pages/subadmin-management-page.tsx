@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import ConfirmDialog from "@/components/confirm-dialog";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { queryClient, apiRequest } from "@/lib/queryClient";
@@ -226,6 +227,8 @@ export default function SubadminManagementPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      // Force refetch to update the UI
+      queryClient.refetchQueries({ queryKey: ["/api/users"] });
       toast({
         title: "Subadmin Deleted",
         description: "Subadmin has been deleted successfully",
@@ -240,10 +243,21 @@ export default function SubadminManagementPage() {
     }
   });
   
+  // Delete confirmation state
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [subadminToDelete, setSubadminToDelete] = useState<number | null>(null);
+
   // Handle delete subadmin
   const handleDeleteSubadmin = (userId: number) => {
-    if (confirm("Are you sure you want to delete this subadmin? This will also remove all associated players and data. This action cannot be undone.")) {
-      deleteSubadminMutation.mutate(userId);
+    setSubadminToDelete(userId);
+    setIsDeleteConfirmOpen(true);
+  };
+  
+  // Confirm delete subadmin
+  const confirmDeleteSubadmin = () => {
+    if (subadminToDelete) {
+      deleteSubadminMutation.mutate(subadminToDelete);
+      setSubadminToDelete(null);
     }
   };
 
