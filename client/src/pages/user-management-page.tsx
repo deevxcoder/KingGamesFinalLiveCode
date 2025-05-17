@@ -114,6 +114,7 @@ export default function UserManagementPage() {
   const [selectedSubadminCommissionRate, setSelectedSubadminCommissionRate] = useState<number | null>(null);
   const [isResetAccountDialogOpen, setIsResetAccountDialogOpen] = useState(false);
   const [resetConfirmationText, setResetConfirmationText] = useState("");
+  const [startingBalance, setStartingBalance] = useState<string>("");
   
   // Pagination states
   const [transactionsPage, setTransactionsPage] = useState(1);
@@ -644,6 +645,15 @@ export default function UserManagementPage() {
   const openAddFundsDialog = async (targetUser: any) => {
     setSelectedUser(targetUser);
     setAmount(0);
+    setRemark("");
+    
+    // Load saved starting balance from localStorage
+    const savedStartingBalance = localStorage.getItem(`startingBalance_${targetUser.id}`);
+    if (savedStartingBalance) {
+      setStartingBalance(savedStartingBalance);
+    } else {
+      setStartingBalance("");
+    }
     
     // If admin is opening dialog for a subadmin, fetch the commission rate
     if (targetUser?.role === UserRole.SUBADMIN && user?.role === UserRole.ADMIN) {
@@ -1150,6 +1160,27 @@ export default function UserManagementPage() {
                 </div>
               )}
             </div>
+            
+            {/* Starting Balance Reference Field */}
+            <div>
+              <Label htmlFor="starting-balance">Starting Balance Reference (Optional)</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <IndianRupee className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="starting-balance"
+                  type="number"
+                  value={startingBalance}
+                  onChange={(e) => setStartingBalance(e.target.value)}
+                  placeholder="Starting balance for reference only"
+                  min="0"
+                  step="1"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                This is for your reference only. It doesn't affect the actual transaction.
+              </p>
+            </div>
+            
             <div>
               <Label htmlFor="remark">Remark (Optional)</Label>
               <div className="flex items-center gap-2 mt-2">
