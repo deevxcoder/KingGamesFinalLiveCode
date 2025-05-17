@@ -880,8 +880,8 @@ export default function UserManagementPage() {
                               </Button>
                             )}
                             
-                            {/* Show deposit discount button for players */}
-                            {tableUser.role === UserRole.PLAYER && (
+                            {/* Show deposit discount button only for players (not for admin or subadmin) */}
+                            {tableUser.role === UserRole.PLAYER && user?.role === UserRole.SUBADMIN && (
                               <Button
                                 variant="outline"
                                 size="sm"
