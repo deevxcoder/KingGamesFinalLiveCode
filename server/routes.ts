@@ -2927,38 +2927,38 @@ app.get("/api/games/my-history", async (req, res, next) => {
         return res.status(404).json({ message: "User not found" });
       }
       
-      let odds;
+      let oddValue;
+      let resultOdds;
       
-      // If player is assigned to a subadmin, get custom odds if available
+      // If player is assigned to a subadmin, check for custom odds first
       if (user.assignedTo) {
         // First try to get subadmin-specific odds
         const subadminOdds = await storage.getGameOddsBySubadmin(user.assignedTo, gameType);
         
+        // Check if there's a valid subadmin odd that should override platform default
         if (subadminOdds && subadminOdds.length > 0) {
-          // Found subadmin-specific odds
-          odds = subadminOdds;
-          console.log(`Using subadmin (${user.assignedTo}) odds for player ${userId}, gameType ${gameType}:`, odds);
+          // Use the first valid subadmin odd (should be only one per game type)
+          const subadminOdd = subadminOdds[0];
+          console.log(`Found subadmin (${user.assignedTo}) odds for player ${userId}, gameType ${gameType}:`, subadminOdd);
+          
+          // Return only the specific subadmin odd as the override
+          resultOdds = [subadminOdd];
         } else {
           // Fall back to admin odds
-          odds = await storage.getGameOdds(gameType);
-          console.log(`Using admin odds for player ${userId}, gameType ${gameType} (subadmin ${user.assignedTo} has no custom odds):`, odds);
+          const adminOdds = await storage.getGameOdds(gameType);
+          console.log(`Using admin odds for player ${userId}, gameType ${gameType} (subadmin ${user.assignedTo} has no custom odds):`, adminOdds);
+          resultOdds = adminOdds;
         }
       } else {
         // If player is not assigned to any subadmin, use regular platform odds
-        odds = await storage.getGameOdds(gameType);
-        console.log(`Using platform odds for player ${userId}, gameType ${gameType} (not assigned to any subadmin):`, odds);
+        const platformOdds = await storage.getGameOdds(gameType);
+        console.log(`Using platform odds for player ${userId}, gameType ${gameType} (not assigned to any subadmin):`, platformOdds);
+        resultOdds = platformOdds;
       }
       
-      // Apply proper formatting for player display - don't divide by 100
-      // The oddValue needs to be formatted as is, since the client side
-      // already applies its own formatting
-      const formattedOdds = odds.map(odd => ({
-        ...odd,
-        // Don't divide by 100 here as it's already getting divided client-side
-        oddValue: odd.oddValue
-      }));
-      
-      res.json(formattedOdds);
+      // Don't modify the odd values here - return them exactly as stored
+      // The client will handle the display logic with the correct formatting
+      res.json(resultOdds);
     } catch (err) {
       console.error("Error fetching player odds:", err);
       next(err);

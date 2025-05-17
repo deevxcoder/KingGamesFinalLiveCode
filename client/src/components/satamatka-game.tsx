@@ -190,7 +190,7 @@ export default function SatamatkaGame() {
       const modes = ['jodi', 'harf', 'crossing', 'odd_even'];
       
       // This will get the odds that apply to this specific player
-      // which should include any subadmin overrides
+      // which should include any subadmin overrides if applicable
       const results = await Promise.all(
         modes.map(mode => 
           apiRequest("GET", `/api/game-odds/player?gameType=satamatka_${mode}`)
@@ -204,8 +204,10 @@ export default function SatamatkaGame() {
       
       console.log("Raw game odds data from API:", results);
       
-      // Parse the odds data - these are stored values that need to be divided by 100 in calculations
+      // Parse the odds data - these are stored values in the database (already multiplied by 100)
+      // We should only extract the oddValue without additional modification
       return { 
+        // Use first item from each result, which should now correctly return subadmin override if available
         jodi: results[0]?.[0]?.oddValue || 9000, 
         harf: results[1]?.[0]?.oddValue || 900, 
         crossing: results[2]?.[0]?.oddValue || 9500,
@@ -1194,13 +1196,13 @@ export default function SatamatkaGame() {
                     <span className="text-muted-foreground">Payout Ratio:</span>
                     <span className="font-medium ml-2">
                       {selectedGameMode === "jodi" 
-                        ? `${(gameOdds.jodi ? gameOdds.jodi / 100 : 90)}x` 
+                        ? `${(gameOdds.jodi ? (gameOdds.jodi / 100).toFixed(2) : 90)}x` 
                         : selectedGameMode === "harf" 
-                        ? `${(gameOdds.harf ? gameOdds.harf / 100 : 9)}x` 
+                        ? `${(gameOdds.harf ? (gameOdds.harf / 100).toFixed(2) : 9)}x` 
                         : selectedGameMode === "crossing" 
-                        ? `${(gameOdds.crossing ? gameOdds.crossing / 100 : 95)}x` 
+                        ? `${(gameOdds.crossing ? (gameOdds.crossing / 100).toFixed(2) : 95)}x` 
                         : selectedGameMode === "odd_even" 
-                        ? `${(gameOdds.odd_even ? gameOdds.odd_even / 100 : 1.8)}x` 
+                        ? `${(gameOdds.odd_even ? (gameOdds.odd_even / 100).toFixed(2) : 1.8)}x` 
                         : "1x"}
                     </span>
                   </div>
