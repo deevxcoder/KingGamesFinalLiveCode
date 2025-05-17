@@ -655,11 +655,27 @@ export default function UserManagementPage() {
     navigate(`/users/${user.id}`);
   };
   
-  const openCommissionDialog = (user: any) => {
+  const openCommissionDialog = async (user: any) => {
     setSelectedUser(user);
     setCommissionRate(0);
     setSelectedGameType("satamatka_jodi");
     setIsCommissionDialogOpen(true);
+    
+    // Fetch current commission rates if this is a subadmin
+    if (user.role === UserRole.SUBADMIN) {
+      try {
+        const res = await apiRequest("GET", `/api/commissions/subadmin/${user.id}`);
+        const commissions = await res.json();
+        
+        // Find the commission for the selected game type
+        const commission = commissions.find((c: any) => c.gameType === selectedGameType);
+        if (commission) {
+          setCommissionRate(commission.commissionRate / 100); // Convert from basis points to percentage
+        }
+      } catch (error) {
+        console.error("Failed to fetch subadmin commissions:", error);
+      }
+    }
   };
   
   const openDepositDiscountDialog = async (user: any) => {
