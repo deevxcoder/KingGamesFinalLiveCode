@@ -143,6 +143,20 @@ export default function ProfilePage() {
                 <div className="font-medium text-lg">{user.username}</div>
               </div>
               
+              {user.email && (
+                <div>
+                  <Label className="text-muted-foreground text-xs">Email</Label>
+                  <div className="font-medium">{user.email}</div>
+                </div>
+              )}
+              
+              {user.mobile && (
+                <div>
+                  <Label className="text-muted-foreground text-xs">Mobile</Label>
+                  <div className="font-medium">{user.mobile}</div>
+                </div>
+              )}
+              
               <div>
                 <Label className="text-muted-foreground text-xs">Role</Label>
                 <div>

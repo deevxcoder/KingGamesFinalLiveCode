@@ -98,6 +98,8 @@ export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  email: text("email"),
+  mobile: text("mobile"),
   role: text("role").notNull().default(UserRole.PLAYER), // admin, subadmin, player
   balance: integer("balance").notNull().default(0),
   assignedTo: integer("assigned_to").references(() => users.id),
@@ -109,6 +111,8 @@ export const insertUserSchema = createInsertSchema(users)
   .pick({
     username: true,
     password: true,
+    email: true,
+    mobile: true,
     role: true,
     assignedTo: true,
   })
@@ -117,6 +121,8 @@ export const insertUserSchema = createInsertSchema(users)
   })
   .partial({
     assignedTo: true,
+    email: true,
+    mobile: true,
   });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
