@@ -17,9 +17,11 @@ import {
   insertSatamatkaMarketSchema,
   insertTeamMatchSchema,
   UserRole,
-  games
+  games,
+  transactions,
+  users
 } from "@shared/schema";
-import { eq, and, gte, desc } from "drizzle-orm";
+import { eq, and, gte, desc, ne } from "drizzle-orm";
 import * as schema from "@shared/schema";
 import { setupWalletRoutes } from "./wallet-system";
 import { setupUploadRoutes } from "./upload-routes";
