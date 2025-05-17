@@ -57,7 +57,6 @@ const gameCards = [
     winRate: 50,
     gameType: "cricket" as const // Using game type for automatic image selection
   },
-  // Sports betting game card removed - team match functionality no longer used
   {
     id: "coinflip",
     title: "Coin Flip",
@@ -67,6 +66,17 @@ const gameCards = [
     popularity: "high" as const,
     winRate: 50,
     gameType: "coinflip" as const // Using game type for automatic image selection
+  },
+  {
+    id: "sportsexchange",
+    title: "Sports Exchange",
+    description: "Bet on cricket, tennis, and football matches with real-time odds.",
+    imageBg: "linear-gradient(to right, #1e293b, #2a5ca8)",
+    path: "#",
+    popularity: "upcoming" as const,
+    winRate: 0,
+    gameType: "sportsexchange" as const,
+    comingSoon: true
   }
 ];
 

@@ -19,11 +19,11 @@ interface GameCardProps {
   description: string;
   imageBg: string;
   path: string;
-  popularity?: "high" | "medium" | "low";
+  popularity?: "high" | "medium" | "low" | "upcoming";
   winRate?: number;
   comingSoon?: boolean;
   imageUrl?: string; // For direct image URL (backward compatibility)
-  gameType?: "market" | "sports" | "cricket" | "coinflip" | string; // Game type for automatic image selection
+  gameType?: "market" | "sports" | "cricket" | "coinflip" | "sportsexchange" | string; // Game type for automatic image selection
 }
 
 export default function GameCard({ 
@@ -79,6 +79,12 @@ export default function GameCard({
         return (
           <Badge variant="outline" className="bg-blue-900/30 text-blue-300 border-blue-500/30">
             Trending
+          </Badge>
+        );
+      case "upcoming":
+        return (
+          <Badge variant="outline" className="bg-purple-900/30 text-purple-300 border-purple-500/30">
+            Upcoming
           </Badge>
         );
       default:

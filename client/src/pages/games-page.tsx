@@ -39,13 +39,13 @@ const allGames = [
   {
     id: "sportsexchange",
     title: "Sports Exchange",
-    description: "Coming soon! Cricket, Tennis, and Football match betting with competitive odds.",
-    imageBg: "linear-gradient(to right, #2d3b4d, #4c6583)",
+    description: "Bet on cricket, tennis, and football matches with real-time odds.",
+    imageBg: "linear-gradient(to right, #1e293b, #2a5ca8)",
     path: "#",
-    popularity: "medium" as const,
+    popularity: "upcoming" as const,
     winRate: 0,
     comingSoon: true,
-    gameType: "sports" as const // Using game type for automatic image selection
+    gameType: "sportsexchange" as const // Using game type for automatic image selection
   },
   {
     id: "kingsoriginal",
