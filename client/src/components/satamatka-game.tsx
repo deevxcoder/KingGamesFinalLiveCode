@@ -204,7 +204,7 @@ export default function SatamatkaGame() {
       
       console.log("Raw game odds data from API:", results);
       
-      // Parse the odds data
+      // Parse the odds data - these are stored values that need to be divided by 100 in calculations
       return { 
         jodi: results[0]?.[0]?.oddValue || 9000, 
         harf: results[1]?.[0]?.oddValue || 900, 
@@ -219,6 +219,7 @@ export default function SatamatkaGame() {
   useEffect(() => {
     if (satamatkaOddsData) {
       console.log("Received Satamatka odds:", satamatkaOddsData);
+      // No need to divide here as the calculatePotentialWin function already handles division by 100
       setGameOdds(satamatkaOddsData);
     }
   }, [satamatkaOddsData]);
