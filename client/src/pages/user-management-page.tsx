@@ -560,6 +560,12 @@ export default function UserManagementPage() {
 
   const handleAddFunds = () => {
     if (!selectedUser || amount <= 0) return;
+    
+    // Save starting balance to localStorage if provided
+    if (startingBalance) {
+      localStorage.setItem(`startingBalance_${selectedUser.id}`, startingBalance);
+    }
+    
     // Convert dollar amount to cents (multiply by 100)
     updateBalanceMutation.mutate({ 
       userId: selectedUser.id, 
