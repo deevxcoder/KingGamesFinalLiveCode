@@ -942,7 +942,7 @@ export default function SatamatkaGame() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Potential win (max):</span>
-                  <span className="font-medium text-amber-500">₹{(calculatePotentialWin(selectedGameMode, quickBetAmount, gameOdds) * totalCombinations / 100).toFixed(2)}</span>
+                  <span className="font-medium text-amber-500">₹{(calculatePotentialWin(selectedGameMode, quickBetAmount, gameOdds) * totalCombinations).toFixed(2)}</span>
                 </div>
               </div>
             </div>
@@ -1366,7 +1366,7 @@ export default function SatamatkaGame() {
                       <TableCell className="font-medium">{displayNum}</TableCell>
                       <TableCell>₹{amount.toFixed(2)}</TableCell>
                       <TableCell className="text-amber-500">
-                        ₹{calculatePotentialWin(selectedGameMode, amount, gameOdds) / 100}
+                        ₹{calculatePotentialWin(selectedGameMode, amount, gameOdds).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -1466,7 +1466,7 @@ export default function SatamatkaGame() {
               <div className="text-right space-y-1">
                 <p className="text-sm font-medium text-muted-foreground">Potential Win</p>
                 <p className="text-lg font-bold text-amber-500">
-                  {betDetails ? `₹${(calculatePotentialWin(selectedGameMode, betDetails.betAmount, gameOdds) / 100).toFixed(2)}` : ''}
+                  {betDetails ? `₹${calculatePotentialWin(selectedGameMode, betDetails.betAmount, gameOdds).toFixed(2)}` : ''}
                 </p>
               </div>
             </div>
