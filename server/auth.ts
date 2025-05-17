@@ -166,10 +166,17 @@ export function setupAuth(app: Express) {
       // Remove password from the response
       const { password, ...userWithoutPassword } = user;
 
-      req.login(user, (err) => {
-        if (err) return next(err);
-        res.status(201).json(userWithoutPassword);
-      });
+      // Only auto-login if this is a self-registration (not initiated by admin/subadmin)
+      if (!req.isAuthenticated()) {
+        // Normal registration flow - log the user in
+        req.login(user, (err) => {
+          if (err) return next(err);
+          res.status(201).json({ ...userWithoutPassword, autoLogin: true });
+        });
+      } else {
+        // Admin/subadmin is creating a user - don't log in as that user
+        res.status(201).json({ ...userWithoutPassword, autoLogin: false });
+      }
     } catch (err) {
       next(err);
     }

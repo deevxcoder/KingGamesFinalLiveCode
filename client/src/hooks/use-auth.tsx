@@ -65,12 +65,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/register", credentials);
       return await res.json();
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Registration successful",
-        description: `Welcome, ${user.username}!`,
-      });
+    onSuccess: (response: SelectUser & { autoLogin?: boolean }) => {
+      // Check if this was a self-registration (autoLogin: true) or admin/subadmin creating a user (autoLogin: false)
+      if (response.autoLogin) {
+        // Set the user data in the query cache only if it's a self-registration
+        queryClient.setQueryData(["/api/user"], response);
+        toast({
+          title: "Registration successful",
+          description: `Welcome, ${response.username}!`,
+        });
+      } else {
+        // If admin/subadmin is creating a user, just show success message but don't log in
+        toast({
+          title: "User created successfully",
+          description: `The account for ${response.username} has been created.`,
+        });
+        // Refresh the user list if available
+        queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      }
     },
     onError: (error: Error) => {
       toast({
