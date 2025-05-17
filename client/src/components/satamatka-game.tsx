@@ -1196,13 +1196,13 @@ export default function SatamatkaGame() {
                     <span className="text-muted-foreground">Payout Ratio:</span>
                     <span className="font-medium ml-2">
                       {selectedGameMode === "jodi" 
-                        ? `${(gameOdds.jodi ? (gameOdds.jodi / 100).toFixed(2) : 90)}x` 
+                        ? `${(gameOdds.jodi ? 90 : 90)}x` 
                         : selectedGameMode === "harf" 
-                        ? `${(gameOdds.harf ? (gameOdds.harf / 100).toFixed(2) : 9)}x` 
+                        ? `${(gameOdds.harf ? 9 : 9)}x` 
                         : selectedGameMode === "crossing" 
-                        ? `${(gameOdds.crossing ? (gameOdds.crossing / 100).toFixed(2) : 95)}x` 
+                        ? `${(gameOdds.crossing ? 95 : 95)}x` 
                         : selectedGameMode === "odd_even" 
-                        ? `${(gameOdds.odd_even ? (gameOdds.odd_even / 100).toFixed(2) : 1.8)}x` 
+                        ? `${(gameOdds.odd_even ? 1.8 : 1.8)}x` 
                         : "1x"}
                     </span>
                   </div>
@@ -1762,39 +1762,33 @@ export default function SatamatkaGame() {
 function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record<string, number> = {}): number {
   let payoutRatio = 1;
   
-  // The odds should be converted for player display format - different from admin/platform default format
-  // Odds stored in the database are scaled by 100, and player view needs to show:
-  // - Jodi: 90x admin → 0.90x player
-  // - Harf: 9x admin → 0.09x player
-  // - Crossing: 95x admin → 0.95x player
-  // - Odd/Even: 1.9x admin → 0.02x player
-  console.log(`Game mode: ${gameMode}, Payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
+  // Determine the appropriate payout ratio based on game mode
+  // While odds are stored in the database as integers (multiplied by 100),
+  // the actual player experience should show the standard betting odds
+  console.log(`Game mode: ${gameMode}, Initial payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
   switch (gameMode) {
     case "jodi":
-      // For jodi, the admin odds are 90x, but player odds display as 0.90x (divide by 100)
-      payoutRatio = odds.jodi ? (odds.jodi / 10000) : 0.9; // Divide by 10000 to get player view
+      // For jodi, standard payout is 90x
+      payoutRatio = 90;
       break;
     case "harf":
-      payoutRatio = odds.harf ? (odds.harf / 10000) : 0.09; // Divide by 10000 to get player view
+      // For harf, standard payout is 9x
+      payoutRatio = 9;
       break;
     case "crossing":
-      payoutRatio = odds.crossing ? (odds.crossing / 10000) : 0.95; // Divide by 10000 to get player view
+      // For crossing, standard payout is 95x
+      payoutRatio = 95;
       break;
     case "odd_even":
-      payoutRatio = odds.odd_even ? (odds.odd_even / 10000) : 0.02; // Divide by 10000 to get player view
+      // For odd_even, standard payout is 1.8x
+      payoutRatio = 1.8;
       break;
   }
   
-  console.log(`Game mode: ${gameMode}, Payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
+  console.log(`Game mode: ${gameMode}, Final payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
-  // For all game modes in Satamatka, bet display is in rupees but stored as paisa
-  // Need to convert betAmount to paisa first, then multiple by ratio
-  // This ensures consistent display across all game types
-  if (gameMode === "jodi" || gameMode === "harf" || gameMode === "crossing" || gameMode === "odd_even") {
-    return Math.floor(betAmount * payoutRatio * 100);
-  }
-  
+  // Calculate the potential win amount
   return Math.floor(betAmount * payoutRatio);
 }
 
