@@ -1762,34 +1762,34 @@ export default function SatamatkaGame() {
 function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record<string, number> = {}): number {
   let payoutRatio = 1;
   
-  // Determine the appropriate payout ratio based on game mode
-  // While odds are stored in the database as integers (multiplied by 100),
-  // the actual player experience should show the standard betting odds
+  // Get the appropriate payout ratio from the database odds
+  // Odds stored in database need to be properly scaled for display
   console.log(`Game mode: ${gameMode}, Initial payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
   switch (gameMode) {
     case "jodi":
-      // For jodi, standard payout is 90x
-      payoutRatio = 90;
+      // Use standard payout of 0.9x for 100 rupee bet (90 rupee win)
+      payoutRatio = 0.9;
       break;
     case "harf":
-      // For harf, standard payout is 9x
-      payoutRatio = 9;
+      // Use standard payout of 0.09x (9 rupee win for 100 rupee bet)
+      payoutRatio = 0.09;
       break;
     case "crossing":
-      // For crossing, standard payout is 95x
-      payoutRatio = 95;
+      // Use standard payout of 0.95x
+      payoutRatio = 0.95;
       break;
     case "odd_even":
-      // For odd_even, standard payout is 1.8x
-      payoutRatio = 1.8;
+      // Use standard payout of 0.018x
+      payoutRatio = 0.018;
       break;
   }
   
   console.log(`Game mode: ${gameMode}, Final payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
   // Calculate the potential win amount
-  return Math.floor(betAmount * payoutRatio);
+  // Multiply by 100 to convert to paisa
+  return Math.floor(betAmount * payoutRatio * 100);
 }
 
 // Helper function to format game type for display
