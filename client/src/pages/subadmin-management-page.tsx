@@ -416,7 +416,7 @@ export default function SubadminManagementPage() {
   // Get game odds settings for a selected subadmin
   const { data: gameOdds, isLoading: isLoadingGameOdds, refetch: refetchGameOdds } = useQuery({
     queryKey: [`/api/game-odds/subadmin/${selectedSubadminId}`],
-    enabled: !!selectedSubadminId && isGameOddsDialogOpen,
+    enabled: !!selectedSubadminId && isGameOddsDialogOpen
   });
   
   // Update game odds mutation
@@ -497,8 +497,24 @@ export default function SubadminManagementPage() {
   const openGameOddsDialog = (subadmin: any) => {
     setSelectedSubadminId(subadmin.id);
     setSelectedSubadminName(subadmin.username);
+    
+    // Reset form to default values first
+    gameOddsForm.reset({
+      cricketToss: 0,
+      coinFlip: 0,
+      satamatkaJodi: 0,
+      satamatkaHarf: 0,
+      satamatkaOddEven: 0,
+      satamatkaCrossing: 0,
+    });
+    
+    // Then open dialog and fetch current values
     setIsGameOddsDialogOpen(true);
-    refetchGameOdds();
+    
+    // Use a timeout to ensure state updates before refetching
+    setTimeout(() => {
+      refetchGameOdds();
+    }, 100);
   };
   
 
