@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { RefreshCw } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -111,6 +112,8 @@ export default function UserManagementPage() {
   const [depositDiscountRate, setDepositDiscountRate] = useState<number>(0);
   const [selectedGameType, setSelectedGameType] = useState<string>("satamatka_jodi");
   const [selectedSubadminCommissionRate, setSelectedSubadminCommissionRate] = useState<number | null>(null);
+  const [isResetAccountDialogOpen, setIsResetAccountDialogOpen] = useState(false);
+  const [resetConfirmationText, setResetConfirmationText] = useState("");
   
   // Pagination states
   const [transactionsPage, setTransactionsPage] = useState(1);
@@ -1007,6 +1010,23 @@ export default function UserManagementPage() {
                                 title="Delete user"
                               >
                                 <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            
+                            {/* Reset button - Admin can reset any subadmin/player, Subadmin can reset only their players */}
+                            {(tableUser.role !== UserRole.ADMIN && 
+                             ((user?.role === UserRole.ADMIN) || 
+                              (user?.role === UserRole.SUBADMIN && 
+                               tableUser.assignedTo === user?.id && 
+                               tableUser.role === UserRole.PLAYER))) && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openResetAccountDialog(tableUser)}
+                                className="bg-orange-500/10 text-orange-500 border-orange-500/20 hover:bg-orange-500/20"
+                                title="Reset account"
+                              >
+                                <RefreshCw className="h-4 w-4" />
                               </Button>
                             )}
                           </div>
