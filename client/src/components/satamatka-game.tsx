@@ -1760,23 +1760,27 @@ export default function SatamatkaGame() {
 function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record<string, number> = {}): number {
   let payoutRatio = 1;
   
-  // Use odds from server if available, otherwise fall back to defaults
-  // The odds coming from the server are already multiplied by 100, so we divide by 100 to get the actual ratio
-  console.log("Calculating potential win with odds:", odds);
+  // The odds should be converted for player display format - different from admin/platform default format
+  // Odds stored in the database are scaled by 100, and player view needs to show:
+  // - Jodi: 90x admin → 0.90x player
+  // - Harf: 9x admin → 0.09x player
+  // - Crossing: 95x admin → 0.95x player
+  // - Odd/Even: 1.9x admin → 0.02x player
+  console.log(`Game mode: ${gameMode}, Payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
   switch (gameMode) {
     case "jodi":
-      // If we have server odds (which are already in the right format) use them
-      payoutRatio = odds.jodi ? (odds.jodi / 100) : 90;
+      // For jodi, the admin odds are 90x, but player odds display as 0.90x (divide by 100)
+      payoutRatio = odds.jodi ? (odds.jodi / 10000) : 0.9; // Divide by 10000 to get player view
       break;
     case "harf":
-      payoutRatio = odds.harf ? (odds.harf / 100) : 9;
+      payoutRatio = odds.harf ? (odds.harf / 10000) : 0.09; // Divide by 10000 to get player view
       break;
     case "crossing":
-      payoutRatio = odds.crossing ? (odds.crossing / 100) : 95;
+      payoutRatio = odds.crossing ? (odds.crossing / 10000) : 0.95; // Divide by 10000 to get player view
       break;
     case "odd_even":
-      payoutRatio = odds.odd_even ? (odds.odd_even / 100) : 1.8;
+      payoutRatio = odds.odd_even ? (odds.odd_even / 10000) : 0.02; // Divide by 10000 to get player view
       break;
   }
   
