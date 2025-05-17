@@ -650,7 +650,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
           if (req.user!.role === UserRole.ADMIN && isRecipientSubadmin) {
             try {
               // Import the function from wallet-system.ts
-              const { getSubadminDepositCommission } = await import('./wallet-system');
+              const { getSubadminDepositCommission } = await import('./deposit-commission-endpoint');
               
               // Get the commission rate for this subadmin (e.g., 50% = 5000)
               const commissionRate = await getSubadminDepositCommission(userId);
@@ -736,7 +736,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
           if (req.user!.role === UserRole.ADMIN && isSourceSubadmin) {
             try {
               // Import the function from wallet-system.ts
-              const { getSubadminDepositCommission } = await import('./wallet-system');
+              const { getSubadminDepositCommission } = await import('./deposit-commission-endpoint');
               
               // Get the commission rate for this subadmin (e.g., 50% = 5000)
               const commissionRate = await getSubadminDepositCommission(userId);
