@@ -356,7 +356,6 @@ export default function HomePage() {
             path="/markets"
             gradient="bg-gradient-to-r from-blue-700 to-cyan-600"
           />
-          {/* Sports Betting removed - team match functionality no longer used */}
           <GameIconCard
             id="cricket"
             title="Cricket Toss"
@@ -370,6 +369,14 @@ export default function HomePage() {
             icon={Coins}
             path="/coinflip"
             gradient="bg-gradient-to-r from-amber-700 to-yellow-600"
+          />
+          <GameIconCard
+            id="sportsexchange"
+            title="Sports Exchange"
+            icon={Target}
+            path="#"
+            gradient="bg-gradient-to-r from-slate-600 to-blue-800"
+            comingSoon={true}
           />
         </div>
       )}
