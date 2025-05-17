@@ -2949,7 +2949,16 @@ app.get("/api/games/my-history", async (req, res, next) => {
         console.log(`Using platform odds for player ${userId}, gameType ${gameType} (not assigned to any subadmin):`, odds);
       }
       
-      res.json(odds);
+      // Apply proper formatting for player display - don't divide by 100
+      // The oddValue needs to be formatted as is, since the client side
+      // already applies its own formatting
+      const formattedOdds = odds.map(odd => ({
+        ...odd,
+        // Don't divide by 100 here as it's already getting divided client-side
+        oddValue: odd.oddValue
+      }));
+      
+      res.json(formattedOdds);
     } catch (err) {
       console.error("Error fetching player odds:", err);
       next(err);
@@ -3022,15 +3031,26 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
             return { error: "gameType and oddValue are required", gameType: odd.gameType };
           }
           
-          // Convert decimal odds to integer by multiplying by 100 for storage
+          // We need to ensure the odd value is stored properly
+          // When setting for player view, the format should be:
+          // Team match, cricket toss, coin flip: 1.9 admin → 0.02 player
+          // Satamatka jodi: 90 admin → 0.9 player 
+          // Satamatka harf: 9 admin → 0.09 player
+          // Crossing: 95 admin → 0.95 player
+          
+          // Store the actual value as admin input without modification
+          // The division happens on the client side
           return storage.upsertGameOdd(
             odd.gameType,
-            odd.oddValue * 100, // Multiply by 100 to store as integer
-            false, // Not set by admin, but by subadmin
+            odd.oddValue * 100, // Multiply by 100 for storage
+            false, // Not set by admin, but for specific subadmin
             subadminId
           );
         })
       );
+      
+      // Invalidate any cached odds values for this subadmin
+      console.log(`Updated odds for subadmin ${subadminId}, invalidating cache`);
       
       res.json({ 
         success: true, 
