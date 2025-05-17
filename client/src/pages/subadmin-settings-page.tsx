@@ -741,16 +741,88 @@ export default function SubadminSettingsPage() {
                             Modify the odds that apply to this subadmin's assigned players. If odds are set higher than the platform defaults, any losses will be covered by the subadmin's account.
                           </p>
                           
+                          {/* Platform default odds vs custom subadmin odds comparison */}
+                          <div className="mb-6 p-4 bg-muted/40 rounded-md">
+                            <h4 className="text-md font-semibold mb-3">Platform Default vs Custom Odds</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <h5 className="text-sm font-medium mb-2 text-primary">Platform Default Odds</h5>
+                                <div className="space-y-1.5">
+                                  {Array.isArray(adminOdds) && adminOdds.map((odd: GameOdd) => (
+                                    <div key={odd.gameType} className="flex justify-between text-sm py-1 border-b border-border/40 last:border-0">
+                                      <span>
+                                        {odd.gameType === 'team_match' ? 'Team Match' : 
+                                         odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                         odd.gameType === 'coin_flip' ? 'Coin Flip' : 
+                                         odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
+                                         odd.gameType === 'satamatka_harf' ? 'Harf' : 
+                                         odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
+                                         odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
+                                         odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                      </span>
+                                      <span className="font-mono font-semibold">{(odd.oddValue / 100).toFixed(2)}x</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <h5 className="text-sm font-medium mb-2 text-primary">Current Subadmin Odds</h5>
+                                <div className="space-y-1.5">
+                                  {Array.isArray(subadminOdds) && subadminOdds.length > 0 ? (
+                                    subadminOdds.map((odd: GameOdd) => (
+                                      <div key={odd.gameType} className="flex justify-between text-sm py-1 border-b border-border/40 last:border-0">
+                                        <span>
+                                          {odd.gameType === 'team_match' ? 'Team Match' : 
+                                           odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                           odd.gameType === 'coin_flip' ? 'Coin Flip' : 
+                                           odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
+                                           odd.gameType === 'satamatka_harf' ? 'Harf' : 
+                                           odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
+                                           odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
+                                           odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                                        </span>
+                                        <span className="font-mono font-semibold">
+                                          {(odd.oddValue / 100).toFixed(2)}x
+                                          {/* Check if this odd is higher than the platform default */}
+                                          {adminOdds && Array.isArray(adminOdds) && adminOdds.some((adminOdd: GameOdd) => 
+                                            adminOdd.gameType === odd.gameType && adminOdd.oddValue < odd.oddValue
+                                          ) && (
+                                            <span className="ml-1 text-green-500 text-xs font-medium">↑</span>
+                                          )}
+                                        </span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <p className="text-sm text-muted-foreground italic">Using platform default odds</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="mb-4">
+                            <h4 className="text-md font-semibold">Set Custom Odds for This Subadmin</h4>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Higher odds result in bigger payouts for players but may reduce this subadmin's profit margin.
+                            </p>
+                          </div>
+                          
                           <Form {...oddsForm}>
                             <form onSubmit={oddsForm.handleSubmit(onSubmitOdds)} className="space-y-4">
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 
                                 <FormField
                                   control={oddsForm.control}
                                   name="cricketToss"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Cricket Toss</FormLabel>
+                                      <FormLabel className="flex justify-between">
+                                        <span>Cricket Toss</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          Default: {adminOdds && Array.isArray(adminOdds) && adminOdds.find((odd: GameOdd) => odd.gameType === 'cricket_toss') ? 
+                                          (adminOdds.find((odd: GameOdd) => odd.gameType === 'cricket_toss')?.oddValue || 0) / 100 : 1.9}x
+                                        </span>
+                                      </FormLabel>
                                       <FormControl>
                                         <Input type="number" step="0.01" min="1.0" {...field} />
                                       </FormControl>
@@ -764,7 +836,13 @@ export default function SubadminSettingsPage() {
                                   name="coinFlip"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Coin Flip</FormLabel>
+                                      <FormLabel className="flex justify-between">
+                                        <span>Coin Flip</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          Default: {adminOdds && Array.isArray(adminOdds) && adminOdds.find((odd: GameOdd) => odd.gameType === 'coin_flip') ? 
+                                          (adminOdds.find((odd: GameOdd) => odd.gameType === 'coin_flip')?.oddValue || 0) / 100 : 1.9}x
+                                        </span>
+                                      </FormLabel>
                                       <FormControl>
                                         <Input type="number" step="0.01" min="1.0" {...field} />
                                       </FormControl>
@@ -778,7 +856,13 @@ export default function SubadminSettingsPage() {
                                   name="satamatkaJodi"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Jodi (Pair)</FormLabel>
+                                      <FormLabel className="flex justify-between">
+                                        <span>Jodi (Pair)</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          Default: {adminOdds && Array.isArray(adminOdds) && adminOdds.find((odd: GameOdd) => odd.gameType === 'satamatka_jodi') ? 
+                                          (adminOdds.find((odd: GameOdd) => odd.gameType === 'satamatka_jodi')?.oddValue || 0) / 100 : 9}x
+                                        </span>
+                                      </FormLabel>
                                       <FormControl>
                                         <Input type="number" step="0.01" min="1.0" {...field} />
                                       </FormControl>
@@ -792,7 +876,13 @@ export default function SubadminSettingsPage() {
                                   name="satamatkaHarf"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Harf</FormLabel>
+                                      <FormLabel className="flex justify-between">
+                                        <span>Harf</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          Default: {adminOdds && Array.isArray(adminOdds) && adminOdds.find((odd: GameOdd) => odd.gameType === 'satamatka_harf') ? 
+                                          (adminOdds.find((odd: GameOdd) => odd.gameType === 'satamatka_harf')?.oddValue || 0) / 100 : 9}x
+                                        </span>
+                                      </FormLabel>
                                       <FormControl>
                                         <Input type="number" step="0.01" min="1.0" {...field} />
                                       </FormControl>
@@ -806,7 +896,13 @@ export default function SubadminSettingsPage() {
                                   name="satamatkaOddEven"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Odd/Even</FormLabel>
+                                      <FormLabel className="flex justify-between">
+                                        <span>Odd/Even</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          Default: {adminOdds && Array.isArray(adminOdds) && adminOdds.find((odd: GameOdd) => odd.gameType === 'satamatka_odd_even') ? 
+                                          (adminOdds.find((odd: GameOdd) => odd.gameType === 'satamatka_odd_even')?.oddValue || 0) / 100 : 1.9}x
+                                        </span>
+                                      </FormLabel>
                                       <FormControl>
                                         <Input type="number" step="0.01" min="1.0" {...field} />
                                       </FormControl>
@@ -820,7 +916,13 @@ export default function SubadminSettingsPage() {
                                   name="satamatkaCrossing"
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel>Crossing Bet</FormLabel>
+                                      <FormLabel className="flex justify-between">
+                                        <span>Crossing Bet</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          Default: {adminOdds && Array.isArray(adminOdds) && adminOdds.find((odd: GameOdd) => odd.gameType === 'satamatka_crossing') ? 
+                                          (adminOdds.find((odd: GameOdd) => odd.gameType === 'satamatka_crossing')?.oddValue || 0) / 100 : 9}x
+                                        </span>
+                                      </FormLabel>
                                       <FormControl>
                                         <Input type="number" step="0.01" min="1.0" {...field} />
                                       </FormControl>
@@ -837,7 +939,7 @@ export default function SubadminSettingsPage() {
                                   className="flex items-center gap-2"
                                 >
                                   {updateOddsMutation.isPending && <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full"></div>}
-                                  <Save className="h-4 w-4 mr-1" /> Save Game Odds
+                                  <Save className="h-4 w-4 mr-1" /> Save Custom Odds
                                 </Button>
                               </div>
                             </form>
