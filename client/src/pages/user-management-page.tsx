@@ -959,7 +959,7 @@ export default function UserManagementPage() {
                             )}
                             
                             {/* Show deposit discount button only for players when the logged-in user is a subadmin */}
-                            {tableUser.role === UserRole.PLAYER && user?.role === UserRole.SUBADMIN && (
+                            {tableUser.role === "player" && user?.role === "subadmin" && (
                               <Button
                                 variant="outline"
                                 size="sm"
