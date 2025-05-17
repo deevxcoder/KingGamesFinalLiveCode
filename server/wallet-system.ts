@@ -268,7 +268,7 @@ export async function reviewWalletRequest(
         );
         
         let adminDescription = '';
-        if (adminResult.rowCount > 0) {
+        if (adminResult?.rowCount && adminResult.rowCount > 0) {
           adminDescription = `${adminResult.rows[0].username} (${adminResult.rows[0].role})`;
         } else {
           adminDescription = `Admin #${adminId}`;
@@ -308,19 +308,8 @@ export async function reviewWalletRequest(
   }
 }
 
-// Helper function to get deposit commission for a subadmin
-// Note: This has been moved to deposit-commission-endpoint.ts
-// This version is kept for backward compatibility with existing code
-export async function getSubadminDepositCommission(subadminId: number): Promise<number> {
-  try {
-    // Import the function from deposit-commission-endpoint.ts to avoid code duplication
-    const { getSubadminDepositCommission: getCommission } = await import('./deposit-commission-endpoint');
-    return getCommission(subadminId);
-  } catch (error) {
-    console.error('Error getting subadmin commission rate:', error);
-    return 3000; // Default to 30% on error
-  }
-}
+// Note: 'getSubadminDepositCommission' has been moved to deposit-commission-endpoint.ts
+// We no longer define it here to avoid duplicate declarations
 
 // This function is kept for backward compatibility
 // All deposit commission endpoints are now managed in deposit-commission-endpoint.ts
@@ -685,6 +674,8 @@ export function setupWalletRoutes(app: express.Express) {
           
           if (isTargetSubadmin) {
             // Get the commission rate for this subadmin (e.g., 50% = 5000)
+            // Import from deposit-commission-endpoint.ts to get the current implementation
+            const { getSubadminDepositCommission } = await import('./deposit-commission-endpoint');
             const commissionRate = await getSubadminDepositCommission(userId);
             
             // Calculate the amount to deduct from admin (only the commission percentage)
@@ -746,6 +737,8 @@ export function setupWalletRoutes(app: express.Express) {
           
           if (isTargetSubadmin) {
             // Get the commission rate for this subadmin (e.g., 50% = 5000)
+            // Import from deposit-commission-endpoint.ts to get the current implementation
+            const { getSubadminDepositCommission } = await import('./deposit-commission-endpoint');
             const commissionRate = await getSubadminDepositCommission(userId);
             
             // Calculate the amount to add to admin (only the commission percentage)
