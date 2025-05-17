@@ -867,8 +867,8 @@ export default function UserManagementPage() {
                             >
                               <Info className="h-4 w-4" />
                             </Button>
-                            {/* Show commission button for subadmins */}
-                            {tableUser.role === UserRole.SUBADMIN && (
+                            {/* Show commission button for subadmins - only when logged in as admin */}
+                            {tableUser.role === UserRole.SUBADMIN && user?.role === UserRole.ADMIN && (
                               <Button
                                 variant="outline"
                                 size="sm"
