@@ -3,9 +3,43 @@ import express, { Request, Response, NextFunction } from 'express';
 import { UserRole, depositCommissions, users, systemSettings } from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
-// Set or update a deposit commission for a specific subadmin (using URL parameter)
+// Helper function to get deposit commission for a subadmin
+export async function getSubadminDepositCommission(subadminId: number): Promise<number> {
+  try {
+    // Fetch the deposit commission setting for this subadmin
+    const commissionResult = await db.select()
+      .from(depositCommissions)
+      .where(and(eq(depositCommissions.subadminId, subadminId), eq(depositCommissions.isActive, true)))
+      .limit(1);
+    
+    if (commissionResult.length > 0) {
+      return commissionResult[0].commissionRate;
+    }
+    
+    // If no specific commission is set, get the default value from system settings
+    const defaultSetting = await db.select()
+      .from(systemSettings)
+      .where(and(
+        eq(systemSettings.settingType, 'commission_default'),
+        eq(systemSettings.settingKey, 'deposit')
+      ))
+      .limit(1);
+      
+    if (defaultSetting.length > 0) {
+      return parseInt(defaultSetting[0].settingValue);
+    }
+    
+    // If no system default, use 30% as fallback
+    return 3000; // Default 30% commission rate
+  } catch (error) {
+    console.error('Error getting subadmin commission rate:', error);
+    return 3000; // Default to 30% on error
+  }
+}
+
+// Set up all deposit commission endpoints
 export function setupDepositCommissionEndpoints(app: express.Express) {
-  // New endpoint for subadmin to get their own deposit commission rate
+  // Endpoint for subadmin to get their own deposit commission rate
   app.get('/api/deposit-commission', async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.isAuthenticated()) {
@@ -19,40 +53,59 @@ export function setupDepositCommissionEndpoints(app: express.Express) {
       
       const subadminId = req.user.id;
       
-      // Get commission if it exists
+      // Get commission rate using the helper function
+      const commissionRate = await getSubadminDepositCommission(subadminId);
+      
+      // Get the actual commission record if it exists
       const commissionResult = await db.select()
         .from(depositCommissions)
         .where(eq(depositCommissions.subadminId, subadminId))
         .limit(1);
       
-      // Get default commission from system settings if no specific commission exists
-      let defaultCommissionRate = 0;
-      if (commissionResult.length === 0) {
-        const defaultSetting = await db.select()
-          .from(systemSettings)
-          .where(and(
-            eq(systemSettings.settingType, 'commission_default'),
-            eq(systemSettings.settingKey, 'deposit')
-          ))
-          .limit(1);
-          
-        if (defaultSetting.length > 0) {
-          defaultCommissionRate = parseInt(defaultSetting[0].settingValue);
-        }
-      }
-      
       const commission = commissionResult.length > 0 ? commissionResult[0] : null;
       
       res.json({ 
         subadminId,
-        commissionRate: commission ? commission.commissionRate : defaultCommissionRate, // Use default if not found
-        isActive: commission ? commission.isActive : true
+        commissionRate,
+        isActive: commission ? commission.isActive : true,
+        isDefault: commissionResult.length === 0
       });
     } catch (error) {
       next(error);
     }
   });
-  // GET endpoint to retrieve a subadmin's deposit commission rate
+  
+  // Admin endpoint to get all deposit commissions
+  app.get('/api/admin/deposit-commissions', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // Only admin can access this endpoint
+      if (req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: 'Forbidden - Only admins can view all deposit commissions' });
+      }
+      
+      // Get all subadmins with their deposit commissions
+      const commissions = await db.select({
+        commission: depositCommissions,
+        subadmin: {
+          id: users.id,
+          username: users.username
+        }
+      })
+      .from(depositCommissions)
+      .innerJoin(users, eq(depositCommissions.subadminId, users.id))
+      .where(eq(depositCommissions.isActive, true));
+      
+      res.json(commissions);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
+  // GET endpoint to retrieve a specific subadmin's deposit commission rate
   app.get('/api/admin/deposit-commissions/:subadminId', async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.isAuthenticated()) {
@@ -80,25 +133,27 @@ export function setupDepositCommissionEndpoints(app: express.Express) {
         return res.status(404).json({ message: 'Subadmin not found' });
       }
       
-      // Get commission if it exists
+      // Get commission rate using the helper function
+      const commissionRate = await getSubadminDepositCommission(subadminId);
+      
+      // Get the actual commission record if it exists
       const commissionResult = await db.select()
         .from(depositCommissions)
         .where(eq(depositCommissions.subadminId, subadminId))
         .limit(1);
       
-      const commission = commissionResult.length > 0 ? commissionResult[0] : null;
-      
-      res.json({ 
+      res.json({
         subadminId,
         username: userResult[0].username,
-        commissionRate: commission ? commission.commissionRate : 0, // Default to 0 if not found
-        isActive: commission ? commission.isActive : false
+        commissionRate,
+        isDefault: commissionResult.length === 0
       });
     } catch (error) {
       next(error);
     }
   });
 
+  // POST endpoint to set/update a deposit commission for a specific subadmin
   app.post('/api/admin/deposit-commissions/:subadminId', async (req: Request, res: Response, next: NextFunction) => {
     try {
       if (!req.isAuthenticated()) {
@@ -164,6 +219,74 @@ export function setupDepositCommissionEndpoints(app: express.Express) {
       });
     } catch (error) {
       next(error);
+    }
+  });
+  
+  // Generic POST endpoint for deposit commission (using request body for subadmin ID)
+  app.post('/api/admin/deposit-commissions', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+      
+      // Only admin can access this endpoint
+      if (req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: 'Forbidden - Only admins can manage deposit commissions' });
+      }
+      
+      const { subadminId, commissionRate } = req.body;
+      
+      if (!subadminId || typeof commissionRate !== 'number' || commissionRate < 0 || commissionRate > 10000) {
+        return res.status(400).json({ 
+          message: 'Invalid request data. Commission rate must be between 0 and 10000 (0% to 100%)' 
+        });
+      }
+      
+      // Verify the user is a subadmin
+      const userResult = await db.select()
+        .from(users)
+        .where(and(eq(users.id, subadminId), eq(users.role, UserRole.SUBADMIN)))
+        .limit(1);
+      
+      if (userResult.length === 0) {
+        return res.status(404).json({ message: 'Subadmin not found' });
+      }
+      
+      // Check if a commission already exists
+      const existingCommission = await db.select()
+        .from(depositCommissions)
+        .where(eq(depositCommissions.subadminId, subadminId))
+        .limit(1);
+      
+      if (existingCommission.length > 0) {
+        // Update existing commission
+        await db.update(depositCommissions)
+          .set({
+            commissionRate,
+            isActive: true,
+            updatedAt: new Date()
+          })
+          .where(eq(depositCommissions.subadminId, subadminId));
+      } else {
+        // Create new commission
+        await db.insert(depositCommissions).values({
+          subadminId,
+          commissionRate,
+          isActive: true
+        });
+      }
+      
+      res.json({ 
+        success: true, 
+        message: 'Deposit commission set successfully',
+        data: {
+          subadminId,
+          username: userResult[0].username,
+          commissionRate
+        }
+      });
+    } catch (err) {
+      next(err);
     }
   });
 }

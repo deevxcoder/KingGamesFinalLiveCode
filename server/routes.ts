@@ -21,7 +21,7 @@ import {
 } from "@shared/schema";
 import { eq, and, gte, desc } from "drizzle-orm";
 import * as schema from "@shared/schema";
-import { setupWalletRoutes, setupDepositCommissions } from "./wallet-system";
+import { setupWalletRoutes } from "./wallet-system";
 import { setupUploadRoutes } from "./upload-routes";
 import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
 import depositDiscountRouter from "./deposit-discount-endpoint";
@@ -35,14 +35,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup wallet routes for deposits and withdrawals
   setupWalletRoutes(app);
   
-  // Setup deposit commission management routes
-  setupDepositCommissions(app);
+  // Setup deposit commission management endpoints (consolidated implementation)
+  setupDepositCommissionEndpoints(app);
   
   // Setup file upload routes
   setupUploadRoutes(app);
-  
-  // Setup deposit commission endpoint for specific subadmin
-  setupDepositCommissionEndpoints(app);
   
   // Setup reset system routes
   app.use("/api/admin", resetSystemRoutes);
