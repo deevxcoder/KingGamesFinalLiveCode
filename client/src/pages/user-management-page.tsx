@@ -21,7 +21,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { RefreshCw } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -78,6 +77,7 @@ import {
   Coins,
   History,
   FileText,
+  RefreshCw,
   UserPlus,
   Loader2,
   MessageSquare,
@@ -1022,7 +1022,11 @@ export default function UserManagementPage() {
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => openResetAccountDialog(tableUser)}
+                                onClick={() => {
+                                  setSelectedUser(tableUser);
+                                  setIsResetAccountDialogOpen(true);
+                                  setResetConfirmationText("");
+                                }}
                                 className="bg-orange-500/10 text-orange-500 border-orange-500/20 hover:bg-orange-500/20"
                                 title="Reset account"
                               >
