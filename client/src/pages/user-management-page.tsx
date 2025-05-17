@@ -83,7 +83,11 @@ import {
   Percent,
   ChevronLeft,
   ChevronRight,
-  Trash2
+  Trash2,
+  AlertCircle,
+  Save,
+  Trash,
+  CreditCard
 } from "lucide-react";
 
 export default function UserManagementPage() {
