@@ -37,6 +37,17 @@ const allGames = [
     gameType: "coinflip" as const // Using game type for automatic image selection
   },
   {
+    id: "sportsexchange",
+    title: "Sports Exchange",
+    description: "Coming soon! Cricket, Tennis, and Football match betting with competitive odds.",
+    imageBg: "linear-gradient(to right, #2d3b4d, #4c6583)",
+    path: "#",
+    popularity: "medium" as const,
+    winRate: 0,
+    comingSoon: true,
+    gameType: "sports" as const // Using game type for automatic image selection
+  },
+  {
     id: "kingsoriginal",
     title: "Kings Original",
     description: "Coming soon! Our collection of premium games including Big-Small, Color, Lottery, Roulette and more.",
