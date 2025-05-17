@@ -3133,8 +3133,64 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         return res.status(403).json({ message: "Unauthorized" });
       }
       
-      const odds = await storage.getGameOddsBySubadmin(subadminId, gameType);
-      res.json(odds);
+      // Define default game types
+      const DEFAULT_GAME_TYPES = [
+        'team_match',
+        'cricket_toss',
+        'coin_flip',
+        'satamatka_jodi',
+        'satamatka_harf',
+        'satamatka_odd_even',
+        'satamatka_crossing'
+      ];
+      
+      // Get the subadmin odds
+      const subadminOddsFromDB = await storage.getGameOddsBySubadmin(subadminId);
+      console.log("Subadmin odds from DB:", subadminOddsFromDB);
+      
+      // Get admin odds for fallback
+      const adminOddsResponse = await storage.getGameOdds('');
+      const adminOdds = adminOddsResponse.filter(odd => odd.setByAdmin === true);
+      
+      // Create a complete set of odds using subadmin specific odds where available, falling back to admin odds
+      const completeOdds = [];
+      
+      for (const gameType of DEFAULT_GAME_TYPES) {
+        // Check if subadmin has specific odds for this game type
+        const subadminOdd = subadminOddsFromDB.find(odd => odd.gameType === gameType);
+        
+        if (subadminOdd) {
+          // Use subadmin specific odds, but convert from integer (stored as * 100) to decimal
+          completeOdds.push({
+            ...subadminOdd,
+            oddValue: subadminOdd.oddValue / 100
+          });
+        } else {
+          // Try to use admin odds as fallback
+          const adminOdd = adminOdds.find(odd => odd.gameType === gameType);
+          
+          if (adminOdd) {
+            // Use admin odds, but mark it as belonging to this subadmin
+            // Convert from integer (stored as * 100) to decimal
+            completeOdds.push({
+              gameType: adminOdd.gameType,
+              oddValue: adminOdd.oddValue / 100,
+              setByAdmin: false,
+              subadminId
+            });
+          } else {
+            // No admin odds either, use default values
+            completeOdds.push({
+              gameType,
+              oddValue: gameType.includes('satamatka_jodi') ? 90 : (gameType.includes('satamatka_harf') ? 9 : (gameType.includes('satamatka_crossing') ? 95 : 1.9)),
+              setByAdmin: false,
+              subadminId
+            });
+          }
+        }
+      }
+      
+      res.json(completeOdds);
     } catch (err) {
       next(err);
     }
@@ -3165,7 +3221,7 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
           // Convert decimal odds to integer by multiplying by 100 for storage
           return storage.upsertGameOdd(
             odd.gameType,
-            odd.oddValue, // Value is already multiplied by 100 in the frontend
+            odd.oddValue * 100, // Multiply by 100 to store as integer
             false, // Not set by admin, but specific to this subadmin
             subadminId
           );
