@@ -27,16 +27,6 @@ const allGames = [
     gameType: "cricket" as const // Using game type for automatic image selection
   },
   {
-    id: "sportsbetting",
-    title: "Sports Betting",
-    description: "Bet on your favorite cricket teams and matches.",
-    imageBg: "linear-gradient(to right, #2d2339, #784cb3)",
-    path: "/sports",
-    popularity: "medium" as const,
-    winRate: 36,
-    gameType: "sports" as const // Using game type for automatic image selection
-  },
-  {
     id: "coinflip",
     title: "Coin Flip",
     description: "Classic heads or tails betting with 50/50 odds for instant wins.",

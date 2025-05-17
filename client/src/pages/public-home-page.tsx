@@ -240,13 +240,13 @@ const gameCards = [
   },
   {
     id: "cricket",
-    title: "Cricket Betting",
-    description: "Bet on your favorite cricket teams and matches.",
+    title: "Cricket Toss",
+    description: "Predict the cricket match toss outcome for quick wins.",
     imageBg: "linear-gradient(135deg, #0f1729 0%, #1e293b 100%)",
-    path: "/sports", // Updated to point to sports betting page
+    path: "/cricket-toss", // Updated to point to cricket toss page
     popularity: "high" as const,
-    winRate: 42,
-    gameType: "sports" as const // Using game type for automatic image selection
+    winRate: 50,
+    gameType: "cricket" as const // Using game type for automatic image selection
   },
   {
     id: "kingsoriginal",
