@@ -3140,6 +3140,48 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
     }
   });
   
+  // POST endpoint for updating game odds for a specific subadmin
+  app.post("/api/game-odds/subadmin/:subadminId", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+    try {
+      const subadminId = Number(req.params.subadminId);
+      const { odds } = req.body;
+      
+      if (!Array.isArray(odds)) {
+        return res.status(400).json({ message: "odds must be an array of odds settings" });
+      }
+      
+      // Verify the subadmin exists and is actually a subadmin
+      const subadmin = await storage.getUser(subadminId);
+      if (!subadmin || subadmin.role !== UserRole.SUBADMIN) {
+        return res.status(400).json({ message: "Invalid subadmin ID" });
+      }
+      
+      const results = await Promise.all(
+        odds.map(async (odd) => {
+          if (!odd.gameType || odd.oddValue === undefined) {
+            return { error: "gameType and oddValue are required", gameType: odd.gameType };
+          }
+          
+          // Convert decimal odds to integer by multiplying by 100 for storage
+          return storage.upsertGameOdd(
+            odd.gameType,
+            odd.oddValue, // Value is already multiplied by 100 in the frontend
+            false, // Not set by admin, but specific to this subadmin
+            subadminId
+          );
+        })
+      );
+      
+      res.json({ 
+        success: true, 
+        message: "Game odds settings updated successfully",
+        results 
+      });
+    } catch (err) {
+      next(err);
+    }
+  });
+  
   app.post("/api/game-odds", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
     try {
       const { gameType, oddValue, setByAdmin, subadminId } = req.body;
