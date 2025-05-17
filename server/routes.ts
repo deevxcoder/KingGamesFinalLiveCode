@@ -937,6 +937,106 @@ app.get("/api/games/my-history", async (req, res, next) => {
     }
   });
 
+  // Reset user account
+  app.post("/api/users/reset-account", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    try {
+      const { userId, resetType } = req.body;
+      
+      // Validate input
+      if (!userId || !resetType) {
+        return res.status(400).json({ message: "User ID and reset type are required" });
+      }
+      
+      // Validate reset type
+      if (resetType !== "subadmin" && resetType !== "player") {
+        return res.status(400).json({ message: "Invalid reset type" });
+      }
+      
+      // Get the user to check permissions
+      const userToReset = await storage.getUser(userId);
+      
+      // Check if user exists
+      if (!userToReset) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Permissions check based on role
+      if (req.user!.role === UserRole.ADMIN) {
+        // Admins can reset any user except another admin
+        if (userToReset.role === UserRole.ADMIN) {
+          return res.status(403).json({ message: "Cannot reset admin accounts" });
+        }
+      } else if (req.user!.role === UserRole.SUBADMIN) {
+        // Subadmins can only reset players assigned to them
+        if (userToReset.role !== UserRole.PLAYER || userToReset.assignedTo !== req.user!.id) {
+          return res.status(403).json({ message: "You don't have permission to reset this user" });
+        }
+        
+        // Subadmins can only reset players, not other subadmins
+        if (resetType === "subadmin") {
+          return res.status(403).json({ message: "Subadmins can only reset player accounts" });
+        }
+      }
+      
+      // Start a transaction to perform reset operations
+      await db.transaction(async (tx) => {
+        if (resetType === "subadmin" && userToReset.role === UserRole.SUBADMIN) {
+          // For subadmin reset: Reset the subadmin and all their players
+          
+          // 1. Get all players assigned to this subadmin
+          const assignedPlayers = await storage.getUsersByAssignedTo(userId);
+          
+          // 2. Delete all transactions for subadmin and their players
+          await tx.delete(transactions)
+            .where(eq(transactions.userId, userId));
+          
+          for (const player of assignedPlayers) {
+            await tx.delete(transactions)
+              .where(eq(transactions.userId, player.id));
+              
+            // Delete all games for each player
+            await tx.delete(games)
+              .where(eq(games.userId, player.id));
+              
+            // Reset player balance to 0
+            await tx.update(users)
+              .set({ balance: 0 })
+              .where(eq(users.id, player.id));
+          }
+          
+          // 3. Reset subadmin balance to 0
+          await tx.update(users)
+            .set({ balance: 0 })
+            .where(eq(users.id, userId));
+            
+        } else if (resetType === "player" && userToReset.role === UserRole.PLAYER) {
+          // For player reset: Reset just the player's data
+          
+          // 1. Delete all transactions for this player
+          await tx.delete(transactions)
+            .where(eq(transactions.userId, userId));
+            
+          // 2. Delete all games for this player
+          await tx.delete(games)
+            .where(eq(games.userId, userId));
+            
+          // 3. Reset player balance to 0
+          await tx.update(users)
+            .set({ balance: 0 })
+            .where(eq(users.id, userId));
+        }
+      });
+      
+      res.json({ 
+        success: true, 
+        message: `Account reset successful for ${userToReset.username}` 
+      });
+    } catch (err) {
+      console.error("Error resetting account:", err);
+      next(err);
+    }
+  });
+
   // Get user statistics
   app.get("/api/users/stats", async (req, res, next) => {
     try {

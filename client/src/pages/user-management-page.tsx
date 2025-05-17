@@ -387,6 +387,51 @@ export default function UserManagementPage() {
       setUserToDelete(null);
     }
   };
+  
+  // Reset account mutation
+  const resetAccountMutation = useMutation({
+    mutationFn: async ({userId, resetType}: {userId: number, resetType: string}) => {
+      const response = await apiRequest("POST", "/api/users/reset-account", {userId, resetType});
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to reset account");
+      }
+      return await response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      
+      // Also invalidate stats and other related data
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/games"] });
+      
+      toast({
+        title: "Account Reset Successfully",
+        description: `${selectedUser?.username}'s account has been reset to a fresh state.`,
+      });
+      setIsResetAccountDialogOpen(false);
+      setResetConfirmationText("");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error Resetting Account",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Handle reset account
+  const handleResetAccount = () => {
+    if (!selectedUser || resetConfirmationText !== "RESET") return;
+    
+    const resetType = selectedUser.role === UserRole.SUBADMIN ? "subadmin" : "player";
+    resetAccountMutation.mutate({
+      userId: selectedUser.id,
+      resetType: resetType
+    });
+  };
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -1364,6 +1409,69 @@ export default function UserManagementPage() {
       </Dialog>
       
       {/* Deposit Discount Dialog */}
+      {/* Reset Account Dialog */}
+      <Dialog open={isResetAccountDialogOpen} onOpenChange={setIsResetAccountDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-center">Reset Account</DialogTitle>
+            <DialogDescription className="text-center">
+              {selectedUser && (
+                <>
+                  Reset account for <span className="font-semibold">{selectedUser.username}</span>
+                  {selectedUser.role === UserRole.SUBADMIN && (
+                    <span> (subadmin) and all players assigned to them</span>
+                  )}
+                  {selectedUser.role === UserRole.PLAYER && (
+                    <span> (player)</span>
+                  )}
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 space-y-4">
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-md text-yellow-800 dark:text-yellow-200 text-sm">
+              <p className="font-medium mb-2">This will:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Reset account balance to zero</li>
+                <li>Delete all transaction history</li>
+                <li>Clear all game play history</li>
+                {selectedUser?.role === UserRole.SUBADMIN && (
+                  <li>Reset all players assigned to this subadmin</li>
+                )}
+              </ul>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="resetConfirmation">
+                Type <span className="font-semibold">RESET</span> to confirm
+              </Label>
+              <Input 
+                id="resetConfirmation"
+                value={resetConfirmationText}
+                onChange={(e) => setResetConfirmationText(e.target.value)}
+                placeholder="RESET"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter className="flex-col sm:flex-row sm:justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsResetAccountDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleResetAccount}
+              disabled={resetConfirmationText !== "RESET"}
+            >
+              Reset Account
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         isOpen={isDeleteConfirmOpen}
