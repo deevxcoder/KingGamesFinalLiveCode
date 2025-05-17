@@ -278,12 +278,12 @@ export default function SubadminSettingsPage() {
         },
         body: JSON.stringify({
           odds: [
-            { gameType: 'cricket_toss', oddValue: values.cricketToss },
-            { gameType: 'coin_flip', oddValue: values.coinFlip },
-            { gameType: 'satamatka_jodi', oddValue: values.satamatkaJodi },
-            { gameType: 'satamatka_harf', oddValue: values.satamatkaHarf },
-            { gameType: 'satamatka_odd_even', oddValue: values.satamatkaOddEven },
-            { gameType: 'satamatka_crossing', oddValue: values.satamatkaCrossing },
+            { gameType: 'cricket_toss', oddValue: Math.round(values.cricketToss * 100) / 100 },
+            { gameType: 'coin_flip', oddValue: Math.round(values.coinFlip * 100) / 100 },
+            { gameType: 'satamatka_jodi', oddValue: Math.round(values.satamatkaJodi * 100) / 100 },
+            { gameType: 'satamatka_harf', oddValue: Math.round(values.satamatkaHarf * 100) / 100 },
+            { gameType: 'satamatka_odd_even', oddValue: Math.round(values.satamatkaOddEven * 100) / 100 },
+            { gameType: 'satamatka_crossing', oddValue: Math.round(values.satamatkaCrossing * 100) / 100 },
           ]
         }),
         credentials: 'include'
