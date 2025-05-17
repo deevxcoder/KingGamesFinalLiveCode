@@ -655,6 +655,62 @@ export default function UserManagementPage() {
     navigate(`/users/${user.id}`);
   };
   
+  // State for deposit commission dialog
+  const [isDepositCommissionDialogOpen, setIsDepositCommissionDialogOpen] = useState(false);
+  const [depositCommissionRate, setDepositCommissionRate] = useState<number>(0);
+
+  const openDepositCommissionDialog = async (user: any) => {
+    // Only for subadmins
+    if (user.role !== UserRole.SUBADMIN) {
+      toast({
+        title: "Action not allowed",
+        description: "Deposit commission can only be set for subadmins",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setSelectedUser(user);
+    setDepositCommissionRate(0);
+    setIsDepositCommissionDialogOpen(true);
+    
+    // Fetch the current deposit commission rate for this subadmin
+    try {
+      const res = await apiRequest("GET", `/api/subadmin/${user.id}/deposit-commission`);
+      const data = await res.json();
+      if (data && data.commissionRate !== undefined) {
+        setDepositCommissionRate(data.commissionRate / 100); // Convert from basis points to percentage
+      }
+    } catch (error) {
+      console.error("Failed to fetch deposit commission:", error);
+    }
+  };
+  
+  const handleSetDepositCommission = () => {
+    if (!selectedUser || depositCommissionRate < 0 || depositCommissionRate > 100) return;
+    
+    // Convert percentage to basis points (e.g., 5% -> 500)
+    const rateInBasisPoints = Math.round(depositCommissionRate * 100);
+    
+    apiRequest("POST", `/api/subadmin/${selectedUser.id}/deposit-commission`, {
+      commissionRate: rateInBasisPoints
+    })
+    .then(() => {
+      setIsDepositCommissionDialogOpen(false);
+      toast({
+        title: "Deposit Commission Updated",
+        description: `Deposit commission for ${selectedUser.username} has been updated successfully.`,
+      });
+    })
+    .catch(error => {
+      toast({
+        title: "Error",
+        description: `Failed to update deposit commission: ${error.message}`,
+        variant: "destructive",
+      });
+    });
+  };
+
   const openCommissionDialog = async (user: any) => {
     setSelectedUser(user);
     setCommissionRate(0);
@@ -883,13 +939,13 @@ export default function UserManagementPage() {
                             >
                               <Info className="h-4 w-4" />
                             </Button>
-                            {/* Show commission button for subadmins - only when logged in as admin */}
+                            {/* Show deposit commission button for subadmins - only when logged in as admin */}
                             {tableUser.role === UserRole.SUBADMIN && user?.role === UserRole.ADMIN && (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => openCommissionDialog(tableUser)}
-                                title="Set Commission"
+                                onClick={() => openDepositCommissionDialog(tableUser)}
+                                title="Set Deposit Commission"
                                 className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
                               >
                                 <Percent className="h-4 w-4" />
@@ -1326,6 +1382,61 @@ export default function UserManagementPage() {
             </Button>
             <Button onClick={handleSetDepositDiscount}>
               Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Deposit Commission Dialog for Subadmins */}
+      <Dialog open={isDepositCommissionDialogOpen} onOpenChange={setIsDepositCommissionDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Deposit Commission Settings</DialogTitle>
+            <DialogDescription>
+              Configure deposit commission rate for {selectedUser?.username}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="bg-secondary/50 p-4 rounded-lg space-y-2">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-primary" />
+                <span className="font-medium">Important information</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                This commission rate determines the percentage applied during fund transfers between admin and subadmin:
+              </p>
+              <ul className="list-disc pl-5 text-sm text-muted-foreground space-y-1">
+                <li>When admin adds funds to subadmin: Full amount goes to subadmin but only commission percentage is deducted from admin.</li>
+                <li>When admin removes funds from subadmin: Full amount is removed from subadmin but only commission percentage is added to admin.</li>
+              </ul>
+            </div>
+            
+            <div>
+              <Label htmlFor="deposit-commission-rate">Deposit Commission Rate</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <Input
+                  id="deposit-commission-rate"
+                  type="number"
+                  value={depositCommissionRate}
+                  onChange={(e) => setDepositCommissionRate(Number(e.target.value))}
+                  placeholder="0"
+                  min="0"
+                  max="100"
+                />
+                <span className="text-muted-foreground">%</span>
+              </div>
+              <p className="text-sm text-muted-foreground mt-2">
+                Set the commission rate between 0% and 100%.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDepositCommissionDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSetDepositCommission} className="flex items-center gap-2">
+              <Save className="h-4 w-4" />
+              Save Commission Settings
             </Button>
           </DialogFooter>
         </DialogContent>
