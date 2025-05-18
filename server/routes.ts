@@ -346,8 +346,34 @@ app.get("/api/games/my-history", async (req, res, next) => {
         userWinProbability = Math.min(userWinProbability, MAX_WIN_PROBABILITY);
       }
       
-      // Determine if user wins based on dynamic probability
-      const userWins = Math.random() < userWinProbability;
+      // Check if user has less than 5 games and is betting high amounts
+      const coinFlipGames = await db.query.games.findMany({
+        where: and(
+          eq(games.userId, user.id),
+          eq(games.gameType, GameType.COIN_FLIP)
+        ),
+        orderBy: [desc(games.createdAt)]
+      });
+      
+      // Check if this is one of the user's first 5 games
+      const isInFirstFiveGames = coinFlipGames.length < 5;
+      
+      // Calculate total bet amount in first games (including current bet)
+      let totalBetAmount = betAmount;
+      if (isInFirstFiveGames) {
+        totalBetAmount += coinFlipGames.reduce((sum, game) => sum + game.betAmount, 0);
+      }
+      
+      // Force loss if betting more than 1000 Rs in first 5 games
+      let forceHighBetLoss = false;
+      if (isInFirstFiveGames && totalBetAmount > 100000) { // 1000 Rs in cents
+        forceHighBetLoss = true;
+        console.log(`High bet detected in first 5 games: ${totalBetAmount/100} Rs - Forcing loss for user ${user.username}`);
+        userWinProbability = 0; // Set win probability to 0 for logging purposes
+      }
+      
+      // Determine if user wins based on dynamic probability (unless we're forcing a loss)
+      const userWins = forceHighBetLoss ? false : Math.random() < userWinProbability;
       
       // Set result based on user's prediction and whether they win
       // If user prediction is HEADS and they win, result is HEADS
