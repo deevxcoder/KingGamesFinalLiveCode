@@ -1134,9 +1134,22 @@ export default function SatamatkaGame() {
                 </div>
                 <p className="font-bold text-xl">ODD</p>
                 {selectedNumbers.has("odd") && (
-                  <div className="mt-3 flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                    <div className="h-4 w-4 mr-1 text-green-600">✓</div>
-                    <span className="text-sm font-medium">₹{selectedNumbers.get("odd")}</span>
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <div className="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                      <div className="h-4 w-4 mr-1 text-green-600">✓</div>
+                      <span className="text-sm font-medium">₹{selectedNumbers.get("odd")}</span>
+                    </div>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      className="mt-1 text-xs px-2 py-0 h-7"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeNumberSelection("odd");
+                      }}
+                    >
+                      Remove
+                    </Button>
                   </div>
                 )}
               </CardContent>
@@ -1154,9 +1167,22 @@ export default function SatamatkaGame() {
                 </div>
                 <p className="font-bold text-xl">EVEN</p>
                 {selectedNumbers.has("even") && (
-                  <div className="mt-3 flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
-                    <div className="h-4 w-4 mr-1 text-green-600">✓</div>
-                    <span className="text-sm font-medium">₹{selectedNumbers.get("even")}</span>
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <div className="flex items-center bg-green-100 text-green-800 px-3 py-1 rounded-full">
+                      <div className="h-4 w-4 mr-1 text-green-600">✓</div>
+                      <span className="text-sm font-medium">₹{selectedNumbers.get("even")}</span>
+                    </div>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      className="mt-1 text-xs px-2 py-0 h-7"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeNumberSelection("even");
+                      }}
+                    >
+                      Remove
+                    </Button>
                   </div>
                 )}
               </CardContent>
