@@ -377,14 +377,14 @@ app.get("/api/games/my-history", async (req, res, next) => {
             
           if (subadminOdds && subadminOdds.length > 0) {
             // Use subadmin odds
-            multiplier = subadminOdds[0].oddValue / 100; // Convert from stored integer (195) to decimal (1.95)
+            multiplier = subadminOdds[0].oddValue / 10000; // Convert from stored integer (70000) to decimal (7.00)
             console.log(`Using custom subadmin odds for player ${user.id}: ${multiplier}x`)
           } else {
             // No subadmin-specific odds, check admin odds
             const adminOdds = await storage.getGameOdds('coin_flip');
             const adminOdd = adminOdds.find(odd => odd.setByAdmin === true);
             if (adminOdd) {
-              multiplier = adminOdd.oddValue / 100;
+              multiplier = adminOdd.oddValue / 10000;
             }
           }
         } else {
@@ -392,7 +392,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
           const adminOdds = await storage.getGameOdds('coin_flip');
           const adminOdd = adminOdds.find(odd => odd.setByAdmin === true);
           if (adminOdd) {
-            multiplier = adminOdd.oddValue / 100;
+            multiplier = adminOdd.oddValue / 10000;
           }
         }
       } catch (error) {
