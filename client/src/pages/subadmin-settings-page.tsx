@@ -712,7 +712,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
-                                      <span className="text-lg font-mono font-bold">{(odd.oddValue / 10000).toFixed(2)}x</span>
+                                      <span className="text-lg font-mono font-bold">{(odd.oddValue / 100).toFixed(2)}x</span>
                                     </div>
                                   ))}
                                 </div>
@@ -770,7 +770,7 @@ export default function SubadminSettingsPage() {
                                         <div key={odd.gameType} className="flex justify-between items-center py-3 border-b border-purple-800 last:border-0">
                                           <span className="text-white">{formatGameType(odd.gameType)}</span>
                                           <span className="text-lg font-mono font-bold text-white">
-                                            {(odd.oddValue / 10000).toFixed(2)}x
+                                            {(odd.oddValue / 100).toFixed(2)}x
                                           </span>
                                         </div>
                                       ))
