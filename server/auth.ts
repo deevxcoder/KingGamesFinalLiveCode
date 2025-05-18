@@ -1,12 +1,13 @@
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
-import { Express } from "express";
+import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import { scrypt, timingSafeEqual, randomBytes } from "crypto";
 import { promisify } from "util";
 import * as bcryptjs from "bcryptjs";
 import { storage } from "./storage";
 import { User as SelectUser, UserRole } from "@shared/schema";
+import { AuthInfo } from "passport";
 
 // Promisify the scrypt function
 const scryptAsync = promisify(scrypt);
@@ -24,7 +25,7 @@ export async function hashPassword(password: string) {
   return `${buf.toString('hex')}.${salt}`;
 }
 
-async function comparePasswords(supplied: string, stored: string) {
+export async function comparePasswords(supplied: string, stored: string) {
   try {
     // Ensure we have valid inputs
     if (!supplied || !stored) {
@@ -32,7 +33,7 @@ async function comparePasswords(supplied: string, stored: string) {
       return false;
     }
 
-    // Check for bcrypt format first (most common case)
+    // Check for bcrypt format first
     if (stored.startsWith('$2a$') || stored.startsWith('$2b$') || stored.startsWith('$2y$')) {
       try {
         console.log("Checking bcrypt password format");
@@ -55,16 +56,20 @@ async function comparePasswords(supplied: string, stored: string) {
         }
         
         const [hashedPart, salt] = parts;
+        console.log(`Processing hash: ${hashedPart.substring(0, 10)}... with salt: ${salt.substring(0, 8)}...`);
+        
         const hashedBuf = Buffer.from(hashedPart, 'hex');
         const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
         
         // Ensure buffers are same length before comparison to avoid error
         if (hashedBuf.length !== suppliedBuf.length) {
-          console.log("Buffer length mismatch in crypto.scrypt compare");
+          console.log(`Buffer length mismatch: stored=${hashedBuf.length}, supplied=${suppliedBuf.length}`);
           return false;
         }
         
-        return timingSafeEqual(hashedBuf, suppliedBuf);
+        const result = timingSafeEqual(hashedBuf, suppliedBuf);
+        console.log("Crypto.scrypt comparison result:", result ? "success" : "failed");
+        return result;
       } catch (err) {
         console.error('Error comparing crypto.scrypt password:', err);
         return false;
@@ -103,9 +108,19 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(async (username, password, done) => {
       try {
+        console.log(`Authenticating user: ${username}`);
         const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false);
+        
+        if (!user) {
+          console.log(`User not found: ${username}`);
+          return done(null, false, { message: "Invalid username or password" });
+        }
+        
+        const passwordMatch = await comparePasswords(password, user.password);
+        console.log(`Password verification result: ${passwordMatch ? "success" : "failed"}`);
+        
+        if (!passwordMatch) {
+          return done(null, false, { message: "Invalid username or password" });
         }
         
         if (user.isBlocked) {
@@ -114,6 +129,7 @@ export function setupAuth(app: Express) {
 
         return done(null, user);
       } catch (err) {
+        console.error("Authentication error:", err);
         return done(err);
       }
     }),
@@ -182,7 +198,7 @@ export function setupAuth(app: Express) {
   app.post("/api/login", (req, res, next) => {
     console.log("Login attempt:", req.body.username);
     
-    passport.authenticate("local", (err, user, info) => {
+    passport.authenticate("local", (err: Error | null, user: Express.User | false, info?: AuthInfo) => {
       if (err) {
         console.log("Authentication error:", err);
         return next(err);
@@ -195,15 +211,15 @@ export function setupAuth(app: Express) {
         });
       }
       
-      console.log("Authentication successful for:", user.username);
+      console.log("Authentication successful for:", (user as SelectUser).username);
       
-      req.login(user, (err) => {
+      req.login(user, (err: Error | null) => {
         if (err) {
           console.log("Login error:", err);
           return next(err);
         }
         // Remove password from the response
-        const { password, ...userWithoutPassword } = user;
+        const { password, ...userWithoutPassword } = user as SelectUser;
         console.log("Login successful, sending response");
         res.status(200).json(userWithoutPassword);
       });
