@@ -825,7 +825,7 @@ export default function AdminSettingsPage() {
                         <div className="flex items-center gap-2">
                           <Input 
                             id="coinFlipOdds" 
-                            value={(Number(coinFlipOdds) / 10000)} 
+                            value={Number(coinFlipOdds) / 10000} 
                             onChange={(e) => setCoinFlipOdds(Math.round(parseFloat(e.target.value) * 10000).toString())} 
                             placeholder="1.95"
                             type="number"
@@ -845,7 +845,7 @@ export default function AdminSettingsPage() {
                         <div className="flex items-center gap-2">
                           <Input 
                             id="cricketTossOdds" 
-                            value={(Number(cricketTossOdds) / 10000)} 
+                            value={Number(cricketTossOdds) / 10000} 
                             onChange={(e) => setCricketTossOdds(Math.round(parseFloat(e.target.value) * 10000).toString())} 
                             placeholder="1.90"
                             type="number"
@@ -870,7 +870,7 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-jodi" 
-                              value={(Number(satamatkaOdds.jodi) / 10000)} 
+                              value={Number(satamatkaOdds.jodi) / 10000} 
                               onChange={(e) => setSatamatkaOdds({...satamatkaOdds, jodi: Math.round(parseFloat(e.target.value) * 10000).toString()})} 
                               placeholder="90"
                               type="number"
@@ -885,7 +885,7 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-harf" 
-                              value={(Number(satamatkaOdds.harf) / 10000)} 
+                              value={Number(satamatkaOdds.harf) / 10000} 
                               onChange={(e) => setSatamatkaOdds({...satamatkaOdds, harf: Math.round(parseFloat(e.target.value) * 10000).toString()})} 
                               placeholder="9"
                               type="number"
@@ -900,7 +900,7 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-crossing" 
-                              value={(Number(satamatkaOdds.crossing) / 10000)} 
+                              value={Number(satamatkaOdds.crossing) / 10000} 
                               onChange={(e) => setSatamatkaOdds({...satamatkaOdds, crossing: Math.round(parseFloat(e.target.value) * 10000).toString()})} 
                               placeholder="95"
                               type="number"
@@ -915,7 +915,7 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-odd-even" 
-                              value={(Number(satamatkaOdds.odd_even) / 10000)} 
+                              value={Number(satamatkaOdds.odd_even) / 10000} 
                               onChange={(e) => setSatamatkaOdds({...satamatkaOdds, odd_even: Math.round(parseFloat(e.target.value) * 10000).toString()})} 
                               placeholder="1.9"
                               type="number"
