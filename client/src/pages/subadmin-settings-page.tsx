@@ -656,27 +656,25 @@ export default function SubadminSettingsPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                           <h3 className="text-lg font-medium mb-4">Platform Default Odds</h3>
-                          {adminOdds && Array.isArray(adminOdds) && adminOdds.length > 0 ? (
+                          {isLoadingAdminOdds ? (
+                            <Card className="bg-muted/30">
+                              <CardContent className="p-6 flex justify-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                              </CardContent>
+                            </Card>
+                          ) : adminOdds && Array.isArray(adminOdds) && adminOdds.length > 0 ? (
                             <Card className="bg-muted/30">
                               <CardContent className="pt-6">
                                 <div className="space-y-2">
-                                  {Array.isArray(adminOdds) && adminOdds
+                                  {adminOdds
                                     .filter((odd: GameOdd) => 
                                       odd.gameType !== 'team_match' && 
                                       odd.gameType !== 'team_match_draw'
                                     )
                                     .map((odd: GameOdd) => (
                                     <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
-                                      <span className="font-medium">
-                                        {odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
-                                         odd.gameType === 'coin_flip' ? 'Coin Flip' : 
-                                         odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
-                                         odd.gameType === 'satamatka_harf' ? 'Harf' : 
-                                         odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                         odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
-                                         odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                                      </span>
-                                      <span className="text-lg font-mono font-bold">{(odd.oddValue / 10000).toFixed(2)}x</span>
+                                      <span className="font-medium">{formatGameType(odd.gameType)}</span>
+                                      <span className="text-lg font-mono font-bold">{(odd.oddValue).toFixed(2)}x</span>
                                     </div>
                                   ))}
                                 </div>
@@ -693,26 +691,24 @@ export default function SubadminSettingsPage() {
                         
                         <div>
                           <h3 className="text-lg font-medium mb-4">Your Players' Game Odds</h3>
-                          {subadminOdds && Array.isArray(subadminOdds) && subadminOdds.length > 0 ? (
+                          {isLoadingSubadminOdds ? (
+                            <Card className="bg-muted/30">
+                              <CardContent className="p-6 flex justify-center">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                              </CardContent>
+                            </Card>
+                          ) : subadminOdds && Array.isArray(subadminOdds) && subadminOdds.length > 0 ? (
                             <Card className="bg-muted/30">
                               <CardContent className="pt-6">
                                 <div className="space-y-2">
-                                  {Array.isArray(subadminOdds) && subadminOdds
+                                  {subadminOdds
                                     .filter((odd: GameOdd) => 
                                       odd.gameType !== 'team_match' && 
                                       odd.gameType !== 'team_match_draw'
                                     )
                                     .map((odd: GameOdd) => (
                                     <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
-                                      <span className="font-medium">
-                                        {odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
-                                         odd.gameType === 'coin_flip' ? 'Coin Flip' : 
-                                         odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
-                                         odd.gameType === 'satamatka_harf' ? 'Harf' : 
-                                         odd.gameType === 'satamatka_odd_even' ? 'Odd/Even' : 
-                                         odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
-                                         odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                                      </span>
+                                      <span className="font-medium">{formatGameType(odd.gameType)}</span>
                                       <span className="text-lg font-mono font-bold">{(odd.oddValue / 10000).toFixed(2)}x</span>
                                     </div>
                                   ))}
@@ -771,7 +767,7 @@ export default function SubadminSettingsPage() {
                                         <div key={odd.gameType} className="flex justify-between items-center py-3 border-b border-purple-800 last:border-0">
                                           <span className="text-white">{formatGameType(odd.gameType)}</span>
                                           <span className="text-lg font-mono font-bold text-white">
-                                            {(odd.oddValue / 10000).toFixed(2)}x
+                                            {odd.oddValue.toFixed(2)}x
                                           </span>
                                         </div>
                                       ))
