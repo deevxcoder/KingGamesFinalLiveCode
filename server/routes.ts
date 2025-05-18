@@ -2980,16 +2980,16 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         const adminOdd = odds.find(odd => odd.setByAdmin === true);
         
         if (adminOdd) {
-          // Convert from integer (stored as * 100) to decimal for display
+          // Convert from integer (stored as * 10000) to decimal for display
           adminOdds.push({
             ...adminOdd,
-            oddValue: adminOdd.oddValue / 100
+            oddValue: adminOdd.oddValue / 10000
           });
         } else {
           // Add default odds if no admin odds are set
           adminOdds.push({
             gameType,
-            oddValue: gameType.includes('satamatka_jodi') ? 90 : (gameType.includes('satamatka_harf') ? 9 : (gameType.includes('satamatka_crossing') ? 95 : 1.9)),
+            oddValue: gameType.includes('satamatka_jodi') ? 90 : (gameType.includes('satamatka_harf') ? 9 : (gameType.includes('satamatka_crossing') ? 9 : (gameType.includes('cricket_toss') ? 9 : (gameType.includes('coin_flip') ? 9 : 1.9)))),
             setByAdmin: true
           });
         }
