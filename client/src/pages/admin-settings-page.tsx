@@ -153,9 +153,9 @@ export default function AdminSettingsPage() {
   // Process coin flip odds when they load
   useEffect(() => {
     if (coinFlipOddsData && coinFlipOddsData.length > 0) {
-      // Convert integer odds to decimal (9000000 -> "9.00")
-      // Database stores odds as (original odds * 1000000)
-      const oddValueDecimal = (coinFlipOddsData[0].oddValue / 1000000).toFixed(2);
+      // Convert integer odds to decimal (90000 -> "9.00")
+      // Database stores odds as (original odds * 10000)
+      const oddValueDecimal = (coinFlipOddsData[0].oddValue / 10000).toFixed(2);
       setCoinFlipOdds(oddValueDecimal);
     }
   }, [coinFlipOddsData]);
@@ -163,7 +163,7 @@ export default function AdminSettingsPage() {
   // Process cricket toss odds when they load
   useEffect(() => {
     if (cricketTossOddsData && cricketTossOddsData.length > 0) {
-      const oddValueDecimal = (cricketTossOddsData[0].oddValue / 1000000).toFixed(2);
+      const oddValueDecimal = (cricketTossOddsData[0].oddValue / 10000).toFixed(2);
       setCricketTossOdds(oddValueDecimal);
     }
   }, [cricketTossOddsData]);
@@ -197,19 +197,19 @@ export default function AdminSettingsPage() {
       const updatedOdds = { ...satamatkaOdds };
       
       if (satamatkaOddsData.jodi && satamatkaOddsData.jodi.length > 0) {
-        updatedOdds.jodi = (satamatkaOddsData.jodi[0].oddValue / 1000000).toFixed(2);
+        updatedOdds.jodi = (satamatkaOddsData.jodi[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.harf && satamatkaOddsData.harf.length > 0) {
-        updatedOdds.harf = (satamatkaOddsData.harf[0].oddValue / 1000000).toFixed(2);
+        updatedOdds.harf = (satamatkaOddsData.harf[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.crossing && satamatkaOddsData.crossing.length > 0) {
-        updatedOdds.crossing = (satamatkaOddsData.crossing[0].oddValue / 1000000).toFixed(2);
+        updatedOdds.crossing = (satamatkaOddsData.crossing[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.odd_even && satamatkaOddsData.odd_even.length > 0) {
-        updatedOdds.odd_even = (satamatkaOddsData.odd_even[0].oddValue / 1000000).toFixed(2);
+        updatedOdds.odd_even = (satamatkaOddsData.odd_even[0].oddValue / 10000).toFixed(2);
       }
       
       setSatamatkaOdds(updatedOdds);
@@ -468,7 +468,7 @@ export default function AdminSettingsPage() {
   // Handle game odds save
   const handleSaveGameOdds = () => {
     // Save Coin Flip odds
-    const coinFlipOddValue = Math.round(parseFloat(coinFlipOdds) * 1000000);
+    const coinFlipOddValue = Math.round(parseFloat(coinFlipOdds) * 10000);
     saveOddsMutation.mutate({
       gameType: "coin_flip",
       oddValue: coinFlipOddValue,
@@ -476,7 +476,7 @@ export default function AdminSettingsPage() {
     });
     
     // Save Cricket Toss odds
-    const cricketTossOddValue = Math.round(parseFloat(cricketTossOdds) * 1000000);
+    const cricketTossOddValue = Math.round(parseFloat(cricketTossOdds) * 10000);
     saveOddsMutation.mutate({
       gameType: "cricket_toss",
       oddValue: cricketTossOddValue,
@@ -486,28 +486,28 @@ export default function AdminSettingsPage() {
     // Team match odds saving removed
     
     // Save Satamatka odds
-    const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 1000000);
+    const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_jodi",
       oddValue: jodiOddValue,
       setByAdmin: true
     });
     
-    const harfOddValue = Math.round(parseFloat(satamatkaOdds.harf) * 1000000);
+    const harfOddValue = Math.round(parseFloat(satamatkaOdds.harf) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_harf",
       oddValue: harfOddValue,
       setByAdmin: true
     });
     
-    const crossingOddValue = Math.round(parseFloat(satamatkaOdds.crossing) * 1000000);
+    const crossingOddValue = Math.round(parseFloat(satamatkaOdds.crossing) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_crossing",
       oddValue: crossingOddValue,
       setByAdmin: true
     });
     
-    const oddEvenOddValue = Math.round(parseFloat(satamatkaOdds.odd_even) * 1000000);
+    const oddEvenOddValue = Math.round(parseFloat(satamatkaOdds.odd_even) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_odd_even",
       oddValue: oddEvenOddValue,
