@@ -350,8 +350,7 @@ export default function RiskManagementPage() {
                 </div>
               </CardContent>
             </Card>
-          
-          <TabsContent value="market-game" className="mt-0">
+            
             {marketGameData && (
               <>
                 {/* Number-specific analysis when a filtered bet type is selected */}
