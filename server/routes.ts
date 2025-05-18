@@ -2939,7 +2939,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
         if (subadminOdds && subadminOdds.length > 0) {
           // Use the first valid subadmin odd (should be only one per game type)
           const subadminOdd = subadminOdds[0];
-          console.log(`Found subadmin (${user.assignedTo}) odds for player ${userId}, gameType ${gameType}:`, subadminOdd);
+          
+          // Log the custom odds for debugging
+          console.log(`Found subadmin (${user.assignedTo}) custom odds for player ${userId}, gameType ${gameType}:`, subadminOdd);
           
           // Return only the specific subadmin odd as the override
           resultOdds = [subadminOdd];
