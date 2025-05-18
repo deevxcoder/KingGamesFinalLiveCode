@@ -2898,13 +2898,15 @@ app.get("/api/games/my-history", async (req, res, next) => {
           // Get all custom odds for this specific subadmin ID and game type directly from DB
           console.log(`Checking for custom odds for subadmin ${user.assignedTo} and gameType ${gameType}`);
           
+          // Query to find custom odds for this subadmin and game type
           const customOdds = await db.select()
             .from(schema.gameOdds)
             .where(
               and(
                 eq(schema.gameOdds.gameType, gameType),
-                eq(schema.gameOdds.subadminId, user.assignedTo),
-                eq(schema.gameOdds.setByAdmin, false)  // Ensure we're getting the custom subadmin odds, not admin odds
+                eq(schema.gameOdds.subadminId, user.assignedTo)
+                // Removed filter for setByAdmin=false to ensure we get any odds
+                // associated with this subadmin, regardless of how they were set
               )
             );
           
