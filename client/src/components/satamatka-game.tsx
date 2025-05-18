@@ -1196,13 +1196,13 @@ export default function SatamatkaGame() {
                     <span className="text-muted-foreground">Payout Ratio:</span>
                     <span className="font-medium ml-2">
                       {selectedGameMode === "jodi" 
-                        ? `${(gameOdds.jodi ? (gameOdds.jodi / 100) : 60)}x` 
+                        ? `${(gameOdds.jodi ? (gameOdds.jodi / 10000) : 60)}x` 
                         : selectedGameMode === "harf" 
-                        ? `${(gameOdds.harf ? (gameOdds.harf / 100) : 6)}x` 
+                        ? `${(gameOdds.harf ? (gameOdds.harf / 10000) : 6)}x` 
                         : selectedGameMode === "crossing" 
-                        ? `${(gameOdds.crossing ? (gameOdds.crossing / 100) : 66)}x` 
+                        ? `${(gameOdds.crossing ? (gameOdds.crossing / 10000) : 66)}x` 
                         : selectedGameMode === "odd_even" 
-                        ? `${(gameOdds.odd_even ? (gameOdds.odd_even / 100) : 6)}x` 
+                        ? `${(gameOdds.odd_even ? (gameOdds.odd_even / 10000) : 6)}x` 
                         : "1x"}
                     </span>
                   </div>
