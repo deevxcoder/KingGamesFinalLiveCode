@@ -24,7 +24,8 @@ import {
   Gamepad2,
   User,
   Calendar,
-  RefreshCw
+  RefreshCw,
+  AlertTriangle
 } from "lucide-react";
 import { GiCricketBat } from "react-icons/gi";
 import { Button } from "@/components/ui/button";
@@ -65,6 +66,13 @@ export default function Sidebar({ activeTab }: SidebarProps = {}) {
       path: "/subadmins",
       icon: <ShieldCheck className="w-5 h-5 mr-3" />,
       visible: isAdmin,
+    },
+    // Risk Management - Admin and Subadmin
+    {
+      name: "Risk Management",
+      path: "/risk-management",
+      icon: <AlertTriangle className="w-5 h-5 mr-3" />,
+      visible: canManageUsers,
     },
     // Market Game Management - Admin Only
     {

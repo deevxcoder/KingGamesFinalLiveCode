@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Play, History, User, Wallet, BarChart2, Gamepad2, LogOut } from "lucide-react";
+import { Home, Play, History, User, Wallet, BarChart2, Gamepad2, LogOut, AlertTriangle } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { UserRole } from "@shared/schema";

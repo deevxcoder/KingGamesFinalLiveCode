@@ -35,6 +35,7 @@ import LeaderboardPage from "@/pages/leaderboard-page";
 import SettingsRouter from "@/pages/settings-router";
 import UserDetailsPage from "@/pages/user-details-page";
 import ResetZonePage from "@/pages/reset-zone-page";
+import RiskManagementPage from "@/pages/risk-management-page";
 
 function Router() {
   return (
@@ -104,6 +105,13 @@ function Router() {
         path="/reset-zone" 
         component={ResetZonePage} 
         allowedRoles={[UserRole.ADMIN]}
+      />
+      
+      {/* Risk Management route */}
+      <ProtectedRoute 
+        path="/risk-management" 
+        component={RiskManagementPage} 
+        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
       />
       
       {/* Settings routes - uses a dedicated router component */}

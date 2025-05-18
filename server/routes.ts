@@ -47,6 +47,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup reset system routes
   app.use("/api/admin", resetSystemRoutes);
   
+  // Setup risk management routes
+  app.use("/api/risk", riskManagementRoutes);
+  
   // Setup cricket toss routes - registered later in the file
   // (see line ~3277 where it's properly registered)
   
