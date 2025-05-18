@@ -75,8 +75,9 @@ export default function RiskManagementPage() {
   const { data, isLoading, error } = useQuery<RiskManagementData>({
     queryKey: [endpoint],
     queryFn: async () => {
-      const response = await apiRequest(endpoint);
-      return response as RiskManagementData;
+      const response = await apiRequest('GET', endpoint);
+      const data = await response.json();
+      return data as RiskManagementData;
     },
     refetchInterval: 60000 // Refetch every minute to keep data fresh
   });
