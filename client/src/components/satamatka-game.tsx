@@ -1619,8 +1619,8 @@ export default function SatamatkaGame() {
                     // Calculate potential win amount based on game mode
                     const gameMode = bet.gameMode || (bet.gameData?.gameMode as string);
                     const potentialWin = gameMode 
-                      ? (calculatePotentialWin(gameMode, bet.betAmount / 100, gameOdds) / 100).toFixed(2)
-                      : (bet.betAmount * 1.9 / 100).toFixed(2); // Default multiplier if gameMode not available
+                      ? (calculatePotentialWin(gameMode, bet.betAmount / 100, gameOdds)).toFixed(2)
+                      : (bet.betAmount * 1.9 / 10000).toFixed(2); // Default multiplier if gameMode not available
                     
                     // Determine visual styling based on status
                     const isWin = bet.result === "win" || bet.status === "win";
