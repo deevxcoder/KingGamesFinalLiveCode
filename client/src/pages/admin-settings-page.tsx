@@ -153,18 +153,16 @@ export default function AdminSettingsPage() {
   // Process coin flip odds when they load
   useEffect(() => {
     if (coinFlipOddsData && coinFlipOddsData.length > 0) {
-      // Convert integer odds to decimal (90000 -> "9.00")
-      // Database stores odds as (original odds * 10000)
-      const oddValueDecimal = (coinFlipOddsData[0].oddValue / 10000).toFixed(2);
-      setCoinFlipOdds(oddValueDecimal);
+      // Store the raw value without dividing - the display will handle the division
+      setCoinFlipOdds(coinFlipOddsData[0].oddValue.toString());
     }
   }, [coinFlipOddsData]);
   
   // Process cricket toss odds when they load
   useEffect(() => {
     if (cricketTossOddsData && cricketTossOddsData.length > 0) {
-      const oddValueDecimal = (cricketTossOddsData[0].oddValue / 10000).toFixed(2);
-      setCricketTossOdds(oddValueDecimal);
+      // Store the raw value without dividing - the display will handle the division
+      setCricketTossOdds(cricketTossOddsData[0].oddValue.toString());
     }
   }, [cricketTossOddsData]);
   
@@ -197,19 +195,19 @@ export default function AdminSettingsPage() {
       const updatedOdds = { ...satamatkaOdds };
       
       if (satamatkaOddsData.jodi && satamatkaOddsData.jodi.length > 0) {
-        updatedOdds.jodi = (satamatkaOddsData.jodi[0].oddValue / 10000).toFixed(2);
+        updatedOdds.jodi = satamatkaOddsData.jodi[0].oddValue.toString();
       }
       
       if (satamatkaOddsData.harf && satamatkaOddsData.harf.length > 0) {
-        updatedOdds.harf = (satamatkaOddsData.harf[0].oddValue / 10000).toFixed(2);
+        updatedOdds.harf = satamatkaOddsData.harf[0].oddValue.toString();
       }
       
       if (satamatkaOddsData.crossing && satamatkaOddsData.crossing.length > 0) {
-        updatedOdds.crossing = (satamatkaOddsData.crossing[0].oddValue / 10000).toFixed(2);
+        updatedOdds.crossing = satamatkaOddsData.crossing[0].oddValue.toString();
       }
       
       if (satamatkaOddsData.odd_even && satamatkaOddsData.odd_even.length > 0) {
-        updatedOdds.odd_even = (satamatkaOddsData.odd_even[0].oddValue / 10000).toFixed(2);
+        updatedOdds.odd_even = satamatkaOddsData.odd_even[0].oddValue.toString();
       }
       
       setSatamatkaOdds(updatedOdds);
