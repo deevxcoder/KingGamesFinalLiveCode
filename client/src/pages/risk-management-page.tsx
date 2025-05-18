@@ -67,6 +67,7 @@ interface BettingStats {
 
 export default function RiskManagementPage() {
   const { user } = useAuth();
+  // Only allow Satamatka tab since team match was removed
   const [activeTab, setActiveTab] = useState("satamatka");
   const [searchTerm, setSearchTerm] = useState("");
   const [sortColumn, setSortColumn] = useState("number");
