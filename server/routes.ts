@@ -2934,19 +2934,27 @@ app.get("/api/games/my-history", async (req, res, next) => {
         try {
           // Try to get odds set specifically for this subadmin
           console.log(`Checking for custom odds for subadmin ${user.assignedTo} and gameType ${gameType}`);
-          const subadminOdds = await storage.getGameOddsBySubadmin(user.assignedTo, gameType);
           
-          // Debug what we found
-          console.log(`Subadmin odds query returned ${subadminOdds.length} results:`, subadminOdds);
+          // First, try to get odds with exact subadmin match
+          const exactSubadminOdds = await db.select()
+            .from(gameOdds)
+            .where(
+              and(
+                eq(gameOdds.subadminId, user.assignedTo),
+                eq(gameOdds.gameType, gameType)
+              )
+            );
           
-          if (subadminOdds && subadminOdds.length > 0) {
-            // We found custom odds for this subadmin, use them
-            console.log(`Found subadmin (${user.assignedTo}) custom odds for player ${userId}, gameType ${gameType}:`, subadminOdds[0]);
-            resultOdds = subadminOdds;
+          console.log(`Found ${exactSubadminOdds.length} exact-match odds for subadmin ${user.assignedTo}:`, exactSubadminOdds);
+          
+          // If we found exact match subadmin odds, use those
+          if (exactSubadminOdds && exactSubadminOdds.length > 0) {
+            console.log(`Using exact-match custom odds for player ${userId} from subadmin ${user.assignedTo}:`, exactSubadminOdds[0]);
+            resultOdds = exactSubadminOdds;
           } else {
-            // No custom odds for this subadmin, use platform defaults
+            // No custom odds, fall back to admin defaults
             const adminOdds = await storage.getGameOdds(gameType);
-            console.log(`Using admin odds for player ${userId}, gameType ${gameType} (subadmin ${user.assignedTo} has no custom odds):`, adminOdds);
+            console.log(`No custom odds found for subadmin ${user.assignedTo}, using admin odds for player ${userId}, gameType ${gameType}:`, adminOdds);
             resultOdds = adminOdds;
           }
         } catch (err) {
