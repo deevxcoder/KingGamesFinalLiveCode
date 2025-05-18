@@ -448,10 +448,14 @@ export default function RiskManagementPage() {
                             
                             // Calculate potential win amount (using 90x for jodi, 9x for others as a simplified calculation)
                             const potentialWin = gamesForNumber.reduce((sum, game) => {
+                              // Use the proper multipliers divided by 100 to match platform rules
                               let multiplier = 0.9; // Default
-                              if (game.prediction === 'jodi') multiplier = 90;
-                              else if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 9;
-                              else if (game.prediction === 'oddeven') multiplier = 1.9;
+                              
+                              // Check different game predictions and apply the appropriate multiplier
+                              if (game.prediction === 'jodi') multiplier = 0.9; // 90/100
+                              else if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 0.09; // 9/100
+                              else if (game.prediction === 'oddeven') multiplier = 0.019; // 1.9/100
+                              
                               return sum + ((game.betAmount || 0) * multiplier);
                             }, 0);
                             
@@ -900,7 +904,7 @@ function GameTypeRiskPanel({ data, detailedData, gameType, userInfo, marketInfo,
             <TrendingDown className="h-4 w-4 text-orange-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{data.potentialLiability.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₹{(data.potentialLiability / 100).toFixed(2)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -909,7 +913,7 @@ function GameTypeRiskPanel({ data, detailedData, gameType, userInfo, marketInfo,
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₹{data.exposureAmount.toFixed(2)}</div>
+            <div className="text-2xl font-bold">₹{(data.exposureAmount / 100).toFixed(2)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -1032,7 +1036,7 @@ function GameTypeRiskPanel({ data, detailedData, gameType, userInfo, marketInfo,
                         {userInfo[game.userId] ? userInfo[game.userId].username : `User ${game.userId}`}
                       </TableCell>
                       <TableCell>₹{game.betAmount.toFixed(2)}</TableCell>
-                      <TableCell>₹{(game.betAmount * 0.9).toFixed(2)}</TableCell>
+                      <TableCell>₹{(game.betAmount * 0.009).toFixed(2)}</TableCell>
                       <TableCell>{formatDate(game.createdAt)}</TableCell>
                     </TableRow>
                   ))}
