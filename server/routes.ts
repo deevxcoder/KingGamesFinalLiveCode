@@ -1667,7 +1667,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
               // For Jodi mode, prediction must match closeResult exactly
               isWinner = true;
               const oddValue = await getOddsValue(game.gameMode);
-              payout = game.betAmount * (oddValue / 100); // Apply configured odds
+              payout = game.betAmount * (oddValue / 10000); // Apply configured odds
             } 
             else if (game.gameMode === SatamatkaGameMode.HARF) {
               // For Harf, check if digit matches position
@@ -1682,7 +1682,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
               ) {
                 isWinner = true;
                 const oddValue = await getOddsValue(game.gameMode);
-                payout = game.betAmount * (oddValue / 100); // Apply configured odds
+                payout = game.betAmount * (oddValue / 10000); // Apply configured odds
               }
             }
             else if (game.gameMode === SatamatkaGameMode.CROSSING) {
@@ -1691,7 +1691,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
               if (digits.includes(closeResult[0]) || digits.includes(closeResult[1])) {
                 isWinner = true;
                 const oddValue = await getOddsValue(game.gameMode);
-                payout = game.betAmount * (oddValue / 100); // Apply configured odds
+                payout = game.betAmount * (oddValue / 10000); // Apply configured odds
               }
             }
             else if (game.gameMode === SatamatkaGameMode.ODD_EVEN) {
@@ -1703,7 +1703,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
                   (game.prediction === "even" && !isResultOdd)) {
                 isWinner = true;
                 const oddValue = await getOddsValue(game.gameMode);
-                payout = game.betAmount * (oddValue / 100); // Apply configured odds
+                payout = game.betAmount * (oddValue / 10000); // Apply configured odds
               }
             }
             
@@ -2217,7 +2217,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 
               if (customOdds && customOdds.length > 0) {
                 // Use custom subadmin odds
-                odds = customOdds[0].oddValue / 100;
+                odds = customOdds[0].oddValue / 10000;
                 console.log(`Using custom subadmin ${subadminId} odds for player ${user.id}: ${odds}x (base odds: ${baseOdds}x)`);
               } else {
                 console.log(`No custom odds found for subadmin ${subadminId}, using base odds: ${baseOdds}x`);
@@ -3173,7 +3173,7 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
           // Use subadmin specific odds, but convert from integer (stored as * 100) to decimal
           completeOdds.push({
             ...subadminOdd,
-            oddValue: subadminOdd.oddValue / 100
+            oddValue: subadminOdd.oddValue / 10000
           });
         } else {
           // Try to use admin odds as fallback
@@ -3184,7 +3184,7 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
             // Convert from integer (stored as * 100) to decimal
             completeOdds.push({
               gameType: adminOdd.gameType,
-              oddValue: adminOdd.oddValue / 100,
+              oddValue: adminOdd.oddValue / 10000,
               setByAdmin: false,
               subadminId
             });
