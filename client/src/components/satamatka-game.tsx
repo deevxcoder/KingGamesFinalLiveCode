@@ -1243,13 +1243,13 @@ export default function SatamatkaGame() {
   const getGameModeDescription = () => {
     switch (selectedGameMode) {
       case "jodi":
-        return `Predict the exact two-digit number (00-99). Payout ratio: ${(gameOdds.jodi ? gameOdds.jodi / 100 : 90)}x`;
+        return `Predict the exact two-digit number (00-99). Payout ratio: ${(gameOdds.jodi ? gameOdds.jodi / 10000 : 60)}x`;
       case "harf":
-        return `Predict digits in specific positions (left/right). Select first digit, second digit, or both. Payout ratio: ${(gameOdds.harf ? gameOdds.harf / 100 : 9)}x`;
+        return `Predict digits in specific positions (left/right). Select first digit, second digit, or both. Payout ratio: ${(gameOdds.harf ? gameOdds.harf / 10000 : 6)}x`;
       case "crossing":
-        return `Select multiple digits (0-9) to create two-digit combinations. For example, selecting 1,2,3 creates: 12, 21, 13, 31, 23, 32. Payout ratio: ${(gameOdds.crossing ? gameOdds.crossing / 100 : 95)}x`;
+        return `Select multiple digits (0-9) to create two-digit combinations. For example, selecting 1,2,3 creates: 12, 21, 13, 31, 23, 32. Payout ratio: ${(gameOdds.crossing ? gameOdds.crossing / 10000 : 66)}x`;
       case "odd_even":
-        return `Predict if the result will be odd or even. Payout ratio: ${(gameOdds.odd_even ? gameOdds.odd_even / 100 : 1.8)}x`;
+        return `Predict if the result will be odd or even. Payout ratio: ${(gameOdds.odd_even ? gameOdds.odd_even / 10000 : 1.9)}x`;
       default:
         return "Select a game mode to see details.";
     }
