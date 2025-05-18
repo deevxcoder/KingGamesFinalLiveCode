@@ -3228,10 +3228,10 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
             return { error: "gameType and oddValue are required", gameType: odd.gameType };
           }
           
-          // Convert decimal odds to integer by multiplying by 100 for storage
+          // Convert decimal odds to integer by multiplying by 10000 for storage
           return storage.upsertGameOdd(
             odd.gameType,
-            odd.oddValue * 100, // Multiply by 100 to store as integer
+            odd.oddValue, // Value already multiplied by 10000 in client code
             false, // Not set by admin, but specific to this subadmin
             subadminId
           );
