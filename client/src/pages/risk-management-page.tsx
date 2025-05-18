@@ -336,6 +336,140 @@ export default function RiskManagementPage() {
             
             {marketGameData && (
               <>
+                {/* Grid view showing all numbers from 00-99 */}
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle>Satamatka Numbers (00-99)</CardTitle>
+                    <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-4 flex items-center">
+                      <div className="mr-8 flex items-center space-x-2">
+                        <span className="font-semibold">Filter:</span>
+                        <Badge 
+                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
+                          onClick={() => setBetTypeFilter('all')}
+                        >
+                          All Types
+                        </Badge>
+                        <Badge 
+                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
+                          onClick={() => setBetTypeFilter('jodi')}
+                        >
+                          Jodi
+                        </Badge>
+                        <Badge 
+                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
+                          onClick={() => setBetTypeFilter('harf')}
+                        >
+                          Harf
+                        </Badge>
+                        <Badge 
+                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'crossing' ? 'bg-primary' : 'bg-slate-700'}`}
+                          onClick={() => setBetTypeFilter('crossing')}
+                        >
+                          Crossing
+                        </Badge>
+                        <Badge 
+                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'oddeven' ? 'bg-primary' : 'bg-slate-700'}`}
+                          onClick={() => setBetTypeFilter('oddeven')}
+                        >
+                          Odd/Even
+                        </Badge>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-1">
+                          <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
+                          <span className="text-xs">High Risk</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
+                          <span className="text-xs">Medium Risk</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
+                          <span className="text-xs">Low Risk</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <span className="inline-block w-3 h-3 rounded-full bg-slate-500"></span>
+                          <span className="text-xs">No Bets</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <ScrollArea className="h-[400px]">
+                      <div className="grid grid-cols-10 gap-2">
+                        {Array.from({ length: 100 }, (_, i) => {
+                          // Format number as two digits (e.g., 00, 01, ..., 99)
+                          const num = i.toString().padStart(2, '0');
+                          
+                          // Get all games for this number filtered by the selected bet type
+                          const gamesForNumber = data.detailedData.gameData.filter(game => 
+                            game.gameType === 'satamatka' && 
+                            !game.result && 
+                            (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
+                            game.gameData?.number === num
+                          );
+                          
+                          // Calculate total bet amount for this number
+                          const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                          
+                          // Calculate potential win amount (using 90x for jodi, 9x for others as a simplified calculation)
+                          // This is a placeholder calculation - actual odds might vary
+                          const potentialWin = gamesForNumber.reduce((sum, game) => {
+                            let multiplier = 0.9; // Default
+                            if (game.prediction === 'jodi') multiplier = 90;
+                            else if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 9;
+                            else if (game.prediction === 'oddeven') multiplier = 1.9;
+                            return sum + ((game.betAmount || 0) * multiplier);
+                          }, 0);
+                          
+                          // Define the risk level based on bet amount
+                          let riskLevel = 'none';
+                          if (totalBetAmount > 1000) riskLevel = 'high';
+                          else if (totalBetAmount > 500) riskLevel = 'medium';
+                          else if (totalBetAmount > 0) riskLevel = 'low';
+                          
+                          // Get bet types for this number
+                          const betTypes = [...new Set(gamesForNumber.map(game => game.prediction))];
+                          
+                          return (
+                            <div 
+                              key={num} 
+                              className={`p-2 border rounded-md ${
+                                riskLevel === 'high' 
+                                  ? 'border-red-500 bg-red-500/10'
+                                  : riskLevel === 'medium'
+                                    ? 'border-orange-500 bg-orange-500/10'
+                                    : riskLevel === 'low'
+                                      ? 'border-blue-500 bg-blue-500/10'
+                                      : 'border-slate-700 bg-slate-800/30'
+                              }`}
+                            >
+                              <div className="font-bold text-lg text-center">{num}</div>
+                              {totalBetAmount > 0 ? (
+                                <>
+                                  <div className="text-xs mt-1">
+                                    <span className="font-semibold">Bet:</span> ₹{totalBetAmount.toFixed(2)}
+                                  </div>
+                                  <div className="text-xs">
+                                    <span className="font-semibold">Win:</span> ₹{potentialWin.toFixed(2)}
+                                  </div>
+                                  <div className="text-xs">
+                                    <span className="font-semibold">Type:</span> {betTypes.join(', ')}
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="text-xs mt-2 text-center text-muted-foreground">No bets</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+                
                 {/* Number-specific analysis when a filtered bet type is selected */}
                 {betTypeFilter !== 'all' && (
                   <Card className="mb-6">
