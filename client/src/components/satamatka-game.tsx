@@ -1728,11 +1728,7 @@ export default function SatamatkaGame() {
               <div className="space-y-1">
                 <h4 className="text-sm font-medium">Potential Win</h4>
                 <p className="text-sm text-muted-foreground">
-                  {betDetails ? `₹${(betDetails.betAmount * (
-                    selectedGameMode === "jodi" ? 90 : 
-                    selectedGameMode === "harf" ? 9 : 
-                    selectedGameMode === "crossing" ? 95 : 1.8
-                  )).toFixed(2)}` : ''}
+                  {betDetails ? `₹${calculatePotentialWin(selectedGameMode, betDetails.betAmount, gameOdds).toFixed(2)}` : ''}
                 </p>
               </div>
             </div>
