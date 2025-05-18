@@ -1209,7 +1209,7 @@ export default function SatamatkaGame() {
                   <div className="text-sm">
                     <span className="text-muted-foreground">Potential Win:</span>
                     <span className="font-medium ml-2 text-amber-500">
-                      {formatCurrency(calculatePotentialWin(selectedGameMode, Number(calculateTotalBetAmount()), gameOdds), 'satamatka')}
+                      ₹{calculatePotentialWin(selectedGameMode, Number(calculateTotalBetAmount()), gameOdds).toFixed(2)}
                     </span>
                   </div>
                 </div>
