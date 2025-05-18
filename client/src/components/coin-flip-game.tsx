@@ -90,8 +90,9 @@ export default function CoinFlipGame() {
   // Update game odds when they load
   useEffect(() => {
     if (coinFlipOddsData && coinFlipOddsData.length > 0) {
-      // The odds are stored as integer with 2 decimal places (e.g. 195 means 1.95)
-      const odds = coinFlipOddsData[0]?.oddValue / 100;
+      // The odds are stored as integer with multiplier * 10000
+      // For example, 1.95x is stored as 19500
+      const odds = coinFlipOddsData[0]?.oddValue / 10000;
       console.log("Using coin flip odds:", odds);
       setGameOdds(odds || 1.95); // Default to 1.95 if no odds are set
     }
