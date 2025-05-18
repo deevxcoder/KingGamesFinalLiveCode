@@ -1770,23 +1770,25 @@ function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record
   // Get the appropriate payout ratio from the database odds
   console.log(`Game mode: ${gameMode}, Bet amount: ${betAmount}, Odds from database:`, odds);
   
-  // The database stores values like: 60x is stored as 6000
+  // The database stores values with multiplier * 100
+  // For example, 60x is stored as 6000, 1.9x is stored as 190
+  // We need to divide by 100 to get the actual multiplier
   switch (gameMode) {
     case "jodi":
-      // Jodi payout - use stored odds (typically 60x) or fallback
-      payoutRatio = odds.jodi ? odds.jodi / 100 : 60;
+      // Jodi payout (default 60x)
+      payoutRatio = odds.jodi ? (odds.jodi / 100) : 60;
       break;
     case "harf":
-      // Harf payout - use stored odds (typically 6x) or fallback
-      payoutRatio = odds.harf ? odds.harf / 100 : 6;
+      // Harf payout (default 6x)
+      payoutRatio = odds.harf ? (odds.harf / 100) : 6;
       break;
     case "crossing":
-      // Crossing payout - use stored odds (typically 66x) or fallback
-      payoutRatio = odds.crossing ? odds.crossing / 100 : 66;
+      // Crossing payout (default 66x)
+      payoutRatio = odds.crossing ? (odds.crossing / 100) : 66;
       break;
     case "odd_even":
-      // Odd/Even payout - use stored odds (typically 6x) or fallback
-      payoutRatio = odds.odd_even ? odds.odd_even / 100 : 6;
+      // Odd/Even payout (default 1.9x)
+      payoutRatio = odds.odd_even ? (odds.odd_even / 100) : 1.9;
       break;
   }
   
@@ -1794,7 +1796,7 @@ function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record
   
   // Calculate the potential win amount 
   // For ₹100 bet on Jodi with 60x odds, win = 100 × 60 = ₹6,000
-  return Math.floor(betAmount * payoutRatio);
+  return betAmount * payoutRatio;
 }
 
 // Helper function to format game type for display
