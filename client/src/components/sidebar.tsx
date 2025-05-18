@@ -67,9 +67,9 @@ export default function Sidebar({ activeTab }: SidebarProps = {}) {
       icon: <ShieldCheck className="w-5 h-5 mr-3" />,
       visible: isAdmin,
     },
-    // Risk Management - Admin and Subadmin
+    // Jantri Management - Admin and Subadmin
     {
-      name: "Risk Management",
+      name: "Jantri Management",
       path: "/risk-management",
       icon: <AlertTriangle className="w-5 h-5 mr-3" />,
       visible: canManageUsers,
