@@ -792,12 +792,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertGameOdd(gameType: string, oddValue: number, setByAdmin: boolean, subadminId?: number): Promise<GameOdd> {
-    // Build the conditions
+    // Build the conditions - we need to be very specific here to make sure we don't override
+    // admin odds with subadmin odds or vice versa
     let conditions = [eq(gameOdds.gameType, gameType)];
     
     if (setByAdmin) {
+      // For admin odds, make sure we're only updating admin odds (setByAdmin = true)
       conditions.push(eq(gameOdds.setByAdmin, true));
+      // Admin odds should not have a subadminId
+      conditions.push(isNull(gameOdds.subadminId));
     } else if (subadminId) {
+      // For subadmin odds, make sure we're only updating specific subadmin odds
+      conditions.push(eq(gameOdds.setByAdmin, false));
       conditions.push(eq(gameOdds.subadminId, subadminId));
     }
     
