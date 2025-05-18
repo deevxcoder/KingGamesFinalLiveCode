@@ -1196,13 +1196,13 @@ export default function SatamatkaGame() {
                     <span className="text-muted-foreground">Payout Ratio:</span>
                     <span className="font-medium ml-2">
                       {selectedGameMode === "jodi" 
-                        ? `${(gameOdds.jodi ? (gameOdds.jodi / 100) : 60)}x` 
+                        ? `${(gameOdds.jodi ? (gameOdds.jodi / 10000) : 60)}x` 
                         : selectedGameMode === "harf" 
-                        ? `${(gameOdds.harf ? (gameOdds.harf / 100) : 6)}x` 
+                        ? `${(gameOdds.harf ? (gameOdds.harf / 10000) : 6)}x` 
                         : selectedGameMode === "crossing" 
-                        ? `${(gameOdds.crossing ? (gameOdds.crossing / 100) : 66)}x` 
+                        ? `${(gameOdds.crossing ? (gameOdds.crossing / 10000) : 66)}x` 
                         : selectedGameMode === "odd_even" 
-                        ? `${(gameOdds.odd_even ? (gameOdds.odd_even / 100) : 6)}x` 
+                        ? `${(gameOdds.odd_even ? (gameOdds.odd_even / 10000) : 6)}x` 
                         : "1x"}
                     </span>
                   </div>
@@ -1766,25 +1766,25 @@ function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record
   // Get the appropriate payout ratio from the database odds
   console.log(`Game mode: ${gameMode}, Bet amount: ${betAmount}, Odds from database:`, odds);
   
-  // The database stores values with multiplier * 100
-  // For example, 60x is stored as 6000, 1.9x is stored as 190
-  // We need to divide by 100 to get the actual multiplier
+  // The database stores values with multiplier * 10000
+  // For example, 60x is stored as 600000, 1.9x is stored as 19000
+  // We need to divide by 10000 to get the actual multiplier
   switch (gameMode) {
     case "jodi":
       // Jodi payout (default 60x)
-      payoutRatio = odds.jodi ? (odds.jodi / 100) : 60;
+      payoutRatio = odds.jodi ? (odds.jodi / 10000) : 60;
       break;
     case "harf":
       // Harf payout (default 6x)
-      payoutRatio = odds.harf ? (odds.harf / 100) : 6;
+      payoutRatio = odds.harf ? (odds.harf / 10000) : 6;
       break;
     case "crossing":
       // Crossing payout (default 66x)
-      payoutRatio = odds.crossing ? (odds.crossing / 100) : 66;
+      payoutRatio = odds.crossing ? (odds.crossing / 10000) : 66;
       break;
     case "odd_even":
       // Odd/Even payout (default 1.9x)
-      payoutRatio = odds.odd_even ? (odds.odd_even / 100) : 1.9;
+      payoutRatio = odds.odd_even ? (odds.odd_even / 10000) : 1.9;
       break;
   }
   
