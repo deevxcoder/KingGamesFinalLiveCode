@@ -2514,7 +2514,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
   });
   
   // Cricket Toss Betting Statistics
-  app.get("/api/cricket-toss-stats", async (req, res) => {
+  app.get("/api/cricket-toss-stats", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res) => {
+    // Get the requesting user's role and ID
+    const requestingUserId = req.user!.id;
+    const requestingUserRole = req.user!.role;
     try {
       console.log("==== Starting Cricket Toss Stats API ====");
       
@@ -2522,14 +2525,32 @@ app.get("/api/games/my-history", async (req, res, next) => {
       // Get real cricket toss games from the database
       console.log("Getting cricket toss games from database");
       
-      const sql = `
-        SELECT g.*, 
-               u.username as user_username 
-        FROM games g
-        JOIN users u ON g.user_id = u.id
-        WHERE g.game_type = 'cricket_toss'
-        ORDER BY g.id
-      `;
+      // Build the SQL query - if subadmin, only show games from their players
+      let sql;
+      
+      if (requestingUserRole === UserRole.SUBADMIN) {
+        // Get only games from players assigned to this subadmin
+        sql = `
+          SELECT g.*, 
+                 u.username as user_username 
+          FROM games g
+          JOIN users u ON g.user_id = u.id
+          WHERE g.game_type = 'cricket_toss'
+            AND u.assigned_to = ${requestingUserId}
+          ORDER BY g.id
+        `;
+        console.log(`Filtering cricket toss games for subadmin ${requestingUserId}`);
+      } else {
+        // Admin can see all games
+        sql = `
+          SELECT g.*, 
+                 u.username as user_username 
+          FROM games g
+          JOIN users u ON g.user_id = u.id
+          WHERE g.game_type = 'cricket_toss'
+          ORDER BY g.id
+        `;
+      }
       
       const result = await db.execute(sql);
       console.log(`Found ${result.rows.length} cricket toss games in DB`);
@@ -2790,7 +2811,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
   });
   
   // Jantri Management Routes - Admin Only
-  app.get("/api/jantri/stats", requireRole([UserRole.ADMIN]), async (req, res, next) => {
+  app.get("/api/jantri/stats", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), async (req, res, next) => {
+    // Get the requesting user's role and ID
+    const requestingUserId = req.user!.id;
+    const requestingUserRole = req.user!.role;
     try {
       // Get active markets
       const markets = await storage.getActiveSatamatkaMarkets();
