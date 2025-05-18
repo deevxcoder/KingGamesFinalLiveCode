@@ -1,20 +1,13 @@
 import { db } from './server/db';
-import { games, satamatkaMarkets, teamMatches, MarketType, MarketStatus, GameType, TeamMatchStatus } from './shared/schema';
+import { games, satamatkaMarkets, teamMatches, MarketType, MarketStatus, GameType } from './shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
 async function setupRiskManagementData() {
   try {
     console.log('Setting up sample data for risk management testing...');
     
-    // First, check if we already have an admin user
-    const [adminUser] = await db.execute(sql`SELECT id FROM users WHERE role = 'admin' LIMIT 1`);
-    
-    if (!adminUser) {
-      console.error('Error: No admin user found. Please create an admin user first.');
-      return;
-    }
-    
-    const adminId = adminUser.id || 1;
+    // Set a default admin ID for testing - typically ID 1 is admin in the system
+    const adminId = 1;
     console.log(`Using admin ID: ${adminId}`);
     
     // Clear existing test data
@@ -48,8 +41,8 @@ async function setupRiskManagementData() {
       const [match] = await db.insert(teamMatches).values({
         teamA: `Team A${i}`,
         teamB: `Team B${i}`,
-        matchDate: new Date(Date.now() + 86400000 * i), // Future dates
-        status: TeamMatchStatus.OPEN
+        matchTime: new Date(Date.now() + 86400000 * i), // Future dates
+        status: "open" // Using string literal based on schema
       }).returning();
       
       matches.push(match);
