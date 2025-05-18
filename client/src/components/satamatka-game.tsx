@@ -1368,7 +1368,12 @@ export default function SatamatkaGame() {
                       <TableCell className="font-medium">{displayNum}</TableCell>
                       <TableCell>₹{amount.toFixed(2)}</TableCell>
                       <TableCell className="text-amber-500">
-                        ₹{(amount * (selectedGameMode === "jodi" ? 90 : selectedGameMode === "harf" ? 9 : selectedGameMode === "crossing" ? 95 : 1.8)).toFixed(2)}
+                        ₹{(amount * (
+                          selectedGameMode === "jodi" ? (gameOdds.jodi ? gameOdds.jodi / 100 : 60) : 
+                          selectedGameMode === "harf" ? (gameOdds.harf ? gameOdds.harf / 100 : 6) : 
+                          selectedGameMode === "crossing" ? (gameOdds.crossing ? gameOdds.crossing / 100 : 66) : 
+                          (gameOdds.odd_even ? gameOdds.odd_even / 100 : 6)
+                        )).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         <Button
