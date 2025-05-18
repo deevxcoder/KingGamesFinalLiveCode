@@ -915,8 +915,8 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-odd-even" 
-                              value={Number(satamatkaOdds.odd_even) / 10000} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, odd_even: Math.round(parseFloat(e.target.value) * 10000).toString()})} 
+                              value={Number(satamatkaOdds.odd_even)} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, odd_even: e.target.value})} 
                               placeholder="1.9"
                               type="number"
                               step="0.1"
