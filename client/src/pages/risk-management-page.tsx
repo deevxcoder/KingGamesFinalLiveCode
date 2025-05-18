@@ -286,7 +286,7 @@ export default function RiskManagementPage() {
         <Tabs defaultValue="market-game" className="w-full mt-6" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="market-game">Satamatka Analysis</TabsTrigger>
-            <TabsTrigger value="cricket-toss">Other Game Risk</TabsTrigger>
+            <TabsTrigger value="cricket-toss">Cricket Toss Risk</TabsTrigger>
           </TabsList>
           
           {/* Bet Type Filters */}
@@ -421,13 +421,57 @@ export default function RiskManagementPage() {
           <TabsContent value="cricket-toss" className="mt-0">
             {cricketTossData ? (
               <>
-                <GameTypeRiskPanel 
-                  data={cricketTossData} 
-                  detailedData={data.detailedData}
-                  gameType="cricket_toss"
-                  userInfo={userInfo}
-                  marketInfo={marketInfo}
-                />
+                {/* Cricket Risk Overview Cards */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Cricket Bets</CardTitle>
+                      <Activity className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{cricketTossData.activeBets}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Active cricket toss bets
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Bet Amount</CardTitle>
+                      <Target className="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">₹{cricketTossData.totalBetAmount.toFixed(2)}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Total cricket toss wagers
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Potential Liability</CardTitle>
+                      <TrendingDown className="h-4 w-4 text-orange-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">₹{cricketTossData.potentialLiability.toFixed(2)}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Maximum potential payout
+                      </p>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">High Risk Bets</CardTitle>
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{cricketTossData.highRiskBets}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Bets over ₹1000
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
                 
                 {/* Cricket Match Risk Analysis */}
                 <Card className="mt-6">
@@ -458,7 +502,7 @@ export default function RiskManagementPage() {
                             );
                             
                             // Group games by match id
-                            const matchGroups = cricketGames.reduce((acc, game) => {
+                            const matchGroups: Record<string, any[]> = cricketGames.reduce((acc: Record<string, any[]>, game: any) => {
                               const matchId = game.matchId;
                               if (!acc[matchId]) {
                                 acc[matchId] = [];
@@ -490,8 +534,8 @@ export default function RiskManagementPage() {
                               const teamBBets = games.filter(game => game.prediction === 'team_b');
                               
                               // Calculate bet amounts
-                              const teamAAmount = teamABets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                              const teamBAmount = teamBBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                              const teamAAmount = teamABets.reduce((sum: number, game: any) => sum + (game.betAmount || 0), 0);
+                              const teamBAmount = teamBBets.reduce((sum: number, game: any) => sum + (game.betAmount || 0), 0);
                               const totalAmount = teamAAmount + teamBAmount;
                               
                               // Calculate potential win (using 1.9x multiplier)
