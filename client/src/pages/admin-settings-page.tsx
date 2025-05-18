@@ -829,7 +829,7 @@ export default function AdminSettingsPage() {
                             onChange={(e) => setCoinFlipOdds(e.target.value)} 
                             placeholder="1.95"
                             type="number"
-                            step="0.1"
+                            step="0.01"
                             className="max-w-[120px]"
                           />
                           <span>times the bet amount</span>
