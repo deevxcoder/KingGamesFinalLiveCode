@@ -4,6 +4,7 @@ import { setupAuth, requireRole } from "./auth";
 import { storage } from "./storage";
 import { db } from "./db";
 import { z } from "zod";
+import { getAdminRiskManagement, getSubadminRiskManagement } from "./risk-management";
 
 import { 
   GameOutcome, 
@@ -28,7 +29,6 @@ import { setupUploadRoutes } from "./upload-routes";
 import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
 import depositDiscountRouter from "./deposit-discount-endpoint";
 import cricketTossRoutes from "./cricket-toss-api";
-import { getAdminRiskManagement, getSubadminRiskManagement } from "./risk-management";
 import resetSystemRoutes from "./reset-system";
 
 export async function registerRoutes(app: Express): Promise<Server> {
