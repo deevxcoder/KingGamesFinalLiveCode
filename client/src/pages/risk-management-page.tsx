@@ -282,22 +282,215 @@ export default function RiskManagementPage() {
           </Card>
         </div>
 
+        {/* Bet Type Filters */}
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle className="text-base">Bet Type Filters</CardTitle>
+                <CardDescription>Filter to view specific bet types</CardDescription>
+              </div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs text-muted-foreground">Legend:</span>
+                <div className="flex items-center space-x-1">
+                  <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
+                  <span className="text-xs">High Risk</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
+                  <span className="text-xs">Medium Risk</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
+                  <span className="text-xs">Low Risk</span>
+                </div>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Badge 
+                className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
+                onClick={() => setBetTypeFilter('all')}
+              >
+                All Types
+              </Badge>
+              <Badge 
+                className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
+                onClick={() => setBetTypeFilter('jodi')}
+              >
+                Jodi
+              </Badge>
+              <Badge 
+                className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
+                onClick={() => setBetTypeFilter('harf')}
+              >
+                Harf
+              </Badge>
+              <Badge 
+                className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'crossing' ? 'bg-primary' : 'bg-slate-700'}`}
+                onClick={() => setBetTypeFilter('crossing')}
+              >
+                Crossing
+              </Badge>
+              <Badge 
+                className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'oddeven' ? 'bg-primary' : 'bg-slate-700'}`}
+                onClick={() => setBetTypeFilter('oddeven')}
+              >
+                Odd/Even
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Jantri Number Grid */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Jantri Numbers (00-99)</CardTitle>
+            <CardDescription>Comprehensive view of all Satamatka numbers with betting data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
+              {Array.from({ length: 100 }, (_, i) => {
+                const number = i.toString().padStart(2, '0');
+                
+                // Get active bets on this number based on the filter
+                const activeBets = data?.detailedData?.gameData ? 
+                  data.detailedData.gameData.filter(game => 
+                    game.gameType === 'satamatka' && 
+                    !game.result && 
+                    (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
+                    game.gameData?.number === number
+                  ) : [];
+                
+                // Calculate total bet amount on this number
+                const totalBetAmount = activeBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                
+                // Calculate potential win amount
+                const potentialWin = totalBetAmount * 0.9;
+                
+                // Determine risk level
+                const riskLevel = 
+                  totalBetAmount > 5000 ? 'high' : 
+                  totalBetAmount > 1000 ? 'medium' : 
+                  totalBetAmount > 0 ? 'low' : 'none';
+                
+                // CSS classes based on risk level
+                const riskClasses = {
+                  high: 'bg-red-900/30 border-red-500',
+                  medium: 'bg-orange-900/30 border-orange-500',
+                  low: 'bg-blue-900/30 border-blue-500',
+                  none: 'bg-slate-800/30 border-slate-700'
+                };
+                
+                return (
+                  <div 
+                    key={number} 
+                    className={`p-2 border rounded-md text-center ${riskClasses[riskLevel]}`}
+                  >
+                    <div className="font-bold">{number}</div>
+                    {totalBetAmount > 0 && (
+                      <>
+                        <div className="text-xs mt-1 text-green-400">
+                          ₹{totalBetAmount.toFixed(0)}
+                        </div>
+                        <div className="text-xs text-amber-400">
+                          Win: ₹{potentialWin.toFixed(0)}
+                        </div>
+                        <div className="text-xs mt-1">
+                          {activeBets.length > 0 && (
+                            <Badge 
+                              className={`
+                                ${riskLevel === 'high' ? 'bg-red-500' : ''} 
+                                ${riskLevel === 'medium' ? 'bg-orange-500' : ''} 
+                                ${riskLevel === 'low' ? 'bg-blue-500' : ''}
+                              `}
+                            >
+                              {riskLevel}
+                            </Badge>
+                          )}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Detailed Analysis Tabs */}
         <Tabs defaultValue="market-game" className="w-full" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="market-game">Market Game Risk</TabsTrigger>
-            <TabsTrigger value="cricket-toss">Cricket Toss Risk</TabsTrigger>
+            <TabsTrigger value="market-game">Satamatka Analysis</TabsTrigger>
+            <TabsTrigger value="cricket-toss">Other Game Risk</TabsTrigger>
           </TabsList>
           
           <TabsContent value="market-game" className="mt-0">
             {marketGameData && (
-              <GameTypeRiskPanel 
-                data={marketGameData} 
-                detailedData={data.detailedData}
-                gameType="satamatka"
-                userInfo={userInfo}
-                marketInfo={marketInfo}
-              />
+              <>
+                {/* Number-specific analysis when a filtered bet type is selected */}
+                {betTypeFilter !== 'all' && (
+                  <Card className="mb-6">
+                    <CardHeader>
+                      <CardTitle>Jantri Number Analysis - {betTypeFilter.charAt(0).toUpperCase() + betTypeFilter.slice(1)} Bets</CardTitle>
+                      <CardDescription>Comprehensive data for current {betTypeFilter} bets</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ScrollArea className="h-[300px]">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Number</TableHead>
+                              <TableHead>Bet Amount</TableHead>
+                              <TableHead>Potential Win</TableHead>
+                              <TableHead>Risk Level</TableHead>
+                              <TableHead>Market</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {data.detailedData.gameData
+                              .filter(game => 
+                                game.gameType === 'satamatka' && 
+                                !game.result && 
+                                game.prediction === betTypeFilter
+                              )
+                              .map((game, idx) => (
+                                <TableRow key={game.id || idx}>
+                                  <TableCell>{game.gameData?.number || 'Unknown'}</TableCell>
+                                  <TableCell>₹{game.betAmount?.toFixed(2) || 0}</TableCell>
+                                  <TableCell>₹{((game.betAmount || 0) * 0.9).toFixed(2)}</TableCell>
+                                  <TableCell><RiskBadge amount={game.betAmount || 0} /></TableCell>
+                                  <TableCell>
+                                    {game.marketId ? (marketInfo[game.marketId]?.name || `Market ${game.marketId}`) : 'N/A'}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            {data.detailedData.gameData.filter(game => 
+                              game.gameType === 'satamatka' && 
+                              !game.result && 
+                              game.prediction === betTypeFilter
+                            ).length === 0 && (
+                              <TableRow>
+                                <TableCell colSpan={5} className="text-center py-4">No active {betTypeFilter} bets found</TableCell>
+                              </TableRow>
+                            )}
+                          </TableBody>
+                        </Table>
+                      </ScrollArea>
+                    </CardContent>
+                  </Card>
+                )}
+                
+                <GameTypeRiskPanel 
+                  data={marketGameData} 
+                  detailedData={data.detailedData}
+                  gameType="satamatka"
+                  userInfo={userInfo}
+                  marketInfo={marketInfo}
+                  betTypeFilter={betTypeFilter}
+                />
+              </>
             )}
           </TabsContent>
           
@@ -324,11 +517,15 @@ interface RiskPanelProps {
   gameType: string;
   userInfo: UserInfo;
   marketInfo: MarketInfo;
+  betTypeFilter?: string;
 }
 
-function GameTypeRiskPanel({ data, detailedData, gameType, userInfo, marketInfo }: RiskPanelProps) {
-  // Filter game data by type
-  const gameData = detailedData.gameData.filter(game => game.gameType === gameType);
+function GameTypeRiskPanel({ data, detailedData, gameType, userInfo, marketInfo, betTypeFilter = 'all' }: RiskPanelProps) {
+  // Filter game data by type and bet type if filter is active
+  const gameData = detailedData.gameData.filter(game => 
+    game.gameType === gameType && 
+    (betTypeFilter === 'all' || game.prediction === betTypeFilter)
+  );
   
   // Calculate current risk level (0-100)
   const riskPercentage = calculateRiskLevel(data);
