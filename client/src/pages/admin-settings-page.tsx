@@ -849,7 +849,7 @@ export default function AdminSettingsPage() {
                             onChange={(e) => setCricketTossOdds(e.target.value)} 
                             placeholder="1.90"
                             type="number"
-                            step="0.1"
+                            step="0.01"
                             className="max-w-[120px]"
                           />
                           <span>times the bet amount</span>
@@ -874,7 +874,7 @@ export default function AdminSettingsPage() {
                               onChange={(e) => setSatamatkaOdds({...satamatkaOdds, jodi: e.target.value})} 
                               placeholder="90"
                               type="number"
-                              step="0.1"
+                              step="0.01"
                               className="max-w-[120px]"
                             />
                             <span>×</span>
@@ -889,7 +889,7 @@ export default function AdminSettingsPage() {
                               onChange={(e) => setSatamatkaOdds({...satamatkaOdds, harf: e.target.value})} 
                               placeholder="9"
                               type="number"
-                              step="0.1"
+                              step="0.01"
                               className="max-w-[120px]"
                             />
                             <span>×</span>
@@ -904,7 +904,7 @@ export default function AdminSettingsPage() {
                               onChange={(e) => setSatamatkaOdds({...satamatkaOdds, crossing: e.target.value})} 
                               placeholder="95"
                               type="number"
-                              step="0.1"
+                              step="0.01"
                               className="max-w-[120px]"
                             />
                             <span>×</span>
@@ -919,7 +919,7 @@ export default function AdminSettingsPage() {
                               onChange={(e) => setSatamatkaOdds({...satamatkaOdds, odd_even: e.target.value})} 
                               placeholder="1.9"
                               type="number"
-                              step="0.1"
+                              step="0.01"
                               className="max-w-[120px]"
                             />
                             <span>×</span>
