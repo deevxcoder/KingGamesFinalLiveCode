@@ -96,6 +96,8 @@ export default function RiskManagementPage() {
   const [activeTab, setActiveTab] = useState('market-game');
   const [userInfo, setUserInfo] = useState<UserInfo>({});
   const [marketInfo, setMarketInfo] = useState<MarketInfo>({});
+  // Add state for bet type filtering
+  const [betTypeFilter, setBetTypeFilter] = useState<string>('all');
 
   // Get the appropriate API endpoint based on user role
   const endpoint = isAdmin ? '/api/risk/admin' : '/api/risk/subadmin';
@@ -162,7 +164,7 @@ export default function RiskManagementPage() {
 
   if (isLoading) {
     return (
-      <DashboardLayout title="Risk Management" activeTab="risk-management">
+      <DashboardLayout title="Jantri Management" activeTab="risk-management">
         <div className="p-6">
           <LoadingSkeleton />
         </div>
@@ -172,17 +174,17 @@ export default function RiskManagementPage() {
 
   if (error) {
     return (
-      <DashboardLayout title="Risk Management" activeTab="risk-management">
+      <DashboardLayout title="Jantri Management" activeTab="risk-management">
         <div className="p-6">
           <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
             <CardHeader>
               <CardTitle className="text-red-700 dark:text-red-300 flex items-center">
                 <AlertTriangle className="w-5 h-5 mr-2" />
-                Error Loading Risk Management Data
+                Error Loading Jantri Management Data
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>There was a problem loading the risk management data. Please try again later.</p>
+              <p>There was a problem loading the jantri management data. Please try again later.</p>
             </CardContent>
           </Card>
         </div>
@@ -192,15 +194,15 @@ export default function RiskManagementPage() {
 
   if (!data || !data.summaries || data.summaries.length === 0) {
     return (
-      <DashboardLayout title="Risk Management" activeTab="risk-management">
+      <DashboardLayout title="Jantri Management" activeTab="risk-management">
         <div className="p-6">
           <Card>
             <CardHeader>
-              <CardTitle>Risk Management</CardTitle>
-              <CardDescription>No risk data available</CardDescription>
+              <CardTitle>Jantri Management</CardTitle>
+              <CardDescription>No game data available</CardDescription>
             </CardHeader>
             <CardContent>
-              <p>There's currently no risk data to display. This may be because there are no active games or bets in the system.</p>
+              <p>There's currently no data to display. This may be because there are no active games or bets in the system.</p>
             </CardContent>
           </Card>
         </div>
@@ -213,15 +215,15 @@ export default function RiskManagementPage() {
   const cricketTossData = data.summaries.find(summary => summary.gameType === 'cricket_toss');
 
   return (
-    <DashboardLayout title="Risk Management" activeTab="risk-management">
+    <DashboardLayout title="Jantri Management" activeTab="risk-management">
       <div className="p-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-xl font-bold">
-              {isAdmin ? 'Platform-wide Risk Analysis' : 'Risk Analysis for Your Players'}
+              {isAdmin ? 'Platform-wide Jantri Analysis' : 'Jantri Analysis for Your Players'}
             </h2>
             <p className="text-muted-foreground">
-              Monitor and manage betting risks across games
+              Monitor and manage Satamatka numbers with comprehensive betting data
             </p>
           </div>
         </div>
