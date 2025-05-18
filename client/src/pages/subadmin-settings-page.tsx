@@ -770,7 +770,7 @@ export default function SubadminSettingsPage() {
                                         <div key={odd.gameType} className="flex justify-between items-center py-3 border-b border-purple-800 last:border-0">
                                           <span className="text-white">{formatGameType(odd.gameType)}</span>
                                           <span className="text-lg font-mono font-bold text-white">
-                                            {(odd.oddValue / 10000).toFixed(2)}x
+                                            {odd.oddValue.toFixed(2)}x
                                           </span>
                                         </div>
                                       ))
@@ -788,39 +788,34 @@ export default function SubadminSettingsPage() {
                             <div className="bg-purple-950 p-4 rounded-lg">
                               <h4 className="text-lg font-medium mb-4 text-white">Your Players' Game Odds</h4>
                               <div className="space-y-0">
-                                <div className="flex justify-between items-center py-3 border-b border-purple-800">
-                                  <span className="text-white">Team Match</span>
-                                  <span className="text-lg font-mono font-bold text-white">0.02x</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-b border-purple-800">
-                                  <span className="text-white">Team Match Draw</span>
-                                  <span className="text-lg font-mono font-bold text-white">0.02x</span>
-                                </div>
-                                {/* Static hardcoded values to match exactly what's in the screenshot */}
-                                <div className="flex justify-between items-center py-3 border-b border-purple-800">
-                                  <span className="text-white">Cricket Toss</span>
-                                  <span className="text-lg font-mono font-bold text-white">0.02x</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-b border-purple-800">
-                                  <span className="text-white">Coin Flip</span>
-                                  <span className="text-lg font-mono font-bold text-white">0.02x</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-b border-purple-800">
-                                  <span className="text-white">Jodi (Pair)</span>
-                                  <span className="text-lg font-mono font-bold text-white">0.90x</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-b border-purple-800">
-                                  <span className="text-white">Harf</span>
-                                  <span className="text-lg font-mono font-bold text-white">0.09x</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-b border-purple-800">
-                                  <span className="text-white">Odd/Even</span>
-                                  <span className="text-lg font-mono font-bold text-white">0.02x</span>
-                                </div>
-                                <div className="flex justify-between items-center py-3 border-b border-purple-800 last:border-0">
-                                  <span className="text-white">Crossing</span>
-                                  <span className="text-lg font-mono font-bold text-white">0.95x</span>
-                                </div>
+                                {isLoadingSubadminOdds ? (
+                                  <div className="py-3 text-center text-white">
+                                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white mx-auto"></div>
+                                    <p className="mt-2">Loading odds...</p>
+                                  </div>
+                                ) : (
+                                  <>
+                                    {Array.isArray(subadminOdds) && subadminOdds
+                                      .filter((odd: GameOdd) => 
+                                        odd.gameType !== 'team_match' && 
+                                        odd.gameType !== 'team_match_draw'
+                                      )
+                                      .map((odd: GameOdd) => (
+                                        <div key={odd.gameType} className="flex justify-between items-center py-3 border-b border-purple-800 last:border-0">
+                                          <span className="text-white">{formatGameType(odd.gameType)}</span>
+                                          <span className="text-lg font-mono font-bold text-white">
+                                            {odd.oddValue.toFixed(2)}x
+                                          </span>
+                                        </div>
+                                      ))
+                                    }
+                                    {(!subadminOdds || !Array.isArray(subadminOdds) || subadminOdds.length === 0) && (
+                                      <div className="py-3 text-center text-white">
+                                        No subadmin odds found
+                                      </div>
+                                    )}
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
