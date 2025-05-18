@@ -1869,6 +1869,12 @@ app.get("/api/games/my-history", async (req, res, next) => {
       const newBalance = user.balance - betAmountInPaisa;
       await storage.updateUserBalance(user.id, newBalance);
 
+      // Store the player's assigned subadmin ID in the game data for odds calculation later
+      // This will be used when processing results to apply the correct subadmin-specific odds
+      let gameData = {
+        assignedSubadminId: user.assignedTo || null
+      };
+      
       // Record the game, storing the bet amount in paisa for consistency
       const game = await storage.createGame({
         userId: user.id,
@@ -1880,6 +1886,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
         marketId,
         gameMode,
         balanceAfter: newBalance, // Track balance after this bet
+        gameData  // Store the assigned subadmin ID for odds calculation during result processing
       });
 
       // Return game info with updated user balance
@@ -2181,14 +2188,44 @@ app.get("/api/games/my-history", async (req, res, next) => {
         
         // Check if prediction matches result
         if (game.prediction === result) {
-          // Calculate payout based on odds
-          let odds = 0;
+          // Get base odds from match
+          let baseOdds = 0;
           if (result === TeamMatchResult.TEAM_A) {
-            odds = match.oddTeamA / 100; // Convert from integer (200) to decimal (2.00)
+            baseOdds = match.oddTeamA / 100; // Convert from integer (200) to decimal (2.00)
           } else if (result === TeamMatchResult.TEAM_B) {
-            odds = match.oddTeamB / 100;
+            baseOdds = match.oddTeamB / 100;
           } else if (result === TeamMatchResult.DRAW) {
-            odds = match.oddDraw ? match.oddDraw / 100 : 3.00; // Default to 3.00 if not set
+            baseOdds = match.oddDraw ? match.oddDraw / 100 : 3.00; // Default to 3.00 if not set
+          }
+          
+          // Check if player is assigned to a subadmin with custom odds
+          let odds = baseOdds; // Default to base odds
+          
+          if (user.assignedTo) {
+            // Check for custom odds for this subadmin
+            try {
+              const subadminId = user.assignedTo;
+              const customOdds = await db.select()
+                .from(schema.gameOdds)
+                .where(
+                  and(
+                    eq(schema.gameOdds.gameType, 'team_match'),
+                    eq(schema.gameOdds.subadminId, subadminId),
+                    eq(schema.gameOdds.setByAdmin, false)
+                  )
+                );
+                
+              if (customOdds && customOdds.length > 0) {
+                // Use custom subadmin odds
+                odds = customOdds[0].oddValue / 100;
+                console.log(`Using custom subadmin ${subadminId} odds for player ${user.id}: ${odds}x (base odds: ${baseOdds}x)`);
+              } else {
+                console.log(`No custom odds found for subadmin ${subadminId}, using base odds: ${baseOdds}x`);
+              }
+            } catch (error) {
+              console.error(`Error retrieving custom odds:`, error);
+              // Continue with base odds if there's an error
+            }
           }
           
           payout = Math.floor(game.betAmount * odds);
