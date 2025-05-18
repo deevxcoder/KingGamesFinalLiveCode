@@ -471,27 +471,17 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Risk Management - Admin and Subadmin */}
-            {(isAdmin || isSubadmin) && (
-              <Button 
-                variant="outline"
-                className="py-6 border-slate-700 text-blue-300 hover:bg-slate-800 hover:text-blue-200"
-                onClick={() => setLocation("/risk-management")}
-              >
-                <BarChart2 className="h-5 w-5 mr-2" />
-                Risk Management
-              </Button>
-            )}
+            {/* Risk Management and Jantri Management removed for platform simplification */}
             
-            {/* Jantri Management - Admin Only */}
+            {/* Settings Button */}
             {isAdmin && (
               <Button 
                 variant="outline"
                 className="py-6 border-slate-700 text-rose-300 hover:bg-slate-800 hover:text-rose-200"
-                onClick={() => setLocation("/manage-jantri")}
+                onClick={() => setLocation("/settings")}
               >
-                <Dice1 className="h-5 w-5 mr-2" />
-                Jantri Management
+                <Settings className="h-5 w-5 mr-2" />
+                Settings
               </Button>
             )}
             

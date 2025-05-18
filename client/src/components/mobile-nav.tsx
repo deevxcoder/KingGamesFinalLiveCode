@@ -50,13 +50,7 @@ export default function MobileNav({ activeTab }: MobileNavProps = {}) {
       path: "/game-history",
       visible: isPlayer,
     },
-    // Risk Management for admin/subadmin
-    {
-      name: "Risk",
-      icon: <BarChart2 className="w-5 h-5" />,
-      path: "/risk-management",
-      visible: isAdmin || isSubadmin,
-    },
+    // Risk Management removed for platform simplification
     // Wallet for all users
     {
       name: "Wallet",
