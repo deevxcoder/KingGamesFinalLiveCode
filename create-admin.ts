@@ -1,84 +1,49 @@
-// This script creates an admin user for the system
-import { db } from "./server/db";
-import { users, UserRole } from "./shared/schema";
-import { hashPassword } from "./server/auth";
-import { eq } from "drizzle-orm";
+/**
+ * Script to create an admin user
+ */
+import { pool } from './server/db';
 
 async function createAdminUser() {
   try {
-    console.log("Creating admin user...");
+    console.log('Creating admin user...');
     
-    // Check if the admin user already exists
-    const adminExists = await db.select()
-      .from(users)
-      .where(eq(users.username, "admin"))
-      .limit(1);
+    // Create admin user with direct SQL
+    const client = await pool.connect();
+    
+    try {
+      await client.query('BEGIN');
       
-    if (adminExists.length > 0) {
-      console.log("Admin user already exists. Updating password...");
+      // Check if admin already exists
+      const checkResult = await client.query('SELECT id FROM users WHERE username = $1', ['admin']);
       
-      // Hash the new password
-      const hashedPassword = await hashPassword("admin123");
-      
-      // Update admin password
-      await db.update(users)
-        .set({ 
-          password: hashedPassword,
-          role: UserRole.ADMIN,
-          balance: 1000000 // 10,000 in currency (stored in cents/paisa)
-        })
-        .where(eq(users.username, "admin"));
+      if (checkResult.rowCount === 0) {
+        // Admin doesn't exist, create one
+        // Use a default bcrypt hash for 'admin123' (you can generate this with bcrypt online tools)
+        const hashedPassword = '$2b$10$mA.DloIkTdF5DY3vX2Oz/OCNECnUb9SAj1h/HP0skvGQFPKpOBcZS';
         
-      console.log("Admin password updated successfully!");
-    } else {
-      console.log("Creating new admin user...");
-      
-      // Hash the password
-      const hashedPassword = await hashPassword("admin123");
-      
-      // Insert the admin user
-      await db.insert(users)
-        .values({
-          username: "admin",
-          password: hashedPassword,
-          role: UserRole.ADMIN,
-          balance: 1000000, // 10,000 in currency (stored in cents/paisa)
-          isBlocked: false
-        });
+        await client.query(`
+          INSERT INTO users (username, password, email, mobile, role, balance) 
+          VALUES ($1, $2, $3, $4, $5, $6)
+        `, ['admin', hashedPassword, 'admin@example.com', '1234567890', 'admin', 0]);
         
-      console.log("Admin user created successfully!");
+        console.log('Admin user created successfully');
+      } else {
+        console.log('Admin user already exists');
+      }
+      
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
     }
     
-    // Create a test subadmin user
-    const subadminExists = await db.select()
-      .from(users)
-      .where(eq(users.username, "subadmin"))
-      .limit(1);
-      
-    if (subadminExists.length === 0) {
-      console.log("Creating test subadmin user...");
-      
-      // Hash the password
-      const hashedPassword = await hashPassword("subadmin123");
-      
-      // Insert the subadmin user
-      await db.insert(users)
-        .values({
-          username: "subadmin",
-          password: hashedPassword,
-          role: UserRole.SUBADMIN,
-          balance: 500000, // 5,000 in currency
-          isBlocked: false
-        });
-        
-      console.log("Subadmin user created successfully!");
-    }
-    
-    console.log("User setup completed successfully!");
   } catch (error) {
-    console.error("Error creating admin user:", error);
+    console.error('Error creating admin user:', error);
   } finally {
-    process.exit(0);
+    // Close the pool
+    await pool.end();
   }
 }
 
