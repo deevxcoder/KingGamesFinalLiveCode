@@ -343,79 +343,106 @@ export default function RiskManagementPage() {
           </CardContent>
         </Card>
 
-        {/* Jantri Number Grid */}
+        {/* Jantri Numbers List */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Jantri Numbers (00-99)</CardTitle>
-            <CardDescription>Comprehensive view of all Satamatka numbers with betting data</CardDescription>
+            <CardDescription>Detailed list of all Satamatka numbers with active betting data</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-5 sm:grid-cols-10 gap-2">
-              {Array.from({ length: 100 }, (_, i) => {
-                const number = i.toString().padStart(2, '0');
-                
-                // Get active bets on this number based on the filter
-                const activeBets = data?.detailedData?.gameData ? 
-                  data.detailedData.gameData.filter(game => 
-                    game.gameType === 'satamatka' && 
-                    !game.result && 
-                    (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
-                    game.gameData?.number === number
-                  ) : [];
-                
-                // Calculate total bet amount on this number
-                const totalBetAmount = activeBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                
-                // Calculate potential win amount
-                const potentialWin = totalBetAmount * 0.9;
-                
-                // Determine risk level
-                const riskLevel = 
-                  totalBetAmount > 5000 ? 'high' : 
-                  totalBetAmount > 1000 ? 'medium' : 
-                  totalBetAmount > 0 ? 'low' : 'none';
-                
-                // CSS classes based on risk level
-                const riskClasses = {
-                  high: 'bg-red-900/30 border-red-500',
-                  medium: 'bg-orange-900/30 border-orange-500',
-                  low: 'bg-blue-900/30 border-blue-500',
-                  none: 'bg-slate-800/30 border-slate-700'
-                };
-                
-                return (
-                  <div 
-                    key={number} 
-                    className={`p-2 border rounded-md text-center ${riskClasses[riskLevel]}`}
-                  >
-                    <div className="font-bold">{number}</div>
-                    {totalBetAmount > 0 && (
-                      <>
-                        <div className="text-xs mt-1 text-green-400">
-                          ₹{totalBetAmount.toFixed(0)}
-                        </div>
-                        <div className="text-xs text-amber-400">
-                          Win: ₹{potentialWin.toFixed(0)}
-                        </div>
-                        <div className="text-xs mt-1">
-                          {activeBets.length > 0 && (
-                            <Badge 
-                              className={`
-                                ${riskLevel === 'high' ? 'bg-red-500' : ''} 
-                                ${riskLevel === 'medium' ? 'bg-orange-500' : ''} 
-                                ${riskLevel === 'low' ? 'bg-blue-500' : ''}
-                              `}
-                            >
-                              {riskLevel}
+            <ScrollArea className="h-[500px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Number</TableHead>
+                    <TableHead>Bet Type</TableHead>
+                    <TableHead>Active Bets</TableHead>
+                    <TableHead>Total Amount</TableHead>
+                    <TableHead>Potential Win</TableHead>
+                    <TableHead>Risk Level</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 100 }, (_, i) => {
+                    const number = i.toString().padStart(2, '0');
+                    
+                    // Get active bets on this number based on the filter
+                    const activeBets = data?.detailedData?.gameData ? 
+                      data.detailedData.gameData.filter(game => 
+                        game.gameType === 'satamatka' && 
+                        !game.result && 
+                        (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
+                        game.gameData?.number === number
+                      ) : [];
+                    
+                    // If no active bets and we're not showing all numbers, skip
+                    if (activeBets.length === 0) {
+                      return null; // Don't show numbers with no bets
+                    }
+                    
+                    // Calculate total bet amount on this number
+                    const totalBetAmount = activeBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                    
+                    // Calculate potential win amount
+                    const potentialWin = totalBetAmount * 0.9;
+                    
+                    // Collect unique bet types for this number
+                    const betTypes = [...new Set(activeBets.map(game => game.prediction || 'unknown'))];
+                    
+                    // Determine risk level
+                    const riskLevel = 
+                      totalBetAmount > 5000 ? 'high' : 
+                      totalBetAmount > 1000 ? 'medium' : 
+                      totalBetAmount > 0 ? 'low' : 'none';
+                    
+                    return (
+                      <TableRow key={number}>
+                        <TableCell className="font-bold">{number}</TableCell>
+                        <TableCell>
+                          {betTypes.map(type => (
+                            <Badge key={type} className="mr-1 bg-slate-700">
+                              {type}
                             </Badge>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+                          ))}
+                        </TableCell>
+                        <TableCell>{activeBets.length}</TableCell>
+                        <TableCell className="text-green-400">₹{totalBetAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-amber-400">₹{potentialWin.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            className={`
+                              ${riskLevel === 'high' ? 'bg-red-500' : ''} 
+                              ${riskLevel === 'medium' ? 'bg-orange-500' : ''} 
+                              ${riskLevel === 'low' ? 'bg-blue-500' : ''}
+                            `}
+                          >
+                            {riskLevel}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }).filter(Boolean)}
+                  {/* Show a message if no numbers have active bets with current filter */}
+                  {Array.from({ length: 100 }, (_, i) => {
+                    const number = i.toString().padStart(2, '0');
+                    const activeBets = data?.detailedData?.gameData ? 
+                      data.detailedData.gameData.filter(game => 
+                        game.gameType === 'satamatka' && 
+                        !game.result && 
+                        (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
+                        game.gameData?.number === number
+                      ) : [];
+                    return activeBets.length > 0;
+                  }).filter(Boolean).length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4">
+                        No active bets found for the selected filter
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
           </CardContent>
         </Card>
 
