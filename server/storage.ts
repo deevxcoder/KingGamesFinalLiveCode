@@ -56,6 +56,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   getUsersByAssignedTo(assignedToId: number): Promise<User[]>;
+  getUsersByIds(userIds: number[]): Promise<User[]>;
   updateUserBalance(userId: number, newBalance: number): Promise<User | undefined>;
   updateUser(userId: number, data: {username?: string; password?: string}): Promise<User | undefined>;
   updateUserPassword(userId: number, hashedPassword: string): Promise<User | undefined>;
@@ -181,6 +182,14 @@ export class DatabaseStorage implements IStorage {
     return await db.select()
       .from(users)
       .where(eq(users.assignedTo, assignedToId));
+  }
+  
+  async getUsersByIds(userIds: number[]): Promise<User[]> {
+    if (!userIds.length) return [];
+    
+    return await db.select()
+      .from(users)
+      .where(sql`${users.id} IN (${userIds.join(', ')})`);
   }
 
   async updateUserBalance(userId: number, newBalance: number): Promise<User | undefined> {
@@ -356,6 +365,14 @@ export class DatabaseStorage implements IStorage {
       .where(eq(satamatkaMarkets.id, id))
       .limit(1);
     return market;
+  }
+  
+  async getSatamatkaMarketsByIds(marketIds: number[]): Promise<SatamatkaMarket[]> {
+    if (!marketIds.length) return [];
+    
+    return await db.select()
+      .from(satamatkaMarkets)
+      .where(sql`${satamatkaMarkets.id} IN (${marketIds.join(', ')})`);
   }
 
   async getAllSatamatkaMarkets(): Promise<SatamatkaMarket[]> {

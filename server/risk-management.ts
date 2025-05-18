@@ -26,6 +26,8 @@ interface DetailedRiskData {
 interface RiskManagementResponse {
   summaries: RiskSummary[];
   detailedData: DetailedRiskData;
+  userInfo: { [userId: number]: { username: string; } };
+  marketInfo: { [marketId: number]: { name: string; type: string; } };
   message?: string;
 }
 
@@ -37,6 +39,38 @@ export async function getAdminRiskManagement(req: Request, res: Response) {
     // Admin gets platform-wide risk management data
     const marketGameRiskData = await getMarketGameRiskData();
     const cricketTossRiskData = await getCricketTossRiskData();
+    
+    // Fetch real user information for all users involved in games
+    const userIds = [...new Set([
+      ...Object.keys(marketGameRiskData.userExposure).map(id => parseInt(id)),
+      ...Object.keys(cricketTossRiskData.userExposure).map(id => parseInt(id))
+    ])];
+    
+    // Fetch real market information for all markets with games
+    const marketIds = [...new Set(
+      Object.keys(marketGameRiskData.marketExposure).map(id => parseInt(id))
+    )];
+    
+    // Get user information from database
+    const userInfo: { [userId: number]: { username: string } } = {};
+    if (userIds.length > 0) {
+      const users = await storage.getUsersByIds(userIds);
+      users.forEach(user => {
+        userInfo[user.id] = { username: user.username };
+      });
+    }
+    
+    // Get market information from database
+    const marketInfo: { [marketId: number]: { name: string; type: string } } = {};
+    if (marketIds.length > 0) {
+      const markets = await storage.getSatamatkaMarketsByIds(marketIds);
+      markets.forEach(market => {
+        marketInfo[market.id] = { 
+          name: market.name,
+          type: market.type
+        };
+      });
+    }
     
     const response: RiskManagementResponse = {
       summaries: [
@@ -61,7 +95,9 @@ export async function getAdminRiskManagement(req: Request, res: Response) {
           ...marketGameRiskData.games,
           ...cricketTossRiskData.games
         ]
-      }
+      },
+      userInfo,
+      marketInfo
     };
     
     return res.status(200).json(response);
@@ -115,6 +151,8 @@ export async function getSubadminRiskManagement(req: Request, res: Response) {
           marketExposure: {},
           gameData: []
         },
+        userInfo: {},
+        marketInfo: {},
         message: "No assigned players found"
       });
     }
@@ -152,6 +190,31 @@ export async function getSubadminRiskManagement(req: Request, res: Response) {
       defaultCricketOdd?.oddValue || 90
     );
     
+    // Create user info mapping
+    const userInfo: { [userId: number]: { username: string } } = {};
+    assignedUsers.forEach(user => {
+      userInfo[user.id] = { username: user.username };
+    });
+    
+    // Get market IDs from the game data
+    const marketIds = [...new Set(
+      marketGames
+        .filter(game => game.marketId)
+        .map(game => game.marketId as number)
+    )];
+    
+    // Fetch market information
+    const marketInfo: { [marketId: number]: { name: string; type: string } } = {};
+    if (marketIds.length > 0) {
+      const markets = await storage.getSatamatkaMarketsByIds(marketIds);
+      markets.forEach(market => {
+        marketInfo[market.id] = { 
+          name: market.name,
+          type: market.type
+        };
+      });
+    }
+    
     const response: RiskManagementResponse = {
       summaries: [
         {
@@ -175,7 +238,9 @@ export async function getSubadminRiskManagement(req: Request, res: Response) {
           ...marketRiskData.games,
           ...cricketRiskData.games
         ]
-      }
+      },
+      userInfo,
+      marketInfo
     };
     
     return res.status(200).json(response);
