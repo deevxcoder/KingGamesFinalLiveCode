@@ -153,16 +153,18 @@ export default function AdminSettingsPage() {
   // Process coin flip odds when they load
   useEffect(() => {
     if (coinFlipOddsData && coinFlipOddsData.length > 0) {
-      // Store the raw value without dividing - the display will handle the division
-      setCoinFlipOdds(coinFlipOddsData[0].oddValue.toString());
+      // Convert the stored value (multiplied by 10000) back to a decimal for display
+      const displayValue = (coinFlipOddsData[0].oddValue / 10000).toFixed(2);
+      setCoinFlipOdds(displayValue);
     }
   }, [coinFlipOddsData]);
   
   // Process cricket toss odds when they load
   useEffect(() => {
     if (cricketTossOddsData && cricketTossOddsData.length > 0) {
-      // Store the raw value without dividing - the display will handle the division
-      setCricketTossOdds(cricketTossOddsData[0].oddValue.toString());
+      // Convert the stored value (multiplied by 10000) back to a decimal for display
+      const displayValue = (cricketTossOddsData[0].oddValue / 10000).toFixed(2);
+      setCricketTossOdds(displayValue);
     }
   }, [cricketTossOddsData]);
   
@@ -195,19 +197,23 @@ export default function AdminSettingsPage() {
       const updatedOdds = { ...satamatkaOdds };
       
       if (satamatkaOddsData.jodi && satamatkaOddsData.jodi.length > 0) {
-        updatedOdds.jodi = satamatkaOddsData.jodi[0].oddValue.toString();
+        // Convert the stored value (multiplied by 10000) back to a decimal for display
+        updatedOdds.jodi = (satamatkaOddsData.jodi[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.harf && satamatkaOddsData.harf.length > 0) {
-        updatedOdds.harf = satamatkaOddsData.harf[0].oddValue.toString();
+        // Convert the stored value (multiplied by 10000) back to a decimal for display
+        updatedOdds.harf = (satamatkaOddsData.harf[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.crossing && satamatkaOddsData.crossing.length > 0) {
-        updatedOdds.crossing = satamatkaOddsData.crossing[0].oddValue.toString();
+        // Convert the stored value (multiplied by 10000) back to a decimal for display
+        updatedOdds.crossing = (satamatkaOddsData.crossing[0].oddValue / 10000).toFixed(2);
       }
       
       if (satamatkaOddsData.odd_even && satamatkaOddsData.odd_even.length > 0) {
-        updatedOdds.odd_even = satamatkaOddsData.odd_even[0].oddValue.toString();
+        // Convert the stored value (multiplied by 10000) back to a decimal for display
+        updatedOdds.odd_even = (satamatkaOddsData.odd_even[0].oddValue / 10000).toFixed(2);
       }
       
       setSatamatkaOdds(updatedOdds);

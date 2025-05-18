@@ -3274,10 +3274,13 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      // Store the exact value as provided (don't multiply)
+      // Multiply the value by 10000 for storage to allow decimal values like 1.95 to be stored accurately
+      // This will be divided by 10000 when retrieving for display
+      const storedValue = parseFloat(oddValue) * 10000;
+      
       const odds = await storage.upsertGameOdd(
         gameType, 
-        oddValue, // Store the exact value as provided
+        storedValue, // Store the value multiplied by 10000
         req.user.role === UserRole.ADMIN ? (setByAdmin || true) : false,
         req.user.role === UserRole.ADMIN ? subadminId : req.user.id
       );
