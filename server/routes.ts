@@ -2853,7 +2853,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
         return res.status(400).json({ message: "Game type is required" });
       }
       
-      const odds = await storage.getGameOdds(gameType);
+      // Important: We only want platform/admin odds here, not subadmin odds
+      // Set includeSubadminOdds to false to get only admin odds
+      const odds = await storage.getGameOdds(gameType, false);
       res.json(odds);
     } catch (err) {
       next(err);
