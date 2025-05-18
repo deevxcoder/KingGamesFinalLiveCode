@@ -659,11 +659,15 @@ export default function SubadminSettingsPage() {
                             <Card className="bg-muted/30">
                               <CardContent className="pt-6">
                                 <div className="space-y-2">
-                                  {Array.isArray(adminOdds) && adminOdds.map((odd: GameOdd) => (
+                                  {Array.isArray(adminOdds) && adminOdds
+                                    .filter((odd: GameOdd) => 
+                                      odd.gameType !== 'team_match' && 
+                                      odd.gameType !== 'team_match_draw'
+                                    )
+                                    .map((odd: GameOdd) => (
                                     <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
                                       <span className="font-medium">
-                                        {odd.gameType === 'team_match' ? 'Team Match' : 
-                                         odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                        {odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
                                          odd.gameType === 'coin_flip' ? 'Coin Flip' : 
                                          odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                          odd.gameType === 'satamatka_harf' ? 'Harf' : 
@@ -692,11 +696,15 @@ export default function SubadminSettingsPage() {
                             <Card className="bg-muted/30">
                               <CardContent className="pt-6">
                                 <div className="space-y-2">
-                                  {Array.isArray(subadminOdds) && subadminOdds.map((odd: GameOdd) => (
+                                  {Array.isArray(subadminOdds) && subadminOdds
+                                    .filter((odd: GameOdd) => 
+                                      odd.gameType !== 'team_match' && 
+                                      odd.gameType !== 'team_match_draw'
+                                    )
+                                    .map((odd: GameOdd) => (
                                     <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
                                       <span className="font-medium">
-                                        {odd.gameType === 'team_match' ? 'Team Match' : 
-                                         odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
+                                        {odd.gameType === 'cricket_toss' ? 'Cricket Toss' : 
                                          odd.gameType === 'coin_flip' ? 'Coin Flip' : 
                                          odd.gameType === 'satamatka_jodi' ? 'Jodi (Pair)' : 
                                          odd.gameType === 'satamatka_harf' ? 'Harf' : 
