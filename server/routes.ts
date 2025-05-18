@@ -3039,7 +3039,7 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
           // The division happens on the client side
           return storage.upsertGameOdd(
             odd.gameType,
-            odd.oddValue * 100, // Multiply by 100 for storage
+            odd.oddValue, // Store the exact value as provided
             false, // Not set by admin, but for specific subadmin
             subadminId
           );
@@ -3274,10 +3274,10 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      // Convert decimal to integer by multiplying by 100 for storage
+      // Store the exact value as provided (don't multiply)
       const odds = await storage.upsertGameOdd(
         gameType, 
-        oddValue * 100, // Multiply by 100 to store as integer
+        oddValue, // Store the exact value as provided
         req.user.role === UserRole.ADMIN ? (setByAdmin || true) : false,
         req.user.role === UserRole.ADMIN ? subadminId : req.user.id
       );
