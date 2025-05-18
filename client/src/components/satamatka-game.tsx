@@ -1768,31 +1768,34 @@ export default function SatamatkaGame() {
 // Helper function to calculate potential win based on game mode
 // Function to calculate potential winnings based on current odds from the server
 function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record<string, number> = {}): number {
+  // Default payout ratios (in case database odds are missing)
   let payoutRatio = 1;
   
   // Get the appropriate payout ratio from the database odds
-  console.log(`Game mode: ${gameMode}, Initial payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
+  console.log(`Game mode: ${gameMode}, Bet amount: ${betAmount}, Odds:`, odds);
   
+  // Use the odds from the database which are already stored as multiplied by 100
+  // We need to divide by 100 to get the actual multiplier
   switch (gameMode) {
     case "jodi":
-      // Jodi payout is 90x the bet amount
-      payoutRatio = 90;
+      // Jodi payout (default 90x)
+      payoutRatio = odds.jodi ? odds.jodi / 100 : 90;
       break;
     case "harf":
-      // Harf payout is 9x the bet amount
-      payoutRatio = 9;
+      // Harf payout (default 9x)
+      payoutRatio = odds.harf ? odds.harf / 100 : 9;
       break;
     case "crossing":
-      // Crossing payout is 95x the bet amount
-      payoutRatio = 95;
+      // Crossing payout (default 95x)
+      payoutRatio = odds.crossing ? odds.crossing / 100 : 95;
       break;
     case "odd_even":
-      // Odd/Even payout is 1.8x the bet amount
-      payoutRatio = 1.8;
+      // Odd/Even payout (default 1.8x)
+      payoutRatio = odds.odd_even ? odds.odd_even / 100 : 1.8;
       break;
   }
   
-  console.log(`Game mode: ${gameMode}, Final payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
+  console.log(`Game mode: ${gameMode}, Using payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
   // Calculate the potential win amount - multiply bet amount by payout ratio
   // For ₹100 bet on Jodi with 90x odds, win = 100 × 90 = ₹9,000
