@@ -105,11 +105,10 @@ export default function RiskManagementPage() {
     enabled: activeTab === 'satamatka',
   });
   
-  // Fetch cricket toss stats
-  const { data: cricketStats, isLoading: cricketLoading, error: cricketError } = useQuery<BettingStats[]>({
-    queryKey: ['/api/cricket-toss-stats', activeTab === 'cricket'],
-    enabled: activeTab === 'cricket',
-  });
+  // Cricket toss stats removed as part of the simplification
+  const cricketStats: BettingStats[] = [];
+  const cricketLoading = false;
+  const cricketError = null;
   
   // Format currency in rupees
   const formatAmount = (amount: number) => {
