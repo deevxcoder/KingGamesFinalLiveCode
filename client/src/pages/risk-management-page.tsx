@@ -416,12 +416,32 @@ export default function RiskManagementPage() {
                             const num = i.toString().padStart(2, '0');
                             
                             // Get all games for this number filtered by the selected bet type
-                            const gamesForNumber = data.detailedData.gameData.filter(game => 
-                              game.gameType === 'satamatka' && 
-                              !game.result && 
-                              (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
-                              game.gameData?.number === num
-                            );
+                            const gamesForNumber = data.detailedData.gameData.filter(game => {
+                              // Check if this is a Satamatka game
+                              if (game.gameType !== 'satamatka' || game.result) return false;
+                              
+                              // Check if the bet type matches our filter
+                              if (betTypeFilter !== 'all' && game.prediction !== betTypeFilter) return false;
+                              
+                              // Check if the number matches - in Satamatka games, the number can be stored in different ways
+                              // It could be directly in prediction data for jodi bets,
+                              // or it could be in gameData.number, or possibly as a string property
+                              
+                              // For jodi bets, the number might be the prediction value itself
+                              if (game.prediction === 'jodi' && game.value === num) return true;
+                              
+                              // Check in all possible locations where the number might be stored
+                              if (game.gameData?.number === num) return true;
+                              if (typeof game.gameData === 'object' && game.gameData?.selectedNumber === num) return true;
+                              if (typeof game.gameData === 'string' && game.gameData === num) return true;
+                              if (game.number === num) return true;
+                              if (game.selectedNumber === num) return true;
+                              
+                              // Log game data for debugging
+                              console.log('Game data for debugging:', game);
+                              
+                              return false;
+                            });
                             
                             // Calculate total bet amount for this number
                             const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
