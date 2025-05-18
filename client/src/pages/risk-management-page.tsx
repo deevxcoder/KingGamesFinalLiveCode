@@ -350,109 +350,6 @@ export default function RiskManagementPage() {
             </CardContent>
           </Card>
           
-          {/* Jantri Numbers List */}
-          <Card className="mb-6 mt-4">
-            <CardHeader>
-              <CardTitle>Jantri Numbers (00-99)</CardTitle>
-              <CardDescription>Detailed list of all Satamatka numbers with active betting data</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-[500px]">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Number</TableHead>
-                      <TableHead>Bet Type</TableHead>
-                      <TableHead>Active Bets</TableHead>
-                      <TableHead>Total Amount</TableHead>
-                      <TableHead>Potential Win</TableHead>
-                      <TableHead>Risk Level</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {Array.from({ length: 100 }, (_, i) => {
-                      const number = i.toString().padStart(2, '0');
-                      
-                      // Get active bets on this number based on the filter
-                      const activeBets = data?.detailedData?.gameData ? 
-                        data.detailedData.gameData.filter(game => 
-                          game.gameType === 'satamatka' && 
-                          !game.result && 
-                          (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
-                          game.gameData?.number === number
-                        ) : [];
-                      
-                      // If no active bets and we're not showing all numbers, skip
-                      if (activeBets.length === 0) {
-                        return null; // Don't show numbers with no bets
-                      }
-                      
-                      // Calculate total bet amount on this number
-                      const totalBetAmount = activeBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                      
-                      // Calculate potential win amount
-                      const potentialWin = totalBetAmount * 0.9;
-                      
-                      // Collect unique bet types for this number
-                      const betTypes = [...new Set(activeBets.map(game => game.prediction || 'unknown'))];
-                      
-                      // Determine risk level
-                      const riskLevel = 
-                        totalBetAmount > 5000 ? 'high' : 
-                        totalBetAmount > 1000 ? 'medium' : 
-                        totalBetAmount > 0 ? 'low' : 'none';
-                      
-                      return (
-                        <TableRow key={number}>
-                          <TableCell className="font-bold">{number}</TableCell>
-                          <TableCell>
-                            {betTypes.map(type => (
-                              <Badge key={type} className="mr-1 bg-slate-700">
-                                {type}
-                              </Badge>
-                            ))}
-                          </TableCell>
-                          <TableCell>{activeBets.length}</TableCell>
-                          <TableCell className="text-green-400">₹{totalBetAmount.toFixed(2)}</TableCell>
-                          <TableCell className="text-amber-400">₹{potentialWin.toFixed(2)}</TableCell>
-                          <TableCell>
-                            <Badge 
-                              className={`
-                                ${riskLevel === 'high' ? 'bg-red-500' : ''} 
-                                ${riskLevel === 'medium' ? 'bg-orange-500' : ''} 
-                                ${riskLevel === 'low' ? 'bg-blue-500' : ''}
-                              `}
-                            >
-                              {riskLevel}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    }).filter(Boolean)}
-                    {/* Show a message if no numbers have active bets with current filter */}
-                    {Array.from({ length: 100 }, (_, i) => {
-                      const number = i.toString().padStart(2, '0');
-                      const activeBets = data?.detailedData?.gameData ? 
-                        data.detailedData.gameData.filter(game => 
-                          game.gameType === 'satamatka' && 
-                          !game.result && 
-                          (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
-                          game.gameData?.number === number
-                        ) : [];
-                      return activeBets.length > 0;
-                    }).filter(Boolean).length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-4">
-                          No active bets found for the selected filter
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-            </CardContent>
-          </Card>
-          
           <TabsContent value="market-game" className="mt-0">
             {marketGameData && (
               <>
@@ -533,6 +430,109 @@ export default function RiskManagementPage() {
             )}
           </TabsContent>
         </Tabs>
+        
+        {/* Jantri Numbers List - Moved to the bottom */}
+        <Card className="mt-8 mb-6">
+          <CardHeader>
+            <CardTitle>Jantri Numbers (00-99)</CardTitle>
+            <CardDescription>Detailed list of all Satamatka numbers with active betting data</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[500px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Number</TableHead>
+                    <TableHead>Bet Type</TableHead>
+                    <TableHead>Active Bets</TableHead>
+                    <TableHead>Total Amount</TableHead>
+                    <TableHead>Potential Win</TableHead>
+                    <TableHead>Risk Level</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 100 }, (_, i) => {
+                    const number = i.toString().padStart(2, '0');
+                    
+                    // Get active bets on this number based on the filter
+                    const activeBets = data?.detailedData?.gameData ? 
+                      data.detailedData.gameData.filter(game => 
+                        game.gameType === 'satamatka' && 
+                        !game.result && 
+                        (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
+                        game.gameData?.number === number
+                      ) : [];
+                    
+                    // If no active bets and we're not showing all numbers, skip
+                    if (activeBets.length === 0) {
+                      return null; // Don't show numbers with no bets
+                    }
+                    
+                    // Calculate total bet amount on this number
+                    const totalBetAmount = activeBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                    
+                    // Calculate potential win amount
+                    const potentialWin = totalBetAmount * 0.9;
+                    
+                    // Collect unique bet types for this number
+                    const betTypes = Array.from(new Set(activeBets.map(game => game.prediction || 'unknown')));
+                    
+                    // Determine risk level
+                    const riskLevel = 
+                      totalBetAmount > 5000 ? 'high' : 
+                      totalBetAmount > 1000 ? 'medium' : 
+                      totalBetAmount > 0 ? 'low' : 'none';
+                    
+                    return (
+                      <TableRow key={number}>
+                        <TableCell className="font-bold">{number}</TableCell>
+                        <TableCell>
+                          {betTypes.map(type => (
+                            <Badge key={type} className="mr-1 bg-slate-700">
+                              {type}
+                            </Badge>
+                          ))}
+                        </TableCell>
+                        <TableCell>{activeBets.length}</TableCell>
+                        <TableCell className="text-green-400">₹{totalBetAmount.toFixed(2)}</TableCell>
+                        <TableCell className="text-amber-400">₹{potentialWin.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Badge 
+                            className={`
+                              ${riskLevel === 'high' ? 'bg-red-500' : ''} 
+                              ${riskLevel === 'medium' ? 'bg-orange-500' : ''} 
+                              ${riskLevel === 'low' ? 'bg-blue-500' : ''}
+                            `}
+                          >
+                            {riskLevel}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }).filter(Boolean)}
+                  {/* Show a message if no numbers have active bets with current filter */}
+                  {Array.from({ length: 100 }, (_, i) => {
+                    const number = i.toString().padStart(2, '0');
+                    const activeBets = data?.detailedData?.gameData ? 
+                      data.detailedData.gameData.filter(game => 
+                        game.gameType === 'satamatka' && 
+                        !game.result && 
+                        (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
+                        game.gameData?.number === number
+                      ) : [];
+                    return activeBets.length > 0;
+                  }).filter(Boolean).length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-4">
+                        No active bets found for the selected filter
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </CardContent>
+        </Card>
       </div>
     </DashboardLayout>
   );
