@@ -122,7 +122,7 @@ export interface IStorage {
   upsertPlayerDepositDiscount(subadminId: number, userId: number, discountRate: number): Promise<PlayerDepositDiscount>;
   
   // Game Odds methods
-  getGameOdds(gameType: string): Promise<GameOdd[]>;
+  getGameOdds(gameType: string, includeSubadminOdds?: boolean): Promise<GameOdd[]>;
   getGameOddsBySubadmin(subadminId: number, gameType?: string): Promise<GameOdd[]>;
   upsertGameOdd(gameType: string, oddValue: number, setByAdmin: boolean, subadminId?: number): Promise<GameOdd>;
   getOddsForPlayer(userId: number, gameType: string): Promise<number>;
@@ -759,15 +759,24 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Game Odds methods
-  async getGameOdds(gameType: string): Promise<GameOdd[]> {
-    return await db.select()
-      .from(gameOdds)
-      .where(
-        and(
-          eq(gameOdds.gameType, gameType),
-          eq(gameOdds.setByAdmin, true)
-        )
-      );
+  async getGameOdds(gameType: string, includeSubadminOdds: boolean = true): Promise<GameOdd[]> {
+    // If we want all odds (admin + subadmin), just filter by game type
+    if (includeSubadminOdds) {
+      return await db.select()
+        .from(gameOdds)
+        .where(eq(gameOdds.gameType, gameType));
+    } 
+    // Otherwise just get admin odds (legacy behavior)
+    else {
+      return await db.select()
+        .from(gameOdds)
+        .where(
+          and(
+            eq(gameOdds.gameType, gameType),
+            eq(gameOdds.setByAdmin, true)
+          )
+        );
+    }
   }
 
   async getGameOddsBySubadmin(subadminId: number, gameType?: string): Promise<GameOdd[]> {

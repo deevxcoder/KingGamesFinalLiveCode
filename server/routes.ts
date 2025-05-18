@@ -2932,31 +2932,50 @@ app.get("/api/games/my-history", async (req, res, next) => {
       // If player is assigned to a subadmin, check for custom odds first
       if (user.assignedTo) {
         try {
-          // Try to get odds set specifically for this subadmin
+          // Get all custom odds for this specific subadmin ID and game type directly from DB
           console.log(`Checking for custom odds for subadmin ${user.assignedTo} and gameType ${gameType}`);
           
-          // Get all odds for this game type
-          const allOdds = await storage.getGameOdds(gameType);
-          console.log(`All odds for ${gameType}:`, allOdds);
+          const customOdds = await db.select()
+            .from(schema.gameOdds)
+            .where(
+              and(
+                eq(schema.gameOdds.gameType, gameType),
+                eq(schema.gameOdds.subadminId, user.assignedTo)
+              )
+            );
           
-          // Filter the odds to find ones with the subadminId matching
-          const subadminOdds = allOdds.filter(odd => odd.subadminId === user.assignedTo);
-          console.log(`Filtered subadmin odds:`, subadminOdds);
+          console.log(`Direct DB query for subadmin ${user.assignedTo} odds returned:`, customOdds);
           
-          // If we found subadmin-specific odds, use those
-          if (subadminOdds && subadminOdds.length > 0) {
-            console.log(`Using custom odds for player ${userId} from subadmin ${user.assignedTo}:`, subadminOdds);
-            resultOdds = subadminOdds;
+          // If custom odds exist for this subadmin, use them
+          if (customOdds && customOdds.length > 0) {
+            console.log(`Found custom odds for subadmin ${user.assignedTo}, using these for player ${userId}:`, customOdds);
+            resultOdds = customOdds;
           } else {
             // No custom odds found, use admin default odds
-            const adminOdds = allOdds.filter(odd => odd.setByAdmin === true);
+            const adminOdds = await db.select()
+              .from(schema.gameOdds)
+              .where(
+                and(
+                  eq(schema.gameOdds.gameType, gameType),
+                  eq(schema.gameOdds.setByAdmin, true)
+                )
+              );
+            
             console.log(`No custom odds for subadmin ${user.assignedTo}, using admin odds:`, adminOdds);
             resultOdds = adminOdds;
           }
         } catch (err) {
           console.error(`Error fetching odds:`, err);
           // Fall back to platform odds on error
-          const platformOdds = await storage.getGameOdds(gameType);
+          const platformOdds = await db.select()
+            .from(schema.gameOdds)
+            .where(
+              and(
+                eq(schema.gameOdds.gameType, gameType),
+                eq(schema.gameOdds.setByAdmin, true)
+              )
+            );
+          
           console.log(`Error occurred, using platform odds for player ${userId}, gameType ${gameType}:`, platformOdds);
           resultOdds = platformOdds;
         }

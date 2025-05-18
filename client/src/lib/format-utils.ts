@@ -123,6 +123,11 @@ export function formatProfitLoss(
   }
   
   // Format with sign and 2 decimal places
+  // If the number is very large, it likely needs further division (for values already multiplied by 10000 instead of 100)
+  if (Math.abs(profitLoss) > 1000 && isPaisaBased && !gameType?.includes('satamatka')) {
+    profitLoss = profitLoss / 100; // Adjust for the additional 100x factor
+  }
+  
   return `${profitLoss > 0 ? '+' : ''}₹${Math.abs(profitLoss).toFixed(2)}`;
 }
 
