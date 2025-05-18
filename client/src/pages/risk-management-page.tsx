@@ -61,6 +61,8 @@ interface DetailedRiskData {
 interface RiskManagementData {
   summaries: RiskSummary[];
   detailedData: DetailedRiskData;
+  userInfo: { [userId: string]: { username: string } };
+  marketInfo: { [marketId: string]: { name: string; type: string } };
   message?: string;
 }
 
@@ -113,36 +115,17 @@ export default function RiskManagementPage() {
     refetchInterval: 60000 // Refetch every minute to keep data fresh
   });
   
-  // Fetch user names
+  // Use real user names from the API
   useEffect(() => {
-    if (data?.detailedData?.userExposure) {
-      const userIds = Object.keys(data.detailedData.userExposure);
-      if (userIds.length > 0) {
-        // Mock user data until API endpoint is implemented
-        const mockUserInfo: UserInfo = {};
-        userIds.forEach((id) => {
-          mockUserInfo[id] = { username: `Player ${id}` };
-        });
-        setUserInfo(mockUserInfo);
-      }
+    if (data?.userInfo) {
+      setUserInfo(data.userInfo);
     }
   }, [data]);
   
-  // Fetch market names
+  // Use real market names from the API
   useEffect(() => {
-    if (data?.detailedData?.marketExposure) {
-      const marketIds = Object.keys(data.detailedData.marketExposure);
-      if (marketIds.length > 0) {
-        // Mock market data until API endpoint is implemented
-        const mockMarketInfo: MarketInfo = {};
-        marketIds.forEach((id) => {
-          mockMarketInfo[id] = { 
-            name: `Market ${id}`,
-            type: 'dishawar'
-          };
-        });
-        setMarketInfo(mockMarketInfo);
-      }
+    if (data?.marketInfo) {
+      setMarketInfo(data.marketInfo);
     }
   }, [data]);
 

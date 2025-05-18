@@ -41,15 +41,15 @@ export async function getAdminRiskManagement(req: Request, res: Response) {
     const cricketTossRiskData = await getCricketTossRiskData();
     
     // Fetch real user information for all users involved in games
-    const userIds = [...new Set([
+    const userIds = Array.from(new Set([
       ...Object.keys(marketGameRiskData.userExposure).map(id => parseInt(id)),
       ...Object.keys(cricketTossRiskData.userExposure).map(id => parseInt(id))
-    ])];
+    ]));
     
     // Fetch real market information for all markets with games
-    const marketIds = [...new Set(
+    const marketIds = Array.from(new Set(
       Object.keys(marketGameRiskData.marketExposure).map(id => parseInt(id))
-    )];
+    ));
     
     // Get user information from database
     const userInfo: { [userId: number]: { username: string } } = {};
@@ -197,11 +197,11 @@ export async function getSubadminRiskManagement(req: Request, res: Response) {
     });
     
     // Get market IDs from the game data
-    const marketIds = [...new Set(
+    const marketIds = Array.from(new Set(
       marketGames
         .filter(game => game.marketId)
         .map(game => game.marketId as number)
-    )];
+    ));
     
     // Fetch market information
     const marketInfo: { [marketId: number]: { name: string; type: string } } = {};
