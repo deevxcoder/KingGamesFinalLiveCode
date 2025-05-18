@@ -709,7 +709,7 @@ export default function SubadminSettingsPage() {
                                     .map((odd: GameOdd) => (
                                     <div key={odd.gameType} className="flex justify-between items-center border-b pb-2 last:border-0">
                                       <span className="font-medium">{formatGameType(odd.gameType)}</span>
-                                      <span className="text-lg font-mono font-bold">{(odd.oddValue / 10000).toFixed(2)}x</span>
+                                      <span className="text-lg font-mono font-bold">{odd.oddValue.toFixed(2)}x</span>
                                     </div>
                                   ))}
                                 </div>
@@ -801,7 +801,7 @@ export default function SubadminSettingsPage() {
                                         <div key={odd.gameType} className="flex justify-between items-center py-3 border-b border-purple-800 last:border-0">
                                           <span className="text-white">{formatGameType(odd.gameType)}</span>
                                           <span className="text-lg font-mono font-bold text-white">
-                                            {(odd.oddValue / 10000).toFixed(2)}x
+                                            {odd.oddValue.toFixed(2)}x
                                           </span>
                                         </div>
                                       ))
