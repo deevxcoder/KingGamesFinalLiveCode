@@ -362,10 +362,23 @@ app.get("/api/games/my-history", async (req, res, next) => {
       try {
         if (subadminId) {
           // User is assigned to a subadmin, check for subadmin-specific odds
-          const subadminOdds = await storage.getGameOddsBySubadmin(subadminId, 'coin_flip');
-          if (subadminOdds.length > 0) {
+          // Get custom odds for this subadmin - we need to explicitly filter by setByAdmin=false to get custom odds
+          const subadminOdds = await db.select()
+            .from(schema.gameOdds)
+            .where(
+              and(
+                eq(schema.gameOdds.gameType, 'coin_flip'),
+                eq(schema.gameOdds.subadminId, subadminId),
+                eq(schema.gameOdds.setByAdmin, false)
+              )
+            );
+            
+          console.log(`Direct DB query for coin_flip odds for subadmin ${subadminId}:`, subadminOdds);
+            
+          if (subadminOdds && subadminOdds.length > 0) {
             // Use subadmin odds
             multiplier = subadminOdds[0].oddValue / 100; // Convert from stored integer (195) to decimal (1.95)
+            console.log(`Using custom subadmin odds for player ${user.id}: ${multiplier}x`)
           } else {
             // No subadmin-specific odds, check admin odds
             const adminOdds = await storage.getGameOdds('coin_flip');
@@ -2940,7 +2953,8 @@ app.get("/api/games/my-history", async (req, res, next) => {
             .where(
               and(
                 eq(schema.gameOdds.gameType, gameType),
-                eq(schema.gameOdds.subadminId, user.assignedTo)
+                eq(schema.gameOdds.subadminId, user.assignedTo),
+                eq(schema.gameOdds.setByAdmin, false)  // Ensure we're getting the custom subadmin odds, not admin odds
               )
             );
           
@@ -2988,6 +3002,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
       
       // Don't modify the odd values here - return them exactly as stored
       // The client will handle the display logic with the correct formatting
+      
+      // Add more detailed logging to debug odds issues
+      console.log(`Sending odds response to player ${userId} for ${gameType}:`, resultOdds);
       res.json(resultOdds);
     } catch (err) {
       console.error("Error fetching player odds:", err);
