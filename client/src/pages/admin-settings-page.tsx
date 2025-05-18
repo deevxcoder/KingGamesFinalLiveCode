@@ -471,14 +471,14 @@ export default function AdminSettingsPage() {
     // Don't multiply by 10000 again since we already did it in the input onChange handler
     saveOddsMutation.mutate({
       gameType: "coin_flip",
-      oddValue: parseInt(coinFlipOdds),
+      oddValue: Number(coinFlipOdds),
       setByAdmin: true
     });
     
     // Save Cricket Toss odds
     saveOddsMutation.mutate({
       gameType: "cricket_toss",
-      oddValue: parseInt(cricketTossOdds),
+      oddValue: Number(cricketTossOdds),
       setByAdmin: true
     });
     
@@ -487,25 +487,25 @@ export default function AdminSettingsPage() {
     // Save Satamatka odds
     saveOddsMutation.mutate({
       gameType: "satamatka_jodi",
-      oddValue: parseInt(satamatkaOdds.jodi),
+      oddValue: Number(satamatkaOdds.jodi),
       setByAdmin: true
     });
     
     saveOddsMutation.mutate({
       gameType: "satamatka_harf",
-      oddValue: parseInt(satamatkaOdds.harf),
+      oddValue: Number(satamatkaOdds.harf),
       setByAdmin: true
     });
     
     saveOddsMutation.mutate({
       gameType: "satamatka_crossing",
-      oddValue: parseInt(satamatkaOdds.crossing),
+      oddValue: Number(satamatkaOdds.crossing),
       setByAdmin: true
     });
     
     saveOddsMutation.mutate({
       gameType: "satamatka_odd_even",
-      oddValue: parseInt(satamatkaOdds.odd_even),
+      oddValue: Number(satamatkaOdds.odd_even),
       setByAdmin: true
     });
   };
