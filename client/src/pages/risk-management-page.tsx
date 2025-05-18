@@ -397,75 +397,133 @@ export default function RiskManagementPage() {
                       </div>
                     </div>
                     
-                    <ScrollArea className="h-[400px]">
-                      <div className="grid grid-cols-10 gap-2">
-                        {Array.from({ length: 100 }, (_, i) => {
-                          // Format number as two digits (e.g., 00, 01, ..., 99)
-                          const num = i.toString().padStart(2, '0');
-                          
-                          // Get all games for this number filtered by the selected bet type
-                          const gamesForNumber = data.detailedData.gameData.filter(game => 
-                            game.gameType === 'satamatka' && 
-                            !game.result && 
-                            (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
-                            game.gameData?.number === num
-                          );
-                          
-                          // Calculate total bet amount for this number
-                          const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                          
-                          // Calculate potential win amount (using 90x for jodi, 9x for others as a simplified calculation)
-                          // This is a placeholder calculation - actual odds might vary
-                          const potentialWin = gamesForNumber.reduce((sum, game) => {
-                            let multiplier = 0.9; // Default
-                            if (game.prediction === 'jodi') multiplier = 90;
-                            else if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 9;
-                            else if (game.prediction === 'oddeven') multiplier = 1.9;
-                            return sum + ((game.betAmount || 0) * multiplier);
-                          }, 0);
-                          
-                          // Define the risk level based on bet amount
-                          let riskLevel = 'none';
-                          if (totalBetAmount > 1000) riskLevel = 'high';
-                          else if (totalBetAmount > 500) riskLevel = 'medium';
-                          else if (totalBetAmount > 0) riskLevel = 'low';
-                          
-                          // Get bet types for this number
-                          const betTypes = [...new Set(gamesForNumber.map(game => game.prediction))];
-                          
-                          return (
-                            <div 
-                              key={num} 
-                              className={`p-2 border rounded-md ${
-                                riskLevel === 'high' 
-                                  ? 'border-red-500 bg-red-500/10'
-                                  : riskLevel === 'medium'
-                                    ? 'border-orange-500 bg-orange-500/10'
-                                    : riskLevel === 'low'
-                                      ? 'border-blue-500 bg-blue-500/10'
-                                      : 'border-slate-700 bg-slate-800/30'
-                              }`}
-                            >
-                              <div className="font-bold text-lg text-center">{num}</div>
-                              {totalBetAmount > 0 ? (
-                                <>
-                                  <div className="text-xs mt-1">
-                                    <span className="font-semibold">Bet:</span> ₹{totalBetAmount.toFixed(2)}
-                                  </div>
-                                  <div className="text-xs">
-                                    <span className="font-semibold">Win:</span> ₹{potentialWin.toFixed(2)}
-                                  </div>
-                                  <div className="text-xs">
-                                    <span className="font-semibold">Type:</span> {betTypes.join(', ')}
-                                  </div>
-                                </>
-                              ) : (
-                                <div className="text-xs mt-2 text-center text-muted-foreground">No bets</div>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
+                    <ScrollArea className="h-[600px]">
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-background z-10">
+                          <TableRow>
+                            <TableHead className="w-[80px]">Number</TableHead>
+                            <TableHead className="w-[100px]">Active Bets</TableHead>
+                            <TableHead className="w-[150px]">Bet Amount</TableHead>
+                            <TableHead className="w-[150px]">Potential Win</TableHead>
+                            <TableHead>Bet Types</TableHead>
+                            <TableHead className="w-[120px]">Market</TableHead>
+                            <TableHead className="w-[100px]">Risk Level</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {Array.from({ length: 100 }, (_, i) => {
+                            // Format number as two digits (e.g., 00, 01, ..., 99)
+                            const num = i.toString().padStart(2, '0');
+                            
+                            // Get all games for this number filtered by the selected bet type
+                            const gamesForNumber = data.detailedData.gameData.filter(game => 
+                              game.gameType === 'satamatka' && 
+                              !game.result && 
+                              (betTypeFilter === 'all' || game.prediction === betTypeFilter) &&
+                              game.gameData?.number === num
+                            );
+                            
+                            // Calculate total bet amount for this number
+                            const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                            
+                            // Calculate potential win amount (using 90x for jodi, 9x for others as a simplified calculation)
+                            const potentialWin = gamesForNumber.reduce((sum, game) => {
+                              let multiplier = 0.9; // Default
+                              if (game.prediction === 'jodi') multiplier = 90;
+                              else if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 9;
+                              else if (game.prediction === 'oddeven') multiplier = 1.9;
+                              return sum + ((game.betAmount || 0) * multiplier);
+                            }, 0);
+                            
+                            // Get markets for this number
+                            const marketSet = new Set();
+                            gamesForNumber.forEach(game => {
+                              if (game.marketId) {
+                                marketSet.add(marketInfo[game.marketId]?.name || `Market ${game.marketId}`);
+                              }
+                            });
+                            const markets = Array.from(marketSet);
+                            
+                            // Define the risk level based on bet amount
+                            let riskLevel = 'none';
+                            if (totalBetAmount > 1000) riskLevel = 'high';
+                            else if (totalBetAmount > 500) riskLevel = 'medium';
+                            else if (totalBetAmount > 0) riskLevel = 'low';
+                            
+                            // Get bet types for this number
+                            const betTypeSet = new Set();
+                            gamesForNumber.forEach(game => {
+                              if (game.prediction) {
+                                betTypeSet.add(game.prediction);
+                              }
+                            });
+                            const betTypes = Array.from(betTypeSet);
+                            
+                            return (
+                              <TableRow 
+                                key={num}
+                                className={
+                                  riskLevel === 'high' 
+                                    ? 'bg-red-500/10'
+                                    : riskLevel === 'medium'
+                                      ? 'bg-orange-500/10'
+                                      : riskLevel === 'low'
+                                        ? 'bg-blue-500/10'
+                                        : ''
+                                }
+                              >
+                                <TableCell className="font-bold text-center">{num}</TableCell>
+                                <TableCell>{gamesForNumber.length}</TableCell>
+                                <TableCell>
+                                  {totalBetAmount > 0 
+                                    ? `₹${totalBetAmount.toFixed(2)}` 
+                                    : <span className="text-muted-foreground">No bets</span>
+                                  }
+                                </TableCell>
+                                <TableCell>
+                                  {potentialWin > 0 
+                                    ? `₹${potentialWin.toFixed(2)}` 
+                                    : <span className="text-muted-foreground">-</span>
+                                  }
+                                </TableCell>
+                                <TableCell>
+                                  {betTypes.length > 0 
+                                    ? betTypes.map((type, idx) => (
+                                        <Badge key={idx} className="mr-1 mb-1 bg-slate-700">
+                                          {type}
+                                        </Badge>
+                                      ))
+                                    : <span className="text-muted-foreground">-</span>
+                                  }
+                                </TableCell>
+                                <TableCell>
+                                  {markets.length > 0 
+                                    ? markets.join(', ') 
+                                    : <span className="text-muted-foreground">-</span>
+                                  }
+                                </TableCell>
+                                <TableCell>
+                                  {totalBetAmount > 0 ? (
+                                    <Badge
+                                      className={
+                                        riskLevel === 'high'
+                                          ? 'bg-red-500'
+                                          : riskLevel === 'medium'
+                                            ? 'bg-orange-500'
+                                            : 'bg-blue-500'
+                                      }
+                                    >
+                                      {riskLevel === 'high' ? 'High' : riskLevel === 'medium' ? 'Medium' : 'Low'}
+                                    </Badge>
+                                  ) : (
+                                    <span className="text-muted-foreground">None</span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
                     </ScrollArea>
                   </CardContent>
                 </Card>
