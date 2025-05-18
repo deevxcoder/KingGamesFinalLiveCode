@@ -468,7 +468,7 @@ export default function AdminSettingsPage() {
   // Handle game odds save
   const handleSaveGameOdds = () => {
     // Save Coin Flip odds
-    const coinFlipOddValue = Math.round(parseFloat(coinFlipOdds) * 100);
+    const coinFlipOddValue = Math.round(parseFloat(coinFlipOdds) * 10000);
     saveOddsMutation.mutate({
       gameType: "coin_flip",
       oddValue: coinFlipOddValue,
@@ -476,7 +476,7 @@ export default function AdminSettingsPage() {
     });
     
     // Save Cricket Toss odds
-    const cricketTossOddValue = Math.round(parseFloat(cricketTossOdds) * 100);
+    const cricketTossOddValue = Math.round(parseFloat(cricketTossOdds) * 10000);
     saveOddsMutation.mutate({
       gameType: "cricket_toss",
       oddValue: cricketTossOddValue,
@@ -486,28 +486,28 @@ export default function AdminSettingsPage() {
     // Team match odds saving removed
     
     // Save Satamatka odds
-    const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 100);
+    const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_jodi",
       oddValue: jodiOddValue,
       setByAdmin: true
     });
     
-    const harfOddValue = Math.round(parseFloat(satamatkaOdds.harf) * 100);
+    const harfOddValue = Math.round(parseFloat(satamatkaOdds.harf) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_harf",
       oddValue: harfOddValue,
       setByAdmin: true
     });
     
-    const crossingOddValue = Math.round(parseFloat(satamatkaOdds.crossing) * 100);
+    const crossingOddValue = Math.round(parseFloat(satamatkaOdds.crossing) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_crossing",
       oddValue: crossingOddValue,
       setByAdmin: true
     });
     
-    const oddEvenOddValue = Math.round(parseFloat(satamatkaOdds.odd_even) * 100);
+    const oddEvenOddValue = Math.round(parseFloat(satamatkaOdds.odd_even) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_odd_even",
       oddValue: oddEvenOddValue,
