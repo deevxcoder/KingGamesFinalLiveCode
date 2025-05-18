@@ -204,14 +204,14 @@ export default function SatamatkaGame() {
       
       console.log("Raw game odds data from API:", results);
       
-      // Parse the odds data - these are stored values in the database (already multiplied by 100)
-      // We should only extract the oddValue without additional modification
+      // Parse the odds data from the database
+      // Database stores values like this: 60x is stored as 6000, 7x is stored as 700
       return { 
         // Use first item from each result, which should now correctly return subadmin override if available
-        jodi: results[0]?.[0]?.oddValue || 9000, 
-        harf: results[1]?.[0]?.oddValue || 900, 
-        crossing: results[2]?.[0]?.oddValue || 9500,
-        odd_even: results[3]?.[0]?.oddValue || 180 
+        jodi: results[0]?.[0]?.oddValue || 6000, 
+        harf: results[1]?.[0]?.oddValue || 600, 
+        crossing: results[2]?.[0]?.oddValue || 6600,
+        odd_even: results[3]?.[0]?.oddValue || 600 
       };
     },
     enabled: !!user
@@ -1368,12 +1368,7 @@ export default function SatamatkaGame() {
                       <TableCell className="font-medium">{displayNum}</TableCell>
                       <TableCell>₹{amount.toFixed(2)}</TableCell>
                       <TableCell className="text-amber-500">
-                        ₹{(amount * (
-                          selectedGameMode === "jodi" ? (gameOdds.jodi ? gameOdds.jodi / 100 : 60) : 
-                          selectedGameMode === "harf" ? (gameOdds.harf ? gameOdds.harf / 100 : 6) : 
-                          selectedGameMode === "crossing" ? (gameOdds.crossing ? gameOdds.crossing / 100 : 66) : 
-                          (gameOdds.odd_even ? gameOdds.odd_even / 100 : 6)
-                        )).toFixed(2)}
+                        ₹{calculatePotentialWin(selectedGameMode, amount, gameOdds).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -1403,12 +1398,7 @@ export default function SatamatkaGame() {
               <span className="text-sm font-medium">Potential Win:</span>
               <span className="font-bold text-amber-500">
                 ₹{Array.from(selectedNumbers.values()).reduce(
-                  (total, amount) => total + amount * (
-                    selectedGameMode === "jodi" ? (gameOdds.jodi ? gameOdds.jodi / 100 : 60) : 
-                    selectedGameMode === "harf" ? (gameOdds.harf ? gameOdds.harf / 100 : 6) : 
-                    selectedGameMode === "crossing" ? (gameOdds.crossing ? gameOdds.crossing / 100 : 66) : 
-                    (gameOdds.odd_even ? gameOdds.odd_even / 100 : 6)
-                  ),
+                  (total, amount) => total + calculatePotentialWin(selectedGameMode, amount, gameOdds),
                   0
                 ).toFixed(2)}
               </span>
@@ -1774,39 +1764,37 @@ export default function SatamatkaGame() {
 // Helper function to calculate potential win based on game mode
 // Function to calculate potential winnings based on current odds from the server
 function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record<string, number> = {}): number {
-  // Default payout ratios based on the platform settings observed
+  // Default payout ratios based on the platform settings
   let payoutRatio = 1;
   
   // Get the appropriate payout ratio from the database odds
   console.log(`Game mode: ${gameMode}, Bet amount: ${betAmount}, Odds from database:`, odds);
   
-  // Use the odds from the database which are already stored as multiplied by 100
-  // We need to divide by 100 to get the actual multiplier
+  // The database stores values like: 60x is stored as 6000
   switch (gameMode) {
     case "jodi":
-      // Jodi payout - shown in UI as 60.00x or custom value
+      // Jodi payout - use stored odds (typically 60x) or fallback
       payoutRatio = odds.jodi ? odds.jodi / 100 : 60;
       break;
     case "harf":
-      // Harf payout - shown in UI as 6.00x or custom value
+      // Harf payout - use stored odds (typically 6x) or fallback
       payoutRatio = odds.harf ? odds.harf / 100 : 6;
       break;
     case "crossing":
-      // Crossing payout - shown in UI as 66.00x or custom value
+      // Crossing payout - use stored odds (typically 66x) or fallback
       payoutRatio = odds.crossing ? odds.crossing / 100 : 66;
       break;
     case "odd_even":
-      // Odd/Even payout - shown in UI as 6.00x or custom value
+      // Odd/Even payout - use stored odds (typically 6x) or fallback
       payoutRatio = odds.odd_even ? odds.odd_even / 100 : 6;
       break;
   }
   
   console.log(`Game mode: ${gameMode}, Using payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
-  // Calculate the potential win amount - multiply bet amount by payout ratio
+  // Calculate the potential win amount 
   // For ₹100 bet on Jodi with 60x odds, win = 100 × 60 = ₹6,000
-  // Convert to paisa by multiplying by 100
-  return Math.floor(betAmount * payoutRatio * 100);
+  return Math.floor(betAmount * payoutRatio);
 }
 
 // Helper function to format game type for display
