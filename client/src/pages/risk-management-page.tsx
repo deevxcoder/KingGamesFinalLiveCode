@@ -1,488 +1,519 @@
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
-import { getQueryFn } from "@/lib/queryClient";
-import DashboardLayout from "@/components/dashboard-layout";
-import { useToast } from "@/hooks/use-toast";
-
-// UI Components
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { UserRole } from "@shared/schema";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { 
-  AlertCircle, 
-  ArrowDownUp, 
-  Filter, 
-  RefreshCw,
+  Card,
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from "@/components/ui/card";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import {
   AlertTriangle,
+  Activity,
+  TrendingDown,
   TrendingUp,
-  TrendingDown
+  Users,
+  Target
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Game type labels for display
-const GAME_TYPE_LABELS = {
-  'satamatka_jodi': 'Satamatka Jodi',
-  'satamatka_harf': 'Satamatka Harf',
-  'satamatka_crossing': 'Satamatka Crossing',
-  'satamatka_odd_even': 'Satamatka Odd/Even',
-  'cricket_toss': 'Cricket Toss'
-};
-
-// Risk level thresholds (in Rupees)
-const RISK_LEVELS = {
-  LOW: 1000,   // Risk below ₹1000 is considered low
-  MEDIUM: 5000, // Risk between ₹1000 and ₹5000 is considered medium
-  HIGH: 10000   // Risk above ₹5000 is considered high
-};
-
-// Type definitions
-interface RiskData {
-  gameType: string;
-  marketId?: number;
-  marketName?: string;
-  matchId?: number;
-  matchName?: string;
-  totalBets: number;
-  totalAmount: number;
+interface RiskSummary {
+  totalBetAmount: number;
   potentialLiability: number;
-  highestBet: number;
-  playerCount: number;
-  riskLevel: 'low' | 'medium' | 'high';
-  players: PlayerRisk[];
+  potentialProfit: number;
+  exposureAmount: number;
+  activeBets: number;
+  totalBets: number;
+  highRiskBets: number;
+  gameType: string;
+  gameTypeFormatted: string;
 }
 
-interface PlayerRisk {
-  playerId: number;
-  playerUsername: string;
-  betAmount: number;
-  potentialWin: number;
-  gameType: string;
-  prediction: string;
-  assignedTo?: number;
+interface DetailedRiskData {
+  userExposure: { [userId: number]: number };
+  marketExposure: { [marketId: number]: number };
+  gameData: any[];
+}
+
+interface RiskManagementData {
+  summaries: RiskSummary[];
+  detailedData: DetailedRiskData;
+  message?: string;
 }
 
 export default function RiskManagementPage() {
   const { user } = useAuth();
-  const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("marketGames");
-  const [filterGameType, setFilterGameType] = useState<string | null>(null);
-  const [filterRiskLevel, setFilterRiskLevel] = useState<string | null>(null);
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === UserRole.ADMIN;
+  const isSubadmin = user?.role === UserRole.SUBADMIN;
+  const [activeTab, setActiveTab] = useState('market-game');
 
-  // Query for risk data - separate queries for each game type
-  const { data: marketRiskData = [], isLoading: isLoadingMarketRisk } = useQuery<RiskData[]>({
-    queryKey: ["/api/risk/satamatka"],
-    queryFn: getQueryFn({ on401: "throw" }),
-    enabled: !!user,
-    refetchInterval: 60000, // Refresh every minute
-  });
-  
-  const { data: cricketTossRiskData = [], isLoading: isLoadingCricketTossRisk } = useQuery<RiskData[]>({
-    queryKey: ["/api/risk/cricket-toss"],
-    queryFn: getQueryFn({ on401: "throw" }),
-    enabled: !!user,
-    refetchInterval: 60000, // Refresh every minute
+  // Get the appropriate API endpoint based on user role
+  const endpoint = isAdmin ? '/api/risk/admin' : '/api/risk/subadmin';
+
+  // Fetch risk management data
+  const { data, isLoading, error } = useQuery<RiskManagementData>({
+    queryKey: [endpoint],
+    queryFn: async () => {
+      const response = await apiRequest(endpoint);
+      return response as RiskManagementData;
+    },
+    refetchInterval: 60000 // Refetch every minute to keep data fresh
   });
 
-  // Handle data loading errors
-  const isLoading = isLoadingMarketRisk || isLoadingCricketTossRisk;
-  
-  // Filter data based on selected filters
-  const filterData = (data: RiskData[]) => {
-    return data.filter((item) => {
-      if (filterGameType && !item.gameType.includes(filterGameType)) {
-        return false;
-      }
-      if (filterRiskLevel) {
-        if (filterRiskLevel === 'low' && item.riskLevel !== 'low') return false;
-        if (filterRiskLevel === 'medium' && item.riskLevel !== 'medium') return false;
-        if (filterRiskLevel === 'high' && item.riskLevel !== 'high') return false;
-      }
-      return true;
-    });
-  };
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
 
-  // Filter market risk data
-  const filteredMarketRiskData = filterData(marketRiskData);
-
-  // Filter cricket toss risk data
-  const filteredCricketTossRiskData = filterData(cricketTossRiskData);
-
-  // Handle risk level display
-  const getRiskLevelBadge = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'low':
-        return <Badge variant="outline" className="bg-emerald-950/40 border-emerald-700 text-emerald-400">Low Risk</Badge>;
-      case 'medium':
-        return <Badge variant="outline" className="bg-amber-950/40 border-amber-700 text-amber-400">Medium Risk</Badge>;
-      case 'high':
-        return <Badge variant="outline" className="bg-rose-950/40 border-rose-700 text-rose-400">High Risk</Badge>;
-      default:
-        return <Badge variant="outline">Unknown</Badge>;
-    }
-  };
-
-  // Manual refresh function
-  const refreshData = () => {
-    if (activeTab === "marketGames") {
-      // Invalidate market risk query
-    } else {
-      // Invalidate cricket toss risk query
-    }
-  };
-
-  return (
-    <DashboardLayout title="Risk Management">
-      <div className="flex flex-col space-y-4">
-        {/* Header with filters */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-2xl font-bold flex items-center">
-            <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
-            Risk Management Dashboard
-          </h1>
-          
-          <div className="flex flex-wrap gap-2">
-            {/* Game Type Filter */}
-            <Select 
-              onValueChange={(value) => setFilterGameType(value === "all" ? null : value)}
-              defaultValue="all"
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Game Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Game Types</SelectItem>
-                <SelectItem value="satamatka">Satamatka</SelectItem>
-                <SelectItem value="cricket_toss">Cricket Toss</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {/* Risk Level Filter */}
-            <Select 
-              onValueChange={(value) => setFilterRiskLevel(value === "all" ? null : value)}
-              defaultValue="all"
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Risk Level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Risk Levels</SelectItem>
-                <SelectItem value="low">Low Risk</SelectItem>
-                <SelectItem value="medium">Medium Risk</SelectItem>
-                <SelectItem value="high">High Risk</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {/* Refresh Button */}
-            <Button 
-              variant="outline" 
-              size="icon"
-              onClick={refreshData}
-              disabled={isLoading}
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </Button>
-          </div>
-        </div>
-
-        {/* Tabs for different game types */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="marketGames">
-              Satamatka Games
-            </TabsTrigger>
-            <TabsTrigger value="cricketToss">
-              Cricket Toss
-            </TabsTrigger>
-          </TabsList>
-          
-          {/* Satamatka Games Tab */}
-          <TabsContent value="marketGames">
-            <Card>
-              <CardHeader>
-                <CardTitle>Satamatka Markets Risk Analysis</CardTitle>
-                <CardDescription>
-                  Manage risk and exposure for all Satamatka market games
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoadingMarketRisk ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : filteredMarketRiskData.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <Accordion type="single" collapsible className="w-full">
-                      {filteredMarketRiskData.map((riskItem, index) => (
-                        <AccordionItem key={`${riskItem.gameType}-${riskItem.marketId}-${index}`} value={`${riskItem.gameType}-${riskItem.marketId}-${index}`}>
-                          <AccordionTrigger className="hover:bg-muted/50 px-4 py-2 rounded-md">
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{riskItem.marketName || `Market #${riskItem.marketId}`}</span>
-                                <Badge variant="outline" className="bg-indigo-950/40 border-indigo-700 text-indigo-300">
-                                  {GAME_TYPE_LABELS[riskItem.gameType as keyof typeof GAME_TYPE_LABELS] || riskItem.gameType}
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                {getRiskLevelBadge(riskItem.riskLevel)}
-                                <span className="text-amber-500 font-mono">₹{(riskItem.potentialLiability / 100).toFixed(2)}</span>
-                              </div>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 py-2">
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-card/40 p-3 rounded-md border border-border">
-                                  <div className="text-sm text-muted-foreground mb-1">Total Bets</div>
-                                  <div className="text-xl font-semibold">{riskItem.totalBets}</div>
-                                </div>
-                                <div className="bg-card/40 p-3 rounded-md border border-border">
-                                  <div className="text-sm text-muted-foreground mb-1">Total Amount</div>
-                                  <div className="text-xl font-semibold">₹{(riskItem.totalAmount / 100).toFixed(2)}</div>
-                                </div>
-                                <div className="bg-card/40 p-3 rounded-md border border-border">
-                                  <div className="text-sm text-muted-foreground mb-1">Player Count</div>
-                                  <div className="text-xl font-semibold">{riskItem.playerCount}</div>
-                                </div>
-                              </div>
-                              
-                              <div className="rounded-md border">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow>
-                                      <TableHead>Player</TableHead>
-                                      <TableHead>Prediction</TableHead>
-                                      <TableHead>Bet Amount</TableHead>
-                                      <TableHead>Potential Win</TableHead>
-                                      <TableHead>Risk Level</TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {riskItem.players.map((player, playerIndex) => {
-                                      // Calculate risk level for this player
-                                      let playerRiskLevel = 'low';
-                                      if (player.potentialWin > RISK_LEVELS.MEDIUM * 100) {
-                                        playerRiskLevel = 'high';
-                                      } else if (player.potentialWin > RISK_LEVELS.LOW * 100) {
-                                        playerRiskLevel = 'medium';
-                                      }
-                                      
-                                      return (
-                                        <TableRow key={`${player.playerId}-${playerIndex}`}>
-                                          <TableCell className="font-medium">{player.playerUsername}</TableCell>
-                                          <TableCell>{player.prediction}</TableCell>
-                                          <TableCell>₹{(player.betAmount / 100).toFixed(2)}</TableCell>
-                                          <TableCell className="text-amber-500 font-mono">
-                                            ₹{(player.potentialWin / 100).toFixed(2)}
-                                          </TableCell>
-                                          <TableCell>{getRiskLevelBadge(playerRiskLevel)}</TableCell>
-                                        </TableRow>
-                                      );
-                                    })}
-                                  </TableBody>
-                                </Table>
-                              </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">No active risk data found for Satamatka games.</p>
-                    <p className="text-sm text-muted-foreground mt-1">Players need to place bets for risk data to appear.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Cricket Toss Tab */}
-          <TabsContent value="cricketToss">
-            <Card>
-              <CardHeader>
-                <CardTitle>Cricket Toss Games Risk Analysis</CardTitle>
-                <CardDescription>
-                  Manage risk and exposure for all Cricket Toss games
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {isLoadingCricketTossRisk ? (
-                  <div className="flex justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                  </div>
-                ) : filteredCricketTossRiskData.length > 0 ? (
-                  <div className="overflow-x-auto">
-                    <Accordion type="single" collapsible className="w-full">
-                      {filteredCricketTossRiskData.map((riskItem, index) => (
-                        <AccordionItem key={`${riskItem.gameType}-${riskItem.matchId}-${index}`} value={`${riskItem.gameType}-${riskItem.matchId}-${index}`}>
-                          <AccordionTrigger className="hover:bg-muted/50 px-4 py-2 rounded-md">
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium">{riskItem.matchName || `Match #${riskItem.matchId}`}</span>
-                                <Badge variant="outline" className="bg-emerald-950/40 border-emerald-700 text-emerald-300">
-                                  Cricket Toss
-                                </Badge>
-                              </div>
-                              <div className="flex items-center gap-3">
-                                {getRiskLevelBadge(riskItem.riskLevel)}
-                                <span className="text-amber-500 font-mono">₹{(riskItem.potentialLiability / 100).toFixed(2)}</span>
-                              </div>
-                            </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="px-4 py-2">
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                <div className="bg-card/40 p-3 rounded-md border border-border">
-                                  <div className="text-sm text-muted-foreground mb-1">Total Bets</div>
-                                  <div className="text-xl font-semibold">{riskItem.totalBets}</div>
-                                </div>
-                                <div className="bg-card/40 p-3 rounded-md border border-border">
-                                  <div className="text-sm text-muted-foreground mb-1">Total Amount</div>
-                                  <div className="text-xl font-semibold">₹{(riskItem.totalAmount / 100).toFixed(2)}</div>
-                                </div>
-                                <div className="bg-card/40 p-3 rounded-md border border-border">
-                                  <div className="text-sm text-muted-foreground mb-1">Player Count</div>
-                                  <div className="text-xl font-semibold">{riskItem.playerCount}</div>
-                                </div>
-                              </div>
-                              
-                              <div className="rounded-md border">
-                                <Table>
-                                  <TableHeader>
-                                    <TableRow>
-                                      <TableHead>Player</TableHead>
-                                      <TableHead>Prediction</TableHead>
-                                      <TableHead>Bet Amount</TableHead>
-                                      <TableHead>Potential Win</TableHead>
-                                      <TableHead>Risk Level</TableHead>
-                                    </TableRow>
-                                  </TableHeader>
-                                  <TableBody>
-                                    {riskItem.players.map((player, playerIndex) => {
-                                      // Calculate risk level for this player
-                                      let playerRiskLevel = 'low';
-                                      if (player.potentialWin > RISK_LEVELS.MEDIUM * 100) {
-                                        playerRiskLevel = 'high';
-                                      } else if (player.potentialWin > RISK_LEVELS.LOW * 100) {
-                                        playerRiskLevel = 'medium';
-                                      }
-                                      
-                                      return (
-                                        <TableRow key={`${player.playerId}-${playerIndex}`}>
-                                          <TableCell className="font-medium">{player.playerUsername}</TableCell>
-                                          <TableCell>{player.prediction}</TableCell>
-                                          <TableCell>₹{(player.betAmount / 100).toFixed(2)}</TableCell>
-                                          <TableCell className="text-amber-500 font-mono">
-                                            ₹{(player.potentialWin / 100).toFixed(2)}
-                                          </TableCell>
-                                          <TableCell>{getRiskLevelBadge(playerRiskLevel)}</TableCell>
-                                        </TableRow>
-                                      );
-                                    })}
-                                  </TableBody>
-                                </Table>
-                              </div>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <AlertCircle className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
-                    <p className="text-muted-foreground">No active risk data found for Cricket Toss games.</p>
-                    <p className="text-sm text-muted-foreground mt-1">Players need to place bets for risk data to appear.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-        
-        {/* Risk Management Tips */}
-        <Card className="bg-muted/30">
+  if (error) {
+    return (
+      <div className="p-6">
+        <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800">
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center">
-                      <AlertTriangle className="h-5 w-5 mr-2 text-amber-500" />
-                      Risk Management Tips
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="w-80">Important information to help you manage risk effectively.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <CardTitle className="text-red-700 dark:text-red-300 flex items-center">
+              <AlertTriangle className="w-5 h-5 mr-2" />
+              Error Loading Risk Management Data
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <TrendingUp className="h-5 w-5 text-emerald-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">Low Risk (Green)</p>
-                  <p className="text-sm text-muted-foreground">Potential liabilities under ₹1,000. Regular monitoring is sufficient.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <ArrowDownUp className="h-5 w-5 text-amber-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">Medium Risk (Yellow)</p>
-                  <p className="text-sm text-muted-foreground">Potential liabilities between ₹1,000 and ₹5,000. Consider hedging strategies.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
-                <TrendingDown className="h-5 w-5 text-rose-500 mt-0.5" />
-                <div>
-                  <p className="font-medium">High Risk (Red)</p>
-                  <p className="text-sm text-muted-foreground">Potential liabilities above ₹5,000. Immediate action recommended - consider limiting further bets.</p>
-                </div>
-              </div>
-            </div>
+            <p>There was a problem loading the risk management data. Please try again later.</p>
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
+    );
+  }
+
+  if (!data || !data.summaries || data.summaries.length === 0) {
+    return (
+      <div className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Risk Management</CardTitle>
+            <CardDescription>No risk data available</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>There's currently no risk data to display. This may be because there are no active games or bets in the system.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Find data for specific game types
+  const marketGameData = data.summaries.find(summary => summary.gameType === 'satamatka');
+  const cricketTossData = data.summaries.find(summary => summary.gameType === 'cricket_toss');
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Risk Management</h1>
+          <p className="text-muted-foreground">
+            {isAdmin ? 'Platform-wide risk analysis and management' : 'Risk analysis for your assigned players'}
+          </p>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Risk Overview Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Exposure</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₹{getTotalExposure(data.summaries).toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              Maximum potential liability
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Bets</CardTitle>
+            <Activity className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getTotalActiveBets(data.summaries)}</div>
+            <p className="text-xs text-muted-foreground">
+              Total ongoing bets
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Potential Profit</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₹{getTotalPotentialProfit(data.summaries).toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">
+              Expected house edge
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">High Risk Bets</CardTitle>
+            <TrendingDown className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getTotalHighRiskBets(data.summaries)}</div>
+            <p className="text-xs text-muted-foreground">
+              Bets over ₹1000
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Detailed Analysis Tabs */}
+      <Tabs defaultValue="market-game" className="w-full" onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-2 mb-4">
+          <TabsTrigger value="market-game">Market Game Risk</TabsTrigger>
+          <TabsTrigger value="cricket-toss">Cricket Toss Risk</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="market-game" className="mt-0">
+          {marketGameData && (
+            <GameTypeRiskPanel 
+              data={marketGameData} 
+              detailedData={data.detailedData}
+              gameType="satamatka"
+            />
+          )}
+        </TabsContent>
+        
+        <TabsContent value="cricket-toss" className="mt-0">
+          {cricketTossData && (
+            <GameTypeRiskPanel 
+              data={cricketTossData} 
+              detailedData={data.detailedData}
+              gameType="cricket_toss"
+            />
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+function GameTypeRiskPanel({ 
+  data, 
+  detailedData,
+  gameType
+}: { 
+  data: RiskSummary, 
+  detailedData: DetailedRiskData,
+  gameType: string
+}) {
+  // Filter game data by type
+  const gameData = detailedData.gameData.filter(game => game.gameType === gameType);
+  
+  // Calculate current risk level (0-100)
+  const riskPercentage = calculateRiskLevel(data);
+  
+  return (
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Bet Amount</CardTitle>
+            <Target className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₹{data.totalBetAmount.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Potential Liability</CardTitle>
+            <TrendingDown className="h-4 w-4 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₹{data.potentialLiability.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Maximum Exposure</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-red-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">₹{data.exposureAmount.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Risk Level</CardTitle>
+            <Activity className="h-4 w-4 text-purple-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{getRiskLevelText(riskPercentage)}</div>
+            <Progress className="mt-2" value={riskPercentage} />
+          </CardContent>
+        </Card>
+      </div>
+      
+      {/* Market Exposure Section - only for Satamatka */}
+      {gameType === 'satamatka' && Object.keys(detailedData.marketExposure).length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Market Exposure</CardTitle>
+            <CardDescription>Exposure amount by market</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[200px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Market ID</TableHead>
+                    <TableHead>Exposure Amount</TableHead>
+                    <TableHead>Risk Level</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Object.entries(detailedData.marketExposure).map(([marketId, amount]) => (
+                    <TableRow key={marketId}>
+                      <TableCell>{marketId}</TableCell>
+                      <TableCell>₹{amount.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <RiskBadge amount={amount} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* User Exposure Section */}
+      {Object.keys(detailedData.userExposure).length > 0 && (
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>User Exposure</CardTitle>
+            <CardDescription>Exposure amount by user</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[200px]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User ID</TableHead>
+                    <TableHead>Exposure Amount</TableHead>
+                    <TableHead>Risk Level</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Object.entries(detailedData.userExposure)
+                    .sort((a, b) => Number(b[1]) - Number(a[1])) // Sort by exposure amount descending
+                    .map(([userId, amount]) => {
+                      // Only include users with bets of this game type
+                      const userGames = gameData.filter(game => game.userId === Number(userId));
+                      if (userGames.length === 0) return null;
+                      
+                      return (
+                        <TableRow key={userId}>
+                          <TableCell>{userId}</TableCell>
+                          <TableCell>₹{amount.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <RiskBadge amount={amount} />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* Recent Bets Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Recent Active Bets</CardTitle>
+          <CardDescription>Most recent unresolved bets</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ScrollArea className="h-[300px]">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User ID</TableHead>
+                  <TableHead>Bet Amount</TableHead>
+                  <TableHead>Potential Payout</TableHead>
+                  <TableHead>Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {gameData
+                  .filter(game => !game.result) // Only active bets
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()) // Sort by date
+                  .slice(0, 10) // Only show top 10
+                  .map(game => (
+                    <TableRow key={game.id}>
+                      <TableCell>{game.userId}</TableCell>
+                      <TableCell>₹{game.betAmount.toFixed(2)}</TableCell>
+                      <TableCell>₹{(game.betAmount * 0.9).toFixed(2)}</TableCell>
+                      <TableCell>{formatDate(game.createdAt)}</TableCell>
+                    </TableRow>
+                  ))}
+                {gameData.filter(game => !game.result).length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center py-4">No active bets found</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+function RiskBadge({ amount }: { amount: number }) {
+  if (amount > 5000) {
+    return <Badge className="bg-red-500">High</Badge>;
+  } else if (amount > 1000) {
+    return <Badge className="bg-orange-500">Medium</Badge>;
+  } else {
+    return <Badge className="bg-green-500">Low</Badge>;
+  }
+}
+
+function formatDate(dateString: string | null) {
+  if (!dateString) return 'N/A';
+  const date = new Date(dateString);
+  return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function calculateRiskLevel(data: RiskSummary): number {
+  // Calculate a risk level based on various factors
+  const exposureRatio = data.exposureAmount / data.totalBetAmount;
+  const highRiskRatio = data.highRiskBets / Math.max(data.activeBets, 1);
+  
+  // Combine factors to get a risk percentage (0-100)
+  let riskScore = exposureRatio * 50 + highRiskRatio * 50;
+  
+  // Cap at 100%
+  return Math.min(Math.max(riskScore, 0), 100);
+}
+
+function getRiskLevelText(riskPercentage: number): string {
+  if (riskPercentage > 75) {
+    return 'Critical';
+  } else if (riskPercentage > 50) {
+    return 'High';
+  } else if (riskPercentage > 25) {
+    return 'Medium';
+  } else {
+    return 'Low';
+  }
+}
+
+function getTotalExposure(summaries: RiskSummary[]): number {
+  return summaries.reduce((total, summary) => total + summary.exposureAmount, 0);
+}
+
+function getTotalActiveBets(summaries: RiskSummary[]): number {
+  return summaries.reduce((total, summary) => total + summary.activeBets, 0);
+}
+
+function getTotalPotentialProfit(summaries: RiskSummary[]): number {
+  return summaries.reduce((total, summary) => total + summary.potentialProfit, 0);
+}
+
+function getTotalHighRiskBets(summaries: RiskSummary[]): number {
+  return summaries.reduce((total, summary) => total + summary.highRiskBets, 0);
+}
+
+function LoadingSkeleton() {
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Risk Management</h1>
+          <p className="text-muted-foreground">Loading risk analysis data...</p>
+        </div>
+      </div>
+
+      <Separator />
+
+      {/* Skeleton for Risk Overview Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[1, 2, 3, 4].map(i => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-4 rounded-full" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-20 mb-2" />
+              <Skeleton className="h-3 w-32" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Skeleton for Tabs */}
+      <div className="space-y-4">
+        <Skeleton className="h-10 w-full" />
+        
+        <div className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map(i => (
+              <Card key={i}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-4 w-4 rounded-full" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-20" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -790,6 +790,50 @@ export class DatabaseStorage implements IStorage {
     
     return await query;
   }
+  
+  // Get game odd by type and subadmin - used for risk management
+  async getGameOddBySubadminAndType(subadminId: number, gameType: string): Promise<GameOdd | undefined> {
+    try {
+      const odds = await db.select()
+        .from(gameOdds)
+        .where(and(
+          eq(gameOdds.subadminId, subadminId),
+          eq(gameOdds.gameType, gameType)
+        ));
+      return odds.length > 0 ? odds[0] : undefined;
+    } catch (error) {
+      console.error(`Error getting game odd for subadmin ${subadminId} and type ${gameType}:`, error);
+      return undefined;
+    }
+  }
+  
+  // Get game odd by type - used for risk management
+  async getGameOddByType(gameType: string): Promise<GameOdd | undefined> {
+    try {
+      const odds = await db.select()
+        .from(gameOdds)
+        .where(and(
+          eq(gameOdds.gameType, gameType),
+          eq(gameOdds.setByAdmin, true)
+        ));
+      return odds.length > 0 ? odds[0] : undefined;
+    } catch (error) {
+      console.error(`Error getting game odd for type ${gameType}:`, error);
+      return undefined;
+    }
+  }
+  
+  // Get games by type - used for risk management
+  async getGamesByType(gameType: string): Promise<Game[]> {
+    try {
+      return await db.select()
+        .from(games)
+        .where(eq(games.gameType, gameType));
+    } catch (error) {
+      console.error(`Error getting games by type ${gameType}:`, error);
+      return [];
+    }
+  }
 
   async upsertGameOdd(gameType: string, oddValue: number, setByAdmin: boolean, subadminId?: number): Promise<GameOdd> {
     // Build the conditions - we need to be very specific here to make sure we don't override

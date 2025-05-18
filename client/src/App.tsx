@@ -77,6 +77,11 @@ function Router() {
         allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
       />
       <ProtectedRoute 
+        path="/risk-management" 
+        component={RiskManagementPage} 
+        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
+      />
+      <ProtectedRoute 
         path="/users/:id" 
         component={UserDetailsPage} 
         allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}

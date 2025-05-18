@@ -28,8 +28,8 @@ import { setupUploadRoutes } from "./upload-routes";
 import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
 import depositDiscountRouter from "./deposit-discount-endpoint";
 import cricketTossRoutes from "./cricket-toss-api";
+import { getAdminRiskManagement, getSubadminRiskManagement } from "./risk-management";
 import resetSystemRoutes from "./reset-system";
-import riskManagementRoutes from "./risk-management";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
@@ -48,7 +48,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use("/api/admin", resetSystemRoutes);
   
   // Setup risk management routes
-  app.use("/api/risk", riskManagementRoutes);
+  app.get('/api/risk/admin', requireRole(UserRole.ADMIN), getAdminRiskManagement);
+  app.get('/api/risk/subadmin', requireRole(UserRole.SUBADMIN), getSubadminRiskManagement);
   
   // Setup cricket toss routes - registered later in the file
   // (see line ~3277 where it's properly registered)
