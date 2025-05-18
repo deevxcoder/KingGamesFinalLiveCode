@@ -468,49 +468,44 @@ export default function AdminSettingsPage() {
   // Handle game odds save
   const handleSaveGameOdds = () => {
     // Save Coin Flip odds
-    const coinFlipOddValue = Math.round(parseFloat(coinFlipOdds) * 10000);
+    // Don't multiply by 10000 again since we already did it in the input onChange handler
     saveOddsMutation.mutate({
       gameType: "coin_flip",
-      oddValue: coinFlipOddValue,
+      oddValue: parseInt(coinFlipOdds),
       setByAdmin: true
     });
     
     // Save Cricket Toss odds
-    const cricketTossOddValue = Math.round(parseFloat(cricketTossOdds) * 10000);
     saveOddsMutation.mutate({
       gameType: "cricket_toss",
-      oddValue: cricketTossOddValue,
+      oddValue: parseInt(cricketTossOdds),
       setByAdmin: true
     });
     
     // Team match odds saving removed
     
     // Save Satamatka odds
-    const jodiOddValue = Math.round(parseFloat(satamatkaOdds.jodi) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_jodi",
-      oddValue: jodiOddValue,
+      oddValue: parseInt(satamatkaOdds.jodi),
       setByAdmin: true
     });
     
-    const harfOddValue = Math.round(parseFloat(satamatkaOdds.harf) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_harf",
-      oddValue: harfOddValue,
+      oddValue: parseInt(satamatkaOdds.harf),
       setByAdmin: true
     });
     
-    const crossingOddValue = Math.round(parseFloat(satamatkaOdds.crossing) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_crossing",
-      oddValue: crossingOddValue,
+      oddValue: parseInt(satamatkaOdds.crossing),
       setByAdmin: true
     });
     
-    const oddEvenOddValue = Math.round(parseFloat(satamatkaOdds.odd_even) * 10000);
     saveOddsMutation.mutate({
       gameType: "satamatka_odd_even",
-      oddValue: oddEvenOddValue,
+      oddValue: parseInt(satamatkaOdds.odd_even),
       setByAdmin: true
     });
   };
