@@ -32,8 +32,20 @@ async function comparePasswords(supplied: string, stored: string) {
       return false;
     }
 
+    // Check for bcrypt format first (most common case)
+    if (stored.startsWith('$2a$') || stored.startsWith('$2b$') || stored.startsWith('$2y$')) {
+      try {
+        console.log("Checking bcrypt password format");
+        const result = await bcryptjs.compare(supplied, stored);
+        console.log("Bcrypt comparison result:", result ? "success" : "failed");
+        return result;
+      } catch (err) {
+        console.error('Error comparing bcrypt password:', err);
+        return false;
+      }
+    } 
     // Check if it's our crypto.scrypt format (hex.salt)
-    if (stored.includes('.')) {
+    else if (stored.includes('.')) {
       try {
         console.log("Checking crypto.scrypt password format");
         const parts = stored.split('.');
@@ -55,21 +67,6 @@ async function comparePasswords(supplied: string, stored: string) {
         return timingSafeEqual(hashedBuf, suppliedBuf);
       } catch (err) {
         console.error('Error comparing crypto.scrypt password:', err);
-        return false;
-      }
-    } 
-    // Legacy bcrypt support - for backwards compatibility only
-    // Will be removed in future versions
-    else if (stored.startsWith('$2a$') || stored.startsWith('$2b$') || stored.startsWith('$2y$')) {
-      try {
-        console.log("Checking bcrypt password format (legacy support)");
-        const result = await bcryptjs.compare(supplied, stored);
-        
-        // If this is successful, we should update to the new format
-        console.log("Legacy password format detected, consider updating to new format");
-        return result;
-      } catch (err) {
-        console.error('Error comparing bcrypt password:', err);
         return false;
       }
     } 
