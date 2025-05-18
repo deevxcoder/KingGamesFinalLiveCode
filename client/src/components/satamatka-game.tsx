@@ -1368,7 +1368,7 @@ export default function SatamatkaGame() {
                       <TableCell className="font-medium">{displayNum}</TableCell>
                       <TableCell>₹{amount.toFixed(2)}</TableCell>
                       <TableCell className="text-amber-500">
-                        ₹{calculatePotentialWin(selectedGameMode, amount, gameOdds).toFixed(2)}
+                        ₹{(amount * (selectedGameMode === "jodi" ? 90 : selectedGameMode === "harf" ? 9 : selectedGameMode === "crossing" ? 95 : 1.8)).toFixed(2)}
                       </TableCell>
                       <TableCell>
                         <Button
@@ -1398,7 +1398,11 @@ export default function SatamatkaGame() {
               <span className="text-sm font-medium">Potential Win:</span>
               <span className="font-bold text-amber-500">
                 ₹{Array.from(selectedNumbers.values()).reduce(
-                  (total, amount) => total + calculatePotentialWin(selectedGameMode, amount, gameOdds) / 100,
+                  (total, amount) => total + amount * (
+                    selectedGameMode === "jodi" ? 90 : 
+                    selectedGameMode === "harf" ? 9 : 
+                    selectedGameMode === "crossing" ? 95 : 1.8
+                  ),
                   0
                 ).toFixed(2)}
               </span>
