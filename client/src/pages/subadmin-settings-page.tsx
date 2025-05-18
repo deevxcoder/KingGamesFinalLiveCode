@@ -167,7 +167,7 @@ export default function SubadminSettingsPage() {
   
   // Get subadmin game odds
   const { data: subadminOdds, isLoading: isLoadingSubadminOdds } = useQuery({
-    queryKey: [`/api/odds/subadmin/${subadminId}`],
+    queryKey: [`/api/game-odds/subadmin/${subadminId}`],
     enabled: !!subadminId,
   });
   
@@ -271,19 +271,20 @@ export default function SubadminSettingsPage() {
   // Update game odds mutation
   const updateOddsMutation = useMutation({
     mutationFn: async (values: OddsFormValues) => {
-      const response = await fetch('/api/odds/subadmin/' + subadminId, {
+      const response = await fetch('/api/game-odds/subadmin/' + subadminId, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           odds: [
-            { gameType: 'cricket_toss', oddValue: Math.round(values.cricketToss * 100) / 100 },
-            { gameType: 'coin_flip', oddValue: Math.round(values.coinFlip * 100) / 100 },
-            { gameType: 'satamatka_jodi', oddValue: Math.round(values.satamatkaJodi * 100) / 100 },
-            { gameType: 'satamatka_harf', oddValue: Math.round(values.satamatkaHarf * 100) / 100 },
-            { gameType: 'satamatka_odd_even', oddValue: Math.round(values.satamatkaOddEven * 100) / 100 },
-            { gameType: 'satamatka_crossing', oddValue: Math.round(values.satamatkaCrossing * 100) / 100 },
+            // Multiply values by 10000 before sending to server
+            { gameType: 'cricket_toss', oddValue: Math.round(values.cricketToss * 10000) },
+            { gameType: 'coin_flip', oddValue: Math.round(values.coinFlip * 10000) },
+            { gameType: 'satamatka_jodi', oddValue: Math.round(values.satamatkaJodi * 10000) },
+            { gameType: 'satamatka_harf', oddValue: Math.round(values.satamatkaHarf * 10000) },
+            { gameType: 'satamatka_odd_even', oddValue: Math.round(values.satamatkaOddEven * 10000) },
+            { gameType: 'satamatka_crossing', oddValue: Math.round(values.satamatkaCrossing * 10000) },
           ]
         }),
         credentials: 'include'
@@ -297,7 +298,7 @@ export default function SubadminSettingsPage() {
       return await response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/odds/subadmin/${subadminId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/game-odds/subadmin/${subadminId}`] });
       toast({
         title: "Game odds settings updated",
         variant: "success",
