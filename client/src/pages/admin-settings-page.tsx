@@ -873,8 +873,8 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-jodi" 
-                              value={satamatkaOdds.jodi} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, jodi: e.target.value})} 
+                              value={(parseFloat(satamatkaOdds.jodi) / 100).toFixed(2)} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, jodi: (parseFloat(e.target.value) * 100).toString()})} 
                               placeholder="90.00"
                               className="max-w-[120px]"
                             />
@@ -886,8 +886,8 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-harf" 
-                              value={satamatkaOdds.harf} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, harf: e.target.value})} 
+                              value={(parseFloat(satamatkaOdds.harf) / 100).toFixed(2)} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, harf: (parseFloat(e.target.value) * 100).toString()})} 
                               placeholder="9.00"
                               className="max-w-[120px]"
                             />
@@ -899,8 +899,8 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-crossing" 
-                              value={satamatkaOdds.crossing} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, crossing: e.target.value})} 
+                              value={(parseFloat(satamatkaOdds.crossing) / 100).toFixed(2)} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, crossing: (parseFloat(e.target.value) * 100).toString()})} 
                               placeholder="95.00"
                               className="max-w-[120px]"
                             />
@@ -912,8 +912,8 @@ export default function AdminSettingsPage() {
                           <div className="flex items-center gap-2">
                             <Input 
                               id="satamatka-odd-even" 
-                              value={satamatkaOdds.odd_even} 
-                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, odd_even: e.target.value})} 
+                              value={(parseFloat(satamatkaOdds.odd_even) / 100).toFixed(2)} 
+                              onChange={(e) => setSatamatkaOdds({...satamatkaOdds, odd_even: (parseFloat(e.target.value) * 100).toString()})} 
                               placeholder="1.90"
                               className="max-w-[120px]"
                             />
