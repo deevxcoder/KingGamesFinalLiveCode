@@ -217,7 +217,8 @@ async function getCricketTossRiskData() {
  * Calculate risk metrics from game data
  */
 function calculateRiskData(games: any[], oddValue: number) {
-  const activeBets = games.filter(game => !game.result).length;
+  // Consider games with no result OR with result='pending' as active bets
+  const activeBets = games.filter(game => !game.result || game.result === 'pending').length;
   const totalBets = games.length;
   
   // Calculate exposure by user
@@ -231,8 +232,8 @@ function calculateRiskData(games: any[], oddValue: number) {
   
   // Calculate total bet amount and potential liability
   games.forEach(game => {
-    // Only count active bets for liability calculations
-    if (!game.result) {
+    // Only count active bets for liability calculations (null result OR 'pending' result)
+    if (!game.result || game.result === 'pending') {
       const betAmount = game.betAmount;
       const potentialPayout = betAmount * (oddValue / 100);
       
