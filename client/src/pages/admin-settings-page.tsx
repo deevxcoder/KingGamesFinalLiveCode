@@ -832,8 +832,8 @@ export default function AdminSettingsPage() {
                         <div className="flex items-center gap-2">
                           <Input 
                             id="coinFlipOdds" 
-                            value={coinFlipOdds} 
-                            onChange={(e) => setCoinFlipOdds(e.target.value)} 
+                            value={(parseFloat(coinFlipOdds) / 100).toFixed(2)} 
+                            onChange={(e) => setCoinFlipOdds((parseFloat(e.target.value) * 100).toString())} 
                             placeholder="1.95"
                             className="max-w-[120px]"
                           />
@@ -850,8 +850,8 @@ export default function AdminSettingsPage() {
                         <div className="flex items-center gap-2">
                           <Input 
                             id="cricketTossOdds" 
-                            value={cricketTossOdds} 
-                            onChange={(e) => setCricketTossOdds(e.target.value)} 
+                            value={(parseFloat(cricketTossOdds) / 100).toFixed(2)} 
+                            onChange={(e) => setCricketTossOdds((parseFloat(e.target.value) * 100).toString())} 
                             placeholder="1.90"
                             className="max-w-[120px]"
                           />
