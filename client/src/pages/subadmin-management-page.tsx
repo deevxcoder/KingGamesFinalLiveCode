@@ -160,7 +160,11 @@ export default function SubadminManagementPage() {
       return await res.json();
     },
     onSuccess: () => {
+      // Invalidate the cache first
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      // Force an immediate refetch to update the UI with the new subadmin
+      queryClient.refetchQueries({ queryKey: ["/api/users"] });
+      
       setIsCreateDialogOpen(false);
       form.reset();
       toast({
