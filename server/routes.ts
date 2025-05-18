@@ -29,6 +29,7 @@ import { setupDepositCommissionEndpoints } from "./deposit-commission-endpoint";
 import depositDiscountRouter from "./deposit-discount-endpoint";
 import cricketTossRoutes from "./cricket-toss-api";
 import resetSystemRoutes from "./reset-system";
+import riskManagementRoutes from "./risk-management";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication routes
