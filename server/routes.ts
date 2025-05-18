@@ -3100,7 +3100,7 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
           // Use subadmin specific odds, but convert from integer (stored as * 100) to decimal
           completeOdds.push({
             ...subadminOdd,
-            oddValue: subadminOdd.oddValue / 100
+            oddValue: subadminOdd.oddValue / 10000
           });
         } else {
           // Try to use admin odds as fallback
@@ -3111,7 +3111,7 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
             // Convert from integer (stored as * 100) to decimal
             completeOdds.push({
               gameType: adminOdd.gameType,
-              oddValue: adminOdd.oddValue / 100,
+              oddValue: adminOdd.oddValue / 10000,
               setByAdmin: false,
               subadminId
             });
