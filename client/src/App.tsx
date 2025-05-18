@@ -17,7 +17,6 @@ import UserManagementPage from "@/pages/user-management-page";
 import SubadminManagementPage from "@/pages/subadmin-management-page";
 import SubadminDashboardPage from "@/pages/subadmin-dashboard-page";
 import GameHistoryPage from "@/pages/game-history-page";
-import RiskManagementPage from "@/pages/risk-management-page";
 import CricketTossPage from "@/pages/cricket-toss-page";
 import AdminCricketTossPage from "@/pages/admin-cricket-toss-page";
 import MarketListPage from "@/pages/market-list-page";
@@ -26,7 +25,7 @@ import SatamatkaGamePage from "@/pages/satamatka-game-page";
 // Cricket Toss pages removed
 import AdminMarketManagementPage from "@/pages/admin-market-management-page";
 // Admin Team Match page removed
-import JantriManagementPage from "@/pages/jantri-management-page";
+// Risk Management and Jantri Management pages removed for simplification
 import WalletPage from "@/pages/wallet-page";
 import AdminSettingsPage from "@/pages/admin-settings-page";
 import SubadminSettingsPage from "@/pages/subadmin-settings-page";
@@ -63,16 +62,7 @@ function Router() {
         component={GameHistoryPage} 
         allowedRoles={[UserRole.PLAYER]}
       />
-      <ProtectedRoute 
-        path="/risk-management" 
-        component={RiskManagementPage}
-        allowedRoles={[UserRole.ADMIN, UserRole.SUBADMIN]}
-      />
-      <ProtectedRoute 
-        path="/jantri-management" 
-        component={JantriManagementPage}
-        allowedRoles={[UserRole.ADMIN]}
-      />
+      {/* Risk management and jantri management routes removed for simplification */}
       <ProtectedRoute 
         path="/fund-management" 
         component={FundManagementPage}
