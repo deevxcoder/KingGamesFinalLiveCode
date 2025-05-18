@@ -461,17 +461,17 @@ export default function SubadminSettingsPage() {
 
       subadminOdds.forEach((odd: any) => {
         if (odd.gameType === 'cricket_toss') {
-          formValues.cricketToss = (odd.oddValue / 100);
+          formValues.cricketToss = (odd.oddValue / 10000);
         } else if (odd.gameType === 'coin_flip') {
-          formValues.coinFlip = (odd.oddValue / 100);
+          formValues.coinFlip = (odd.oddValue / 10000);
         } else if (odd.gameType === 'satamatka_jodi') {
-          formValues.satamatkaJodi = (odd.oddValue / 100);
+          formValues.satamatkaJodi = (odd.oddValue / 10000);
         } else if (odd.gameType === 'satamatka_harf') {
-          formValues.satamatkaHarf = (odd.oddValue / 100);
+          formValues.satamatkaHarf = (odd.oddValue / 10000);
         } else if (odd.gameType === 'satamatka_odd_even') {
-          formValues.satamatkaOddEven = (odd.oddValue / 100);
+          formValues.satamatkaOddEven = (odd.oddValue / 10000);
         } else if (odd.gameType === 'satamatka_crossing') {
-          formValues.satamatkaCrossing = (odd.oddValue / 100);
+          formValues.satamatkaCrossing = (odd.oddValue / 10000);
         }
       });
 
@@ -671,7 +671,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
-                                      <span className="text-lg font-mono font-bold">{(odd.oddValue / 100).toFixed(2)}x</span>
+                                      <span className="text-lg font-mono font-bold">{(odd.oddValue / 10000).toFixed(2)}x</span>
                                     </div>
                                   ))}
                                 </div>
@@ -704,7 +704,7 @@ export default function SubadminSettingsPage() {
                                          odd.gameType === 'satamatka_crossing' ? 'Crossing' : 
                                          odd.gameType.replace(/_/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase())}
                                       </span>
-                                      <span className="text-lg font-mono font-bold">{(odd.oddValue / 100).toFixed(2)}x</span>
+                                      <span className="text-lg font-mono font-bold">{(odd.oddValue / 10000).toFixed(2)}x</span>
                                     </div>
                                   ))}
                                 </div>
