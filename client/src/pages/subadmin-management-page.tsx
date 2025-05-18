@@ -428,12 +428,12 @@ export default function SubadminManagementPage() {
       
       return apiRequest("POST", `/api/game-odds/subadmin/${selectedSubadminId}`, {
         odds: [
-          { gameType: 'cricket_toss', oddValue: Math.round(values.cricketToss * 100) },
-          { gameType: 'coin_flip', oddValue: Math.round(values.coinFlip * 100) },
-          { gameType: 'satamatka_jodi', oddValue: Math.round(values.satamatkaJodi * 100) },
-          { gameType: 'satamatka_harf', oddValue: Math.round(values.satamatkaHarf * 100) },
-          { gameType: 'satamatka_odd_even', oddValue: Math.round(values.satamatkaOddEven * 100) },
-          { gameType: 'satamatka_crossing', oddValue: Math.round(values.satamatkaCrossing * 100) },
+          { gameType: 'cricket_toss', oddValue: Math.round(values.cricketToss * 10000) },
+          { gameType: 'coin_flip', oddValue: Math.round(values.coinFlip * 10000) },
+          { gameType: 'satamatka_jodi', oddValue: Math.round(values.satamatkaJodi * 10000) },
+          { gameType: 'satamatka_harf', oddValue: Math.round(values.satamatkaHarf * 10000) },
+          { gameType: 'satamatka_odd_even', oddValue: Math.round(values.satamatkaOddEven * 10000) },
+          { gameType: 'satamatka_crossing', oddValue: Math.round(values.satamatkaCrossing * 10000) },
         ]
       });
     },
