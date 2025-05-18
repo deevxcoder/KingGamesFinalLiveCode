@@ -1763,32 +1763,32 @@ function calculatePotentialWin(gameMode: string, betAmount: number, odds: Record
   let payoutRatio = 1;
   
   // Get the appropriate payout ratio from the database odds
-  // Odds stored in database need to be properly scaled for display
   console.log(`Game mode: ${gameMode}, Initial payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
   switch (gameMode) {
     case "jodi":
-      // Use standard payout of 0.9x for 100 rupee bet (90 rupee win)
-      payoutRatio = 0.9;
+      // Jodi payout is 90x the bet amount
+      payoutRatio = 90;
       break;
     case "harf":
-      // Use standard payout of 0.09x (9 rupee win for 100 rupee bet)
-      payoutRatio = 0.09;
+      // Harf payout is 9x the bet amount
+      payoutRatio = 9;
       break;
     case "crossing":
-      // Use standard payout of 0.95x
-      payoutRatio = 0.95;
+      // Crossing payout is 95x the bet amount
+      payoutRatio = 95;
       break;
     case "odd_even":
-      // Use standard payout of 0.018x
-      payoutRatio = 0.018;
+      // Odd/Even payout is 1.8x the bet amount
+      payoutRatio = 1.8;
       break;
   }
   
   console.log(`Game mode: ${gameMode}, Final payout ratio: ${payoutRatio}, Bet amount: ${betAmount}`);
   
-  // Calculate the potential win amount
-  // Multiply by 100 to convert to paisa
+  // Calculate the potential win amount - multiply bet amount by payout ratio
+  // For ₹100 bet on Jodi with 90x odds, win = 100 × 90 = ₹9,000
+  // Convert to paisa by multiplying by 100
   return Math.floor(betAmount * payoutRatio * 100);
 }
 
