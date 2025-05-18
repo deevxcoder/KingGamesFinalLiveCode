@@ -1196,13 +1196,13 @@ export default function SatamatkaGame() {
                     <span className="text-muted-foreground">Payout Ratio:</span>
                     <span className="font-medium ml-2">
                       {selectedGameMode === "jodi" 
-                        ? `${(gameOdds.jodi ? 90 : 90)}x` 
+                        ? `${(gameOdds.jodi ? (gameOdds.jodi / 100) : 60)}x` 
                         : selectedGameMode === "harf" 
-                        ? `${(gameOdds.harf ? 9 : 9)}x` 
+                        ? `${(gameOdds.harf ? (gameOdds.harf / 100) : 6)}x` 
                         : selectedGameMode === "crossing" 
-                        ? `${(gameOdds.crossing ? 95 : 95)}x` 
+                        ? `${(gameOdds.crossing ? (gameOdds.crossing / 100) : 66)}x` 
                         : selectedGameMode === "odd_even" 
-                        ? `${(gameOdds.odd_even ? 1.8 : 1.8)}x` 
+                        ? `${(gameOdds.odd_even ? (gameOdds.odd_even / 100) : 6)}x` 
                         : "1x"}
                     </span>
                   </div>
@@ -1399,9 +1399,10 @@ export default function SatamatkaGame() {
               <span className="font-bold text-amber-500">
                 ₹{Array.from(selectedNumbers.values()).reduce(
                   (total, amount) => total + amount * (
-                    selectedGameMode === "jodi" ? 90 : 
-                    selectedGameMode === "harf" ? 9 : 
-                    selectedGameMode === "crossing" ? 95 : 1.8
+                    selectedGameMode === "jodi" ? (gameOdds.jodi ? gameOdds.jodi / 100 : 60) : 
+                    selectedGameMode === "harf" ? (gameOdds.harf ? gameOdds.harf / 100 : 6) : 
+                    selectedGameMode === "crossing" ? (gameOdds.crossing ? gameOdds.crossing / 100 : 66) : 
+                    (gameOdds.odd_even ? gameOdds.odd_even / 100 : 6)
                   ),
                   0
                 ).toFixed(2)}
