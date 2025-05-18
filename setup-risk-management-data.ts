@@ -1,11 +1,28 @@
 import { db } from './server/db';
-import { games, satamatkaMarkets, MarketType, GameType } from './shared/schema';
+import { games, satamatkaMarkets, teamMatches, MarketType, MarketStatus, GameType, TeamMatchStatus } from './shared/schema';
+import { eq, sql } from 'drizzle-orm';
 
 async function setupRiskManagementData() {
   try {
     console.log('Setting up sample data for risk management testing...');
     
-    const adminId = 1; // The admin user we created
+    // First, check if we already have an admin user
+    const [adminUser] = await db.execute(sql`SELECT id FROM users WHERE role = 'admin' LIMIT 1`);
+    
+    if (!adminUser) {
+      console.error('Error: No admin user found. Please create an admin user first.');
+      return;
+    }
+    
+    const adminId = adminUser.id || 1;
+    console.log(`Using admin ID: ${adminId}`);
+    
+    // Clear existing test data
+    console.log('Cleaning up any existing test data...');
+    await db.delete(games).where(eq(games.gameType, GameType.SATAMATKA));
+    await db.delete(games).where(eq(games.gameType, GameType.CRICKET_TOSS));
+    await db.delete(satamatkaMarkets).execute();
+    await db.delete(teamMatches).execute();
 
     // Create sample satamatka markets first
     console.log('Creating sample satamatka markets...');
@@ -13,17 +30,30 @@ async function setupRiskManagementData() {
     for (let i = 1; i <= 5; i++) {
       const [market] = await db.insert(satamatkaMarkets).values({
         name: `Test Market ${i}`,
-        openDate: new Date(),
-        closeDate: new Date(Date.now() + 3600000), // 1 hour from now
-        type: i % 2 === 0 ? MarketType.DAILY : MarketType.WEEKLY,
-        status: 'active',
-        result: null,
-        resultDate: null,
-        createdBy: adminId
+        type: i % 2 === 0 ? 'mumbai' : 'kalyan',  // Using the required values based on schema
+        openTime: new Date(),
+        closeTime: new Date(Date.now() + 3600000), // 1 hour from now
+        status: MarketStatus.OPEN,
+        isRecurring: false
       }).returning();
       
       markets.push(market);
       console.log(`Created market ${i}: ${market.name} (ID: ${market.id})`);
+    }
+    
+    // Create sample cricket matches
+    console.log('\nCreating sample cricket matches...');
+    const matches = [];
+    for (let i = 1; i <= 3; i++) {
+      const [match] = await db.insert(teamMatches).values({
+        teamA: `Team A${i}`,
+        teamB: `Team B${i}`,
+        matchDate: new Date(Date.now() + 86400000 * i), // Future dates
+        status: TeamMatchStatus.OPEN
+      }).returning();
+      
+      matches.push(match);
+      console.log(`Created cricket match ${i}: ${match.teamA} vs ${match.teamB} (ID: ${match.id})`);
     }
     
     // Create test market games (satamatka)
@@ -50,6 +80,7 @@ async function setupRiskManagementData() {
     console.log('\nCreating sample cricket toss games...');
     for (let i = 1; i <= 8; i++) {
       const isActive = i % 4 !== 0; // Some games will be active, some completed
+      const matchId = matches[i % matches.length].id;
       
       const [game] = await db.insert(games).values({
         userId: adminId,
@@ -58,7 +89,7 @@ async function setupRiskManagementData() {
         prediction: i % 2 === 0 ? 'team_a' : 'team_b',
         result: isActive ? null : (i % 2 === 0 ? 'win' : 'loss'),
         payout: isActive ? 0 : (i % 2 === 0 ? 500 * (i % 3 + 1) * 1.8 : 0),
-        matchId: i % 3 + 1,
+        matchId: matchId,
         gameMode: 'regular'
       }).returning();
       
