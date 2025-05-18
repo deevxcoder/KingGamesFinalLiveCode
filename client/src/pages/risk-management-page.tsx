@@ -419,14 +419,203 @@ export default function RiskManagementPage() {
           </TabsContent>
           
           <TabsContent value="cricket-toss" className="mt-0">
-            {cricketTossData && (
-              <GameTypeRiskPanel 
-                data={cricketTossData} 
-                detailedData={data.detailedData}
-                gameType="cricket_toss"
-                userInfo={userInfo}
-                marketInfo={marketInfo}
-              />
+            {cricketTossData ? (
+              <>
+                <GameTypeRiskPanel 
+                  data={cricketTossData} 
+                  detailedData={data.detailedData}
+                  gameType="cricket_toss"
+                  userInfo={userInfo}
+                  marketInfo={marketInfo}
+                />
+                
+                {/* Cricket Match Risk Analysis */}
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>Cricket Toss Risk - Match Analysis</CardTitle>
+                    <CardDescription>Detailed risk assessment for each cricket match</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[400px]">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Match</TableHead>
+                            <TableHead>Team A</TableHead>
+                            <TableHead>Team A Bets</TableHead>
+                            <TableHead>Team B</TableHead>
+                            <TableHead>Team B Bets</TableHead>
+                            <TableHead>Total Amount</TableHead>
+                            <TableHead>Potential Win</TableHead>
+                            <TableHead>Risk Level</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(() => {
+                            // Get cricket toss games
+                            const cricketGames = data.detailedData.gameData.filter(game => 
+                              game.gameType === 'cricket_toss' && !game.result
+                            );
+                            
+                            // Group games by match id
+                            const matchGroups = cricketGames.reduce((acc, game) => {
+                              const matchId = game.matchId;
+                              if (!acc[matchId]) {
+                                acc[matchId] = [];
+                              }
+                              acc[matchId].push(game);
+                              return acc;
+                            }, {});
+                            
+                            // If no matches, show a message
+                            if (Object.keys(matchGroups).length === 0) {
+                              return (
+                                <TableRow>
+                                  <TableCell colSpan={8} className="text-center py-4">
+                                    No active cricket toss bets found
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+                            
+                            // For each match, calculate team bets
+                            return Object.entries(matchGroups).map(([matchId, games]) => {
+                              // Get match data (mocked)
+                              const matchName = `Match ${matchId}`;
+                              const teamA = "Team A";
+                              const teamB = "Team B";
+                              
+                              // Calculate team bets
+                              const teamABets = games.filter(game => game.prediction === 'team_a');
+                              const teamBBets = games.filter(game => game.prediction === 'team_b');
+                              
+                              // Calculate bet amounts
+                              const teamAAmount = teamABets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                              const teamBAmount = teamBBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                              const totalAmount = teamAAmount + teamBAmount;
+                              
+                              // Calculate potential win (using 1.9x multiplier)
+                              const potentialWin = Math.max(teamAAmount, teamBAmount) * 0.9;
+                              
+                              // Determine risk level
+                              const riskLevel = 
+                                totalAmount > 5000 ? 'high' : 
+                                totalAmount > 1000 ? 'medium' : 
+                                'low';
+                              
+                              return (
+                                <TableRow key={matchId}>
+                                  <TableCell>{matchName}</TableCell>
+                                  <TableCell>{teamA}</TableCell>
+                                  <TableCell>
+                                    <div>Count: {teamABets.length}</div>
+                                    <div className="text-green-400">₹{teamAAmount.toFixed(2)}</div>
+                                  </TableCell>
+                                  <TableCell>{teamB}</TableCell>
+                                  <TableCell>
+                                    <div>Count: {teamBBets.length}</div>
+                                    <div className="text-green-400">₹{teamBAmount.toFixed(2)}</div>
+                                  </TableCell>
+                                  <TableCell className="text-green-400">₹{totalAmount.toFixed(2)}</TableCell>
+                                  <TableCell className="text-amber-400">₹{potentialWin.toFixed(2)}</TableCell>
+                                  <TableCell>
+                                    <Badge 
+                                      className={
+                                        riskLevel === 'high' ? 'bg-red-500' : 
+                                        riskLevel === 'medium' ? 'bg-orange-500' : 
+                                        'bg-blue-500'
+                                      }
+                                    >
+                                      {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)}
+                                    </Badge>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            });
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+                
+                {/* Cricket Toss User Details */}
+                <Card className="mt-6">
+                  <CardHeader>
+                    <CardTitle>Cricket Toss User Bets</CardTitle>
+                    <CardDescription>Active bets per user on cricket toss games</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[350px]">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>User</TableHead>
+                            <TableHead>Match</TableHead>
+                            <TableHead>Team Selection</TableHead>
+                            <TableHead>Bet Amount</TableHead>
+                            <TableHead>Potential Win</TableHead>
+                            <TableHead>Date</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(() => {
+                            // Get cricket toss games
+                            const cricketGames = data.detailedData.gameData.filter(game => 
+                              game.gameType === 'cricket_toss' && !game.result
+                            );
+                            
+                            // If no games, show message
+                            if (cricketGames.length === 0) {
+                              return (
+                                <TableRow>
+                                  <TableCell colSpan={6} className="text-center py-4">
+                                    No active cricket toss bets found
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }
+                            
+                            // Sort by date
+                            const sortedGames = [...cricketGames].sort(
+                              (a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+                            );
+                            
+                            // Map games to rows
+                            return sortedGames.map((game, idx) => {
+                              const user = userInfo[game.userId] ? userInfo[game.userId].username : `User ${game.userId}`;
+                              const matchName = `Match ${game.matchId}`;
+                              const teamSelection = game.prediction === 'team_a' ? 'Team A' : 'Team B';
+                              const potentialWin = (game.betAmount || 0) * 0.9;
+                              
+                              return (
+                                <TableRow key={game.id || idx}>
+                                  <TableCell>{user}</TableCell>
+                                  <TableCell>{matchName}</TableCell>
+                                  <TableCell>{teamSelection}</TableCell>
+                                  <TableCell className="text-green-400">₹{(game.betAmount || 0).toFixed(2)}</TableCell>
+                                  <TableCell className="text-amber-400">₹{potentialWin.toFixed(2)}</TableCell>
+                                  <TableCell>{formatDate(game.createdAt)}</TableCell>
+                                </TableRow>
+                              );
+                            });
+                          })()}
+                        </TableBody>
+                      </Table>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Cricket Toss Risk Analysis</CardTitle>
+                  <CardDescription>No cricket toss games available</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p>There are currently no active cricket toss games in the system.</p>
+                </CardContent>
+              </Card>
             )}
           </TabsContent>
         </Tabs>
