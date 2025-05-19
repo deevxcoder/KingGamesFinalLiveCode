@@ -544,6 +544,40 @@ export default function RiskManagementPage() {
                                     <span className="text-muted-foreground">None</span>
                                   )}
                                 </TableCell>
+                                <TableCell>
+                                  <div className="max-h-[150px] overflow-y-auto pr-2">
+                                    {gamesForNumber.map((game, idx) => {
+                                      const userId = game.userId;
+                                      const username = userInfo[userId]?.username || `User ${userId}`;
+                                      
+                                      // Calculate potential win based on game type
+                                      let multiplier = 0.9; // Default for jodi
+                                      if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 0.09;
+                                      else if (game.prediction === 'oddeven') multiplier = 0.019;
+                                      
+                                      const potentialWin = (game.betAmount || 0) * multiplier;
+                                      
+                                      return (
+                                        <div key={idx} className="mb-2 p-2 border border-slate-700 rounded-md bg-slate-800/50">
+                                          <div className="font-medium text-amber-400">{username}</div>
+                                          <div className="grid grid-cols-2 gap-1 text-xs">
+                                            <div className="text-slate-300">Bet: ₹{((game.betAmount || 0)/100).toFixed(2)}</div>
+                                            <div className="text-green-400">Win: ₹{potentialWin.toFixed(2)}</div>
+                                            <div className="text-slate-400">{game.prediction || 'unknown'}</div>
+                                            <div className="text-slate-400">
+                                              {game.marketId ? 
+                                                (marketInfo[game.marketId]?.name || `Market ${game.marketId}`) : 
+                                                'Unknown Market'}
+                                            </div>
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                    {gamesForNumber.length === 0 && (
+                                      <span className="text-muted-foreground">No player data</span>
+                                    )}
+                                  </div>
+                                </TableCell>
                               </TableRow>
                             );
                           })}

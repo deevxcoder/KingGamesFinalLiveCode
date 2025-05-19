@@ -382,9 +382,12 @@ export class DatabaseStorage implements IStorage {
   async getSatamatkaMarketsByIds(marketIds: number[]): Promise<SatamatkaMarket[]> {
     if (!marketIds.length) return [];
     
-    return await db.select()
-      .from(satamatkaMarkets)
-      .where(sql`${satamatkaMarkets.id} IN (${marketIds.join(', ')})`);
+    // Query all markets and filter for the ones we need
+    const allMarkets = await db.select()
+      .from(satamatkaMarkets);
+    
+    // Filter for the markets we need
+    return allMarkets.filter(market => marketIds.includes(market.id));
   }
 
   async getAllSatamatkaMarkets(): Promise<SatamatkaMarket[]> {
