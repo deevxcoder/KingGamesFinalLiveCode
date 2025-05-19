@@ -488,7 +488,7 @@ router.post("/:id/play", async (req, res) => {
         }
       } else {
         // Object format
-        betAmount = req.body.betAmount || req.body.amount || 0;
+        betAmount = parseInt(req.body.betAmount) || parseInt(req.body.amount) || 0;
         betOn = req.body.betOn || req.body.prediction || "";
       }
     }
