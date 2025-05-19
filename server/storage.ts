@@ -189,7 +189,7 @@ export class DatabaseStorage implements IStorage {
     
     return await db.select()
       .from(users)
-      .where(sql`${users.id} IN (${userIds.join(', ')})`);
+      .where(inArray(users.id, userIds));
   }
 
   async updateUserBalance(userId: number, newBalance: number): Promise<User | undefined> {
