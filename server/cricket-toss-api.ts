@@ -374,7 +374,8 @@ router.post("/bet", async (req, res) => {
       : matchData.oddTeamB;
     
     // Ensure bet amount is a number and correctly scaled
-    const betAmount = parseInt(validatedData.betAmount.toString());
+    // Convert to paisa (multiply by 100) as the system stores amounts in paisa
+    const betAmount = parseInt(validatedData.betAmount.toString()) * 100;
     
     const potentialWin = Math.floor(betAmount * (odds / 100));
     
@@ -553,7 +554,8 @@ router.post("/:id/play", async (req, res) => {
       : matchData.oddTeamB;
     
     // Ensure bet amount is a number and correctly scaled
-    betAmount = parseInt(betAmount.toString());
+    // Convert to paisa (multiply by 100) as the system stores amounts in paisa
+    betAmount = parseInt(betAmount.toString()) * 100;
     
     const potentialWin = Math.floor(betAmount * (odds / 100));
     
