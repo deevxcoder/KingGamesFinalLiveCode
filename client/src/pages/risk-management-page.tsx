@@ -419,24 +419,32 @@ export default function RiskManagementPage() {
                             // Get all games for this number filtered by the selected bet type
                             const gamesForNumber = data.detailedData.gameData.filter(game => {
                               // Check if this is a Satamatka game
-                              if (game.gameType !== 'satamatka' || game.result) return false;
+                              if (game.gameType !== 'satamatka') return false;
                               
-                              // Check if the bet type matches our filter
-                              if (betTypeFilter !== 'all' && game.prediction !== betTypeFilter) return false;
+                              // Only include active bets (result is null or pending)
+                              if (game.result && game.result !== 'pending') return false;
                               
-                              // Check if the number matches - in Satamatka games, the number can be stored in different ways
-                              // It could be directly in prediction data for jodi bets,
-                              // or it could be in gameData.number, or possibly as a string property
+                              // Check if the bet type matches our filter (if specific filter selected)
+                              if (betTypeFilter !== 'all' && betTypeFilter !== game.prediction) return false;
                               
-                              // For jodi bets, the number might be the prediction value itself
-                              if (game.prediction === 'jodi' && game.value === num) return true;
+                              // Check if the number matches the prediction directly
+                              // This handles number predictions like "01", "02", etc.
+                              if (game.prediction === num) return true;
                               
-                              // Check in all possible locations where the number might be stored
-                              if (game.gameData?.number === num) return true;
-                              if (typeof game.gameData === 'object' && game.gameData?.selectedNumber === num) return true;
-                              if (typeof game.gameData === 'string' && game.gameData === num) return true;
-                              if (game.number === num) return true;
-                              if (game.selectedNumber === num) return true;
+                              // Look for pattern where prediction is a type and value is stored elsewhere
+                              const specialBetTypes = ['jodi', 'harf', 'crossing', 'oddeven'];
+                              if (specialBetTypes.includes(game.prediction)) {
+                                // Check in game value - commonly used structure
+                                if (game.value === num) return true;
+                                
+                                // Check in gameData object variations
+                                if (game.gameData?.number === num) return true;
+                                if (game.gameData?.selectedNumber === num) return true;
+                              }
+                              
+                              // Check special patterns like 'L1' or 'R2' (left/right digit bets)
+                              if (game.prediction?.startsWith('L') && num.endsWith(game.prediction.slice(1))) return true;
+                              if (game.prediction?.startsWith('R') && num.startsWith(game.prediction.slice(1))) return true;
                               
                               // Log game data for debugging
                               console.log('Game data for debugging:', game);
