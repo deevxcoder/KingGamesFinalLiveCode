@@ -159,14 +159,24 @@ export default function SubadminManagementPage() {
       
       return await res.json();
     },
-    onSuccess: () => {
-      // Invalidate the cache first
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
-      // Force an immediate refetch to update the UI with the new subadmin
-      queryClient.refetchQueries({ queryKey: ["/api/users"] });
-      
+    onSuccess: (newSubadmin) => {
+      // First, close the dialog and reset the form
       setIsCreateDialogOpen(false);
       form.reset();
+      
+      // Immediately update the cache with the new subadmin
+      // This ensures the UI shows the new subadmin right away
+      queryClient.setQueryData(["/api/users"], (oldData: any) => {
+        // If there's no old data, create a new array with just this subadmin
+        if (!oldData) return [newSubadmin];
+        
+        // Otherwise add the new subadmin to the existing data
+        return [...oldData, newSubadmin];
+      });
+      
+      // Also invalidate and refetch to ensure data is fresh
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      
       toast({
         title: "Subadmin created",
         description: "The subadmin account has been created successfully",
