@@ -373,10 +373,13 @@ router.post("/bet", async (req, res) => {
       ? matchData.oddTeamA 
       : matchData.oddTeamB;
     
-    const potentialWin = Math.floor(validatedData.betAmount * (odds / 100));
+    // Ensure bet amount is a number and correctly scaled
+    const betAmount = parseInt(validatedData.betAmount.toString());
+    
+    const potentialWin = Math.floor(betAmount * (odds / 100));
     
     // Deduct bet amount from user balance
-    const newBalance = currentBalance - validatedData.betAmount;
+    const newBalance = currentBalance - betAmount;
     
     await db.update(users)
       .set({ balance: newBalance })
@@ -399,7 +402,7 @@ router.post("/bet", async (req, res) => {
         userId: req.user.id,
         gameType: GameType.CRICKET_TOSS,
         matchId: validatedData.matchId,
-        betAmount: validatedData.betAmount,
+        betAmount: betAmount,
         prediction: validatedData.prediction,
         gameData: gameData,
         balanceAfter: newBalance,
@@ -548,6 +551,9 @@ router.post("/:id/play", async (req, res) => {
     const odds = betOn === "team_a" 
       ? matchData.oddTeamA 
       : matchData.oddTeamB;
+    
+    // Ensure bet amount is a number and correctly scaled
+    betAmount = parseInt(betAmount.toString());
     
     const potentialWin = Math.floor(betAmount * (odds / 100));
     
