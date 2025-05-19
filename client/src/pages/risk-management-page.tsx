@@ -474,13 +474,13 @@ export default function RiskManagementPage() {
                             else if (totalBetAmount > 0) riskLevel = 'low';
                             
                             // Get bet types for this number
-                            const betTypeSet = new Set();
+                            const betTypeSet = new Set<string>();
                             gamesForNumber.forEach(game => {
                               if (game.prediction) {
-                                betTypeSet.add(game.prediction);
+                                betTypeSet.add(game.prediction as string);
                               }
                             });
-                            const betTypes = Array.from(betTypeSet);
+                            const betTypes = Array.from(betTypeSet) as string[];
                             
                             return (
                               <TableRow 
@@ -499,23 +499,32 @@ export default function RiskManagementPage() {
                                 <TableCell>{gamesForNumber.length}</TableCell>
                                 <TableCell>
                                   {totalBetAmount > 0 
-                                    ? `₹${totalBetAmount.toFixed(2)}` 
+                                    ? `₹${(totalBetAmount/100).toFixed(2)}` 
                                     : <span className="text-muted-foreground">No bets</span>
                                   }
                                 </TableCell>
                                 <TableCell>
                                   {potentialWin > 0 
-                                    ? `₹${potentialWin.toFixed(2)}` 
+                                    ? `₹${(potentialWin/100).toFixed(2)}` 
                                     : <span className="text-muted-foreground">-</span>
                                   }
                                 </TableCell>
                                 <TableCell>
                                   {betTypes.length > 0 
-                                    ? betTypes.map((type, idx) => (
-                                        <Badge key={idx} className="mr-1 mb-1 bg-slate-700">
-                                          {type}
-                                        </Badge>
-                                      ))
+                                    ? betTypes.map((type, idx) => {
+                                        // Format the bet type to proper display name
+                                        let displayType = type;
+                                        if (type === 'jodi') displayType = 'Jodi';
+                                        else if (type === 'harf') displayType = 'Hurf';
+                                        else if (type === 'crossing') displayType = 'Crossing';
+                                        else if (type === 'oddeven') displayType = 'Odd/Even';
+                                        
+                                        return (
+                                          <Badge key={idx} className="mr-1 mb-1 bg-slate-700">
+                                            {displayType}
+                                          </Badge>
+                                        );
+                                      })
                                     : <span className="text-muted-foreground">-</span>
                                   }
                                 </TableCell>
@@ -576,7 +585,13 @@ export default function RiskManagementPage() {
                                                 <div className="grid grid-cols-2 gap-2 mt-1">
                                                   <div className="text-slate-300">Bet: ₹{((game.betAmount || 0)/100).toFixed(2)}</div>
                                                   <div className="text-green-400">Win: ₹{potentialWin.toFixed(2)}</div>
-                                                  <div className="text-slate-400">Type: {game.prediction || 'unknown'}</div>
+                                                  <div className="text-slate-400">Type: {
+                                                    game.prediction === 'jodi' ? 'Jodi' :
+                                                    game.prediction === 'harf' ? 'Hurf' :
+                                                    game.prediction === 'crossing' ? 'Crossing' :
+                                                    game.prediction === 'oddeven' ? 'Odd/Even' :
+                                                    game.prediction || 'unknown'
+                                                  }</div>
                                                   <div className="text-slate-400">
                                                     Market: {game.marketId ? 
                                                       (marketInfo[game.marketId]?.name || `Market ${game.marketId}`) : 
