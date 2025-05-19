@@ -505,7 +505,7 @@ export default function RiskManagementPage() {
                                 </TableCell>
                                 <TableCell>
                                   {potentialWin > 0 
-                                    ? `₹${(potentialWin/100).toFixed(2)}` 
+                                    ? `₹${potentialWin.toFixed(2)}` 
                                     : <span className="text-muted-foreground">-</span>
                                   }
                                 </TableCell>
