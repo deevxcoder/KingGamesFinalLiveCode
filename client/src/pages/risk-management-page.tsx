@@ -408,6 +408,7 @@ export default function RiskManagementPage() {
                             <TableHead>Bet Types</TableHead>
                             <TableHead className="w-[120px]">Market</TableHead>
                             <TableHead className="w-[100px]">Risk Level</TableHead>
+                            <TableHead className="w-[200px]">Player Details</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>

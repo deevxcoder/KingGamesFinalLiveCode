@@ -184,20 +184,24 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.assignedTo, assignedToId));
   }
   
+  async getUserById(userId: number): Promise<User | null> {
+    const result = await db.select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    
+    return result.length > 0 ? result[0] : null;
+  }
+
   async getUsersByIds(userIds: number[]): Promise<User[]> {
     if (!userIds.length) return [];
     
-    // Simpler approach 
-    const results: User[] = [];
-    // Fetch users one by one to avoid complex query issues
-    for (const userId of userIds) {
-      const user = await this.getUserById(userId);
-      if (user) {
-        results.push(user);
-      }
-    }
+    // Just query once with all IDs since we can't use the instance method
+    const allUsers = await db.select()
+      .from(users);
     
-    return results;
+    // Filter for the users we need
+    return allUsers.filter(user => userIds.includes(user.id));
   }
 
   async updateUserBalance(userId: number, newBalance: number): Promise<User | undefined> {
