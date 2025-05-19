@@ -273,66 +273,6 @@ export default function RiskManagementPage() {
           </TabsList>
           
           <TabsContent value="market-game" className="mt-0">
-            {/* Bet Type Filters - Only for Satamatka */}
-            <Card className="mb-6 mt-4">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle className="text-base">Bet Type Filters</CardTitle>
-                    <CardDescription>Filter to view specific bet types</CardDescription>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-muted-foreground">Legend:</span>
-                    <div className="flex items-center space-x-1">
-                      <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
-                      <span className="text-xs">High Risk</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <span className="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
-                      <span className="text-xs">Medium Risk</span>
-                    </div>
-                    <div className="flex items-center space-x-1">
-                      <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
-                      <span className="text-xs">Low Risk</span>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  <Badge 
-                    className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
-                    onClick={() => setBetTypeFilter('all')}
-                  >
-                    All Types
-                  </Badge>
-                  <Badge 
-                    className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
-                    onClick={() => setBetTypeFilter('jodi')}
-                  >
-                    Jodi
-                  </Badge>
-                  <Badge 
-                    className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
-                    onClick={() => setBetTypeFilter('harf')}
-                  >
-                    Harf
-                  </Badge>
-                  <Badge 
-                    className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'crossing' ? 'bg-primary' : 'bg-slate-700'}`}
-                    onClick={() => setBetTypeFilter('crossing')}
-                  >
-                    Crossing
-                  </Badge>
-                  <Badge 
-                    className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'oddeven' ? 'bg-primary' : 'bg-slate-700'}`}
-                    onClick={() => setBetTypeFilter('oddeven')}
-                  >
-                    Odd/Even
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
             
             {marketGameData && (
               <>
