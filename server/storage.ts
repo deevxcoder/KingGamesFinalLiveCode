@@ -187,9 +187,17 @@ export class DatabaseStorage implements IStorage {
   async getUsersByIds(userIds: number[]): Promise<User[]> {
     if (!userIds.length) return [];
     
-    return await db.select()
-      .from(users)
-      .where(inArray(users.id, userIds));
+    // Simpler approach 
+    const results: User[] = [];
+    // Fetch users one by one to avoid complex query issues
+    for (const userId of userIds) {
+      const user = await this.getUserById(userId);
+      if (user) {
+        results.push(user);
+      }
+    }
+    
+    return results;
   }
 
   async updateUserBalance(userId: number, newBalance: number): Promise<User | undefined> {
