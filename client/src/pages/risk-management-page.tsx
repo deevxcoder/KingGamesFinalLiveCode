@@ -276,6 +276,47 @@ export default function RiskManagementPage() {
             
             {marketGameData && (
               <>
+                {/* Stats Overview Cards */}
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Total Bet Amount</CardTitle>
+                      <Target className="h-4 w-4 text-blue-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">₹{(marketGameData.totalBetAmount/100).toFixed(2)}</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Potential Liability</CardTitle>
+                      <TrendingDown className="h-4 w-4 text-orange-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">₹{(marketGameData.potentialLiability / 100).toFixed(2)}</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Maximum Exposure</CardTitle>
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">₹{(marketGameData.exposureAmount / 100).toFixed(2)}</div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">Risk Level</CardTitle>
+                      <Activity className="h-4 w-4 text-purple-500" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">{getRiskLevelText(calculateRiskLevel(marketGameData))}</div>
+                      <Progress className="mt-2" value={calculateRiskLevel(marketGameData)} />
+                    </CardContent>
+                  </Card>
+                </div>
+                
                 {/* Grid view showing all numbers from 00-99 */}
                 <Card className="mb-6">
                   <CardHeader>
