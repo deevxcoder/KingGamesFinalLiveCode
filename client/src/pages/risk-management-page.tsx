@@ -121,6 +121,7 @@ export default function RiskManagementPage() {
   const [userInfo, setUserInfo] = useState<UserInfo>({});
   const [marketInfo, setMarketInfo] = useState<MarketInfo>({});
   const [betTypeFilter, setBetTypeFilter] = useState<string>('all');
+  const [marketFilter, setMarketFilter] = useState<number | 'all'>('all');
   
   // Risk level threshold configuration
   const [riskThresholds, setRiskThresholds] = useState({
@@ -496,39 +497,59 @@ export default function RiskManagementPage() {
                     <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="mb-4 flex items-center">
-                      <div className="mr-8 flex items-center space-x-2">
-                        <span className="font-semibold">Filter:</span>
-                        <Badge 
-                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
-                          onClick={() => setBetTypeFilter('all')}
+                    <div className="mb-4 flex flex-col space-y-3">
+                      {/* Market Filter - Added as a dropdown */}
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold w-24">Market Filter:</span>
+                        <select 
+                          className="p-2 rounded-md bg-background border border-input text-sm" 
+                          value={marketFilter === 'all' ? 'all' : marketFilter.toString()}
+                          onChange={(e) => setMarketFilter(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
                         >
-                          All Types
-                        </Badge>
-                        <Badge 
-                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
-                          onClick={() => setBetTypeFilter('jodi')}
-                        >
-                          Jodi
-                        </Badge>
-                        <Badge 
-                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
-                          onClick={() => setBetTypeFilter('harf')}
-                        >
-                          Harf
-                        </Badge>
-                        <Badge 
-                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'crossing' ? 'bg-primary' : 'bg-slate-700'}`}
-                          onClick={() => setBetTypeFilter('crossing')}
-                        >
-                          Crossing
-                        </Badge>
-                        <Badge 
-                          className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'oddeven' ? 'bg-primary' : 'bg-slate-700'}`}
-                          onClick={() => setBetTypeFilter('oddeven')}
-                        >
-                          Odd/Even
-                        </Badge>
+                          <option value="all">All Markets</option>
+                          {Object.entries(marketInfo).map(([marketId, market]) => (
+                            <option key={marketId} value={marketId}>
+                              {market.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {/* Bet Type Filter */}
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold w-24">Bet Type:</span>
+                        <div className="flex items-center space-x-2">
+                          <Badge 
+                            className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
+                            onClick={() => setBetTypeFilter('all')}
+                          >
+                            All Types
+                          </Badge>
+                          <Badge 
+                            className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
+                            onClick={() => setBetTypeFilter('jodi')}
+                          >
+                            Jodi
+                          </Badge>
+                          <Badge 
+                            className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
+                            onClick={() => setBetTypeFilter('harf')}
+                          >
+                            Harf
+                          </Badge>
+                          <Badge 
+                            className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'crossing' ? 'bg-primary' : 'bg-slate-700'}`}
+                            onClick={() => setBetTypeFilter('crossing')}
+                          >
+                            Crossing
+                          </Badge>
+                          <Badge 
+                            className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'oddeven' ? 'bg-primary' : 'bg-slate-700'}`}
+                            onClick={() => setBetTypeFilter('oddeven')}
+                          >
+                            Odd/Even
+                          </Badge>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center space-x-1">
@@ -584,6 +605,11 @@ export default function RiskManagementPage() {
                               
                               // Only include active bets (result is null or pending)
                               if (game.result && game.result !== 'pending') return false;
+                              
+                              // Filter by market if a specific market is selected
+                              if (marketFilter !== 'all' && game.marketId !== marketFilter) {
+                                return false;
+                              }
                               
                               // Check if the bet type matches our filter (if specific filter selected)
                               if (betTypeFilter !== 'all') {
