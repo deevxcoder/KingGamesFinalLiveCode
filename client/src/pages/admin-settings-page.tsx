@@ -27,6 +27,11 @@ export default function AdminSettingsPage() {
   const [sliderImages, setSliderImages] = useState<{filename: string, url: string}[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   
+  // Hero Slider Images State
+  const [heroImages, setHeroImages] = useState<{id: number, filename: string, url: string, position: number}[]>([]);
+  const [isUploadingHero, setIsUploadingHero] = useState(false);
+  const homeHeroFileInputRef = useRef<HTMLInputElement>(null);
+  
   // Game Card Images State
   const [gameCardImages, setGameCardImages] = useState<{filename: string, url: string, gameType?: string}[]>([]);
   const [selectedGameImages, setSelectedGameImages] = useState<{[key: string]: string}>({
@@ -231,12 +236,33 @@ export default function AdminSettingsPage() {
       .then(res => res.json()),
   });
   
+  // Load hero slider images
+  const {
+    data: heroImagesData,
+    isLoading: isLoadingHeroImages,
+    refetch: refetchHeroImages
+  } = useQuery<{id: number, filename: string, url: string, position: number}[]>({
+    queryKey: ['/api/herosliders'],
+    queryFn: () => apiRequest("GET", '/api/herosliders')
+      .then(res => res.json())
+      .catch(() => []), // Return empty array if API endpoint doesn't exist yet
+  });
+  
   // Update slider images when data is loaded
   useEffect(() => {
     if (sliderImagesData) {
       setSliderImages(sliderImagesData);
     }
   }, [sliderImagesData]);
+  
+  // Update hero images when data is loaded
+  useEffect(() => {
+    if (heroImagesData) {
+      // Sort by position to ensure display order
+      const sortedImages = [...heroImagesData].sort((a, b) => a.position - b.position);
+      setHeroImages(sortedImages);
+    }
+  }, [heroImagesData]);
   
   // Load game card images
   const { 
@@ -538,6 +564,47 @@ export default function AdminSettingsPage() {
     if (confirm('Are you sure you want to delete this slider image?')) {
       deleteSliderMutation.mutate(filename);
     }
+  };
+  
+  // Handle hero image upload
+  const handleHeroImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
+    }
+    
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('heroImage', file);
+    
+    setIsUploadingHero(true);
+    uploadHeroMutation.mutate(formData);
+    
+    // Reset the file input
+    if (homeHeroFileInputRef.current) {
+      homeHeroFileInputRef.current.value = '';
+    }
+  };
+  
+  // Handle hero image delete
+  const handleDeleteHeroImage = (filename: string) => {
+    if (confirm('Are you sure you want to delete this hero image?')) {
+      deleteHeroMutation.mutate(filename);
+    }
+  };
+  
+  // Handle changing hero image position
+  const handleMoveHeroImage = (imageId: number, direction: 'up' | 'down') => {
+    const currentIndex = heroImages.findIndex(img => img.id === imageId);
+    if (currentIndex === -1) return;
+    
+    const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+    if (newIndex < 0 || newIndex >= heroImages.length) return;
+    
+    // Update positions in API
+    updateHeroPositionMutation.mutate({
+      imageId: imageId,
+      newPosition: heroImages[newIndex].position
+    });
   };
   
   // Upload game card image mutation
