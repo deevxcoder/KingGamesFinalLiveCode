@@ -1056,14 +1056,16 @@ export default function AdminSettingsPage() {
                 onClick={() => {
                   // Save platform-wide default commission rate
                   saveCommissionMutation.mutate({
-                    coin_flip: Math.round(parseFloat(commissionRates.coin_flip) * 100),
-                    cricket_toss: Math.round(parseFloat(commissionRates.cricket_toss) * 100),
-                    // team_match removed from commission rates
-                    satamatka_jodi: Math.round(parseFloat(commissionRates.satamatka_jodi) * 100),
-                    satamatka_harf: Math.round(parseFloat(commissionRates.satamatka_harf) * 100),
-                    satamatka_crossing: Math.round(parseFloat(commissionRates.satamatka_crossing) * 100),
-                    satamatka_odd_even: Math.round(parseFloat(commissionRates.satamatka_odd_even) * 100),
-                    deposit: Math.round(parseFloat(commissionRates.deposit) * 100)
+                    defaultRates: {
+                      coin_flip: Math.round(parseFloat(commissionRates.coin_flip) * 100),
+                      cricket_toss: Math.round(parseFloat(commissionRates.cricket_toss) * 100),
+                      // team_match removed from commission rates
+                      satamatka_jodi: Math.round(parseFloat(commissionRates.satamatka_jodi) * 100),
+                      satamatka_harf: Math.round(parseFloat(commissionRates.satamatka_harf) * 100),
+                      satamatka_crossing: Math.round(parseFloat(commissionRates.satamatka_crossing) * 100),
+                      satamatka_odd_even: Math.round(parseFloat(commissionRates.satamatka_odd_even) * 100),
+                      deposit: Math.round(parseFloat(commissionRates.deposit) * 100)
+                    }
                   });
                 }}
                 disabled={saveCommissionMutation.isPending}
