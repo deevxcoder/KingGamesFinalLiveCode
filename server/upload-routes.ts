@@ -8,6 +8,7 @@ import { UserRole } from '@shared/schema';
 const uploadsDir = path.join(process.cwd(), 'uploads');
 const proofUploadsDir = path.join(uploadsDir, 'proofs');
 const sliderUploadsDir = path.join(uploadsDir, 'sliders');
+const heroSliderUploadsDir = path.join(uploadsDir, 'hero-sliders');
 const gameCardUploadsDir = path.join(uploadsDir, 'gamecards');
 const matchBannerUploadsDir = path.join(uploadsDir, 'match-banners');
 const marketBannerUploadsDir = path.join(uploadsDir, 'market-banners');
@@ -22,6 +23,10 @@ if (!fs.existsSync(proofUploadsDir)) {
 
 if (!fs.existsSync(sliderUploadsDir)) {
   fs.mkdirSync(sliderUploadsDir, { recursive: true });
+}
+
+if (!fs.existsSync(heroSliderUploadsDir)) {
+  fs.mkdirSync(heroSliderUploadsDir, { recursive: true });
 }
 
 if (!fs.existsSync(gameCardUploadsDir)) {
@@ -70,6 +75,18 @@ const sliderStorage = multer.diskStorage({
   }
 });
 
+// Configure hero slider uploads storage
+const heroSliderStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, heroSliderUploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `hero-slider-${uniqueSuffix}${ext}`);
+  }
+});
+
 // Configure game card uploads storage
 const gameCardStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -105,6 +122,14 @@ const proofUpload = multer({
 
 const sliderUpload = multer({ 
   storage: sliderStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB max file size
+  },
+  fileFilter: fileFilter
+});
+
+const heroSliderUpload = multer({ 
+  storage: heroSliderStorage,
   limits: {
     fileSize: 2 * 1024 * 1024 // 2MB max file size
   },
@@ -243,6 +268,67 @@ export function setupUploadRoutes(app: express.Express) {
     } catch (error) {
       console.error('Error deleting slider image:', error);
       res.status(500).json({ error: 'Failed to delete slider image' });
+    }
+  });
+  
+  // API route to upload hero slider images (admin only)
+  app.post('/api/upload/heroslider', requireAdmin, heroSliderUpload.single('heroSliderImage'), (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+
+      // Generate URL for the uploaded file
+      const fileUrl = `/uploads/hero-sliders/${req.file.filename}`;
+      
+      // Return the URL to the client
+      res.json({ 
+        success: true, 
+        imageUrl: fileUrl 
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ error: 'File upload failed' });
+    }
+  });
+  
+  // API route to get all hero slider images
+  app.get('/api/herosliders', async (req: Request, res: Response) => {
+    try {
+      // Read the hero sliders directory
+      const files = fs.readdirSync(heroSliderUploadsDir);
+      
+      // Map to URLs
+      const heroSliderImages = files.map(file => ({
+        filename: file,
+        url: `/uploads/hero-sliders/${file}`
+      }));
+      
+      res.json(heroSliderImages);
+    } catch (error) {
+      console.error('Error fetching hero slider images:', error);
+      res.status(500).json({ error: 'Failed to fetch hero slider images' });
+    }
+  });
+  
+  // API route to delete a hero slider image (admin only)
+  app.delete('/api/herosliders/:filename', requireAdmin, (req: Request, res: Response) => {
+    try {
+      const { filename } = req.params;
+      const filePath = path.join(heroSliderUploadsDir, filename);
+      
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'Image not found' });
+      }
+      
+      // Delete the file
+      fs.unlinkSync(filePath);
+      
+      res.json({ success: true, message: 'Hero slider image deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting hero slider image:', error);
+      res.status(500).json({ error: 'Failed to delete hero slider image' });
     }
   });
   
