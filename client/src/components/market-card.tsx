@@ -86,7 +86,7 @@ export default function MarketCard({
     
     // If admin provided a specific coverImage for this market, use it (highest priority)
     if (coverImage) {
-      console.log(`Using specific market cover image: ${coverImage} for market ${name}`);
+      console.log(`Using market's own cover image: ${coverImage} for "${name}"`);
       return { 
         backgroundImage: `${gradientOverlay}, url("${coverImage}")`,
         className: "bg-slate-900 bg-cover bg-center"
