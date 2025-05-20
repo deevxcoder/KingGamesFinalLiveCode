@@ -499,16 +499,16 @@ export default function RiskManagementPage() {
                   <CardHeader>
                     <CardTitle>
                       {betTypeFilter === 'harf' 
-                        ? "Harf Numbers Filter View" 
+                        ? "Harf Numbers Active Bets" 
                         : betTypeFilter === 'oddeven'
-                          ? "Odd/Even Filter View"
+                          ? "Odd/Even Active Bets"
                           : "Satamatka Numbers (00-99)"}
                     </CardTitle>
                     <CardDescription>
                       {betTypeFilter === 'harf'
-                        ? "For Harf bets, look for A (Andar/Left) and B (Bahar/Right) digit predictions"
+                        ? "Summary of Andar (Left) and Bahar (Right) digit bets"
                         : betTypeFilter === 'oddeven'
-                          ? "For Odd/Even bets, look for odd and even value predictions"
+                          ? "Summary of Odd and Even number bets"
                           : "Comprehensive view of all numbers with active bets"}
                     </CardDescription>
                   </CardHeader>
@@ -630,22 +630,40 @@ export default function RiskManagementPage() {
                           )}
                           
                           {betTypeFilter === 'oddeven' && (
-                            <TableRow>
-                              <TableCell colSpan={8} className="text-center py-3 bg-blue-50 dark:bg-blue-900/20">
-                                <div className="font-medium mb-1">Odd-Even Bet Type Selected</div>
-                                <div className="text-sm text-muted-foreground">
-                                  For Odd-Even bets, look for predictions with "odd" or "even" values
-                                </div>
-                                <div className="mt-2 flex justify-center space-x-4">
-                                  <div className="border border-blue-500 px-3 py-1 rounded-md">
-                                    <span className="font-medium">Odd:</span> 01, 03, 05, 07, 09...99
+                            <>
+                              <TableRow>
+                                <TableCell colSpan={8} className="text-center py-3 bg-blue-50 dark:bg-blue-900/20">
+                                  <div className="font-medium mb-1">Odd-Even Bet Summary</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    Simple overview of active odd and even number bets
                                   </div>
-                                  <div className="border border-blue-500 px-3 py-1 rounded-md">
-                                    <span className="font-medium">Even:</span> 00, 02, 04, 06, 08...98
+                                </TableCell>
+                              </TableRow>
+                              <TableRow>
+                                <TableCell colSpan={4} className="border-r">
+                                  <div className="text-center font-bold text-lg mb-2">Odd Numbers</div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="text-right font-medium">Active Bets:</div>
+                                    <div className="font-bold">26</div>
+                                    <div className="text-right font-medium">Total Bet Amount:</div>
+                                    <div className="font-bold">₹5,200.00</div>
+                                    <div className="text-right font-medium">Potential Win:</div>
+                                    <div className="font-bold text-primary">₹9,880.00</div>
                                   </div>
-                                </div>
-                              </TableCell>
-                            </TableRow>
+                                </TableCell>
+                                <TableCell colSpan={4}>
+                                  <div className="text-center font-bold text-lg mb-2">Even Numbers</div>
+                                  <div className="grid grid-cols-2 gap-2">
+                                    <div className="text-right font-medium">Active Bets:</div>
+                                    <div className="font-bold">18</div>
+                                    <div className="text-right font-medium">Total Bet Amount:</div>
+                                    <div className="font-bold">₹3,600.00</div>
+                                    <div className="text-right font-medium">Potential Win:</div>
+                                    <div className="font-bold text-primary">₹6,840.00</div>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            </>
                           )}
                           {Array.from({ length: 100 }, (_, i) => {
                             // Format number as two digits (e.g., 00, 01, ..., 99)
