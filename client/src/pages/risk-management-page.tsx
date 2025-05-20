@@ -46,8 +46,21 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
+  DialogFooter
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import { Slider } from "@/components/ui/slider";
 
 interface RiskSummary {
   totalBetAmount: number;
@@ -109,6 +122,16 @@ export default function RiskManagementPage() {
   const [marketInfo, setMarketInfo] = useState<MarketInfo>({});
   // Add state for bet type filtering
   const [betTypeFilter, setBetTypeFilter] = useState<string>('all');
+  
+  // Risk level threshold configuration
+  const [riskThresholds, setRiskThresholds] = useState({
+    high: 1000,     // Any bet above 1000 is high risk
+    medium: 500,    // Between 500-1000 is medium risk
+    low: 100        // Between 1-500 is low risk
+  });
+  
+  // Whether risk configuration dialog is open
+  const [riskConfigOpen, setRiskConfigOpen] = useState(false);
 
   // Get the appropriate API endpoint based on user role
   const endpoint = isAdmin ? '/api/risk/admin' : '/api/risk/subadmin';
@@ -206,6 +229,26 @@ export default function RiskManagementPage() {
   const marketGameData = data.summaries.find(summary => summary.gameType === 'satamatka');
   const cricketTossData = data.summaries.find(summary => summary.gameType === 'cricket_toss');
 
+  // Define the form for risk threshold configuration
+  const riskConfigForm = useForm({
+    defaultValues: {
+      highRisk: riskThresholds.high / 100, // Convert to rupees for display
+      mediumRisk: riskThresholds.medium / 100,
+      lowRisk: riskThresholds.low / 100
+    }
+  });
+
+  // Function to save risk thresholds
+  const saveRiskThresholds = (values: any) => {
+    // Convert rupees back to database values (multiply by 100)
+    setRiskThresholds({
+      high: values.highRisk * 100,
+      medium: values.mediumRisk * 100,
+      low: values.lowRisk * 100
+    });
+    setRiskConfigOpen(false);
+  };
+
   return (
     <DashboardLayout title="Jantri Management" activeTab="risk-management">
       <div className="p-6 space-y-6">
@@ -219,6 +262,122 @@ export default function RiskManagementPage() {
             </p>
           </div>
         </div>
+        
+        {/* Risk Configuration Dialog */}
+        <Dialog open={riskConfigOpen} onOpenChange={setRiskConfigOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Configure Risk Thresholds</DialogTitle>
+              <DialogDescription>
+                Set the bet amount thresholds for different risk levels. Values are in rupees.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <Form {...riskConfigForm}>
+              <form onSubmit={riskConfigForm.handleSubmit(saveRiskThresholds)} className="space-y-4">
+                <FormField
+                  control={riskConfigForm.control}
+                  name="highRisk"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>High Risk Threshold (₹)</FormLabel>
+                      <FormDescription>
+                        Bets above this amount will be marked as high risk (red)
+                      </FormDescription>
+                      <FormControl>
+                        <div className="flex items-center gap-4">
+                          <Slider
+                            value={[field.value]}
+                            min={100}
+                            max={10000}
+                            step={100}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            value={field.value}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            className="w-24"
+                          />
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={riskConfigForm.control}
+                  name="mediumRisk"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Medium Risk Threshold (₹)</FormLabel>
+                      <FormDescription>
+                        Bets above this amount but below high risk will be marked as medium risk (orange)
+                      </FormDescription>
+                      <FormControl>
+                        <div className="flex items-center gap-4">
+                          <Slider
+                            value={[field.value]}
+                            min={50}
+                            max={9900}
+                            step={100}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            value={field.value}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            className="w-24"
+                          />
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={riskConfigForm.control}
+                  name="lowRisk"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Low Risk Threshold (₹)</FormLabel>
+                      <FormDescription>
+                        Bets above this amount but below medium risk will be marked as low risk (blue)
+                      </FormDescription>
+                      <FormControl>
+                        <div className="flex items-center gap-4">
+                          <Slider
+                            value={[field.value]}
+                            min={1}
+                            max={5000}
+                            step={10}
+                            onValueChange={(vals) => field.onChange(vals[0])}
+                            className="flex-1"
+                          />
+                          <Input
+                            type="number"
+                            value={field.value}
+                            onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                            className="w-24"
+                          />
+                        </div>
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setRiskConfigOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">Save Changes</Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
 
         <Separator />
 
@@ -370,20 +529,28 @@ export default function RiskManagementPage() {
                       <div className="flex items-center space-x-3">
                         <div className="flex items-center space-x-1">
                           <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
-                          <span className="text-xs">High Risk</span>
+                          <span className="text-xs">High Risk (₹{(riskThresholds.high/100).toFixed(2)}+)</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <span className="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
-                          <span className="text-xs">Medium Risk</span>
+                          <span className="text-xs">Medium Risk (₹{(riskThresholds.medium/100).toFixed(2)}+)</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
-                          <span className="text-xs">Low Risk</span>
+                          <span className="text-xs">Low Risk (Above ₹0)</span>
                         </div>
                         <div className="flex items-center space-x-1">
                           <span className="inline-block w-3 h-3 rounded-full bg-slate-500"></span>
                           <span className="text-xs">No Bets</span>
                         </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="ml-2 text-xs" 
+                          onClick={() => setRiskConfigOpen(true)}
+                        >
+                          Configure
+                        </Button>
                       </div>
                     </div>
                     
@@ -479,10 +646,10 @@ export default function RiskManagementPage() {
                             });
                             const markets = Array.from(marketSet);
                             
-                            // Define the risk level based on bet amount
+                            // Define the risk level based on bet amount using configurable thresholds
                             let riskLevel = 'none';
-                            if (totalBetAmount > 1000) riskLevel = 'high';
-                            else if (totalBetAmount > 500) riskLevel = 'medium';
+                            if (totalBetAmount > riskThresholds.high) riskLevel = 'high';
+                            else if (totalBetAmount > riskThresholds.medium) riskLevel = 'medium';
                             else if (totalBetAmount > 0) riskLevel = 'low';
                             
                             // Get bet types for this number
