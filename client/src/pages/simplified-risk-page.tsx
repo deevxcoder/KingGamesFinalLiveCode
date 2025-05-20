@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { UserRole } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
@@ -112,7 +112,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function RiskManagementPage() {
+export default function SimplifiedRiskPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
@@ -157,14 +157,14 @@ export default function RiskManagementPage() {
   });
   
   // Use real user names from the API
-  useEffect(() => {
+  React.useEffect(() => {
     if (data?.userInfo) {
       setUserInfo(data.userInfo);
     }
   }, [data]);
   
   // Use real market names from the API
-  useEffect(() => {
+  React.useEffect(() => {
     if (data?.marketInfo) {
       setMarketInfo(data.marketInfo);
     }
@@ -184,8 +184,8 @@ export default function RiskManagementPage() {
   // Helper function for risk level badge
   const getRiskLevelBadge = (level: string) => {
     if (level === 'high') return <Badge variant="destructive">High</Badge>;
-    if (level === 'medium') return <Badge variant="warning" className="bg-orange-500">Medium</Badge>;
-    if (level === 'low') return <Badge variant="secondary" className="bg-blue-500 text-white">Low</Badge>;
+    if (level === 'medium') return <Badge variant="outline" className="bg-orange-500 text-white border-orange-600">Medium</Badge>;
+    if (level === 'low') return <Badge variant="outline" className="bg-blue-500 text-white border-blue-600">Low</Badge>;
     return null;
   };
 
@@ -428,7 +428,6 @@ export default function RiskManagementPage() {
                         <Progress 
                           value={marketGameData.activeBets > 0 ? (marketGameData.highRiskBets / marketGameData.activeBets) * 100 : 0} 
                           className="h-2 bg-red-200" 
-                          indicatorClassName="bg-red-500"
                         />
                       </div>
                     </CardContent>
@@ -442,15 +441,22 @@ export default function RiskManagementPage() {
                       <Target className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(marketGameData.exposureAmount/100).toFixed(2)}</div>
+                      <div className="text-2xl font-bold">₹{(marketGameData.exposureAmount / 100).toFixed(2)}</div>
                       <p className="text-xs text-muted-foreground">
-                        From active bets
+                        {marketGameData.exposureAmount > 0 ? "Potential liability" : "Profitable position"}
                       </p>
-                      <div className="mt-3 flex items-center space-x-2">
-                        <TrendingUp className="h-4 w-4 text-green-500" />
-                        <span className="text-xs text-green-600">
-                          Potential Profit: ₹{(marketGameData.potentialProfit/100).toFixed(2)}
-                        </span>
+                      <div className="mt-3">
+                        {marketGameData.potentialLiability > 0 ? (
+                          <div className="flex items-center space-x-2">
+                            <TrendingDown className="h-4 w-4 text-red-500" />
+                            <span className="text-xs text-red-500">Max Liability: ₹{(marketGameData.potentialLiability / 100).toFixed(2)}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                            <span className="text-xs text-green-500">Min Profit: ₹{(marketGameData.potentialProfit / 100).toFixed(2)}</span>
+                          </div>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -458,113 +464,112 @@ export default function RiskManagementPage() {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Potential Liability
+                        Bettor Distribution
                       </CardTitle>
-                      <TrendingDown className="h-4 w-4 text-red-500" />
+                      <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(marketGameData.potentialLiability/100).toFixed(2)}</div>
+                      <div className="text-2xl font-bold">
+                        {Object.keys(data.detailedData.userExposure).length}
+                      </div>
                       <p className="text-xs text-muted-foreground">
-                        Maximum possible loss
+                        Players with active bets
                       </p>
-                      <div className="mt-3 flex items-center space-x-2">
-                        <div className="text-xs">
-                          <span className="font-medium">Risk Coverage: </span>
-                          <span className="text-blue-600">{marketGameData.potentialLiability > 0 ? Math.min(100, Math.round((marketGameData.potentialProfit / marketGameData.potentialLiability) * 100)) : 0}%</span>
+                      <div className="mt-3">
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs">
+                            Markets: {Object.keys(data.detailedData.marketExposure).length}
+                          </span>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </div>
                 
-                {/* Grid view showing all numbers from 00-99 */}
                 <Card className="mb-6">
                   <CardHeader>
-                    <CardTitle>Satamatka Numbers (00-99)</CardTitle>
-                    <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
+                    <CardTitle>Jantri Risk Analysis</CardTitle>
+                    <CardDescription>
+                      View and analyze bets by number, market, and player
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="mb-4 flex flex-col space-y-3">
-                      {/* Market Filter */}
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold w-24">Market Filter:</span>
-                        <select 
-                          className="p-2 rounded-md bg-background border border-input text-sm" 
-                          value={marketFilter === 'all' ? 'all' : marketFilter.toString()}
-                          onChange={(e) => setMarketFilter(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                        >
-                          <option value="all">All Markets</option>
-                          {Object.entries(marketInfo).map(([marketId, market]) => (
-                            <option key={marketId} value={marketId}>
-                              {market.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      
-                      {/* Bet Type Filter - Jodi only for simplicity */}
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold w-24">View Mode:</span>
+                    <div className="space-y-4 mb-4">
+                      <div className="flex flex-wrap items-center gap-4">
                         <div className="flex items-center space-x-2">
-                          <Badge 
-                            className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => {
-                              setViewMode('regular');
-                              setBetTypeFilter('all');
-                            }}
+                          <span className="font-semibold w-24">Market:</span>
+                          <select 
+                            className="p-2 border rounded-md w-48 bg-background"
+                            value={marketFilter === 'all' ? 'all' : marketFilter.toString()}
+                            onChange={(e) => setMarketFilter(e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10))}
                           >
-                            All Numbers
-                          </Badge>
-                          <Badge 
-                            className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => {
-                              setViewMode('regular');
-                              setBetTypeFilter('jodi');
-                            }}
+                            <option value="all">All Markets</option>
+                            {Object.entries(marketInfo).map(([id, market]) => (
+                              <option key={id} value={id}>
+                                {market.name} ({market.type})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        {/* View Selector */}
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold w-24">View Mode:</span>
+                          <div className="flex items-center space-x-2">
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
+                              onClick={() => {
+                                setViewMode('regular');
+                                setBetTypeFilter('all');
+                              }}
+                            >
+                              All Numbers
+                            </Badge>
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
+                              onClick={() => {
+                                setViewMode('regular');
+                                setBetTypeFilter('jodi');
+                              }}
+                            >
+                              Jodi Only
+                            </Badge>
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'odd-even' ? 'bg-primary' : 'bg-slate-700'}`}
+                              onClick={() => setViewMode('odd-even')}
+                            >
+                              Odd/Even
+                            </Badge>
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
+                              onClick={() => setViewMode('harf')}
+                            >
+                              Harf (A0-B9)
+                            </Badge>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-1">
+                            <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
+                            <span className="text-xs">High Risk (₹{(riskThresholds.high/100).toFixed(2)}+)</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <span className="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
+                            <span className="text-xs">Medium Risk (₹{(riskThresholds.medium/100).toFixed(2)}+)</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
+                            <span className="text-xs">Low Risk (Above ₹0)</span>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="ml-2 text-xs" 
+                            onClick={() => setRiskConfigOpen(true)}
                           >
-                            Jodi Only
-                          </Badge>
-                          <Badge 
-                            className={`cursor-pointer px-3 py-1 ${viewMode === 'odd-even' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => {
-                              setViewMode('odd-even');
-                              setBetTypeFilter('all');
-                            }}
-                          >
-                            Odd/Even
-                          </Badge>
-                          <Badge 
-                            className={`cursor-pointer px-3 py-1 ${viewMode === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => {
-                              setViewMode('harf');
-                              setBetTypeFilter('all');
-                            }}
-                          >
-                            Harf (A0-B9)
-                          </Badge>
+                            Configure Risk Levels
+                          </Button>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-1">
-                          <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
-                          <span className="text-xs">High Risk (₹{(riskThresholds.high/100).toFixed(2)}+)</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <span className="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
-                          <span className="text-xs">Medium Risk (₹{(riskThresholds.medium/100).toFixed(2)}+)</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
-                          <span className="text-xs">Low Risk (Above ₹0)</span>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="ml-2 text-xs" 
-                          onClick={() => setRiskConfigOpen(true)}
-                        >
-                          Configure Risk Levels
-                        </Button>
                       </div>
                     </div>
                     
@@ -824,100 +829,82 @@ export default function RiskManagementPage() {
                             </TableRow>
                           </TableHeader>
                           <TableBody>
-                          {Array.from({ length: 100 }, (_, i) => {
-                            // Format number as two digits (e.g., 00, 01, ..., 99)
-                            const num = i.toString().padStart(2, '0');
-                            
-                            // Filter games for this number
-                            const gamesForNumber = data.detailedData.gameData.filter(game => {
-                              if (game.gameType !== 'satamatka') return false;
-                              if (game.result && game.result !== 'pending') return false;
-                              if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
-                              if (betTypeFilter !== 'all' && game.prediction !== betTypeFilter && game.prediction !== num) return false;
+                            {Array.from({ length: 100 }, (_, i) => {
+                              // Format number as two digits (e.g., 00, 01, ..., 99)
+                              const num = i.toString().padStart(2, '0');
                               
-                              // Match exact number predictions (jodi format - 00 to 99)
-                              return game.prediction === num;
-                            });
-                            
-                            // Calculate total bet amount for this number
-                            const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                            
-                            // Calculate potential win amount (90x for Jodi)
-                            const potentialWin = gamesForNumber.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
-                            
-                            // Get bet types for this number
-                            const betTypes = Array.from(new Set(gamesForNumber.map(game => 
-                              game.gameMode || "Jodi"
-                            ))).join(', ');
-                            
-                            // Define the risk level based on bet amount using configurable thresholds
-                            let riskLevel = 'none';
-                            if (totalBetAmount > riskThresholds.high) riskLevel = 'high';
-                            else if (totalBetAmount > riskThresholds.medium) riskLevel = 'medium';
-                            else if (totalBetAmount > 0) riskLevel = 'low';
-                            
-                            // Skip rows with no bets
-                            if (gamesForNumber.length === 0) {
-                              return null;
-                            }
-                            
-                            return (
-                              <TableRow 
-                                key={num}
-                                className={
-                                  riskLevel === 'high' 
-                                    ? 'bg-red-500/10'
-                                    : riskLevel === 'medium'
-                                      ? 'bg-orange-500/10'
-                                      : riskLevel === 'low'
-                                        ? 'bg-blue-500/10'
-                                        : ''
-                                }
-                              >
-                                <TableCell className="font-bold">{num}</TableCell>
-                                <TableCell>{gamesForNumber.length}</TableCell>
-                                <TableCell>
-                                  {totalBetAmount > 0 
-                                    ? `₹${totalBetAmount.toFixed(2)}` 
-                                    : "-"}
-                                </TableCell>
-                                <TableCell>
-                                  {potentialWin > 0
-                                    ? `₹${potentialWin.toFixed(2)}`
-                                    : "-"}
-                                </TableCell>
-                                <TableCell>{betTypes || "Jodi"}</TableCell>
-                                <TableCell>
-                                  {gamesForNumber.length > 0 && (
-                                    <div className="flex flex-col space-y-1">
-                                      {Array.from(new Set(gamesForNumber.map(game => game.marketId))).map(marketId => (
-                                        <Badge key={marketId} variant="outline">
-                                          {marketInfo[marketId]?.name || `Market ${marketId}`}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  {getRiskLevelBadge(riskLevel)}
-                                </TableCell>
-                                <TableCell>
-                                  {gamesForNumber.length > 0 && (
-                                    <div className="flex flex-col space-y-1">
-                                      {Array.from(new Set(gamesForNumber.map(game => game.userId))).map(userId => (
-                                        <div key={userId} className="flex items-center space-x-1">
-                                          <Users className="h-3 w-3" />
-                                          <span className="text-xs">{userInfo[userId]?.username || `User ${userId}`}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          }).filter(Boolean)}
-                        </TableBody>
-                      </Table>
+                              // Filter games for this number
+                              const gamesForNumber = data.detailedData.gameData.filter(game => {
+                                if (game.gameType !== 'satamatka') return false;
+                                if (game.result && game.result !== 'pending') return false;
+                                if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
+                                if (betTypeFilter !== 'all' && game.prediction !== betTypeFilter && game.prediction !== num) return false;
+                                
+                                // Match exact number predictions (jodi format - 00 to 99)
+                                return game.prediction === num;
+                              });
+                              
+                              // Calculate total bet amount for this number
+                              const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                              
+                              // Calculate potential win amount (90x for Jodi)
+                              const potentialWin = gamesForNumber.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                              
+                              // Get bet types for this number
+                              const betTypes = Array.from(new Set(gamesForNumber.map(game => 
+                                game.gameMode || "Jodi"
+                              ))).join(', ');
+                              
+                              // Define the risk level based on bet amount using configurable thresholds
+                              let riskLevel = 'none';
+                              if (totalBetAmount > riskThresholds.high) riskLevel = 'high';
+                              else if (totalBetAmount > riskThresholds.medium) riskLevel = 'medium';
+                              else if (totalBetAmount > 0) riskLevel = 'low';
+                              
+                              // Skip rows with no bets
+                              if (gamesForNumber.length === 0) {
+                                return null;
+                              }
+                              
+                              return (
+                                <TableRow 
+                                  key={num}
+                                  className={
+                                    riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20' :
+                                    riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20' :
+                                    riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                                  }
+                                >
+                                  <TableCell className="font-medium">{num}</TableCell>
+                                  <TableCell>{gamesForNumber.length}</TableCell>
+                                  <TableCell>₹{(totalBetAmount / 100).toFixed(2)}</TableCell>
+                                  <TableCell>₹{(potentialWin / 100).toFixed(2)}</TableCell>
+                                  <TableCell>{betTypes}</TableCell>
+                                  <TableCell>
+                                    {Array.from(new Set(gamesForNumber.map(game => {
+                                      const marketId = game.marketId?.toString();
+                                      return marketId && marketInfo[marketId] 
+                                        ? marketInfo[marketId].name 
+                                        : 'Unknown';
+                                    }))).join(', ')}
+                                  </TableCell>
+                                  <TableCell>
+                                    {getRiskLevelBadge(riskLevel)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {Array.from(new Set(gamesForNumber.map(game => {
+                                      const userId = game.userId?.toString();
+                                      return userId && userInfo[userId] 
+                                        ? userInfo[userId].username 
+                                        : 'Unknown';
+                                    }))).join(', ')}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }).filter(Boolean)}
+                          </TableBody>
+                        </Table>
+                      )}
                     </ScrollArea>
                   </CardContent>
                 </Card>
@@ -926,86 +913,13 @@ export default function RiskManagementPage() {
           </TabsContent>
           
           <TabsContent value="cricket-toss" className="mt-0">
-            {/* Cricket Toss Risk Management Content */}
             {cricketTossData ? (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        Active Cricket Bets
-                      </CardTitle>
-                      <Activity className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">{cricketTossData.activeBets}</div>
-                      <p className="text-xs text-muted-foreground">
-                        From {cricketTossData.totalBets} total bets
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        Total Bet Amount
-                      </CardTitle>
-                      <Target className="h-4 w-4 text-orange-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">₹{(cricketTossData.totalBetAmount/100).toFixed(2)}</div>
-                      <p className="text-xs text-muted-foreground">
-                        Across all cricket toss bets
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        Potential Profit
-                      </CardTitle>
-                      <TrendingUp className="h-4 w-4 text-green-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">₹{(cricketTossData.potentialProfit/100).toFixed(2)}</div>
-                      <p className="text-xs text-muted-foreground">
-                        Best case scenario
-                      </p>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">
-                        Potential Liability
-                      </CardTitle>
-                      <TrendingDown className="h-4 w-4 text-red-500" />
-                    </CardHeader>
-                    <CardContent>
-                      <div className="text-2xl font-bold">₹{(cricketTossData.potentialLiability/100).toFixed(2)}</div>
-                      <p className="text-xs text-muted-foreground">
-                        Worst case scenario
-                      </p>
-                    </CardContent>
-                  </Card>
-                </div>
-                
-                <Card className="mt-6">
-                  <CardHeader>
-                    <CardTitle>Cricket Toss Risk Analysis</CardTitle>
-                    <CardDescription>Balance of bets on cricket toss games</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <p>The cricket toss risk analysis feature will be implemented in a future update.</p>
-                  </CardContent>
-                </Card>
-              </div>
+              <div>Cricket toss risk management data would go here</div>
             ) : (
               <Card>
                 <CardHeader>
-                  <CardTitle>Cricket Toss Risk Analysis</CardTitle>
-                  <CardDescription>No cricket toss games data available</CardDescription>
+                  <CardTitle>Cricket Toss Risk Management</CardTitle>
+                  <CardDescription>No cricket toss data available</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>There are currently no active cricket toss games in the system.</p>
