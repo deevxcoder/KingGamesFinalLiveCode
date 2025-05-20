@@ -611,22 +611,140 @@ export default function RiskManagementPage() {
                         </TableHeader>
                         <TableBody>
                           {betTypeFilter === 'harf' && (
-                            <TableRow>
-                              <TableCell colSpan={8} className="text-center py-3 bg-blue-50 dark:bg-blue-900/20">
-                                <div className="font-medium mb-1">Harf Bet Type Selected</div>
-                                <div className="text-sm text-muted-foreground">
-                                  For Harf bets, look for predictions with "A" prefix (Andar/Left digit) or "B" prefix (Bahar/Right digit)
-                                </div>
-                                <div className="mt-2 flex justify-center space-x-4">
-                                  <div className="border border-blue-500 px-3 py-1 rounded-md">
-                                    <span className="font-medium">Andar (Left Digit):</span> A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
+                            <>
+                              <TableRow>
+                                <TableCell colSpan={8} className="text-center py-3 bg-blue-50 dark:bg-blue-900/20">
+                                  <div className="font-medium mb-1">Harf Numbers (Andar & Bahar)</div>
+                                  <div className="text-sm text-muted-foreground">
+                                    Simplified view of left (Andar) and right (Bahar) digit bets
                                   </div>
-                                  <div className="border border-blue-500 px-3 py-1 rounded-md">
-                                    <span className="font-medium">Bahar (Right Digit):</span> B0, B1, B2, B3, B4, B5, B6, B7, B8, B9
-                                  </div>
-                                </div>
-                              </TableCell>
-                            </TableRow>
+                                </TableCell>
+                              </TableRow>
+                              
+                              {/* Headers for Harf display */}
+                              <TableRow className="bg-muted/40">
+                                <TableCell className="font-medium">Number</TableCell>
+                                <TableCell className="font-medium">Active Bets</TableCell>
+                                <TableCell className="font-medium">Bet Amount</TableCell>
+                                <TableCell className="font-medium">Potential Win</TableCell>
+                                <TableCell className="font-medium">Risk Level</TableCell>
+                              </TableRow>
+                              
+                              {/* Display A0 to A9 (Andar/Left digits) */}
+                              {Array.from({ length: 10 }, (_, i) => {
+                                const digit = i.toString();
+                                const andarNumber = `A${digit}`;
+                                
+                                // Filter games for this Andar digit
+                                const gamesForDigit = data.detailedData.gameData.filter(game => {
+                                  if (game.gameType !== 'satamatka') return false;
+                                  if (game.result && game.result !== 'pending') return false;
+                                  if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
+                                  
+                                  // Match Andar digit predictions
+                                  return (game.gameMode === 'harf' && game.prediction === andarNumber) || 
+                                         (game.prediction?.startsWith('A') && game.prediction?.slice(1) === digit);
+                                });
+                                
+                                // Calculate total bet amount for this digit
+                                const totalBetAmount = gamesForDigit.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                                
+                                // Calculate potential win amount (9x for Harf)
+                                const potentialWin = gamesForDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * 9), 0);
+                                
+                                // Determine risk level based on thresholds
+                                const riskLevel = totalBetAmount >= riskThresholds.high 
+                                  ? 'high' 
+                                  : totalBetAmount >= riskThresholds.medium 
+                                    ? 'medium' 
+                                    : totalBetAmount > 0 
+                                      ? 'low' 
+                                      : '';
+                                
+                                // Only display rows with active bets or based on user preference
+                                return (
+                                  <TableRow 
+                                    key={`andar-${digit}`}
+                                    className={
+                                      riskLevel === 'high' 
+                                        ? 'bg-red-500/10'
+                                        : riskLevel === 'medium'
+                                          ? 'bg-orange-500/10'
+                                          : riskLevel === 'low'
+                                            ? 'bg-blue-500/10'
+                                            : ''
+                                    }
+                                  >
+                                    <TableCell className="font-medium">{andarNumber}</TableCell>
+                                    <TableCell>{gamesForDigit.length}</TableCell>
+                                    <TableCell>₹{totalBetAmount.toFixed(2)}</TableCell>
+                                    <TableCell>₹{potentialWin.toFixed(2)}</TableCell>
+                                    <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                              
+                              {/* Header for Bahar digits */}
+                              <TableRow className="bg-muted/70">
+                                <TableCell colSpan={8} className="text-center py-2">
+                                  <div className="font-medium">Bahar (Right Digits)</div>
+                                </TableCell>
+                              </TableRow>
+                              
+                              {/* Display B0 to B9 (Bahar/Right digits) */}
+                              {Array.from({ length: 10 }, (_, i) => {
+                                const digit = i.toString();
+                                const baharNumber = `B${digit}`;
+                                
+                                // Filter games for this Bahar digit
+                                const gamesForDigit = data.detailedData.gameData.filter(game => {
+                                  if (game.gameType !== 'satamatka') return false;
+                                  if (game.result && game.result !== 'pending') return false;
+                                  if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
+                                  
+                                  // Match Bahar digit predictions
+                                  return (game.gameMode === 'harf' && game.prediction === baharNumber) || 
+                                         (game.prediction?.startsWith('B') && game.prediction?.slice(1) === digit);
+                                });
+                                
+                                // Calculate total bet amount for this digit
+                                const totalBetAmount = gamesForDigit.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                                
+                                // Calculate potential win amount (9x for Harf)
+                                const potentialWin = gamesForDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * 9), 0);
+                                
+                                // Determine risk level based on thresholds
+                                const riskLevel = totalBetAmount >= riskThresholds.high 
+                                  ? 'high' 
+                                  : totalBetAmount >= riskThresholds.medium 
+                                    ? 'medium' 
+                                    : totalBetAmount > 0 
+                                      ? 'low' 
+                                      : '';
+                                
+                                // Only display rows with active bets or based on user preference
+                                return (
+                                  <TableRow 
+                                    key={`bahar-${digit}`}
+                                    className={
+                                      riskLevel === 'high' 
+                                        ? 'bg-red-500/10'
+                                        : riskLevel === 'medium'
+                                          ? 'bg-orange-500/10'
+                                          : riskLevel === 'low'
+                                            ? 'bg-blue-500/10'
+                                            : ''
+                                    }
+                                  >
+                                    <TableCell className="font-medium">{baharNumber}</TableCell>
+                                    <TableCell>{gamesForDigit.length}</TableCell>
+                                    <TableCell>₹{totalBetAmount.toFixed(2)}</TableCell>
+                                    <TableCell>₹{potentialWin.toFixed(2)}</TableCell>
+                                    <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </>
                           )}
                           
                           {betTypeFilter === 'oddeven' && (
@@ -639,58 +757,103 @@ export default function RiskManagementPage() {
                                   </div>
                                 </TableCell>
                               </TableRow>
-                              <TableRow>
-                                <TableCell colSpan={4} className="border-r">
-                                  <div className="text-center font-bold text-lg mb-2">Odd Numbers</div>
-                                  {(() => {
-                                    // Calculate odds bets data
-                                    const oddBets = data.detailedData.gameData.filter(game => 
-                                      game.gameType === 'satamatka' && 
-                                      (!game.result || game.result === 'pending') &&
-                                      game.prediction === 'oddeven' &&
-                                      (marketFilter === 'all' || game.marketId === marketFilter) &&
-                                      (game.gameData?.number?.toString().slice(-1) % 2 !== 0)
-                                    );
-                                    const totalBetAmount = oddBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                    const totalPotentialWin = oddBets.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
-                                    return (
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <div className="text-right font-medium">Active Bets:</div>
-                                        <div className="font-bold">{oddBets.length}</div>
-                                        <div className="text-right font-medium">Total Bet Amount:</div>
-                                        <div className="font-bold">₹{totalBetAmount.toFixed(2)}</div>
-                                        <div className="text-right font-medium">Potential Win:</div>
-                                        <div className="font-bold text-primary">₹{totalPotentialWin.toFixed(2)}</div>
-                                      </div>
-                                    );
-                                  })()}
-                                </TableCell>
-                                <TableCell colSpan={4}>
-                                  <div className="text-center font-bold text-lg mb-2">Even Numbers</div>
-                                  {(() => {
-                                    // Calculate even bets data
-                                    const evenBets = data.detailedData.gameData.filter(game => 
-                                      game.gameType === 'satamatka' && 
-                                      (!game.result || game.result === 'pending') &&
-                                      game.prediction === 'oddeven' &&
-                                      (marketFilter === 'all' || game.marketId === marketFilter) &&
-                                      (game.gameData?.number?.toString().slice(-1) % 2 === 0)
-                                    );
-                                    const totalBetAmount = evenBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                    const totalPotentialWin = evenBets.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
-                                    return (
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <div className="text-right font-medium">Active Bets:</div>
-                                        <div className="font-bold">{evenBets.length}</div>
-                                        <div className="text-right font-medium">Total Bet Amount:</div>
-                                        <div className="font-bold">₹{totalBetAmount.toFixed(2)}</div>
-                                        <div className="text-right font-medium">Potential Win:</div>
-                                        <div className="font-bold text-primary">₹{totalPotentialWin.toFixed(2)}</div>
-                                      </div>
-                                    );
-                                  })()}
-                                </TableCell>
+                              
+                              {/* Headers for Odd/Even display */}
+                              <TableRow className="bg-muted/40">
+                                <TableCell className="font-medium">Type</TableCell>
+                                <TableCell className="font-medium">Active Bets</TableCell>
+                                <TableCell className="font-medium">Bet Amount</TableCell>
+                                <TableCell className="font-medium">Potential Win</TableCell>
+                                <TableCell className="font-medium">Risk Level</TableCell>
                               </TableRow>
+                              
+                              {/* Odd Numbers Row */}
+                              {(() => {
+                                // Calculate odds bets data
+                                const oddBets = data.detailedData.gameData.filter(game => 
+                                  game.gameType === 'satamatka' && 
+                                  (!game.result || game.result === 'pending') &&
+                                  ((game.prediction === 'odd') || 
+                                   (game.prediction === 'oddeven' && game.gameData?.number?.toString().slice(-1) % 2 !== 0)) &&
+                                  (marketFilter === 'all' || game.marketId === marketFilter)
+                                );
+                                
+                                const totalBetAmount = oddBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                                const totalPotentialWin = oddBets.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
+                                
+                                // Determine risk level based on thresholds
+                                const riskLevel = totalBetAmount >= riskThresholds.high 
+                                  ? 'high' 
+                                  : totalBetAmount >= riskThresholds.medium 
+                                    ? 'medium' 
+                                    : totalBetAmount > 0 
+                                      ? 'low' 
+                                      : '';
+                                      
+                                return (
+                                  <TableRow 
+                                    className={
+                                      riskLevel === 'high' 
+                                        ? 'bg-red-500/10'
+                                        : riskLevel === 'medium'
+                                          ? 'bg-orange-500/10'
+                                          : riskLevel === 'low'
+                                            ? 'bg-blue-500/10'
+                                            : ''
+                                    }
+                                  >
+                                    <TableCell className="font-medium">ODD</TableCell>
+                                    <TableCell>{oddBets.length}</TableCell>
+                                    <TableCell>₹{totalBetAmount.toFixed(2)}</TableCell>
+                                    <TableCell>₹{totalPotentialWin.toFixed(2)}</TableCell>
+                                    <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                  </TableRow>
+                                );
+                              })()}
+                              
+                              {/* Even Numbers Row */}
+                              {(() => {
+                                // Calculate even bets data
+                                const evenBets = data.detailedData.gameData.filter(game => 
+                                  game.gameType === 'satamatka' && 
+                                  (!game.result || game.result === 'pending') &&
+                                  ((game.prediction === 'even') || 
+                                   (game.prediction === 'oddeven' && game.gameData?.number?.toString().slice(-1) % 2 === 0)) &&
+                                  (marketFilter === 'all' || game.marketId === marketFilter)
+                                );
+                                
+                                const totalBetAmount = evenBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                                const totalPotentialWin = evenBets.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
+                                
+                                // Determine risk level based on thresholds
+                                const riskLevel = totalBetAmount >= riskThresholds.high 
+                                  ? 'high' 
+                                  : totalBetAmount >= riskThresholds.medium 
+                                    ? 'medium' 
+                                    : totalBetAmount > 0 
+                                      ? 'low' 
+                                      : '';
+                                      
+                                return (
+                                  <TableRow 
+                                    className={
+                                      riskLevel === 'high' 
+                                        ? 'bg-red-500/10'
+                                        : riskLevel === 'medium'
+                                          ? 'bg-orange-500/10'
+                                          : riskLevel === 'low'
+                                            ? 'bg-blue-500/10'
+                                            : ''
+                                    }
+                                  >
+                                    <TableCell className="font-medium">EVEN</TableCell>
+                                    <TableCell>{evenBets.length}</TableCell>
+                                    <TableCell>₹{totalBetAmount.toFixed(2)}</TableCell>
+                                    <TableCell>₹{totalPotentialWin.toFixed(2)}</TableCell>
+                                    <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                  </TableRow>
+                                );
+                              })()}
                             </>
                           )}
                           {Array.from({ length: 100 }, (_, i) => {
@@ -704,9 +867,8 @@ export default function RiskManagementPage() {
                                   if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                   
                                   // Match Andar digit predictions (like A1, A2, etc.)
-                                  return game.prediction === prediction || 
-                                         (game.gameMode === 'harf' && game.prediction?.startsWith('A') && 
-                                          game.prediction?.slice(1) === digit);
+                                  return (game.gameMode === 'harf' && game.prediction === `A${digit}`) || 
+                                         (game.prediction?.startsWith('A') && game.prediction?.slice(1) === digit);
                                 });
                                 
                                 // Calculate total bet amount for this digit
