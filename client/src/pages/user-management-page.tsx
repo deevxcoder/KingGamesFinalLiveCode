@@ -576,6 +576,12 @@ export default function UserManagementPage() {
 
   const handleRemoveFunds = () => {
     if (!selectedUser || amount <= 0) return;
+    
+    // Save starting balance to localStorage if provided
+    if (startingBalance) {
+      localStorage.setItem(`startingBalance_${selectedUser.id}`, startingBalance);
+    }
+    
     // Convert dollar amount to cents (multiply by 100)
     updateBalanceMutation.mutate({ 
       userId: selectedUser.id, 
@@ -683,6 +689,15 @@ export default function UserManagementPage() {
   const openRemoveFundsDialog = async (targetUser: any) => {
     setSelectedUser(targetUser);
     setAmount(0);
+    setRemark("");
+    
+    // Load saved starting balance from localStorage
+    const savedStartingBalance = localStorage.getItem(`startingBalance_${targetUser.id}`);
+    if (savedStartingBalance) {
+      setStartingBalance(savedStartingBalance);
+    } else {
+      setStartingBalance("");
+    }
     
     // If admin is opening dialog for a subadmin, fetch the commission rate
     if (targetUser?.role === UserRole.SUBADMIN && user?.role === UserRole.ADMIN) {
@@ -1222,6 +1237,11 @@ export default function UserManagementPage() {
             <DialogTitle>Remove Funds</DialogTitle>
             <DialogDescription>
               Remove funds from {selectedUser?.username}'s account
+              {selectedUser && (
+                <span className="block mt-2 text-sm font-medium text-blue-600">
+                  Current Balance: ₹{selectedUser.balance / 100}
+                </span>
+              )}
               {user?.role === UserRole.ADMIN && selectedUser?.role === UserRole.SUBADMIN && (
                 <span className="block mt-2 text-sm font-medium text-yellow-600">
                   Note: Commission rate of {selectedSubadminCommissionRate !== null ? `${selectedSubadminCommissionRate}%` : "..."} applies to this withdrawal
@@ -1257,6 +1277,24 @@ export default function UserManagementPage() {
                 </div>
               )}
             </div>
+            {/* Starting Balance Reference Field */}
+            <div>
+              <Label htmlFor="remove-starting-balance">Starting Balance Reference (Optional)</Label>
+              <div className="flex items-center gap-2 mt-2">
+                <IndianRupee className="h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="remove-starting-balance"
+                  type="number"
+                  value={startingBalance}
+                  onChange={(e) => setStartingBalance(e.target.value)}
+                  placeholder="Starting balance for reference only"
+                />
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                This is just for your reference and doesn't affect the transaction
+              </p>
+            </div>
+
             <div>
               <Label htmlFor="remove-remark">Remark (Optional)</Label>
               <div className="flex items-center gap-2 mt-2">
