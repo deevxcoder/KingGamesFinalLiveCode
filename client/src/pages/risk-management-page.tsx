@@ -415,7 +415,19 @@ export default function RiskManagementPage() {
                               if (game.result && game.result !== 'pending') return false;
                               
                               // Check if the bet type matches our filter (if specific filter selected)
-                              if (betTypeFilter !== 'all' && betTypeFilter !== game.prediction) return false;
+                              if (betTypeFilter !== 'all') {
+                                // For jodi filter, check if the prediction is either 'jodi' or a numerical value
+                                if (betTypeFilter === 'jodi') {
+                                  if (game.prediction !== 'jodi' && 
+                                      !(/^\d{2}$/.test(game.prediction) || game.gameMode === 'jodi')) {
+                                    return false;
+                                  }
+                                } 
+                                // For specific filters like harf, crossing, oddeven
+                                else if (game.prediction !== betTypeFilter && game.gameMode !== betTypeFilter) {
+                                  return false;
+                                }
+                              }
                               
                               // Check if the number matches the prediction directly
                               // This handles number predictions like "01", "02", etc.
