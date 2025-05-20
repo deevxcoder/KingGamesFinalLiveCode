@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { UserRole } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
@@ -514,7 +514,9 @@ export default function RiskManagementPage() {
                                     ? betTypes.map((type, idx) => {
                                         // Format the bet type to proper display name
                                         let displayType = type;
-                                        if (type === 'jodi') displayType = 'Jodi';
+                                        if (type === 'jodi' || type === '01' || type === '02' || type === '03' || 
+                                            type === '04' || type === '08' || type === '09' || type === '13' || type === '14') 
+                                          displayType = 'Jodi';
                                         else if (type === 'harf') displayType = 'Hurf';
                                         else if (type === 'crossing') displayType = 'Crossing';
                                         else if (type === 'oddeven') displayType = 'Odd/Even';
@@ -560,48 +562,19 @@ export default function RiskManagementPage() {
                                           View Players ({gamesForNumber.length})
                                         </Button>
                                       </DialogTrigger>
-                                      <DialogContent className="sm:max-w-md">
+                                      <DialogContent className="sm:max-w-md max-h-[80vh]">
                                         <DialogHeader>
                                           <DialogTitle>Player Details for Number {num}</DialogTitle>
                                           <DialogDescription>
                                             All players with active bets on this number
                                           </DialogDescription>
                                         </DialogHeader>
-                                        <div className="max-h-[60vh] overflow-y-auto pr-2 mt-4">
-                                          {gamesForNumber.map((game, idx) => {
-                                            const userId = game.userId;
-                                            const username = userInfo[userId]?.username || `User ${userId}`;
-                                            
-                                            // Calculate potential win based on game type
-                                            let multiplier = 0.9; // Default for jodi
-                                            if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 0.09;
-                                            else if (game.prediction === 'oddeven') multiplier = 0.019;
-                                            
-                                            const potentialWin = (game.betAmount || 0) * multiplier;
-                                            
-                                            return (
-                                              <div key={idx} className="mb-3 p-3 border border-slate-700 rounded-md bg-slate-800/50">
-                                                <div className="font-medium text-amber-400 text-base">{username}</div>
-                                                <div className="grid grid-cols-2 gap-2 mt-1">
-                                                  <div className="text-slate-300">Bet: ₹{((game.betAmount || 0)/100).toFixed(2)}</div>
-                                                  <div className="text-green-400">Win: ₹{potentialWin.toFixed(2)}</div>
-                                                  <div className="text-slate-400">Type: {
-                                                    game.prediction === 'jodi' ? 'Jodi' :
-                                                    game.prediction === 'harf' ? 'Hurf' :
-                                                    game.prediction === 'crossing' ? 'Crossing' :
-                                                    game.prediction === 'oddeven' ? 'Odd/Even' :
-                                                    game.prediction || 'unknown'
-                                                  }</div>
-                                                  <div className="text-slate-400">
-                                                    Market: {game.marketId ? 
-                                                      (marketInfo[game.marketId]?.name || `Market ${game.marketId}`) : 
-                                                      'Unknown Market'}
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
+                                        
+                                        <PlayerDetailsContent 
+                                          games={gamesForNumber} 
+                                          userInfo={userInfo} 
+                                          marketInfo={marketInfo} 
+                                        />
                                       </DialogContent>
                                     </Dialog>
                                   ) : (
@@ -1119,3 +1092,94 @@ function getRiskLevelText(riskPercentage: number): string {
     return 'Low';
   }
 }
+
+// Player Details Content Component with Pagination
+interface PlayerDetailsContentProps {
+  games: any[];
+  userInfo: Record<string, any>;
+  marketInfo: Record<string, any>;
+}
+
+const PlayerDetailsContent: React.FC<PlayerDetailsContentProps> = ({ games, userInfo, marketInfo }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const playersPerPage = 10;
+  
+  // Calculate pagination
+  const totalPages = Math.ceil(games.length / playersPerPage);
+  const startIndex = (currentPage - 1) * playersPerPage;
+  const endIndex = startIndex + playersPerPage;
+  const currentGames = games.slice(startIndex, endIndex);
+  
+  // Format bet type name
+  const getBetTypeName = (prediction: string) => {
+    if (prediction === 'jodi' || 
+        prediction === '01' || prediction === '02' || 
+        prediction === '03' || prediction === '04' || 
+        prediction === '08' || prediction === '09' || 
+        prediction === '13' || prediction === '14') 
+      return 'Jodi';
+    else if (prediction === 'harf') return 'Hurf';
+    else if (prediction === 'crossing') return 'Crossing';
+    else if (prediction === 'oddeven') return 'Odd/Even';
+    return prediction || 'Unknown';
+  };
+  
+  return (
+    <div className="mt-4">
+      <div className="max-h-[50vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary scrollbar-track-slate-800">
+        {currentGames.map((game, idx) => {
+          const userId = game.userId;
+          const username = userInfo[userId]?.username || `User ${userId}`;
+          
+          // Calculate potential win based on game type
+          let multiplier = 0.9; // Default for jodi
+          if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 0.09;
+          else if (game.prediction === 'oddeven') multiplier = 0.019;
+          
+          const potentialWin = (game.betAmount || 0) * multiplier;
+          
+          return (
+            <div key={idx} className="mb-3 p-3 border border-slate-700 rounded-md bg-slate-800/50">
+              <div className="font-medium text-amber-400 text-base">{username}</div>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                <div className="text-slate-300">Bet: ₹{((game.betAmount || 0)/100).toFixed(2)}</div>
+                <div className="text-green-400">Win: ₹{potentialWin.toFixed(2)}</div>
+                <div className="text-slate-400">Type: {getBetTypeName(game.prediction)}</div>
+                <div className="text-slate-400">
+                  Market: {game.marketId ? 
+                    (marketInfo[game.marketId]?.name || `Market ${game.marketId}`) : 
+                    'Unknown Market'}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {totalPages}
+          </span>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
