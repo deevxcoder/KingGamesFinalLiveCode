@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Clock, Calendar, Target, Dice1, ArrowRightCircle, Award } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface MarketCardProps {
   id: number;
@@ -31,6 +32,22 @@ export default function MarketCard({
   coverImage,
 }: MarketCardProps) {
   const [_, setLocation] = useLocation();
+  const [marketCardImage, setMarketCardImage] = useState<string | null>(null);
+
+  // Fetch the market game card image
+  useEffect(() => {
+    fetch('/api/gamecards?gameType=market')
+      .then(res => res.json())
+      .then(data => {
+        console.log('Market card images:', data);
+        if (data && data.length > 0) {
+          setMarketCardImage(data[0].url);
+        }
+      })
+      .catch(err => {
+        console.error('Error fetching market card image:', err);
+      });
+  }, []);
 
   // Parse dates
   const openTimeDate = new Date(openTime);
@@ -83,7 +100,15 @@ export default function MarketCard({
   const getMarketCoverStyle = () => {
     const gradientOverlay = "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7))";
     
-    // If admin provided a cover image, use it
+    // If we have a market card image from the API, use it with priority
+    if (marketCardImage) {
+      return { 
+        backgroundImage: `${gradientOverlay}, url("${marketCardImage}")`,
+        className: "bg-slate-900 bg-cover bg-center"
+      };
+    }
+    
+    // If admin provided a direct coverImage, use it as fallback
     if (coverImage) {
       return { 
         backgroundImage: `${gradientOverlay}, url("${coverImage}")`,
