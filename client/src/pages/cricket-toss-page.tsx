@@ -163,9 +163,9 @@ export default function CricketTossPage() {
     });
   };
 
-  // Function to format odds from integer to decimal
-  const formatOdds = (odds: number) => {
-    return (odds / 100).toFixed(2);
+  // Function to calculate potential win amount
+  const calculateWin = (amount: number, team: string) => {
+    return amount * 1.9; // Standard multiplier without displaying odds
   };
 
   // Function to calculate potential win amount
@@ -398,7 +398,6 @@ export default function CricketTossPage() {
                     <TableHead>Match</TableHead>
                     <TableHead>Bet On</TableHead>
                     <TableHead>Amount</TableHead>
-                    <TableHead>Odds</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Payout</TableHead>
                   </TableRow>
@@ -429,13 +428,6 @@ export default function CricketTossPage() {
                         </div>
                       </TableCell>
                       <TableCell>₹{bet.betAmount}</TableCell>
-                      <TableCell>
-                        {formatOdds(
-                          bet.prediction === "team_a"
-                            ? bet.gameData.oddTeamA
-                            : bet.gameData.oddTeamB
-                        )}
-                      </TableCell>
                       <TableCell className={getResultClass(bet)}>
                         {getResultText(bet)}
                       </TableCell>

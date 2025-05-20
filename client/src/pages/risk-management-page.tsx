@@ -642,25 +642,53 @@ export default function RiskManagementPage() {
                               <TableRow>
                                 <TableCell colSpan={4} className="border-r">
                                   <div className="text-center font-bold text-lg mb-2">Odd Numbers</div>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <div className="text-right font-medium">Active Bets:</div>
-                                    <div className="font-bold">26</div>
-                                    <div className="text-right font-medium">Total Bet Amount:</div>
-                                    <div className="font-bold">₹5,200.00</div>
-                                    <div className="text-right font-medium">Potential Win:</div>
-                                    <div className="font-bold text-primary">₹9,880.00</div>
-                                  </div>
+                                  {(() => {
+                                    // Calculate odds bets data
+                                    const oddBets = data.detailedData.gameData.filter(game => 
+                                      game.gameType === 'satamatka' && 
+                                      (!game.result || game.result === 'pending') &&
+                                      game.prediction === 'oddeven' &&
+                                      (marketFilter === 'all' || game.marketId === marketFilter) &&
+                                      (game.gameData?.number?.toString().slice(-1) % 2 !== 0)
+                                    );
+                                    const totalBetAmount = oddBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                                    const totalPotentialWin = oddBets.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
+                                    return (
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div className="text-right font-medium">Active Bets:</div>
+                                        <div className="font-bold">{oddBets.length}</div>
+                                        <div className="text-right font-medium">Total Bet Amount:</div>
+                                        <div className="font-bold">₹{totalBetAmount.toFixed(2)}</div>
+                                        <div className="text-right font-medium">Potential Win:</div>
+                                        <div className="font-bold text-primary">₹{totalPotentialWin.toFixed(2)}</div>
+                                      </div>
+                                    );
+                                  })()}
                                 </TableCell>
                                 <TableCell colSpan={4}>
                                   <div className="text-center font-bold text-lg mb-2">Even Numbers</div>
-                                  <div className="grid grid-cols-2 gap-2">
-                                    <div className="text-right font-medium">Active Bets:</div>
-                                    <div className="font-bold">18</div>
-                                    <div className="text-right font-medium">Total Bet Amount:</div>
-                                    <div className="font-bold">₹3,600.00</div>
-                                    <div className="text-right font-medium">Potential Win:</div>
-                                    <div className="font-bold text-primary">₹6,840.00</div>
-                                  </div>
+                                  {(() => {
+                                    // Calculate even bets data
+                                    const evenBets = data.detailedData.gameData.filter(game => 
+                                      game.gameType === 'satamatka' && 
+                                      (!game.result || game.result === 'pending') &&
+                                      game.prediction === 'oddeven' &&
+                                      (marketFilter === 'all' || game.marketId === marketFilter) &&
+                                      (game.gameData?.number?.toString().slice(-1) % 2 === 0)
+                                    );
+                                    const totalBetAmount = evenBets.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                                    const totalPotentialWin = evenBets.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
+                                    return (
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div className="text-right font-medium">Active Bets:</div>
+                                        <div className="font-bold">{evenBets.length}</div>
+                                        <div className="text-right font-medium">Total Bet Amount:</div>
+                                        <div className="font-bold">₹{totalBetAmount.toFixed(2)}</div>
+                                        <div className="text-right font-medium">Potential Win:</div>
+                                        <div className="font-bold text-primary">₹{totalPotentialWin.toFixed(2)}</div>
+                                      </div>
+                                    );
+                                  })()}
                                 </TableCell>
                               </TableRow>
                             </>
