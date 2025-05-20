@@ -260,11 +260,11 @@ export default function CricketTossPage() {
                         <div className="grid grid-cols-2 gap-2">
                           <div className="text-center p-2 rounded border">
                             <div className="font-bold">{match.teamA}</div>
-                            <div className="text-sm">Odds: {formatOdds(match.oddTeamA)}</div>
+                            <div className="text-sm">{formatOdds(match.oddTeamA)}</div>
                           </div>
                           <div className="text-center p-2 rounded border">
                             <div className="font-bold">{match.teamB}</div>
-                            <div className="text-sm">Odds: {formatOdds(match.oddTeamB)}</div>
+                            <div className="text-sm">{formatOdds(match.oddTeamB)}</div>
                           </div>
                         </div>
                       </div>
