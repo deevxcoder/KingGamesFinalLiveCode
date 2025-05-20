@@ -201,6 +201,8 @@ export default function RiskManagementPage() {
   function calculateTotalBetAmount(detailedData: DetailedRiskData): number {
     if (!detailedData || !detailedData.gameData) return 0;
     
+    // Sum up all active bet amounts (pending status)
+    // The amounts are already stored with the x100 multiplier in the database
     return detailedData.gameData.reduce((total, game) => {
       // Only include pending bets in the total
       if (game.result && game.result !== 'pending') return total;
@@ -446,6 +448,9 @@ export default function RiskManagementPage() {
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">₹{(calculateTotalBetAmount(data.detailedData)/100).toFixed(2)}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Total amount from all active bets
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
