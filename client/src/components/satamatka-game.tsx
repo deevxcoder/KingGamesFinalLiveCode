@@ -74,7 +74,7 @@ import { format } from "date-fns";
 // Game modes in the Satamatka game
 const GAME_MODES = {
   jodi: "Jodi (Full Number)",
-  harf: "Harf (Single Digit)",
+  harf: "Harf",
   crossing: "Crossing Digit",
   odd_even: "Odd-Even",
 };
@@ -716,16 +716,16 @@ export default function SatamatkaGame() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Left Digit Selection (First digit 0-9) */}
+            {/* Ander Digit Selection (First digit 0-9) */}
             <Card className="border border-slate-700">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Left Digit (First Position)</CardTitle>
-                <CardDescription className="text-xs">Select the first position (0-9)</CardDescription>
+                <CardTitle className="text-sm font-medium">Ander (A)</CardTitle>
+                <CardDescription className="text-xs">Select the left digit (0-9)</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-5 gap-2">
                   {Array.from({ length: 10 }, (_, i) => {
-                    const num = `L${i}`;
+                    const num = `A${i}`;
                     const isSelected = selectedNumbers.has(num);
                     const betAmount = selectedNumbers.get(num) || 0;
                     
@@ -761,16 +761,16 @@ export default function SatamatkaGame() {
               </CardContent>
             </Card>
             
-            {/* Right Digit Selection (Second digit 0-9) */}
+            {/* Bahar Digit Selection (Second digit 0-9) */}
             <Card className="border border-slate-700">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Right Digit (Second Position)</CardTitle>
-                <CardDescription className="text-xs">Select the second position (0-9)</CardDescription>
+                <CardTitle className="text-sm font-medium">Bahar (B)</CardTitle>
+                <CardDescription className="text-xs">Select the right digit (0-9)</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-5 gap-2">
                   {Array.from({ length: 10 }, (_, i) => {
-                    const num = `R${i}`;
+                    const num = `B${i}`;
                     const isSelected = selectedNumbers.has(num);
                     const betAmount = selectedNumbers.get(num) || 0;
                     
