@@ -823,7 +823,8 @@ export default function RiskManagementPage() {
                               .filter(game => 
                                 game.gameType === 'satamatka' && 
                                 !game.result && 
-                                game.prediction === betTypeFilter
+                                game.prediction === betTypeFilter &&
+                                (marketFilter === 'all' || game.marketId === marketFilter)
                               )
                               .map((game, idx) => (
                                 <TableRow key={game.id || idx}>
@@ -839,7 +840,8 @@ export default function RiskManagementPage() {
                             {data.detailedData.gameData.filter(game => 
                               game.gameType === 'satamatka' && 
                               !game.result && 
-                              game.prediction === betTypeFilter
+                              game.prediction === betTypeFilter &&
+                              (marketFilter === 'all' || game.marketId === marketFilter)
                             ).length === 0 && (
                               <TableRow>
                                 <TableCell colSpan={5} className="text-center py-4">No active {betTypeFilter} bets found</TableCell>
