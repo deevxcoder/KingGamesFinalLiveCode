@@ -1128,6 +1128,11 @@ export default function UserManagementPage() {
             <DialogTitle>Add Funds</DialogTitle>
             <DialogDescription>
               Add funds to {selectedUser?.username}'s account
+              {selectedUser && (
+                <span className="block mt-2 text-sm font-medium text-blue-600">
+                  Current Balance: ₹{selectedUser.balance / 100}
+                </span>
+              )}
               {user?.role === UserRole.ADMIN && selectedUser?.role === UserRole.SUBADMIN && (
                 <span className="block mt-2 text-sm font-medium text-yellow-600">
                   Note: Commission rate of {selectedSubadminCommissionRate !== null ? `${selectedSubadminCommissionRate}%` : "..."} applies to this transfer
