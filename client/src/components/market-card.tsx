@@ -32,22 +32,6 @@ export default function MarketCard({
   coverImage,
 }: MarketCardProps) {
   const [_, setLocation] = useLocation();
-  const [marketCardImage, setMarketCardImage] = useState<string | null>(null);
-
-  // Fetch the market game card image
-  useEffect(() => {
-    fetch('/api/gamecards?gameType=market')
-      .then(res => res.json())
-      .then(data => {
-        console.log('Market card images:', data);
-        if (data && data.length > 0) {
-          setMarketCardImage(data[0].url);
-        }
-      })
-      .catch(err => {
-        console.error('Error fetching market card image:', err);
-      });
-  }, []);
 
   // Parse dates
   const openTimeDate = new Date(openTime);
@@ -100,7 +84,7 @@ export default function MarketCard({
   const getMarketCoverStyle = () => {
     const gradientOverlay = "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7))";
     
-    // If admin provided a specific coverImage for this market, use it with highest priority
+    // If admin provided a specific coverImage for this market, use it (highest priority)
     if (coverImage) {
       console.log(`Using specific market cover image: ${coverImage} for market ${name}`);
       return { 
@@ -109,16 +93,7 @@ export default function MarketCard({
       };
     }
     
-    // If we have a generic market card image from the API, use it as fallback
-    if (marketCardImage) {
-      console.log(`Using fallback market card image: ${marketCardImage} for market ${name}`);
-      return { 
-        backgroundImage: `${gradientOverlay}, url("${marketCardImage}")`,
-        className: "bg-slate-900 bg-cover bg-center"
-      };
-    }
-    
-    // Otherwise, use default patterns based on market type
+    // Otherwise, use default gradient patterns based on market type (don't use generic market images)
     let backgroundImage;
     let bgColor;
     
