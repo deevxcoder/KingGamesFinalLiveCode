@@ -945,6 +945,7 @@ export default function UserManagementPage() {
                   <TableRow>
                     <TableHead>Username</TableHead>
                     <TableHead>Role</TableHead>
+                    <TableHead>CR</TableHead>
                     <TableHead>Balance</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Actions</TableHead>
@@ -976,6 +977,13 @@ export default function UserManagementPage() {
                           }>
                             {tableUser.role}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {(() => {
+                            // Get credit reference from localStorage
+                            const creditRef = localStorage.getItem(`startingBalance_${tableUser.id}`);
+                            return creditRef ? `₹${creditRef}` : '-';
+                          })()}
                         </TableCell>
                         <TableCell>₹{(tableUser.balance / 100).toFixed(2)}</TableCell>
                         <TableCell>
@@ -1187,9 +1195,9 @@ export default function UserManagementPage() {
               )}
             </div>
             
-            {/* Starting Balance Reference Field */}
+            {/* Credit Balance Reference Field */}
             <div>
-              <Label htmlFor="starting-balance">Starting Balance Reference (Optional)</Label>
+              <Label htmlFor="starting-balance">Credit Balance Reference (Optional)</Label>
               <div className="flex items-center gap-2 mt-2">
                 <IndianRupee className="h-5 w-5 text-muted-foreground" />
                 <Input
@@ -1282,9 +1290,9 @@ export default function UserManagementPage() {
                 </div>
               )}
             </div>
-            {/* Starting Balance Reference Field */}
+            {/* Credit Balance Reference Field */}
             <div>
-              <Label htmlFor="remove-starting-balance">Starting Balance Reference (Optional)</Label>
+              <Label htmlFor="remove-starting-balance">Credit Balance Reference (Optional)</Label>
               <div className="flex items-center gap-2 mt-2">
                 <IndianRupee className="h-5 w-5 text-muted-foreground" />
                 <Input
