@@ -497,8 +497,20 @@ export default function RiskManagementPage() {
                 {/* Grid view showing all numbers from 00-99 */}
                 <Card className="mb-6">
                   <CardHeader>
-                    <CardTitle>Satamatka Numbers (00-99)</CardTitle>
-                    <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
+                    <CardTitle>
+                      {betTypeFilter === 'harf' 
+                        ? "Harf Numbers Filter View" 
+                        : betTypeFilter === 'oddeven'
+                          ? "Odd/Even Filter View"
+                          : "Satamatka Numbers (00-99)"}
+                    </CardTitle>
+                    <CardDescription>
+                      {betTypeFilter === 'harf'
+                        ? "For Harf bets, look for A (Andar/Left) and B (Bahar/Right) digit predictions"
+                        : betTypeFilter === 'oddeven'
+                          ? "For Odd/Even bets, look for odd and even value predictions"
+                          : "Comprehensive view of all numbers with active bets"}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="mb-4 flex flex-col space-y-3">
