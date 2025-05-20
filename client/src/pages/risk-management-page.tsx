@@ -121,6 +121,7 @@ export default function RiskManagementPage() {
   const [marketInfo, setMarketInfo] = useState<MarketInfo>({});
   const [betTypeFilter, setBetTypeFilter] = useState<string>('all');
   const [marketFilter, setMarketFilter] = useState<number | 'all'>('all');
+  const [viewMode, setViewMode] = useState<'regular' | 'odd-even' | 'harf'>('regular');
   
   // Risk level threshold configuration
   const [riskThresholds, setRiskThresholds] = useState({
@@ -507,15 +508,43 @@ export default function RiskManagementPage() {
                         <div className="flex items-center space-x-2">
                           <Badge 
                             className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => setBetTypeFilter('all')}
+                            onClick={() => {
+                              setBetTypeFilter('all');
+                              setShowOddEven(false);
+                              setShowHarf(false);
+                            }}
                           >
                             All
                           </Badge>
                           <Badge 
                             className={`cursor-pointer px-3 py-1 ${betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => setBetTypeFilter('jodi')}
+                            onClick={() => {
+                              setBetTypeFilter('jodi');
+                              setShowOddEven(false);
+                              setShowHarf(false);
+                            }}
                           >
                             Jodi
+                          </Badge>
+                          <Badge 
+                            className={`cursor-pointer px-3 py-1 ${showOddEven ? 'bg-primary' : 'bg-slate-700'}`}
+                            onClick={() => {
+                              setShowOddEven(true);
+                              setShowHarf(false);
+                              setBetTypeFilter('all');
+                            }}
+                          >
+                            Odd/Even
+                          </Badge>
+                          <Badge 
+                            className={`cursor-pointer px-3 py-1 ${showHarf ? 'bg-primary' : 'bg-slate-700'}`}
+                            onClick={() => {
+                              setShowHarf(true);
+                              setShowOddEven(false);
+                              setBetTypeFilter('all');
+                            }}
+                          >
+                            Harf
                           </Badge>
                         </div>
                       </div>
