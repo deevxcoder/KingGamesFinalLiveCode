@@ -205,16 +205,18 @@ export default function RiskManagementPage() {
       if (game.result && game.result !== 'pending') return total;
       
       // Use the proper multipliers based on game type
-      let multiplier = 0.9; // Default (90/100)
+      let multiplier = 90; // Default (90x for Jodi)
       
       if (game.gameType === 'satamatka') {
-        if (game.prediction === 'jodi' || game.gameMode === 'jodi') {
-          multiplier = 0.9; // 90/100 for Jodi
+        if (game.prediction === 'jodi' || game.gameMode === 'jodi' || /^\d{2}$/.test(game.prediction)) {
+          multiplier = 90; // 90x for Jodi - if user bets 100, they win 9000
         } else if (game.prediction === 'harf' || game.prediction === 'crossing' || 
-                  game.gameMode === 'harf' || game.gameMode === 'crossing') {
-          multiplier = 0.09; // 9/100 for Harf/Crossing
+                  game.gameMode === 'harf' || game.gameMode === 'crossing' ||
+                  game.prediction?.startsWith('L') || game.prediction?.startsWith('R') ||
+                  game.prediction?.startsWith('A') || game.prediction?.startsWith('B')) {
+          multiplier = 9; // 9x for Harf/Crossing - if user bets 100, they win 900
         } else if (game.prediction === 'oddeven' || game.gameMode === 'oddeven') {
-          multiplier = 0.019; // 1.9/100 for OddEven
+          multiplier = 1.9; // 1.9x for OddEven - if user bets 100, they win 190
         }
       }
       
@@ -630,15 +632,22 @@ export default function RiskManagementPage() {
                             // Calculate total bet amount for this number
                             const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
                             
-                            // Calculate potential win amount (using 90x for jodi, 9x for others as a simplified calculation)
+                            // Calculate potential win amount (using 90x for jodi, 9x for others)
                             const potentialWin = gamesForNumber.reduce((sum, game) => {
-                              // Use the proper multipliers divided by 100 to match platform rules
-                              let multiplier = 0.9; // Default
+                              // Use the proper multipliers for each game type
+                              let multiplier = 90; // Default (90x for Jodi)
                               
                               // Check different game predictions and apply the appropriate multiplier
-                              if (game.prediction === 'jodi') multiplier = 0.9; // 90/100
-                              else if (game.prediction === 'harf' || game.prediction === 'crossing') multiplier = 0.09; // 9/100
-                              else if (game.prediction === 'oddeven') multiplier = 0.019; // 1.9/100
+                              if (game.prediction === 'jodi' || game.gameMode === 'jodi' || /^\d{2}$/.test(game.prediction)) {
+                                multiplier = 90; // 90x for Jodi - if user bets 100, they win 9000
+                              } else if (game.prediction === 'harf' || game.prediction === 'crossing' || 
+                                      game.gameMode === 'harf' || game.gameMode === 'crossing' ||
+                                      game.prediction?.startsWith('L') || game.prediction?.startsWith('R') ||
+                                      game.prediction?.startsWith('A') || game.prediction?.startsWith('B')) {
+                                multiplier = 9; // 9x for Harf/Crossing - if user bets 100, they win 900
+                              } else if (game.prediction === 'oddeven' || game.gameMode === 'oddeven') {
+                                multiplier = 1.9; // 1.9x for OddEven - if user bets 100, they win 190
+                              }
                               
                               return sum + ((game.betAmount || 0) * multiplier);
                             }, 0);
@@ -690,7 +699,7 @@ export default function RiskManagementPage() {
                                 </TableCell>
                                 <TableCell>
                                   {potentialWin > 0 
-                                    ? `₹${potentialWin.toFixed(2)}` 
+                                    ? `₹${(potentialWin/100).toFixed(2)}` 
                                     : <span className="text-muted-foreground">-</span>
                                   }
                                 </TableCell>
@@ -806,7 +815,7 @@ export default function RiskManagementPage() {
                                 <TableRow key={game.id || idx}>
                                   <TableCell>{game.gameData?.number || 'Unknown'}</TableCell>
                                   <TableCell>₹{game.betAmount?.toFixed(2) || 0}</TableCell>
-                                  <TableCell>₹{((game.betAmount || 0) * 0.9).toFixed(2)}</TableCell>
+                                  <TableCell>₹{((game.betAmount || 0) * 90 / 100).toFixed(2)}</TableCell>
                                   <TableCell><RiskBadge amount={game.betAmount || 0} /></TableCell>
                                   <TableCell>
                                     {game.marketId ? (marketInfo[game.marketId]?.name || `Market ${game.marketId}`) : 'N/A'}
