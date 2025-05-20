@@ -455,7 +455,7 @@ export default function RiskManagementPage() {
                       <Target className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(4100).toFixed(2)}</div>
+                      <div className="text-2xl font-bold">₹{(1620).toFixed(2)}</div>
                       <p className="text-xs text-muted-foreground">
                         Total amount from all active bets
                       </p>
