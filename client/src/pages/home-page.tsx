@@ -450,9 +450,19 @@ export default function HomePage() {
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
-            {/* User Management */}
+            {/* Dashboard */}
             <Button 
               className="py-6 bg-gradient-to-r from-violet-700 to-indigo-600 hover:from-violet-600 hover:to-indigo-500"
+              onClick={() => setLocation("/dashboard")}
+            >
+              <LayoutDashboard className="h-5 w-5 mr-2" />
+              Dashboard
+            </Button>
+            
+            {/* User Management */}
+            <Button 
+              variant="outline"
+              className="py-6 border-slate-700 text-blue-300 hover:bg-slate-800 hover:text-blue-200"
               onClick={() => setLocation("/users")}
             >
               <Users className="h-5 w-5 mr-2" />
@@ -471,19 +481,35 @@ export default function HomePage() {
               </Button>
             )}
             
-            {/* Risk Management and Jantri Management removed for platform simplification */}
+            {/* Jantri Management */}
+            <Button 
+              variant="outline"
+              className="py-6 border-slate-700 text-purple-300 hover:bg-slate-800 hover:text-purple-200"
+              onClick={() => setLocation("/jantri-management")}
+            >
+              <CalendarRange className="h-5 w-5 mr-2" />
+              Jantri Management
+            </Button>
             
-            {/* Settings Button */}
-            {isAdmin && (
-              <Button 
-                variant="outline"
-                className="py-6 border-slate-700 text-rose-300 hover:bg-slate-800 hover:text-rose-200"
-                onClick={() => setLocation("/settings")}
-              >
-                <Settings className="h-5 w-5 mr-2" />
-                Settings
-              </Button>
-            )}
+            {/* Profile */}
+            <Button 
+              variant="outline"
+              className="py-6 border-slate-700 text-pink-300 hover:bg-slate-800 hover:text-pink-200"
+              onClick={() => setLocation("/profile")}
+            >
+              <UserCircle className="h-5 w-5 mr-2" />
+              Profile
+            </Button>
+            
+            {/* Wallet Settings */}
+            <Button 
+              variant="outline"
+              className="py-6 border-slate-700 text-orange-300 hover:bg-slate-800 hover:text-orange-200"
+              onClick={() => setLocation("/wallet-settings")}
+            >
+              <Wallet className="h-5 w-5 mr-2" />
+              Wallet Settings
+            </Button>
             
             {/* Cricket Toss Management - Admin Only */}
             {isAdmin && (
@@ -496,8 +522,6 @@ export default function HomePage() {
                 Cricket Toss Management
               </Button>
             )}
-            
-            {/* Sports Management removed - Team Match functionality no longer used */}
             
             {/* Market Management - Admin Only */}
             {isAdmin && (
