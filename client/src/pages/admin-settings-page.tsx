@@ -367,15 +367,22 @@ export default function AdminSettingsPage() {
   // Upload hero image mutation
   const uploadHeroMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await fetch('/api/upload/hero', {
+      const response = await fetch('/api/upload/heroslider', {
         method: 'POST',
         body: formData,
         credentials: 'include'
       });
       
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to upload hero image');
+        let errorMessage = 'Failed to upload hero image';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If we can't parse JSON, use the response text if available
+          errorMessage = await response.text() || errorMessage;
+        }
+        throw new Error(errorMessage);
       }
       
       return response.json();
