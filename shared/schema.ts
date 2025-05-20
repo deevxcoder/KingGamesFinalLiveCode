@@ -214,6 +214,7 @@ export const satamatkaMarkets = pgTable("satamatka_markets", {
   lastResultedDate: timestamp("last_resulted_date"),
   nextOpenTime: timestamp("next_open_time"), 
   nextCloseTime: timestamp("next_close_time"),
+  coverImage: text("cover_image"), // Added field for market cover image
   createdAt: timestamp("created_at").defaultNow(),
 });
 
