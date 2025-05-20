@@ -497,22 +497,8 @@ export default function RiskManagementPage() {
                 {/* Grid view showing all numbers from 00-99 */}
                 <Card className="mb-6">
                   <CardHeader>
-                    {betTypeFilter === 'harf' ? (
-                      <>
-                        <CardTitle>Harf Numbers Filter View</CardTitle>
-                        <CardDescription>For Harf bets, look for predictions with "A" prefix (Andar/Left digit) or "B" prefix (Bahar/Right digit)</CardDescription>
-                      </>
-                    ) : betTypeFilter === 'oddeven' ? (
-                      <>
-                        <CardTitle>Odd/Even Filter View</CardTitle>
-                        <CardDescription>For Odd/Even bets, look for predictions with "odd" or "even" values</CardDescription>
-                      </>
-                    ) : (
-                      <>
-                        <CardTitle>Satamatka Numbers (00-99)</CardTitle>
-                        <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
-                      </>
-                    )}
+                    <CardTitle>Satamatka Numbers (00-99)</CardTitle>
+                    <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="mb-4 flex flex-col space-y-3">
@@ -617,7 +603,15 @@ export default function RiskManagementPage() {
                               <TableCell colSpan={8} className="text-center py-3 bg-blue-50 dark:bg-blue-900/20">
                                 <div className="font-medium mb-1">Harf Bet Type Selected</div>
                                 <div className="text-sm text-muted-foreground">
-                                  For Harf bets, please look for predictions with "A" prefix (Andar/Left digit) or "B" prefix (Bahar/Right digit)
+                                  For Harf bets, look for predictions with "A" prefix (Andar/Left digit) or "B" prefix (Bahar/Right digit)
+                                </div>
+                                <div className="mt-2 flex justify-center space-x-4">
+                                  <div className="border border-blue-500 px-3 py-1 rounded-md">
+                                    <span className="font-medium">Andar (Left Digit):</span> A0, A1, A2, A3, A4, A5, A6, A7, A8, A9
+                                  </div>
+                                  <div className="border border-blue-500 px-3 py-1 rounded-md">
+                                    <span className="font-medium">Bahar (Right Digit):</span> B0, B1, B2, B3, B4, B5, B6, B7, B8, B9
+                                  </div>
                                 </div>
                               </TableCell>
                             </TableRow>
@@ -628,23 +622,22 @@ export default function RiskManagementPage() {
                               <TableCell colSpan={8} className="text-center py-3 bg-blue-50 dark:bg-blue-900/20">
                                 <div className="font-medium mb-1">Odd-Even Bet Type Selected</div>
                                 <div className="text-sm text-muted-foreground">
-                                  For Odd-Even bets, please look for predictions with "odd" or "even" values
+                                  For Odd-Even bets, look for predictions with "odd" or "even" values
+                                </div>
+                                <div className="mt-2 flex justify-center space-x-4">
+                                  <div className="border border-blue-500 px-3 py-1 rounded-md">
+                                    <span className="font-medium">Odd:</span> 01, 03, 05, 07, 09...99
+                                  </div>
+                                  <div className="border border-blue-500 px-3 py-1 rounded-md">
+                                    <span className="font-medium">Even:</span> 00, 02, 04, 06, 08...98
+                                  </div>
                                 </div>
                               </TableCell>
                             </TableRow>
                           )}
-                            <>
-                              {/* Andar (Left digit) section */}
-                              <TableRow>
-                                <TableCell colSpan={8} className="bg-slate-100 dark:bg-slate-800 font-bold">
-                                  Andar (Left Digit)
-                                </TableCell>
-                              </TableRow>
-                              
-                              {Array.from({ length: 10 }, (_, i) => {
-                                // For Andar - use format A0, A1, A2, etc.
-                                const digit = i.toString();
-                                const prediction = `A${digit}`;
+                          {Array.from({ length: 100 }, (_, i) => {
+                            // Format number as two digits (e.g., 00, 01, ..., 99)
+                            const num = i.toString().padStart(2, '0');
                                 
                                 // Filter games for this Andar digit
                                 const gamesForDigit = data.detailedData.gameData.filter(game => {
