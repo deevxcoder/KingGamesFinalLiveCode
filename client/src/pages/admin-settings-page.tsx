@@ -650,7 +650,7 @@ export default function AdminSettingsPage() {
     
     const file = event.target.files[0];
     const formData = new FormData();
-    formData.append('heroImage', file);
+    formData.append('heroSliderImage', file);
     
     setIsUploadingHero(true);
     uploadHeroMutation.mutate(formData);
