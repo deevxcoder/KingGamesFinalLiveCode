@@ -100,18 +100,20 @@ export default function MarketCard({
   const getMarketCoverStyle = () => {
     const gradientOverlay = "linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.7))";
     
-    // If we have a market card image from the API, use it with priority
-    if (marketCardImage) {
+    // If admin provided a specific coverImage for this market, use it with highest priority
+    if (coverImage) {
+      console.log(`Using specific market cover image: ${coverImage} for market ${name}`);
       return { 
-        backgroundImage: `${gradientOverlay}, url("${marketCardImage}")`,
+        backgroundImage: `${gradientOverlay}, url("${coverImage}")`,
         className: "bg-slate-900 bg-cover bg-center"
       };
     }
     
-    // If admin provided a direct coverImage, use it as fallback
-    if (coverImage) {
+    // If we have a generic market card image from the API, use it as fallback
+    if (marketCardImage) {
+      console.log(`Using fallback market card image: ${marketCardImage} for market ${name}`);
       return { 
-        backgroundImage: `${gradientOverlay}, url("${coverImage}")`,
+        backgroundImage: `${gradientOverlay}, url("${marketCardImage}")`,
         className: "bg-slate-900 bg-cover bg-center"
       };
     }
