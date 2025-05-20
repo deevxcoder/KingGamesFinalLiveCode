@@ -1857,9 +1857,13 @@ app.get("/api/games/my-history", async (req, res, next) => {
             // - A single digit (original implementation)
             // - L followed by a digit (left/first position)
             // - R followed by a digit (right/second position)
+            // - A followed by a digit (Ander/left position - new format)
+            // - B followed by a digit (Bahar/right position - new format)
             return /^[0-9]$/.test(prediction) || // Original format
-                   /^L[0-9]$/.test(prediction) || // Left digit format
-                   /^R[0-9]$/.test(prediction);   // Right digit format
+                   /^L[0-9]$/.test(prediction) || // Old left digit format
+                   /^R[0-9]$/.test(prediction) || // Old right digit format
+                   /^A[0-9]$/.test(prediction) || // New Ander (left) digit format
+                   /^B[0-9]$/.test(prediction);   // New Bahar (right) digit format
           case SatamatkaGameMode.CROSSING:
             // For Crossing, prediction can now be:
             // - A single digit (original implementation)
@@ -2004,7 +2008,9 @@ app.get("/api/games/my-history", async (req, res, next) => {
             case SatamatkaGameMode.HARF:
               return /^[0-9]$/.test(prediction) || 
                      /^L[0-9]$/.test(prediction) || 
-                     /^R[0-9]$/.test(prediction);
+                     /^R[0-9]$/.test(prediction) ||
+                     /^A[0-9]$/.test(prediction) || // New format: Ander (A) digit
+                     /^B[0-9]$/.test(prediction);   // New format: Bahar (B) digit
             case SatamatkaGameMode.CROSSING:
               return /^[0-9]$/.test(prediction) || 
                      /^[0-9][0-9]$/.test(prediction) ||
