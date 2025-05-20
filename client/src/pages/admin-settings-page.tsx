@@ -1257,11 +1257,72 @@ export default function AdminSettingsPage() {
                       </div>
                     </div>
                     
-                    <div className="bg-yellow-900/30 p-4 rounded-lg border border-yellow-700/50 mb-4">
-                      <p className="text-yellow-300 text-sm flex items-center gap-2">
-                        <Info className="h-4 w-4" />
-                        The backend API endpoint for home page hero sliders is not yet implemented. This feature will be available soon.
-                      </p>
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-center gap-4">
+                        <Button
+                          onClick={() => homeHeroFileInputRef.current?.click()}
+                          className="gap-2"
+                          disabled={isUploadingHero}
+                        >
+                          {isUploadingHero ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                          Upload Hero Image
+                        </Button>
+                        <input
+                          type="file"
+                          ref={homeHeroFileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleHeroImageUpload}
+                        />
+                        
+                        <Button
+                          variant="outline"
+                          onClick={() => refetchHeroImages()}
+                          size="icon"
+                          title="Refresh hero slider images"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      
+                      {heroImages.length === 0 ? (
+                        <div className="py-8 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
+                          <p className="text-slate-400">No hero slider images uploaded yet. Upload some images to display on the public home page.</p>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {heroImages.map((image) => (
+                            <div 
+                              key={image.filename} 
+                              className="relative group overflow-hidden rounded-lg border border-slate-700"
+                            >
+                              <img 
+                                src={image.url} 
+                                alt={`Hero slider image ${image.filename}`}
+                                className="w-full h-48 object-cover"
+                              />
+                              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className="gap-1"
+                                  onClick={() => handleDeleteHeroImage(image.filename)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Delete
+                                </Button>
+                              </div>
+                              <div className="absolute bottom-0 left-0 right-0 bg-black/70 text-xs p-2 truncate">
+                                {image.filename}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                   
