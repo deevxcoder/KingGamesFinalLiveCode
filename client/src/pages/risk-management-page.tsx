@@ -120,18 +120,26 @@ export default function RiskManagementPage() {
   const [activeTab, setActiveTab] = useState('market-game');
   const [userInfo, setUserInfo] = useState<UserInfo>({});
   const [marketInfo, setMarketInfo] = useState<MarketInfo>({});
-  // Add state for bet type filtering
   const [betTypeFilter, setBetTypeFilter] = useState<string>('all');
   
   // Risk level threshold configuration
   const [riskThresholds, setRiskThresholds] = useState({
-    high: 1000,     // Any bet above 1000 is high risk
-    medium: 500,    // Between 500-1000 is medium risk
-    low: 100        // Between 1-500 is low risk
+    high: 1000,
+    medium: 500,
+    low: 100
   });
   
   // Whether risk configuration dialog is open
   const [riskConfigOpen, setRiskConfigOpen] = useState(false);
+  
+  // Form for risk threshold configuration - always defined at the component level
+  const riskConfigForm = useForm({
+    defaultValues: {
+      highRisk: riskThresholds.high / 100,
+      mediumRisk: riskThresholds.medium / 100,
+      lowRisk: riskThresholds.low / 100
+    }
+  });
 
   // Get the appropriate API endpoint based on user role
   const endpoint = isAdmin ? '/api/risk/admin' : '/api/risk/subadmin';
@@ -161,6 +169,17 @@ export default function RiskManagementPage() {
     }
   }, [data]);
 
+  // Function to save risk thresholds
+  const saveRiskThresholds = (values: any) => {
+    // Convert rupees back to database values (multiply by 100)
+    setRiskThresholds({
+      high: values.highRisk * 100,
+      medium: values.mediumRisk * 100,
+      low: values.lowRisk * 100
+    });
+    setRiskConfigOpen(false);
+  };
+
   function getTotalExposure(summaries: RiskSummary[]): number {
     return summaries.reduce((total, summary) => total + summary.exposureAmount, 0);
   }
@@ -175,6 +194,15 @@ export default function RiskManagementPage() {
   
   function getTotalHighRiskBets(summaries: RiskSummary[]): number {
     return summaries.reduce((total, summary) => total + summary.highRiskBets, 0);
+  }
+
+  // Prepare data conditionally but without using hooks
+  let marketGameData = null;
+  let cricketTossData = null;
+  
+  if (data && data.summaries) {
+    marketGameData = data.summaries.find(summary => summary.gameType === 'satamatka');
+    cricketTossData = data.summaries.find(summary => summary.gameType === 'cricket_toss');
   }
 
   if (isLoading) {
@@ -224,30 +252,6 @@ export default function RiskManagementPage() {
       </DashboardLayout>
     );
   }
-
-  // Find data for specific game types
-  const marketGameData = data.summaries.find(summary => summary.gameType === 'satamatka');
-  const cricketTossData = data.summaries.find(summary => summary.gameType === 'cricket_toss');
-
-  // Define the form for risk threshold configuration
-  const riskConfigForm = useForm({
-    defaultValues: {
-      highRisk: riskThresholds.high / 100, // Convert to rupees for display
-      mediumRisk: riskThresholds.medium / 100,
-      lowRisk: riskThresholds.low / 100
-    }
-  });
-
-  // Function to save risk thresholds
-  const saveRiskThresholds = (values: any) => {
-    // Convert rupees back to database values (multiply by 100)
-    setRiskThresholds({
-      high: values.highRisk * 100,
-      medium: values.mediumRisk * 100,
-      low: values.lowRisk * 100
-    });
-    setRiskConfigOpen(false);
-  };
 
   return (
     <DashboardLayout title="Jantri Management" activeTab="risk-management">
