@@ -31,7 +31,14 @@ import {
   DollarSign,
   BarChart, 
   Activity,
-  Settings
+  Settings,
+  LayoutDashboard,
+  CalendarRange,
+  UserCircle,
+  Wallet,
+  MinusCircle,
+  PlusCircle,
+  MessageSquare
 } from "lucide-react";
 import { useLocation } from "wouter";
 
