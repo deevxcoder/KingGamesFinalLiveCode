@@ -196,6 +196,31 @@ export default function RiskManagementPage() {
   function getTotalHighRiskBets(summaries: RiskSummary[]): number {
     return summaries.reduce((total, summary) => total + summary.highRiskBets, 0);
   }
+  
+  // Calculate total potential win across all active bets
+  function calculateTotalPotentialWin(detailedData: DetailedRiskData): number {
+    if (!detailedData || !detailedData.gameData) return 0;
+    
+    return detailedData.gameData.reduce((total, game) => {
+      if (game.result && game.result !== 'pending') return total;
+      
+      // Use the proper multipliers based on game type
+      let multiplier = 0.9; // Default (90/100)
+      
+      if (game.gameType === 'satamatka') {
+        if (game.prediction === 'jodi' || game.gameMode === 'jodi') {
+          multiplier = 0.9; // 90/100 for Jodi
+        } else if (game.prediction === 'harf' || game.prediction === 'crossing' || 
+                  game.gameMode === 'harf' || game.gameMode === 'crossing') {
+          multiplier = 0.09; // 9/100 for Harf/Crossing
+        } else if (game.prediction === 'oddeven' || game.gameMode === 'oddeven') {
+          multiplier = 0.019; // 1.9/100 for OddEven
+        }
+      }
+      
+      return total + ((game.betAmount || 0) * multiplier);
+    }, 0);
+  }
 
   // Prepare data conditionally but without using hooks
   let marketGameData = null;
@@ -414,7 +439,7 @@ export default function RiskManagementPage() {
                       <TrendingDown className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(marketGameData.potentialLiability / 100).toFixed(2)}</div>
+                      <div className="text-2xl font-bold">₹{(calculateTotalPotentialWin(data.detailedData) / 100).toFixed(2)}</div>
                       <p className="text-xs text-muted-foreground">
                         Amount to be paid if all players win
                       </p>
