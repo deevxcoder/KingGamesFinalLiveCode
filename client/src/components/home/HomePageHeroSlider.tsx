@@ -140,17 +140,8 @@ export function HomePageHeroSlider() {
                     alt="Hero Image" 
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40 flex items-center">
-                    <div className="container mx-auto px-4 md:px-8">
-                      <div className="max-w-2xl pt-0 sm:pt-0 md:pt-0 lg:pt-0">
-                        <Button 
-                          className="px-4 py-2 sm:px-6 sm:py-4 md:px-8 md:py-6 text-sm sm:text-base md:text-lg bg-primary hover:bg-primary/90"
-                          onClick={() => setLocation("/auth")}
-                        >
-                          Start Betting Now
-                        </Button>
-                      </div>
-                    </div>
+                  <div className="absolute inset-0 bg-gradient-to-b from-black/70 to-black/40">
+                    {/* Removed button as requested */}
                   </div>
                 </div>
               ) : (

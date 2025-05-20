@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { 
   Card, 
@@ -277,8 +278,18 @@ export default function PublicHomePage() {
   const [_, setLocation] = useLocation();
   const { user } = useAuth();
   
+  // Define Winner type to match what RecentWinners component expects
+  interface Winner {
+    id: number;
+    username: string;
+    game: string;
+    amount: number;
+    payout: number;
+    createdAt: string;
+  }
+  
   // Fetch real winners data from API
-  const { data: realWinners = [], isLoading: isLoadingWinners } = useQuery({
+  const { data: realWinners = [], isLoading: isLoadingWinners } = useQuery<Winner[]>({
     queryKey: ['/api/games/top-winners'],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
