@@ -1,4 +1,4 @@
--- Create users table
+-- Create users table first
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
@@ -21,62 +21,6 @@ CREATE TABLE IF NOT EXISTS sessions (
 
 -- Create index on sessions.expire
 CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON sessions (expire);
-
--- Create satamatka_markets table first (since it's referenced by games)
-CREATE TABLE IF NOT EXISTS satamatka_markets (
-  id SERIAL PRIMARY KEY,
-  name TEXT NOT NULL,
-  type TEXT NOT NULL,
-  open_time TIMESTAMP NOT NULL,
-  close_time TIMESTAMP NOT NULL,
-  result_time TIMESTAMP,
-  open_result TEXT,
-  close_result TEXT,
-  status TEXT NOT NULL DEFAULT 'waiting',
-  is_recurring BOOLEAN NOT NULL DEFAULT FALSE,
-  recurrence_pattern TEXT DEFAULT 'daily',
-  last_resulted_date TIMESTAMP,
-  next_open_time TIMESTAMP,
-  next_close_time TIMESTAMP,
-  cover_image TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Create team_matches table (since it's referenced by games)
-CREATE TABLE IF NOT EXISTS team_matches (
-  id SERIAL PRIMARY KEY,
-  team_a TEXT NOT NULL,
-  team_b TEXT NOT NULL,
-  category TEXT NOT NULL DEFAULT 'cricket',
-  description TEXT,
-  match_time TIMESTAMP NOT NULL,
-  result TEXT NOT NULL DEFAULT 'pending',
-  odd_team_a INTEGER NOT NULL DEFAULT 200,
-  odd_team_b INTEGER NOT NULL DEFAULT 200,
-  odd_draw INTEGER DEFAULT 300,
-  status TEXT NOT NULL DEFAULT 'open',
-  team_a_image TEXT,
-  team_b_image TEXT,
-  cover_image TEXT,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
--- Now create games table
-CREATE TABLE IF NOT EXISTS games (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER NOT NULL REFERENCES users(id),
-  game_type TEXT NOT NULL DEFAULT 'coin_flip',
-  bet_amount INTEGER NOT NULL,
-  prediction TEXT NOT NULL,
-  result TEXT,
-  payout INTEGER NOT NULL DEFAULT 0,
-  balance_after INTEGER,
-  created_at TIMESTAMP DEFAULT NOW(),
-  market_id INTEGER REFERENCES satamatka_markets(id),
-  match_id INTEGER REFERENCES team_matches(id),
-  game_mode TEXT,
-  game_data JSONB
-);
 
 -- Create satamatka_markets table
 CREATE TABLE IF NOT EXISTS satamatka_markets (
@@ -115,6 +59,23 @@ CREATE TABLE IF NOT EXISTS team_matches (
   team_b_image TEXT,
   cover_image TEXT,
   created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create games table
+CREATE TABLE IF NOT EXISTS games (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  game_type TEXT NOT NULL DEFAULT 'coin_flip',
+  bet_amount INTEGER NOT NULL,
+  prediction TEXT NOT NULL,
+  result TEXT,
+  payout INTEGER NOT NULL DEFAULT 0,
+  balance_after INTEGER,
+  created_at TIMESTAMP DEFAULT NOW(),
+  market_id INTEGER REFERENCES satamatka_markets(id),
+  match_id INTEGER REFERENCES team_matches(id),
+  game_mode TEXT,
+  game_data JSONB
 );
 
 -- Create wallet_requests table
