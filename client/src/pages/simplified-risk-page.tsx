@@ -688,13 +688,24 @@ export default function SimplifiedRiskPage() {
                       ) : viewMode === 'harf' ? (
                         <div className="p-4">
                           <h3 className="text-lg font-bold mb-4">Harf Risk Management</h3>
-                          <div className="grid grid-cols-2 gap-6 mb-8">
-                            <Card>
-                              <CardHeader>
-                                <CardTitle className="text-base">Left Digit (A0-A9)</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="grid grid-cols-5 gap-4">
+                          
+                          {/* Left Digits (A0-A9) Table */}
+                          <Card className="mb-6">
+                            <CardHeader>
+                              <CardTitle className="text-base">Left Digit (A0-A9) - Position 1</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Number</TableHead>
+                                    <TableHead>Active Bets</TableHead>
+                                    <TableHead>Bet Amount</TableHead>
+                                    <TableHead>Potential Win</TableHead>
+                                    <TableHead>Risk Level</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                   {Array.from({ length: 10 }, (_, i) => {
                                     const digit = i.toString();
                                     
@@ -720,43 +731,41 @@ export default function SimplifiedRiskPage() {
                                     else if (totalBetAmount > 0) riskLevel = 'low';
                                     
                                     return (
-                                      <Card key={`left-${digit}`} className={
-                                        riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
-                                        riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' :
-                                        riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : ''
+                                      <TableRow key={`left-${digit}`} className={
+                                        riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20' :
+                                        riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20' :
+                                        riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                                       }>
-                                        <CardHeader className="p-3 pb-0">
-                                          <CardTitle className="text-base text-center">A{digit}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="p-3 text-sm">
-                                          <div className="space-y-1">
-                                            <div className="flex justify-between">
-                                              <span>Bets:</span>
-                                              <span>{totalBets}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Amount:</span>
-                                              <span>₹{(totalBetAmount / 100).toFixed(0)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Win:</span>
-                                              <span>₹{(potentialWin / 100).toFixed(0)}</span>
-                                            </div>
-                                          </div>
-                                        </CardContent>
-                                      </Card>
+                                        <TableCell className="font-medium">A{digit}</TableCell>
+                                        <TableCell>{totalBets}</TableCell>
+                                        <TableCell>₹{(totalBetAmount / 100).toFixed(2)}</TableCell>
+                                        <TableCell>₹{(potentialWin / 100).toFixed(2)}</TableCell>
+                                        <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                      </TableRow>
                                     );
                                   })}
-                                </div>
-                              </CardContent>
-                            </Card>
-                            
-                            <Card>
-                              <CardHeader>
-                                <CardTitle className="text-base">Right Digit (B0-B9)</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="grid grid-cols-5 gap-4">
+                                </TableBody>
+                              </Table>
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Right Digits (B0-B9) Table */}
+                          <Card>
+                            <CardHeader>
+                              <CardTitle className="text-base">Right Digit (B0-B9) - Position 2</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Number</TableHead>
+                                    <TableHead>Active Bets</TableHead>
+                                    <TableHead>Bet Amount</TableHead>
+                                    <TableHead>Potential Win</TableHead>
+                                    <TableHead>Risk Level</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                   {Array.from({ length: 10 }, (_, i) => {
                                     const digit = i.toString();
                                     
@@ -782,37 +791,23 @@ export default function SimplifiedRiskPage() {
                                     else if (totalBetAmount > 0) riskLevel = 'low';
                                     
                                     return (
-                                      <Card key={`right-${digit}`} className={
-                                        riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
-                                        riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' :
-                                        riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : ''
+                                      <TableRow key={`right-${digit}`} className={
+                                        riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20' :
+                                        riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20' :
+                                        riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                                       }>
-                                        <CardHeader className="p-3 pb-0">
-                                          <CardTitle className="text-base text-center">B{digit}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="p-3 text-sm">
-                                          <div className="space-y-1">
-                                            <div className="flex justify-between">
-                                              <span>Bets:</span>
-                                              <span>{totalBets}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Amount:</span>
-                                              <span>₹{(totalBetAmount / 100).toFixed(0)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Win:</span>
-                                              <span>₹{(potentialWin / 100).toFixed(0)}</span>
-                                            </div>
-                                          </div>
-                                        </CardContent>
-                                      </Card>
+                                        <TableCell className="font-medium">B{digit}</TableCell>
+                                        <TableCell>{totalBets}</TableCell>
+                                        <TableCell>₹{(totalBetAmount / 100).toFixed(2)}</TableCell>
+                                        <TableCell>₹{(potentialWin / 100).toFixed(2)}</TableCell>
+                                        <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                      </TableRow>
                                     );
                                   })}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
+                                </TableBody>
+                              </Table>
+                            </CardContent>
+                          </Card>
                         </div>
                       ) : (
                         <Table>
