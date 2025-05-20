@@ -1001,11 +1001,12 @@ export default function SubadminManagementPage() {
                 <AlertDescription>
                   <p className="text-sm">
                     This commission rate determines the percentage applied during fund transfers between
-                    admin and subadmin:
+                    admin and subadmin. You can set any value from 0% to 100%:
                   </p>
                   <ul className="text-sm list-disc list-inside mt-2 space-y-1">
                     <li>When admin adds funds to subadmin: Full amount goes to subadmin but only commission percentage is deducted from admin.</li>
                     <li>When admin removes funds from subadmin: Full amount is removed from subadmin but only commission percentage is added to admin.</li>
+                    <li>If no custom value is set here, the platform default commission rate will apply.</li>
                   </ul>
                 </AlertDescription>
               </Alert>
