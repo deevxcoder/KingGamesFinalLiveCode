@@ -386,58 +386,6 @@ export default function RiskManagementPage() {
 
         <Separator />
 
-        {/* Risk Overview Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Exposure</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{getTotalExposure(data.summaries).toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
-                Maximum potential liability
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Bets</CardTitle>
-              <Activity className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{getTotalActiveBets(data.summaries)}</div>
-              <p className="text-xs text-muted-foreground">
-                Total ongoing bets
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Potential Profit</CardTitle>
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">₹{getTotalPotentialProfit(data.summaries).toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
-                Expected house edge
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">High Risk Bets</CardTitle>
-              <TrendingDown className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{getTotalHighRiskBets(data.summaries)}</div>
-              <p className="text-xs text-muted-foreground">
-                Bets over ₹1000
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Detailed Analysis Tabs */}
         <Tabs defaultValue="market-game" className="w-full mt-6" onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-4">
