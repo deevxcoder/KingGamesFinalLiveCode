@@ -14,6 +14,7 @@ import ResponsiveHeader from "@/components/responsive-header";
 import ProfessionalFooter from "@/components/professional-footer";
 import GameCard from "@/components/game-card";
 import HeroSlider from "@/components/hero-slider";
+import { HomePageHeroSlider } from "@/components/home/HomePageHeroSlider";
 import RecentResults from "@/components/recent-results";
 import RecentWinners from "@/components/recent-winners";
 import { Trophy, Target, Shield, ArrowRight } from "lucide-react";
