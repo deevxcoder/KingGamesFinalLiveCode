@@ -296,35 +296,7 @@ export default function PublicHomePage() {
       <ResponsiveHeader />
 
       {/* Hero Slider Section */}
-      <HeroSlider 
-        slides={[
-          {
-            id: "slide1",
-            title: "The Premier Betting Platform",
-            description: "Experience the thrill of betting with real-time results and attractive payouts. Play anywhere, anytime.",
-            backgroundImage: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-            buttonText: "Start Betting Now",
-            buttonLink: "/auth"
-          },
-          {
-            id: "slide2",
-            title: "Market Games",
-            description: "Play exciting market-based games with multiple options and win big payouts.",
-            backgroundImage: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-            buttonText: "Play Market Games",
-            buttonLink: "/auth"
-          },
-          {
-            id: "slide3",
-            title: "Sports Betting",
-            description: "Bet on your favorite sports teams and win big with our competitive odds.",
-            backgroundImage: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-            buttonText: "Start Sports Betting",
-            buttonLink: "/auth"
-          }
-        ]}
-        autoPlayInterval={5000}
-      />
+      <HomePageHeroSlider />
 
       {/* Game Cards Section */}
       <section className="py-16" id="games">
