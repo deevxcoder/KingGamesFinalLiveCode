@@ -730,6 +730,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 discountBonusAmount = calculateDepositBonus(amount, discountRate);
                 
                 console.log(`Transfer to player ${userId}: Amount: ${amount}, Discount rate: ${discountRate/100}%, Bonus amount: ${discountBonusAmount}`);
+                
+                // Add the bonus amount to the deduction amount
+                // This ensures the subadmin pays for both the base amount and the bonus
+                deductionAmount += discountBonusAmount;
               }
             } catch (error) {
               console.error('Error calculating deposit discount:', error);
@@ -755,7 +759,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
               const commissionAmount = amount - deductionAmount;
               description = `Funds transferred to ${user.username} (${deductionAmount} of ${amount} - commission rate applied, commission: ${commissionAmount})`;
             } else if (discountBonusAmount > 0) {
-              description = `Funds transferred to ${user.username} (Deposit discount applied: +${discountBonusAmount})`;
+              description = `Funds transferred to ${user.username} (Deposit discount applied: +${discountBonusAmount}, total deducted: ${deductionAmount})`;
             } else {
               description = `Funds transferred to ${user.username}`;
             }
