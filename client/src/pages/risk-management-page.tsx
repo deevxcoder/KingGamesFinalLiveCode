@@ -497,8 +497,22 @@ export default function RiskManagementPage() {
                 {/* Grid view showing all numbers from 00-99 */}
                 <Card className="mb-6">
                   <CardHeader>
-                    <CardTitle>Satamatka Numbers (00-99)</CardTitle>
-                    <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
+                    {betTypeFilter === 'harf' ? (
+                      <>
+                        <CardTitle>Harf Numbers Filter View</CardTitle>
+                        <CardDescription>For Harf bets, look for predictions with "A" prefix (Andar/Left digit) or "B" prefix (Bahar/Right digit)</CardDescription>
+                      </>
+                    ) : betTypeFilter === 'oddeven' ? (
+                      <>
+                        <CardTitle>Odd/Even Filter View</CardTitle>
+                        <CardDescription>For Odd/Even bets, look for predictions with "odd" or "even" values</CardDescription>
+                      </>
+                    ) : (
+                      <>
+                        <CardTitle>Satamatka Numbers (00-99)</CardTitle>
+                        <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
+                      </>
+                    )}
                   </CardHeader>
                   <CardContent>
                     <div className="mb-4 flex flex-col space-y-3">
@@ -587,10 +601,7 @@ export default function RiskManagementPage() {
                       <Table>
                         <TableHeader className="sticky top-0 bg-background z-10">
                           <TableRow>
-                            <TableHead className="w-[80px]">
-                              {betTypeFilter === 'harf' ? "Digit" : 
-                               betTypeFilter === 'oddeven' ? "Option" : "Number"}
-                            </TableHead>
+                            <TableHead className="w-[80px]">Number</TableHead>
                             <TableHead className="w-[100px]">Active Bets</TableHead>
                             <TableHead className="w-[150px]">Bet Amount</TableHead>
                             <TableHead className="w-[150px]">Potential Win</TableHead>
@@ -601,8 +612,27 @@ export default function RiskManagementPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {betTypeFilter === 'harf' ? (
-                            // For Harf bet type, show Andar (left digit) and Bahar (right digit) rows
+                          {betTypeFilter === 'harf' && (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-3 bg-blue-50 dark:bg-blue-900/20">
+                                <div className="font-medium mb-1">Harf Bet Type Selected</div>
+                                <div className="text-sm text-muted-foreground">
+                                  For Harf bets, please look for predictions with "A" prefix (Andar/Left digit) or "B" prefix (Bahar/Right digit)
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                          
+                          {betTypeFilter === 'oddeven' && (
+                            <TableRow>
+                              <TableCell colSpan={8} className="text-center py-3 bg-blue-50 dark:bg-blue-900/20">
+                                <div className="font-medium mb-1">Odd-Even Bet Type Selected</div>
+                                <div className="text-sm text-muted-foreground">
+                                  For Odd-Even bets, please look for predictions with "odd" or "even" values
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          )}
                             <>
                               {/* Andar (Left digit) section */}
                               <TableRow>
