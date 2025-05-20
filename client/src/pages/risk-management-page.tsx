@@ -410,11 +410,14 @@ export default function RiskManagementPage() {
                   </Card>
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                      <CardTitle className="text-sm font-medium">Potential Liability</CardTitle>
+                      <CardTitle className="text-sm font-medium">Potential Win</CardTitle>
                       <TrendingDown className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">₹{(marketGameData.potentialLiability / 100).toFixed(2)}</div>
+                      <p className="text-xs text-muted-foreground">
+                        Amount to be paid if all players win
+                      </p>
                     </CardContent>
                   </Card>
                   <Card>
