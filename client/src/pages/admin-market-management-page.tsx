@@ -840,7 +840,7 @@ export default function AdminMarketManagementPage() {
                         ) : null}
                         
                         {!field.value && (
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center">
                             <Input 
                               type="file" 
                               accept="image/*"
@@ -880,22 +880,14 @@ export default function AdminMarketManagementPage() {
                                   e.target.value = '';
                                 }
                               }}
-                              className="flex-1"
-                            />
-                            
-                            <div className="text-muted-foreground">or</div>
-                            
-                            <Input 
-                              placeholder="Direct image URL" 
-                              onChange={(e) => field.onChange(e.target.value)}
-                              className="flex-1"
+                              className="w-full"
                             />
                           </div>
                         )}
                       </div>
                     </FormControl>
                     <FormDescription>
-                      Upload a banner image for the market or provide a direct URL (optional)
+                      Upload a banner image for the market display (optional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -1145,7 +1137,7 @@ function MarketTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Market Name</TableHead>
+            <TableHead>Market</TableHead>
             <TableHead>Type</TableHead>
             <TableHead>Open Time</TableHead>
             <TableHead>Close Time</TableHead>
@@ -1157,7 +1149,24 @@ function MarketTable({
         <TableBody>
           {markets.map((market) => (
             <TableRow key={market.id}>
-              <TableCell className="font-medium">{market.name}</TableCell>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  {market.coverImage ? (
+                    <div className="h-10 w-16 rounded overflow-hidden">
+                      <img 
+                        src={market.coverImage} 
+                        alt={market.name} 
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-10 w-16 rounded bg-slate-200 flex items-center justify-center text-slate-400 text-xs">
+                      No Image
+                    </div>
+                  )}
+                  <span className="font-medium">{market.name}</span>
+                </div>
+              </TableCell>
               <TableCell>{market.type}</TableCell>
               <TableCell>{formatDate(market.openTime)}</TableCell>
               <TableCell>{formatDate(market.closeTime)}</TableCell>
