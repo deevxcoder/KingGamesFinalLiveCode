@@ -54,12 +54,18 @@ export default function GameCard({
     if (!gameType) return;
     
     // Fetch the appropriate game card image
+    console.log(`Fetching game card image for type: ${gameType}`);
     fetch(`/api/gamecards?gameType=${gameType}`)
       .then(res => res.json())
       .then(data => {
+        console.log(`Game card API response for ${gameType}:`, data);
         if (data && data.length > 0) {
           // Use the first image for this game type
-          setGameCardImage(data[0].url);
+          const imageUrl = data[0].url;
+          console.log(`Setting game card image URL for ${gameType}:`, imageUrl);
+          setGameCardImage(imageUrl);
+        } else {
+          console.log(`No images found for game type: ${gameType}`);
         }
       })
       .catch(err => {
