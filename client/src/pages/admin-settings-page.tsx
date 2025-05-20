@@ -1151,14 +1151,14 @@ export default function AdminSettingsPage() {
                                 max="100"
                                 value={commissionRates.deposit} 
                                 onChange={(e) => setCommissionRates({...commissionRates, deposit: e.target.value})} 
-                                placeholder="30.0"
+                                placeholder="0.0"
                                 className="max-w-[120px]"
                               />
                               <span>% of transaction amount</span>
                             </div>
                             <p className="text-sm text-slate-400">
-                              This rate applies to admin-subadmin fund transfers. When admin adds funds to a subadmin, 
-                              the subadmin receives the base amount plus this commission percentage.
+                              This rate applies to all admin-subadmin fund transfers where a specific commission rate 
+                              has not been set for the subadmin. You can set any value from 0% to 100%.
                             </p>
                           </div>
                           
@@ -1191,9 +1191,9 @@ export default function AdminSettingsPage() {
                       <div>
                         <h3 className="text-sm font-medium text-blue-400">About Commission Settings</h3>
                         <p className="text-sm text-slate-300 mt-1">
-                          The commission rate applies to all deposit transactions between admin and subadmins. 
-                          For individual subadmin commission rates, please visit the Subadmin Management page and 
-                          set a custom rate for each subadmin.
+                          You can set any commission rate from 0% to 100%. This platform-wide setting will apply to all 
+                          subadmins that don't have individual rates configured. For individual subadmin commission rates, 
+                          please visit the Subadmin Management page.
                         </p>
                       </div>
                     </div>
