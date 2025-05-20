@@ -587,7 +587,10 @@ export default function RiskManagementPage() {
                       <Table>
                         <TableHeader className="sticky top-0 bg-background z-10">
                           <TableRow>
-                            <TableHead className="w-[80px]">Number</TableHead>
+                            <TableHead className="w-[80px]">
+                              {betTypeFilter === 'harf' ? "Digit" : 
+                               betTypeFilter === 'oddeven' ? "Option" : "Number"}
+                            </TableHead>
                             <TableHead className="w-[100px]">Active Bets</TableHead>
                             <TableHead className="w-[150px]">Bet Amount</TableHead>
                             <TableHead className="w-[150px]">Potential Win</TableHead>
@@ -598,9 +601,304 @@ export default function RiskManagementPage() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {Array.from({ length: 100 }, (_, i) => {
-                            // Format number as two digits (e.g., 00, 01, ..., 99)
-                            const num = i.toString().padStart(2, '0');
+                          {betTypeFilter === 'harf' ? (
+                            // For Harf bet type, show Andar (left digit) and Bahar (right digit) rows
+                            <>
+                              {/* Andar (Left digit) section */}
+                              <TableRow>
+                                <TableCell colSpan={8} className="bg-slate-100 dark:bg-slate-800 font-bold">
+                                  Andar (Left Digit)
+                                </TableCell>
+                              </TableRow>
+                              
+                              {Array.from({ length: 10 }, (_, i) => {
+                                // For Andar - use format A0, A1, A2, etc.
+                                const digit = i.toString();
+                                const prediction = `A${digit}`;
+                                
+                                // Filter games for this Andar digit
+                                const gamesForDigit = data.detailedData.gameData.filter(game => {
+                                  if (game.gameType !== 'satamatka') return false;
+                                  if (game.result && game.result !== 'pending') return false;
+                                  if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
+                                  
+                                  // Match Andar digit predictions (like A1, A2, etc.)
+                                  return game.prediction === prediction || 
+                                         (game.gameMode === 'harf' && game.prediction?.startsWith('A') && 
+                                          game.prediction?.slice(1) === digit);
+                                });
+                                
+                                // Calculate total bet amount for this digit
+                                const totalBetAmount = gamesForDigit.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                                
+                                // Calculate potential win amount (9x for Harf)
+                                const potentialWin = gamesForDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * 9), 0);
+                                
+                                // Get unique bet types
+                                const betTypes = Array.from(new Set(gamesForDigit.map(game => game.gameMode || game.prediction))).join(', ');
+                                
+                                // Determine risk level based on thresholds
+                                const riskLevel = totalBetAmount >= riskThresholds.high 
+                                  ? 'high' 
+                                  : totalBetAmount >= riskThresholds.medium 
+                                    ? 'medium' 
+                                    : totalBetAmount >= riskThresholds.low 
+                                      ? 'low' 
+                                      : '';
+                                      
+                                return (
+                                  <TableRow 
+                                    key={`andar-${digit}`}
+                                    className={
+                                      riskLevel === 'high' 
+                                        ? 'bg-red-500/10'
+                                        : riskLevel === 'medium'
+                                          ? 'bg-orange-500/10'
+                                          : riskLevel === 'low'
+                                            ? 'bg-blue-500/10'
+                                            : ''
+                                    }
+                                  >
+                                    <TableCell className="font-bold text-center">{digit} (Andar)</TableCell>
+                                    <TableCell>{gamesForDigit.length}</TableCell>
+                                    <TableCell>
+                                      {totalBetAmount > 0 
+                                        ? `₹${(totalBetAmount/100).toFixed(2)}` 
+                                        : <span className="text-muted-foreground">No bets</span>
+                                      }
+                                    </TableCell>
+                                    <TableCell>
+                                      {potentialWin > 0 
+                                        ? `₹${(potentialWin/100).toFixed(2)}` 
+                                        : <span className="text-muted-foreground">-</span>
+                                      }
+                                    </TableCell>
+                                    <TableCell>{betTypes}</TableCell>
+                                    <TableCell>
+                                      {gamesForDigit.length > 0 && (
+                                        <div className="flex flex-col space-y-1">
+                                          {Array.from(new Set(gamesForDigit.map(game => game.marketId))).map(marketId => (
+                                            <Badge key={marketId} variant="outline">
+                                              {marketInfo[marketId]?.name || `Market ${marketId}`}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      {getRiskLevelBadge(riskLevel)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {gamesForDigit.length > 0 && (
+                                        <div className="flex flex-col space-y-1">
+                                          {Array.from(new Set(gamesForDigit.map(game => game.userId))).map(userId => (
+                                            <div key={userId} className="flex items-center space-x-1">
+                                              <Users className="h-3 w-3" />
+                                              <span className="text-xs">{userInfo[userId]?.username || `User ${userId}`}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                              
+                              {/* Bahar (Right digit) section */}
+                              <TableRow>
+                                <TableCell colSpan={8} className="bg-slate-100 dark:bg-slate-800 font-bold">
+                                  Bahar (Right Digit)
+                                </TableCell>
+                              </TableRow>
+                              
+                              {Array.from({ length: 10 }, (_, i) => {
+                                // For Bahar - use format B0, B1, B2, etc.
+                                const digit = i.toString();
+                                const prediction = `B${digit}`;
+                                
+                                // Filter games for this Bahar digit
+                                const gamesForDigit = data.detailedData.gameData.filter(game => {
+                                  if (game.gameType !== 'satamatka') return false;
+                                  if (game.result && game.result !== 'pending') return false;
+                                  if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
+                                  
+                                  // Match Bahar digit predictions (like B1, B2, etc.)
+                                  return game.prediction === prediction || 
+                                         (game.gameMode === 'harf' && game.prediction?.startsWith('B') && 
+                                          game.prediction?.slice(1) === digit);
+                                });
+                                
+                                // Calculate total bet amount for this digit
+                                const totalBetAmount = gamesForDigit.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                                
+                                // Calculate potential win amount (9x for Harf)
+                                const potentialWin = gamesForDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * 9), 0);
+                                
+                                // Get unique bet types
+                                const betTypes = Array.from(new Set(gamesForDigit.map(game => game.gameMode || game.prediction))).join(', ');
+                                
+                                // Determine risk level based on thresholds
+                                const riskLevel = totalBetAmount >= riskThresholds.high 
+                                  ? 'high' 
+                                  : totalBetAmount >= riskThresholds.medium 
+                                    ? 'medium' 
+                                    : totalBetAmount >= riskThresholds.low 
+                                      ? 'low' 
+                                      : '';
+                                      
+                                return (
+                                  <TableRow 
+                                    key={`bahar-${digit}`}
+                                    className={
+                                      riskLevel === 'high' 
+                                        ? 'bg-red-500/10'
+                                        : riskLevel === 'medium'
+                                          ? 'bg-orange-500/10'
+                                          : riskLevel === 'low'
+                                            ? 'bg-blue-500/10'
+                                            : ''
+                                    }
+                                  >
+                                    <TableCell className="font-bold text-center">{digit} (Bahar)</TableCell>
+                                    <TableCell>{gamesForDigit.length}</TableCell>
+                                    <TableCell>
+                                      {totalBetAmount > 0 
+                                        ? `₹${(totalBetAmount/100).toFixed(2)}` 
+                                        : <span className="text-muted-foreground">No bets</span>
+                                      }
+                                    </TableCell>
+                                    <TableCell>
+                                      {potentialWin > 0 
+                                        ? `₹${(potentialWin/100).toFixed(2)}` 
+                                        : <span className="text-muted-foreground">-</span>
+                                      }
+                                    </TableCell>
+                                    <TableCell>{betTypes}</TableCell>
+                                    <TableCell>
+                                      {gamesForDigit.length > 0 && (
+                                        <div className="flex flex-col space-y-1">
+                                          {Array.from(new Set(gamesForDigit.map(game => game.marketId))).map(marketId => (
+                                            <Badge key={marketId} variant="outline">
+                                              {marketInfo[marketId]?.name || `Market ${marketId}`}
+                                            </Badge>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </TableCell>
+                                    <TableCell>
+                                      {getRiskLevelBadge(riskLevel)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {gamesForDigit.length > 0 && (
+                                        <div className="flex flex-col space-y-1">
+                                          {Array.from(new Set(gamesForDigit.map(game => game.userId))).map(userId => (
+                                            <div key={userId} className="flex items-center space-x-1">
+                                              <Users className="h-3 w-3" />
+                                              <span className="text-xs">{userInfo[userId]?.username || `User ${userId}`}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              })}
+                            </>
+                          ) : betTypeFilter === 'oddeven' ? (
+                            // For Odd/Even bet type, show only Odd and Even options
+                            ['odd', 'even'].map(option => {
+                              // Filter games for this odd/even option
+                              const gamesForOption = data.detailedData.gameData.filter(game => {
+                                if (game.gameType !== 'satamatka') return false;
+                                if (game.result && game.result !== 'pending') return false;
+                                if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
+                                
+                                // Match odd/even prediction
+                                return game.prediction === option || 
+                                       (game.gameMode === 'oddeven' || game.gameMode === 'odd_even') && 
+                                       game.prediction === option;
+                              });
+                              
+                              // Calculate total bet amount for this option
+                              const totalBetAmount = gamesForOption.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                              
+                              // Calculate potential win amount (1.9x for Odd/Even)
+                              const potentialWin = gamesForOption.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
+                              
+                              // Get unique bet types
+                              const betTypes = Array.from(new Set(gamesForOption.map(game => game.gameMode || game.prediction))).join(', ');
+                              
+                              // Determine risk level based on thresholds
+                              const riskLevel = totalBetAmount >= riskThresholds.high 
+                                ? 'high' 
+                                : totalBetAmount >= riskThresholds.medium 
+                                  ? 'medium' 
+                                  : totalBetAmount >= riskThresholds.low 
+                                    ? 'low' 
+                                    : '';
+                                    
+                              return (
+                                <TableRow 
+                                  key={option}
+                                  className={
+                                    riskLevel === 'high' 
+                                      ? 'bg-red-500/10'
+                                      : riskLevel === 'medium'
+                                        ? 'bg-orange-500/10'
+                                        : riskLevel === 'low'
+                                          ? 'bg-blue-500/10'
+                                          : ''
+                                  }
+                                >
+                                  <TableCell className="font-bold text-center">{option.charAt(0).toUpperCase() + option.slice(1)}</TableCell>
+                                  <TableCell>{gamesForOption.length}</TableCell>
+                                  <TableCell>
+                                    {totalBetAmount > 0 
+                                      ? `₹${(totalBetAmount/100).toFixed(2)}` 
+                                      : <span className="text-muted-foreground">No bets</span>
+                                    }
+                                  </TableCell>
+                                  <TableCell>
+                                    {potentialWin > 0 
+                                      ? `₹${(potentialWin/100).toFixed(2)}` 
+                                      : <span className="text-muted-foreground">-</span>
+                                    }
+                                  </TableCell>
+                                  <TableCell>{betTypes}</TableCell>
+                                  <TableCell>
+                                    {gamesForOption.length > 0 && (
+                                      <div className="flex flex-col space-y-1">
+                                        {Array.from(new Set(gamesForOption.map(game => game.marketId))).map(marketId => (
+                                          <Badge key={marketId} variant="outline">
+                                            {marketInfo[marketId]?.name || `Market ${marketId}`}
+                                          </Badge>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    {getRiskLevelBadge(riskLevel)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {gamesForOption.length > 0 && (
+                                      <div className="flex flex-col space-y-1">
+                                        {Array.from(new Set(gamesForOption.map(game => game.userId))).map(userId => (
+                                          <div key={userId} className="flex items-center space-x-1">
+                                            <Users className="h-3 w-3" />
+                                            <span className="text-xs">{userInfo[userId]?.username || `User ${userId}`}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })
+                          ) : (
+                            // For Jodi, Crossing, and All Types - show the standard 00-99 numbers grid
+                            Array.from({ length: 100 }, (_, i) => {
+                              // Format number as two digits (e.g., 00, 01, ..., 99)
+                              const num = i.toString().padStart(2, '0');
                             
                             // Get all games for this number filtered by the selected bet type
                             const gamesForNumber = data.detailedData.gameData.filter(game => {
