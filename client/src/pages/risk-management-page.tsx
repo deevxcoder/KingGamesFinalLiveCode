@@ -197,6 +197,19 @@ export default function RiskManagementPage() {
     return summaries.reduce((total, summary) => total + summary.highRiskBets, 0);
   }
   
+  // Calculate total bet amount across all active bets
+  function calculateTotalBetAmount(detailedData: DetailedRiskData): number {
+    if (!detailedData || !detailedData.gameData) return 0;
+    
+    return detailedData.gameData.reduce((total, game) => {
+      // Only include pending bets in the total
+      if (game.result && game.result !== 'pending') return total;
+      
+      // Sum up all bet amounts
+      return total + (game.betAmount || 0);
+    }, 0);
+  }
+
   // Calculate total potential win across all active bets
   function calculateTotalPotentialWin(detailedData: DetailedRiskData): number {
     if (!detailedData || !detailedData.gameData) return 0;
@@ -432,7 +445,7 @@ export default function RiskManagementPage() {
                       <Target className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(marketGameData.totalBetAmount/100).toFixed(2)}</div>
+                      <div className="text-2xl font-bold">₹{(calculateTotalBetAmount(data.detailedData)/100).toFixed(2)}</div>
                     </CardContent>
                   </Card>
                   <Card>
