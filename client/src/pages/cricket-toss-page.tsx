@@ -311,7 +311,7 @@ export default function CricketTossPage() {
                         >
                           <div className="flex flex-col items-center justify-center gap-1">
                             <div>{selectedMatch.teamA}</div>
-                            <div className="text-sm">Odds: {formatOdds(selectedMatch.oddTeamA)}</div>
+
                           </div>
                         </Button>
                         <Button
@@ -321,7 +321,7 @@ export default function CricketTossPage() {
                         >
                           <div className="flex flex-col items-center justify-center gap-1">
                             <div>{selectedMatch.teamB}</div>
-                            <div className="text-sm">Odds: {formatOdds(selectedMatch.oddTeamB)}</div>
+
                           </div>
                         </Button>
                       </div>
