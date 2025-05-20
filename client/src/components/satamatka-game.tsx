@@ -1674,7 +1674,13 @@ export default function SatamatkaGame() {
                         </TableCell>
                         <TableCell>
                           <span className="font-medium">
-                            {bet.prediction}
+                            {bet.gameType === 'satamatka' && bet.gameMode === 'harf' ? 
+                              bet.prediction.startsWith('L') ? 
+                                `A${bet.prediction.slice(1)}` : 
+                                bet.prediction.startsWith('R') ? 
+                                  `B${bet.prediction.slice(1)}` : 
+                                  bet.prediction 
+                              : bet.prediction}
                           </span>
                         </TableCell>
                         <TableCell>₹{(bet.betAmount / 100).toFixed(2)}</TableCell>
