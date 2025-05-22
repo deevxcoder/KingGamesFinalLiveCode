@@ -443,7 +443,7 @@ export default function SimplifiedRiskPage() {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-sm">Bet Type:</span>
-                                <span className="text-sm">{player.betType || 'single'}</span>
+                                <span className="text-sm">{player.gameMode || player.betType || 'jodi'}</span>
                               </div>
                             </div>
                           </div>
