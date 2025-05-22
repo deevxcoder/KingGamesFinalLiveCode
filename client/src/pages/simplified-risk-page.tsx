@@ -33,7 +33,10 @@ import {
   TrendingUp,
   Users,
   Target,
-  Loader2
+  Loader2,
+  Eye,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
@@ -133,6 +136,13 @@ export default function SimplifiedRiskPage() {
   // Whether risk configuration dialog is open
   const [riskConfigOpen, setRiskConfigOpen] = useState(false);
   
+  // Player details modal state
+  const [playerDetailsModal, setPlayerDetailsModal] = useState(false);
+  const [selectedPlayers, setSelectedPlayers] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [modalTitle, setModalTitle] = useState('');
+  const playersPerPage = 10;
+  
   // Form for risk threshold configuration
   const riskConfigForm = useForm({
     defaultValues: {
@@ -188,6 +198,20 @@ export default function SimplifiedRiskPage() {
     if (level === 'low') return <Badge className="bg-[#9333EA] text-white">Low</Badge>;
     return null;
   };
+
+  // Function to show player details in modal
+  const showPlayerDetails = (players: any[], title: string) => {
+    setSelectedPlayers(players);
+    setModalTitle(title);
+    setCurrentPage(1);
+    setPlayerDetailsModal(true);
+  };
+
+  // Calculate pagination for player details
+  const totalPages = Math.ceil(selectedPlayers.length / playersPerPage);
+  const startIndex = (currentPage - 1) * playersPerPage;
+  const endIndex = startIndex + playersPerPage;
+  const currentPlayers = selectedPlayers.slice(startIndex, endIndex);
 
   // Prepare data conditionally but without using hooks
   let marketGameData = null;
@@ -373,6 +397,124 @@ export default function SimplifiedRiskPage() {
                 </DialogFooter>
               </form>
             </Form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Player Details Modal */}
+        <Dialog open={playerDetailsModal} onOpenChange={setPlayerDetailsModal}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                {modalTitle}
+              </DialogTitle>
+              <DialogDescription>
+                Player betting details with risk analysis
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-[60vh] pr-4">
+                <div className="space-y-4">
+                  {currentPlayers.map((player, index) => (
+                    <Card key={startIndex + index} className="border-l-4 border-l-primary">
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <h4 className="font-semibold text-base mb-2">
+                              {userInfo[player.userId] ? userInfo[player.userId].username : `Player ${player.userId}`}
+                            </h4>
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div>Player ID: {player.userId}</div>
+                              <div>Market: {marketInfo[player.marketId] ? marketInfo[player.marketId].name : `Market ${player.marketId}`}</div>
+                              <div>Prediction: <span className="font-medium text-foreground">{player.prediction}</span></div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm">Bet Amount:</span>
+                                <span className="font-semibold">₹{(player.betAmount / 100).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Potential Win:</span>
+                                <span className="font-semibold text-green-600">₹{((player.betAmount * 90) / 100).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Bet Type:</span>
+                                <span className="text-sm">{player.betType || 'single'}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col items-end">
+                            <div className="mb-2">
+                              {(() => {
+                                let riskLevel = 'low';
+                                if (player.betAmount > riskThresholds.high) riskLevel = 'high';
+                                else if (player.betAmount > riskThresholds.medium) riskLevel = 'medium';
+                                return getRiskLevelBadge(riskLevel);
+                              })()}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Game ID: {player.id}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Status: {player.result || 'Pending'}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {currentPlayers.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No player data available
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1} to {Math.min(endIndex, selectedPlayers.length)} of {selectedPlayers.length} players
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPlayerDetailsModal(false)}>
+                Close
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
