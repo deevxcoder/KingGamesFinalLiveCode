@@ -370,11 +370,15 @@ async function getCricketMatchAnalysis(games: any[], oddValue: number) {
       // Calculate match totals and risk
       const totalBetAmount = teamAStats.totalAmount + teamBStats.totalAmount;
       const maxPotentialPayout = Math.max(teamAStats.potentialPayout, teamBStats.potentialPayout);
-      const potentialProfit = totalBetAmount - maxPotentialPayout;
       
-      // Determine risk level based on potential loss
+      // For cricket toss: 
+      // - Potential Profit = if house wins (keep all bet amounts)
+      // - Potential Liability = worst case payout (maximum we'd pay out)
+      const potentialProfit = totalBetAmount; // House keeps all ₹400 if house wins
+      const potentialLoss = maxPotentialPayout; // Maximum payout to users (₹400 × 2.00 = ₹800)
+      
+      // Determine risk level based on potential liability
       let riskLevel = 'low';
-      const potentialLoss = maxPotentialPayout - totalBetAmount;
       if (potentialLoss > 50000) { // ₹500 
         riskLevel = 'high';
       } else if (potentialLoss > 20000) { // ₹200
