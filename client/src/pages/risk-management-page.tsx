@@ -1004,13 +1004,165 @@ export default function RiskManagementPage() {
                   </Card>
                 </div>
                 
+                {/* Cricket Match-wise Risk Analysis */}
                 <Card className="mt-6">
                   <CardHeader>
-                    <CardTitle>Cricket Toss Risk Analysis</CardTitle>
-                    <CardDescription>Balance of bets on cricket toss games</CardDescription>
+                    <CardTitle>Cricket Toss Match Analysis</CardTitle>
+                    <CardDescription>Detailed risk assessment for each cricket match with team-wise betting data</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p>The cricket toss risk analysis feature will be implemented in a future update.</p>
+                    {data.detailedData?.cricketMatchAnalysis && data.detailedData.cricketMatchAnalysis.length > 0 ? (
+                      <div className="space-y-6">
+                        {data.detailedData.cricketMatchAnalysis.map((match: any) => (
+                          <Card key={match.matchId} className="border-l-4 border-l-blue-500">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <CardTitle className="text-lg">
+                                    {match.matchInfo.teamA} vs {match.matchInfo.teamB}
+                                  </CardTitle>
+                                  <CardDescription className="mt-1">
+                                    {match.matchInfo.description} • {new Date(match.matchInfo.matchTime).toLocaleString()}
+                                  </CardDescription>
+                                </div>
+                                <Badge className={
+                                  match.summary.riskLevel === 'high' ? 'bg-red-500' :
+                                  match.summary.riskLevel === 'medium' ? 'bg-orange-500' : 'bg-green-500'
+                                }>
+                                  {match.summary.riskLevel.toUpperCase()} RISK
+                                </Badge>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              {/* Match Summary Stats */}
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                                <div className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                                  <div className="text-lg font-bold">{match.summary.totalBets}</div>
+                                  <div className="text-xs text-muted-foreground">Total Bets</div>
+                                </div>
+                                <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                  <div className="text-lg font-bold">₹{(match.summary.totalAmount / 100).toFixed(0)}</div>
+                                  <div className="text-xs text-muted-foreground">Total Amount</div>
+                                </div>
+                                <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                  <div className="text-lg font-bold">₹{(match.summary.potentialProfit / 100).toFixed(0)}</div>
+                                  <div className="text-xs text-muted-foreground">Potential Profit</div>
+                                </div>
+                                <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                                  <div className="text-lg font-bold">₹{(match.summary.potentialLoss / 100).toFixed(0)}</div>
+                                  <div className="text-xs text-muted-foreground">Potential Loss</div>
+                                </div>
+                              </div>
+
+                              {/* Team-wise Betting Analysis */}
+                              <div className="grid md:grid-cols-2 gap-6">
+                                {/* Team A Analysis */}
+                                <Card className="border-primary/20">
+                                  <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between">
+                                      <CardTitle className="text-base">{match.matchInfo.teamA}</CardTitle>
+                                      <Badge variant="outline" className="text-xs">
+                                        Odds: {(match.matchInfo.oddTeamA / 100).toFixed(2)}x
+                                      </Badge>
+                                    </div>
+                                  </CardHeader>
+                                  <CardContent className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-muted-foreground">Active Bets:</span>
+                                      <span className="font-medium">{match.teamAStats.totalBets}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-muted-foreground">Total Amount:</span>
+                                      <span className="font-medium">₹{(match.teamAStats.totalAmount / 100).toFixed(0)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-muted-foreground">Potential Payout:</span>
+                                      <span className="font-bold text-red-600">₹{(match.teamAStats.potentialPayout / 100).toFixed(0)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-muted-foreground">Unique Players:</span>
+                                      <span className="font-medium">{match.teamAStats.users.length}</span>
+                                    </div>
+                                    {match.teamAStats.users.length > 0 && (
+                                      <div className="mt-3">
+                                        <span className="text-xs text-muted-foreground">Players:</span>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {match.teamAStats.users.slice(0, 3).map((userId: number) => (
+                                            <Badge key={userId} variant="secondary" className="text-xs">
+                                              {userInfo[userId]?.username || `User ${userId}`}
+                                            </Badge>
+                                          ))}
+                                          {match.teamAStats.users.length > 3 && (
+                                            <Badge variant="secondary" className="text-xs">
+                                              +{match.teamAStats.users.length - 3} more
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+
+                                {/* Team B Analysis */}
+                                <Card className="border-secondary/20">
+                                  <CardHeader className="pb-3">
+                                    <div className="flex items-center justify-between">
+                                      <CardTitle className="text-base">{match.matchInfo.teamB}</CardTitle>
+                                      <Badge variant="outline" className="text-xs">
+                                        Odds: {(match.matchInfo.oddTeamB / 100).toFixed(2)}x
+                                      </Badge>
+                                    </div>
+                                  </CardHeader>
+                                  <CardContent className="space-y-3">
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-muted-foreground">Active Bets:</span>
+                                      <span className="font-medium">{match.teamBStats.totalBets}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-muted-foreground">Total Amount:</span>
+                                      <span className="font-medium">₹{(match.teamBStats.totalAmount / 100).toFixed(0)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-muted-foreground">Potential Payout:</span>
+                                      <span className="font-bold text-red-600">₹{(match.teamBStats.potentialPayout / 100).toFixed(0)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                      <span className="text-sm text-muted-foreground">Unique Players:</span>
+                                      <span className="font-medium">{match.teamBStats.users.length}</span>
+                                    </div>
+                                    {match.teamBStats.users.length > 0 && (
+                                      <div className="mt-3">
+                                        <span className="text-xs text-muted-foreground">Players:</span>
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {match.teamBStats.users.slice(0, 3).map((userId: number) => (
+                                            <Badge key={userId} variant="secondary" className="text-xs">
+                                              {userInfo[userId]?.username || `User ${userId}`}
+                                            </Badge>
+                                          ))}
+                                          {match.teamBStats.users.length > 3 && (
+                                            <Badge variant="secondary" className="text-xs">
+                                              +{match.teamBStats.users.length - 3} more
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                        <h3 className="text-lg font-medium mb-2">No Active Cricket Matches</h3>
+                        <p className="text-muted-foreground">
+                          There are currently no cricket toss matches with active bets in the system.
+                        </p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
