@@ -254,14 +254,37 @@ export async function getSubadminRiskManagement(req: Request, res: Response) {
  * Get risk management data for market games
  */
 async function getMarketGameRiskData() {
-  // Get all market games
+  // Get all active/open markets
+  const activeMarkets = await storage.getActiveSatamatkaMarkets();
+  
+  if (!activeMarkets || activeMarkets.length === 0) {
+    // No active markets, return empty data
+    return {
+      totalBetAmount: 0,
+      potentialLiability: 0, 
+      potentialProfit: 0,
+      exposureAmount: 0,
+      activeBets: 0,
+      totalBets: 0,
+      highRiskBets: 0,
+      userExposure: {},
+      marketExposure: {},
+      gameData: []
+    };
+  }
+  
+  // Get games only from active markets
+  const activeMarketIds = activeMarkets.map(market => market.id);
   const games = await storage.getGamesByType(GameType.SATAMATKA);
+  const activeMarketGames = games.filter(game => 
+    game.marketId && activeMarketIds.includes(game.marketId)
+  );
   
   // Get market game odds set by admin
   const marketOdds = await storage.getGameOddByType(GameType.SATAMATKA);
   const oddValue = marketOdds?.oddValue || 90; // Default to 90 if not set
   
-  return calculateRiskData(games, oddValue);
+  return calculateRiskData(activeMarketGames, oddValue);
 }
 
 /**
