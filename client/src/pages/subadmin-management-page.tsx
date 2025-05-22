@@ -1318,7 +1318,7 @@ export default function SubadminManagementPage() {
 
       {/* View Players Modal */}
       <Dialog open={isViewPlayersDialogOpen} onOpenChange={setIsViewPlayersDialogOpen}>
-        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-auto">
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Players under {selectedSubadminName}</DialogTitle>
             <DialogDescription>
@@ -1326,13 +1326,14 @@ export default function SubadminManagementPage() {
             </DialogDescription>
           </DialogHeader>
           
-          {isLoadingSubadminPlayers ? (
-            <div className="flex justify-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {subadminPlayers.length === 0 ? (
+          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+            {isLoadingSubadminPlayers ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {subadminPlayers.length === 0 ? (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground">No players assigned to this subadmin</p>
                 </div>
@@ -1408,8 +1409,9 @@ export default function SubadminManagementPage() {
                   )}
                 </>
               )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
 
