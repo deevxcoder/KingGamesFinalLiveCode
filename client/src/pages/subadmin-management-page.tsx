@@ -174,32 +174,7 @@ export default function SubadminManagementPage() {
     },
   });
 
-  // Fetch active bets for players
-  const { data: playersBetsData = {}, isLoading: isLoadingPlayersBets } = useQuery({
-    queryKey: ["/api/games/active-bets", selectedSubadminId],
-    enabled: isViewPlayersDialogOpen && !!selectedSubadminId,
-    select: (data: any) => {
-      console.log("All games for bet calculation:", data);
-      
-      const activeBets: Record<number, { totalBets: number; potentialWin: number }> = {};
-      
-      if (Array.isArray(data)) {
-        data.forEach((game: any) => {
-          console.log(`Game ${game.id}: status=${game.status}, userId=${game.userId}, payout=${game.payout}`);
-          if (game.status === 'pending' && game.userId) {
-            if (!activeBets[game.userId]) {
-              activeBets[game.userId] = { totalBets: 0, potentialWin: 0 };
-            }
-            activeBets[game.userId].totalBets += 1;
-            activeBets[game.userId].potentialWin += game.payout || 0;
-          }
-        });
-      }
-      
-      console.log("Calculated active bets:", activeBets);
-      return activeBets;
-    },
-  });
+
 
   // Create subadmin mutation
   const createSubadminMutation = useMutation({
@@ -1351,7 +1326,7 @@ export default function SubadminManagementPage() {
             </DialogDescription>
           </DialogHeader>
           
-          {isLoadingSubadminPlayers || isLoadingPlayersBets ? (
+          {isLoadingSubadminPlayers ? (
             <div className="flex justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
@@ -1369,42 +1344,31 @@ export default function SubadminManagementPage() {
                         <TableRow>
                           <TableHead>Username</TableHead>
                           <TableHead>Balance</TableHead>
-                          <TableHead>Total Active Bets</TableHead>
-                          <TableHead>Potential Win</TableHead>
                           <TableHead>Status</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {subadminPlayers
                           .slice((playersPage - 1) * playersPerPage, playersPage * playersPerPage)
-                          .map((player: any) => {
-                            const playerBets = playersBetsData[player.id] || { totalBets: 0, potentialWin: 0 };
-                            return (
-                              <TableRow key={player.id}>
-                                <TableCell className="font-medium">
-                                  {player.username}
-                                </TableCell>
-                                <TableCell>
-                                  ₹{(player.balance / 100)?.toFixed(2) || '0.00'}
-                                </TableCell>
-                                <TableCell>
-                                  {playerBets.totalBets}
-                                </TableCell>
-                                <TableCell>
-                                  ₹{(playerBets.potentialWin / 100)?.toFixed(2) || '0.00'}
-                                </TableCell>
-                                <TableCell>
-                                  {player.isBlocked ? (
-                                    <Badge variant="destructive">Blocked</Badge>
-                                  ) : (
-                                    <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                                      Active
-                                    </Badge>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
+                          .map((player: any) => (
+                            <TableRow key={player.id}>
+                              <TableCell className="font-medium">
+                                {player.username}
+                              </TableCell>
+                              <TableCell>
+                                ₹{(player.balance / 100)?.toFixed(2) || '0.00'}
+                              </TableCell>
+                              <TableCell>
+                                {player.isBlocked ? (
+                                  <Badge variant="destructive">Blocked</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                                    Active
+                                  </Badge>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          ))}
                       </TableBody>
                     </Table>
                   </div>
