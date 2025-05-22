@@ -319,19 +319,36 @@ async function getCricketTossRiskData() {
  */
 async function getCricketMatchAnalysis(games: any[], oddValue: number) {
   try {
+    console.log("Getting cricket match analysis...");
+    console.log("Total cricket toss games:", games.length);
+    
     // Get all active cricket toss matches
     const activeMatches = await storage.getActiveTeamMatches();
+    console.log("All active matches:", activeMatches.length);
+    
     const cricketMatches = activeMatches.filter(match => match.category === "cricket_toss");
+    console.log("Cricket toss matches:", cricketMatches.length);
+    
+    if (cricketMatches.length === 0) {
+      console.log("No cricket toss matches found");
+      return [];
+    }
     
     const matchAnalysis = await Promise.all(cricketMatches.map(async (match) => {
-      // Filter games for this specific match
+      console.log(`Processing match ${match.id}: ${match.teamA} vs ${match.teamB}`);
+      
+      // Filter games for this specific match - match both null result and pending result
       const matchGames = games.filter(game => 
-        game.matchId === match.id && (!game.result || game.result === 'pending')
+        game.matchId === match.id && (game.result === null || game.result === 'pending' || !game.result)
       );
+      
+      console.log(`Match ${match.id} has ${matchGames.length} active bets`);
       
       // Separate bets by team selection
       const teamABets = matchGames.filter(game => game.prediction === 'team_a');
       const teamBBets = matchGames.filter(game => game.prediction === 'team_b');
+      
+      console.log(`Team A bets: ${teamABets.length}, Team B bets: ${teamBBets.length}`);
       
       // Calculate team A statistics
       const teamAStats = {
@@ -363,7 +380,7 @@ async function getCricketMatchAnalysis(games: any[], oddValue: number) {
         riskLevel = 'medium';
       }
       
-      return {
+      const analysis = {
         matchId: match.id,
         matchInfo: {
           teamA: match.teamA,
@@ -385,9 +402,14 @@ async function getCricketMatchAnalysis(games: any[], oddValue: number) {
           maxPotentialPayout
         }
       };
+      
+      console.log(`Match ${match.id} analysis:`, JSON.stringify(analysis, null, 2));
+      return analysis;
     }));
     
-    return matchAnalysis.filter(analysis => analysis.summary.totalBets > 0);
+    // Return all matches, even those with 0 bets to show in the UI
+    console.log("Final match analysis:", matchAnalysis.length);
+    return matchAnalysis;
   } catch (error) {
     console.error("Error in cricket match analysis:", error);
     return [];
