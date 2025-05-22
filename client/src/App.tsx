@@ -36,12 +36,14 @@ import SettingsRouter from "@/pages/settings-router";
 import UserDetailsPage from "@/pages/user-details-page";
 import ResetZonePage from "@/pages/reset-zone-page";
 import RiskManagementPage from "@/pages/simplified-risk-page";
+import ResultsPage from "@/pages/results-page";
 
 function Router() {
   return (
     <Switch>
       {/* Public routes */}
       <Route path="/" component={PublicHomePage} />
+      <Route path="/results" component={ResultsPage} />
       <Route path="/auth" component={AuthPage} />
       
       {/* Protected routes */}

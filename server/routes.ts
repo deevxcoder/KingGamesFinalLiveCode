@@ -48,6 +48,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup reset system routes
   app.use("/api/admin", resetSystemRoutes);
   
+  // Public API endpoints (no authentication required)
+  
+  // Get public market results (accessible without authentication)
+  app.get("/api/public/market-results", async (req, res, next) => {
+    try {
+      const { limit = 20, date } = req.query;
+      
+      let markets;
+      if (date) {
+        // Filter by specific date
+        const targetDate = new Date(date as string);
+        const startOfDay = new Date(targetDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(targetDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        markets = await storage.getMarketResultsByDateRange(startOfDay, endOfDay);
+      } else {
+        // Get recent results
+        markets = await storage.getRecentMarketResults(Number(limit));
+      }
+      
+      // Filter only resulted markets and format for public display
+      const publicResults = markets
+        .filter(market => market.status === 'resulted' && market.openResult)
+        .map(market => ({
+          id: market.id,
+          name: market.name,
+          type: market.type,
+          openResult: market.openResult,
+          closeResult: market.closeResult,
+          status: market.status,
+          openTime: market.openTime,
+          closeTime: market.closeTime,
+          resultTime: market.resultTime,
+          createdAt: market.createdAt
+        }));
+        
+      res.json(publicResults);
+    } catch (err) {
+      next(err);
+    }
+  });
+
+  // Get today's market results (public)
+  app.get("/api/public/market-results/today", async (req, res, next) => {
+    try {
+      const today = new Date();
+      const startOfDay = new Date(today);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(today);
+      endOfDay.setHours(23, 59, 59, 999);
+      
+      const markets = await storage.getMarketResultsByDateRange(startOfDay, endOfDay);
+      
+      const todayResults = markets
+        .filter(market => market.status === 'resulted' && market.openResult)
+        .map(market => ({
+          id: market.id,
+          name: market.name,
+          type: market.type,
+          openResult: market.openResult,
+          closeResult: market.closeResult,
+          status: market.status,
+          openTime: market.openTime,
+          closeTime: market.closeTime,
+          resultTime: market.resultTime,
+          createdAt: market.createdAt
+        }));
+        
+      res.json(todayResults);
+    } catch (err) {
+      next(err);
+    }
+  });
+  
   // Setup risk management routes
   app.get('/api/risk/admin', requireRole(UserRole.ADMIN), getAdminRiskManagement);
   app.get('/api/risk/subadmin', requireRole(UserRole.SUBADMIN), getSubadminRiskManagement);

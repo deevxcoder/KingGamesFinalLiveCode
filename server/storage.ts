@@ -85,6 +85,8 @@ export interface IStorage {
   updateSatamatkaMarketResults(id: number, openResult?: string, closeResult?: string): Promise<SatamatkaMarket | undefined>;
   updateSatamatkaMarketStatus(id: number, status: string): Promise<SatamatkaMarket | undefined>;
   getSatamatkaGamesByMarketId(marketId: number): Promise<Game[]>;
+  getRecentMarketResults(limit?: number): Promise<SatamatkaMarket[]>;
+  getMarketResultsByDateRange(startDate: Date, endDate: Date): Promise<SatamatkaMarket[]>;
 
   // Team Match methods
   createTeamMatch(match: InsertTeamMatch): Promise<TeamMatch>;
@@ -971,6 +973,27 @@ export class DatabaseStorage implements IStorage {
 
   async seedDemoSatamatkaMarkets(): Promise<void> {
     console.log("Demo Satamatka markets seeding is disabled");
+  }
+
+  async getRecentMarketResults(limit: number = 20): Promise<SatamatkaMarket[]> {
+    return await db.select()
+      .from(satamatkaMarkets)
+      .where(eq(satamatkaMarkets.status, 'resulted'))
+      .orderBy(desc(satamatkaMarkets.resultTime), desc(satamatkaMarkets.createdAt))
+      .limit(limit);
+  }
+
+  async getMarketResultsByDateRange(startDate: Date, endDate: Date): Promise<SatamatkaMarket[]> {
+    return await db.select()
+      .from(satamatkaMarkets)
+      .where(
+        and(
+          eq(satamatkaMarkets.status, 'resulted'),
+          gte(satamatkaMarkets.resultTime, startDate),
+          lte(satamatkaMarkets.resultTime, endDate)
+        )
+      )
+      .orderBy(desc(satamatkaMarkets.resultTime), desc(satamatkaMarkets.createdAt));
   }
 }
 
