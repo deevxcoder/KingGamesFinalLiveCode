@@ -183,9 +183,9 @@ export default function RiskManagementPage() {
 
   // Helper function for risk level badge
   const getRiskLevelBadge = (level: string) => {
-    if (level === 'high') return <Badge variant="destructive">High</Badge>;
-    if (level === 'medium') return <Badge variant="warning" className="bg-orange-500">Medium</Badge>;
-    if (level === 'low') return <Badge variant="secondary" className="bg-blue-500 text-white">Low</Badge>;
+    if (level === 'high') return <Badge className="bg-primary text-primary-foreground border-primary/20 font-semibold">High</Badge>;
+    if (level === 'medium') return <Badge className="bg-primary/80 text-primary-foreground border-primary/20 font-semibold">Medium</Badge>;
+    if (level === 'low') return <Badge className="bg-primary/60 text-primary-foreground border-primary/20 font-semibold">Low</Badge>;
     return null;
   };
 
@@ -391,12 +391,12 @@ export default function RiskManagementPage() {
               <>
                 {/* Stats Overview Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-                  <Card>
+                  <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
                         Active Satamatka Bets
                       </CardTitle>
-                      <Activity className="h-4 w-4 text-muted-foreground" />
+                      <Activity className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">{marketGameData.activeBets}</div>
@@ -412,12 +412,12 @@ export default function RiskManagementPage() {
                     </CardContent>
                   </Card>
                   
-                  <Card>
+                  <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
                         High Risk Bets
                       </CardTitle>
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                      <AlertTriangle className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">{marketGameData.highRiskBets}</div>
@@ -434,12 +434,12 @@ export default function RiskManagementPage() {
                     </CardContent>
                   </Card>
                   
-                  <Card>
+                  <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
                         Current Exposure
                       </CardTitle>
-                      <Target className="h-4 w-4 text-orange-500" />
+                      <Target className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">₹{(marketGameData.exposureAmount/100).toFixed(2)}</div>
