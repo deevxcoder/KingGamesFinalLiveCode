@@ -978,12 +978,7 @@ export class DatabaseStorage implements IStorage {
   async getRecentMarketResults(limit: number = 20): Promise<SatamatkaMarket[]> {
     return await db.select()
       .from(satamatkaMarkets)
-      .where(
-        and(
-          eq(satamatkaMarkets.status, 'resulted'),
-          isNotNull(satamatkaMarkets.openResult)
-        )
-      )
+      .where(eq(satamatkaMarkets.status, 'resulted'))
       .orderBy(desc(satamatkaMarkets.createdAt))
       .limit(limit);
   }
@@ -994,7 +989,6 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(satamatkaMarkets.status, 'resulted'),
-          isNotNull(satamatkaMarkets.openResult),
           gte(satamatkaMarkets.createdAt, startDate),
           lte(satamatkaMarkets.createdAt, endDate)
         )
