@@ -19,6 +19,46 @@ import RecentResults from "@/components/recent-results";
 import RecentWinners from "@/components/recent-winners";
 import { Trophy, Target, Shield, ArrowRight } from "lucide-react";
 
+// Component to display real market results from API
+function PublicRecentResults() {
+  const { data: results = [], isLoading, error } = useQuery({
+    queryKey: ['/api/public/market-results', 'limit=8'],
+    queryFn: async () => {
+      const response = await fetch('/api/public/market-results?limit=8');
+      if (!response.ok) {
+        throw new Error('Failed to fetch results');
+      }
+      return response.json();
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="p-3 rounded-lg border border-slate-800 bg-slate-800/50 animate-pulse">
+            <div className="h-4 w-32 bg-slate-700 rounded mb-2"></div>
+            <div className="h-8 w-16 bg-slate-700 rounded mx-auto"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (error || results.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <Target className="h-12 w-12 text-slate-700 mx-auto mb-4" />
+        <p className="text-slate-500 text-sm">
+          {error ? 'Unable to load results' : 'No recent results available'}
+        </p>
+      </div>
+    );
+  }
+
+  return <RecentResults results={results} />;
+}
+
 // Sample recent results data for Dishawar and Gali markets (two digits 00-99)
 const sampleRecentResults = [
   {
@@ -496,7 +536,7 @@ export default function PublicHomePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <RecentResults results={sampleRecentResults} />
+                <PublicRecentResults />
               </CardContent>
             </Card>
             

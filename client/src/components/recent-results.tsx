@@ -103,7 +103,7 @@ export default function RecentResults({ results }: RecentResultsProps) {
         <Button 
           variant="ghost" 
           className="w-full text-primary hover:text-purple-400 hover:bg-slate-800/60 flex items-center justify-center"
-          onClick={() => setLocation("/markets")}
+          onClick={() => setLocation("/results")}
         >
           View All Results
           <ArrowRight className="h-4 w-4 ml-1" />

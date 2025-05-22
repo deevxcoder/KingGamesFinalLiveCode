@@ -41,7 +41,14 @@ export default function ResponsiveHeader() {
             <span className="text-primary">King</span>
             <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
           </h1>
-          <div className="flex">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              className="text-slate-300 hover:text-white hover:bg-slate-800/50"
+              onClick={() => setLocation("/results")}
+            >
+              Results
+            </Button>
             <Button
               className="bg-gradient-to-r from-primary to-blue-400 hover:from-primary/90 hover:to-blue-600"
               onClick={() => setLocation("/auth")}
