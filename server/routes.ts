@@ -1765,25 +1765,28 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 }
               }
               
-                      // The crossing bet should only win if the player's prediction includes the result
+                      // Crossing bet with EXACT match or from comma-separated digit list
               const resultToCheck = closeResult;
               
-              // For crossing bets, we check if the player's prediction matches the actual result
-              // For example, if result is "01", only a bet on "01" or a crossing that includes "0,1" should win
+              // For crossing bets, ONLY EXACT MATCHES win with the following exceptions:
+              // 1. If prediction is exactly "01", it must match result "01" (not "10")
+              // 2. If prediction is a comma-separated list like "0,1,2", we generate all combinations
+              //    and check if the result is one of those combinations
               
               // Check if the prediction exactly matches the result
               if (game.prediction === resultToCheck) {
                 isWinner = true;
               } 
-              // Check if the prediction is a crossing that includes the result digits
-              else if (crossingCombinations.includes(resultToCheck)) {
+              // Check if the prediction is a comma-separated list and if so, check combinations
+              else if (game.prediction.includes(',') && crossingCombinations.includes(resultToCheck)) {
                 isWinner = true;
               }
               
               // For debugging
-              console.log(`Crossing bet decision for game ${game.id}:`);
+              console.log(`Crossing game ID ${game.id}:`);
               console.log(`  Prediction: ${game.prediction}`);
-              console.log(`  Combinations: ${crossingCombinations.join(',')}`);
+              console.log(`  Parsed digits: ${JSON.stringify(digits)}`);
+              console.log(`  Generated combinations: ${JSON.stringify(crossingCombinations)}`);
               console.log(`  Result: ${resultToCheck}`);
               console.log(`  Is winner: ${isWinner}`);
               

@@ -121,21 +121,17 @@ async function fixPendingBets() {
         }
       }
       else if (game.game_mode === 'crossing') {
-        // For crossing, we check if the prediction EXACTLY matches the result
-        // This is what the client wants - only exact matches win
+        // For crossing, ONLY EXACT MATCHES win
+        // If prediction is "01", only a result of "01" wins (not "10")
         isWinner = (game.prediction === market.close_result);
         
-        // If not exact match, generate crossing combinations and check
-        if (!isWinner) {
+        // If not exact match but the prediction is a comma-separated list of digits
+        // like "0,1,2" then we need to check if any of the combinations match the result
+        if (!isWinner && game.prediction.includes(',')) {
           // Parse digits from prediction
           let digits = [];
-          if (game.prediction.includes(',')) {
-            // Format: "0,1,2"
-            digits = game.prediction.replace(/[^0-9,]/g, '').split(',').map(d => d.trim());
-          } else {
-            // Format: "012" or other formats without commas
-            digits = game.prediction.replace(/[^0-9]/g, '').split('');
-          }
+          // Format: "0,1,2"
+          digits = game.prediction.replace(/[^0-9,]/g, '').split(',').map(d => d.trim());
           
           // Generate crossing combinations
           const combinations = [];
@@ -149,7 +145,7 @@ async function fixPendingBets() {
           
           console.log(`  Crossing combinations: ${combinations.join(',')}`);
           
-          // Check if the result is in the combinations - MUST MATCH EXACTLY
+          // Check if the result is in the combinations
           isWinner = combinations.includes(market.close_result);
         }
       }
