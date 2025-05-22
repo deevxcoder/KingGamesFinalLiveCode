@@ -152,10 +152,20 @@ export default function SubadminManagementPage() {
 
   // Fetch players assigned to selected subadmin for view players modal
   const { data: subadminPlayers = [], isLoading: isLoadingSubadminPlayers } = useQuery({
-    queryKey: ["/api/users", selectedSubadminId],
+    queryKey: ["/api/users", "subadmin-players", selectedSubadminId],
     queryFn: async () => {
+      if (!selectedSubadminId) return [];
       const response = await apiRequest("GET", "/api/users") as any[];
-      return response.filter((u: any) => u.role === UserRole.PLAYER && u.assignedTo === selectedSubadminId);
+      console.log("All users for subadmin players modal:", response);
+      console.log("Selected subadmin ID:", selectedSubadminId);
+      const filtered = response.filter((u: any) => {
+        const isPlayer = u.role === UserRole.PLAYER;
+        const isAssigned = u.assignedTo === selectedSubadminId;
+        console.log(`User ${u.username}: role=${u.role}, assignedTo=${u.assignedTo}, isPlayer=${isPlayer}, isAssigned=${isAssigned}`);
+        return isPlayer && isAssigned;
+      });
+      console.log("Filtered players for subadmin:", filtered);
+      return filtered;
     },
     enabled: isViewPlayersDialogOpen && !!selectedSubadminId,
   });
