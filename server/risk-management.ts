@@ -21,6 +21,7 @@ interface DetailedRiskData {
   userExposure: { [userId: number]: number };
   marketExposure: { [marketId: number]: number };
   gameData: any[];
+  cricketMatchAnalysis?: any[];
 }
 
 interface RiskManagementResponse {
@@ -94,7 +95,8 @@ export async function getAdminRiskManagement(req: Request, res: Response) {
         gameData: [
           ...marketGameRiskData.games,
           ...cricketTossRiskData.games
-        ]
+        ],
+        cricketMatchAnalysis: cricketTossRiskData.matchAnalysis || []
       },
       userInfo,
       marketInfo
@@ -260,16 +262,18 @@ async function getMarketGameRiskData() {
   if (!activeMarkets || activeMarkets.length === 0) {
     // No active markets, return empty data
     return {
-      totalBetAmount: 0,
-      potentialLiability: 0, 
-      potentialProfit: 0,
-      exposureAmount: 0,
-      activeBets: 0,
-      totalBets: 0,
-      highRiskBets: 0,
+      summary: {
+        totalBetAmount: 0,
+        potentialLiability: 0, 
+        potentialProfit: 0,
+        exposureAmount: 0,
+        activeBets: 0,
+        totalBets: 0,
+        highRiskBets: 0
+      },
       userExposure: {},
       marketExposure: {},
-      gameData: []
+      games: []
     };
   }
   
@@ -288,7 +292,7 @@ async function getMarketGameRiskData() {
 }
 
 /**
- * Get risk management data for cricket toss games
+ * Get risk management data for cricket toss games with detailed match analysis
  */
 async function getCricketTossRiskData() {
   // Get all cricket toss games
@@ -298,7 +302,96 @@ async function getCricketTossRiskData() {
   const cricketOdds = await storage.getGameOddByType(GameType.CRICKET_TOSS);
   const oddValue = cricketOdds?.oddValue || 90; // Default to 90 if not set
   
-  return calculateRiskData(games, oddValue);
+  // Get match-wise analysis
+  const matchAnalysis = await getCricketMatchAnalysis(games, oddValue);
+  
+  const riskData = calculateRiskData(games, oddValue);
+  
+  // Add match analysis to the response
+  return {
+    ...riskData,
+    matchAnalysis
+  };
+}
+
+/**
+ * Get detailed cricket match analysis with team-wise betting data
+ */
+async function getCricketMatchAnalysis(games: any[], oddValue: number) {
+  try {
+    // Get all active cricket toss matches
+    const activeMatches = await storage.getActiveTeamMatches();
+    const cricketMatches = activeMatches.filter(match => match.category === "cricket_toss");
+    
+    const matchAnalysis = await Promise.all(cricketMatches.map(async (match) => {
+      // Filter games for this specific match
+      const matchGames = games.filter(game => 
+        game.matchId === match.id && (!game.result || game.result === 'pending')
+      );
+      
+      // Separate bets by team selection
+      const teamABets = matchGames.filter(game => game.prediction === 'team_a');
+      const teamBBets = matchGames.filter(game => game.prediction === 'team_b');
+      
+      // Calculate team A statistics
+      const teamAStats = {
+        totalBets: teamABets.length,
+        totalAmount: teamABets.reduce((sum, game) => sum + game.betAmount, 0),
+        potentialPayout: teamABets.reduce((sum, game) => sum + (game.betAmount * (match.oddTeamA / 100)), 0),
+        users: Array.from(new Set(teamABets.map(game => game.userId)))
+      };
+      
+      // Calculate team B statistics
+      const teamBStats = {
+        totalBets: teamBBets.length,
+        totalAmount: teamBBets.reduce((sum, game) => sum + game.betAmount, 0),
+        potentialPayout: teamBBets.reduce((sum, game) => sum + (game.betAmount * (match.oddTeamB / 100)), 0),
+        users: Array.from(new Set(teamBBets.map(game => game.userId)))
+      };
+      
+      // Calculate match totals and risk
+      const totalBetAmount = teamAStats.totalAmount + teamBStats.totalAmount;
+      const maxPotentialPayout = Math.max(teamAStats.potentialPayout, teamBStats.potentialPayout);
+      const potentialProfit = totalBetAmount - maxPotentialPayout;
+      
+      // Determine risk level based on potential loss
+      let riskLevel = 'low';
+      const potentialLoss = maxPotentialPayout - totalBetAmount;
+      if (potentialLoss > 50000) { // ₹500 
+        riskLevel = 'high';
+      } else if (potentialLoss > 20000) { // ₹200
+        riskLevel = 'medium';
+      }
+      
+      return {
+        matchId: match.id,
+        matchInfo: {
+          teamA: match.teamA,
+          teamB: match.teamB,
+          description: match.description,
+          matchTime: match.matchTime,
+          oddTeamA: match.oddTeamA,
+          oddTeamB: match.oddTeamB,
+          status: match.status
+        },
+        teamAStats,
+        teamBStats,
+        summary: {
+          totalBets: matchGames.length,
+          totalAmount: totalBetAmount,
+          potentialProfit,
+          potentialLoss,
+          riskLevel,
+          maxPotentialPayout
+        }
+      };
+    }));
+    
+    return matchAnalysis.filter(analysis => analysis.summary.totalBets > 0);
+  } catch (error) {
+    console.error("Error in cricket match analysis:", error);
+    return [];
+  }
 }
 
 /**
