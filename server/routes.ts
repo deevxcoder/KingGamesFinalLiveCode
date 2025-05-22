@@ -1765,13 +1765,22 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 }
               }
               
-              // Consider both the result and its reverse (e.g., if result is "01", also check for "10")
+              // The crossing bet should only win if the player's prediction includes the result
               const resultToCheck = closeResult;
-              const reverseResult = closeResult.length === 2 ? closeResult[1] + closeResult[0] : closeResult;
               
-              // Check if any of the crossing combinations match the result or its reverse
-              if (crossingCombinations.includes(resultToCheck) || crossingCombinations.includes(reverseResult)) {
+              // For crossing bets, we check if the player's prediction matches the actual result
+              // For example, if result is "01", only a bet on "01" or a crossing that includes "0,1" should win
+              
+              // Check if the prediction exactly matches the result
+              if (game.prediction === resultToCheck) {
                 isWinner = true;
+              } 
+              // Check if the prediction is a crossing that includes the result digits
+              else if (crossingCombinations.includes(resultToCheck)) {
+                isWinner = true;
+              }
+              
+              if (isWinner) {
                 const oddValue = await getOddsValue(game.gameMode);
                 payout = game.betAmount * (oddValue / 10000); // Apply configured odds
               }
