@@ -183,9 +183,9 @@ export default function RiskManagementPage() {
 
   // Helper function for risk level badge
   const getRiskLevelBadge = (level: string) => {
-    if (level === 'high') return <Badge className="bg-primary text-primary-foreground border-primary/20 font-semibold">High</Badge>;
-    if (level === 'medium') return <Badge className="bg-primary/80 text-primary-foreground border-primary/20 font-semibold">Medium</Badge>;
-    if (level === 'low') return <Badge className="bg-primary/60 text-primary-foreground border-primary/20 font-semibold">Low</Badge>;
+    if (level === 'high') return <Badge className="bg-[#9333EA] text-white">High</Badge>;
+    if (level === 'medium') return <Badge className="bg-[#9333EA] text-white">Medium</Badge>;
+    if (level === 'low') return <Badge className="bg-[#9333EA] text-white">Low</Badge>;
     return null;
   };
 
