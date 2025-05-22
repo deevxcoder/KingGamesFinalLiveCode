@@ -183,9 +183,9 @@ export default function SimplifiedRiskPage() {
 
   // Helper function for risk level badge
   const getRiskLevelBadge = (level: string) => {
-    if (level === 'high') return <Badge variant="destructive">High</Badge>;
-    if (level === 'medium') return <Badge variant="outline" className="bg-orange-500 text-white border-orange-600">Medium</Badge>;
-    if (level === 'low') return <Badge variant="outline" className="bg-blue-500 text-white border-blue-600">Low</Badge>;
+    if (level === 'high') return <Badge className="bg-primary text-primary-foreground border-primary/20 font-semibold">High</Badge>;
+    if (level === 'medium') return <Badge className="bg-primary/80 text-primary-foreground border-primary/20 font-semibold">Medium</Badge>;
+    if (level === 'low') return <Badge className="bg-primary/60 text-primary-foreground border-primary/20 font-semibold">Low</Badge>;
     return null;
   };
 
@@ -733,9 +733,10 @@ export default function SimplifiedRiskPage() {
                                     
                                     return (
                                       <TableRow key={`left-${digit}`} className={
-                                        riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20' :
-                                        riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20' :
-                                        riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                                        riskLevel === 'high' ? 'bg-primary/20 hover:bg-primary/25 border-b border-primary/30' :
+                                        riskLevel === 'medium' ? 'bg-primary/10 hover:bg-primary/15 border-b border-primary/20' :
+                                        riskLevel === 'low' ? 'bg-primary/5 hover:bg-primary/10 border-b border-primary/10' : 
+                                        'hover:bg-primary/5 border-b border-primary/5'
                                       }>
                                         <TableCell className="font-medium">A{digit}</TableCell>
                                         <TableCell>{totalBets}</TableCell>
@@ -751,8 +752,8 @@ export default function SimplifiedRiskPage() {
                           </Card>
                           
                           {/* Right Digits (B0-B9) Table */}
-                          <Card>
-                            <CardHeader>
+                          <Card className="border-primary/20 bg-primary/5">
+                            <CardHeader className="border-b border-primary/20">
                               <CardTitle className="text-base">Right Digit (B0-B9) - Position 2</CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -793,9 +794,10 @@ export default function SimplifiedRiskPage() {
                                     
                                     return (
                                       <TableRow key={`right-${digit}`} className={
-                                        riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20' :
-                                        riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20' :
-                                        riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                                        riskLevel === 'high' ? 'bg-primary/20 hover:bg-primary/25 border-b border-primary/30' :
+                                        riskLevel === 'medium' ? 'bg-primary/10 hover:bg-primary/15 border-b border-primary/20' :
+                                        riskLevel === 'low' ? 'bg-primary/5 hover:bg-primary/10 border-b border-primary/10' : 
+                                        'hover:bg-primary/5 border-b border-primary/5'
                                       }>
                                         <TableCell className="font-medium">B{digit}</TableCell>
                                         <TableCell>{totalBets}</TableCell>
