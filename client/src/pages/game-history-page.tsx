@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import DashboardLayout from "@/components/dashboard-layout";
 import GameHistoryTable from "@/components/game-history-table";
-import StatsCard from "@/components/stats-card";
 import { format, subDays, isWithinInterval, parseISO } from "date-fns";
 import { DateRange } from "react-day-picker";
 import {
@@ -51,11 +50,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 
-// Interface for stats data
-interface UserStats {
-  totalBets: number;
-  winRate: number;
-}
+
 
 export default function GameHistoryPage() {
   const { user } = useAuth();
@@ -82,11 +77,7 @@ export default function GameHistoryPage() {
   // Filter presets
   const [activePreset, setActivePreset] = useState<string>("all");
   
-  // Fetch user statistics
-  const { data: stats } = useQuery<UserStats>({
-    queryKey: ["/api/users/stats"],
-    enabled: !!user,
-  });
+
 
   // Fetch all games for the user
   const { data: games = [], isLoading } = useQuery<Game[]>({
@@ -326,9 +317,7 @@ export default function GameHistoryPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-6">
-            <StatsCard winRate={stats?.winRate || 0} totalBets={stats?.totalBets || 0} showFullWidth />
-          </div>
+
           
           {/* Filter heading */}
           <div className="mb-6">
