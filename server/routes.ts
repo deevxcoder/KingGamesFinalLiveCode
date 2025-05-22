@@ -1765,7 +1765,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 }
               }
               
-                      // Crossing bet with EXACT match or from comma-separated digit list
+              // Crossing bet with EXACT match or from comma-separated digit list
               const resultToCheck = closeResult;
               
               // For crossing bets, ONLY EXACT MATCHES win with the following exceptions:
@@ -1793,16 +1793,6 @@ app.get("/api/games/my-history", async (req, res, next) => {
               if (isWinner) {
                 const oddValue = await getOddsValue(game.gameMode);
                 payout = game.betAmount * (oddValue / 10000); // Apply configured odds
-              }
-              
-              // Detailed debugging log to help understand result calculation
-              console.log(`Crossing game ID ${game.id}:`);
-              console.log(`  Prediction: ${game.prediction}`);
-              console.log(`  Parsed digits: ${JSON.stringify(digits)}`);
-              console.log(`  Generated combinations: ${JSON.stringify(crossingCombinations)}`);
-              console.log(`  Result to check: ${resultToCheck} / ${reverseResult}`);
-              console.log(`  Is winner: ${isWinner}`);
-              if (isWinner) {
                 console.log(`  Payout amount: ${payout / 100} rupees`);
               }
             }
