@@ -351,19 +351,23 @@ async function getCricketMatchAnalysis(games: any[], oddValue: number) {
       
       console.log(`Team A bets: ${teamABets.length}, Team B bets: ${teamBBets.length}`);
       
-      // Calculate team A statistics
+      // Get the actual odds that should be used for calculations
+      // Priority: 1. Subadmin custom odds (if set), 2. Database default odds
+      const effectiveOddValue = oddValue; // This comes from the admin/subadmin odds system
+      
+      // Calculate team A statistics using effective odds
       const teamAStats = {
         totalBets: teamABets.length,
         totalAmount: teamABets.reduce((sum, game) => sum + game.betAmount, 0),
-        potentialPayout: teamABets.reduce((sum, game) => sum + (game.betAmount * (match.oddTeamA / 100)), 0),
+        potentialPayout: teamABets.reduce((sum, game) => sum + (game.betAmount * (effectiveOddValue / 100)), 0),
         users: Array.from(new Set(teamABets.map(game => game.userId)))
       };
       
-      // Calculate team B statistics
+      // Calculate team B statistics using effective odds
       const teamBStats = {
         totalBets: teamBBets.length,
         totalAmount: teamBBets.reduce((sum, game) => sum + game.betAmount, 0),
-        potentialPayout: teamBBets.reduce((sum, game) => sum + (game.betAmount * (match.oddTeamB / 100)), 0),
+        potentialPayout: teamBBets.reduce((sum, game) => sum + (game.betAmount * (effectiveOddValue / 100)), 0),
         users: Array.from(new Set(teamBBets.map(game => game.userId)))
       };
       
@@ -401,8 +405,8 @@ async function getCricketMatchAnalysis(games: any[], oddValue: number) {
         summary: {
           totalBets: matchGames.length,
           totalAmount: totalBetAmount,
-          potentialProfit,
-          potentialLoss,
+          potentialProfit: totalBetAmount, // House profit if house wins (keep all bets)
+          potentialLoss: maxPotentialPayout, // Maximum payout to users
           riskLevel,
           maxPotentialPayout
         }
