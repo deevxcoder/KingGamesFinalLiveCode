@@ -1765,7 +1765,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 }
               }
               
-              // The crossing bet should only win if the player's prediction includes the result
+                      // The crossing bet should only win if the player's prediction includes the result
               const resultToCheck = closeResult;
               
               // For crossing bets, we check if the player's prediction matches the actual result
@@ -1779,6 +1779,13 @@ app.get("/api/games/my-history", async (req, res, next) => {
               else if (crossingCombinations.includes(resultToCheck)) {
                 isWinner = true;
               }
+              
+              // For debugging
+              console.log(`Crossing bet decision for game ${game.id}:`);
+              console.log(`  Prediction: ${game.prediction}`);
+              console.log(`  Combinations: ${crossingCombinations.join(',')}`);
+              console.log(`  Result: ${resultToCheck}`);
+              console.log(`  Is winner: ${isWinner}`);
               
               if (isWinner) {
                 const oddValue = await getOddsValue(game.gameMode);
