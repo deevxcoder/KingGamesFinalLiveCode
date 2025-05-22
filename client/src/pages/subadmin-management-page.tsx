@@ -65,6 +65,8 @@ import {
   CreditCard,
   Unlock,
   Lock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 // Schema for creating a new subadmin
@@ -152,7 +154,7 @@ export default function SubadminManagementPage() {
   const { data: subadminPlayers = [], isLoading: isLoadingSubadminPlayers } = useQuery({
     queryKey: ["/api/users", selectedSubadminId],
     queryFn: async () => {
-      const response: any[] = await apiRequest("GET", "/api/users");
+      const response = await apiRequest("GET", "/api/users") as any[];
       return response.filter((u: any) => u.role === UserRole.PLAYER && u.assignedTo === selectedSubadminId);
     },
     enabled: isViewPlayersDialogOpen && !!selectedSubadminId,
@@ -165,7 +167,7 @@ export default function SubadminManagementPage() {
       if (!selectedSubadminId) return {};
       
       // Get all games to calculate active bets and potential wins
-      const games: any[] = await apiRequest("GET", "/api/games");
+      const games = await apiRequest("GET", "/api/games") as any[];
       const activeBets: Record<number, { totalBets: number; potentialWin: number }> = {};
       
       games.forEach((game: any) => {
