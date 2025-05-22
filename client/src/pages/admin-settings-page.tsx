@@ -1144,21 +1144,40 @@ export default function AdminSettingsPage() {
                             </p>
                           </div>
                           
-                          <div className="bg-slate-800/80 p-4 rounded-lg border border-slate-700 min-w-[260px]">
-                            <h4 className="text-sm font-medium text-primary mb-2">Example Calculation</h4>
+                          <div className="bg-slate-800/80 p-4 rounded-lg border border-slate-700 min-w-[280px]">
+                            <h4 className="text-sm font-medium text-primary mb-3">Deposit Example</h4>
                             <div className="space-y-2 text-sm">
                               <div className="flex justify-between">
-                                <span className="text-slate-400">Admin deposits:</span>
-                                <span>₹1,000</span>
+                                <span className="text-slate-400">Subadmin will receive:</span>
+                                <span className="font-medium">₹10,000</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-slate-400">Commission ({defaultCommissionRate}%):</span>
-                                <span>₹{(1000 * parseFloat(defaultCommissionRate || "0") / 100).toFixed(2)}</span>
+                                <span>₹{(10000 * parseFloat(defaultCommissionRate || "0") / 100).toFixed(2)}</span>
                               </div>
                               <Separator className="my-1" />
-                              <div className="flex justify-between font-medium">
-                                <span className="text-slate-300">Subadmin receives:</span>
-                                <span className="text-primary">₹{(1000 + 1000 * parseFloat(defaultCommissionRate || "0") / 100).toFixed(2)}</span>
+                              <div className="flex justify-between font-medium text-orange-400">
+                                <span>Admin pays total:</span>
+                                <span>₹{(10000 + 10000 * parseFloat(defaultCommissionRate || "0") / 100).toFixed(2)}</span>
+                              </div>
+                            </div>
+                            
+                            <Separator className="my-3" />
+                            
+                            <h4 className="text-sm font-medium text-primary mb-3">Withdrawal Example</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Subadmin withdraws:</span>
+                                <span className="font-medium">₹5,000</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400">Commission ({defaultCommissionRate}%):</span>
+                                <span>₹{(5000 * parseFloat(defaultCommissionRate || "0") / 100).toFixed(2)}</span>
+                              </div>
+                              <Separator className="my-1" />
+                              <div className="flex justify-between font-medium text-green-400">
+                                <span>Admin receives total:</span>
+                                <span>₹{(5000 + 5000 * parseFloat(defaultCommissionRate || "0") / 100).toFixed(2)}</span>
                               </div>
                             </div>
                           </div>
