@@ -64,17 +64,8 @@ export default function AdminSettingsPage() {
     odd_even: "1.90",
   });
 
-  // Subadmin Commission Settings
-  const [commissionRates, setCommissionRates] = useState({
-    coin_flip: "2.5",
-    cricket_toss: "3.0",
-    // team_match removed
-    satamatka_jodi: "3.5",
-    satamatka_harf: "4.0",
-    satamatka_crossing: "3.0",
-    satamatka_odd_even: "2.0",
-    deposit: "5.0" // Default deposit commission rate (5%)
-  });
+  // Platform Default Subadmin Commission Setting (for fund transfers only)
+  const [defaultCommissionRate, setDefaultCommissionRate] = useState("10.0");
   
   // Query to fetch default commission rates
   const { isLoading: isLoadingDefaultCommissions, data: defaultCommissionData } = useQuery({
@@ -84,19 +75,10 @@ export default function AdminSettingsPage() {
     }).then(res => res.json())
   });
   
-  // Update commission rates when default data is loaded
+  // Update commission rate when default data is loaded
   useEffect(() => {
-    if (defaultCommissionData) {
-      setCommissionRates({
-        coin_flip: defaultCommissionData.coin_flip?.toString() || "",
-        cricket_toss: defaultCommissionData.cricket_toss?.toString() || "",
-        // team_match removed
-        satamatka_jodi: defaultCommissionData.satamatka_jodi?.toString() || "",
-        satamatka_harf: defaultCommissionData.satamatka_harf?.toString() || "",
-        satamatka_crossing: defaultCommissionData.satamatka_crossing?.toString() || "",
-        satamatka_odd_even: defaultCommissionData.satamatka_odd_even?.toString() || "",
-        deposit: defaultCommissionData.deposit?.toString() || ""
-      });
+    if (defaultCommissionData && defaultCommissionData.deposit) {
+      setDefaultCommissionRate(defaultCommissionData.deposit.toString());
     }
   }, [defaultCommissionData]);
 
@@ -1149,8 +1131,8 @@ export default function AdminSettingsPage() {
                                 step="0.01"
                                 min="0"
                                 max="100"
-                                value={commissionRates.deposit} 
-                                onChange={(e) => setCommissionRates({...commissionRates, deposit: e.target.value})} 
+                                value={defaultCommissionRate} 
+                                onChange={(e) => setDefaultCommissionRate(e.target.value)} 
                                 placeholder="0.0"
                                 className="max-w-[120px]"
                               />
@@ -1170,13 +1152,13 @@ export default function AdminSettingsPage() {
                                 <span>₹1,000</span>
                               </div>
                               <div className="flex justify-between">
-                                <span className="text-slate-400">Commission ({commissionRates.deposit}%):</span>
-                                <span>₹{(1000 * parseFloat(commissionRates.deposit || "0") / 100).toFixed(2)}</span>
+                                <span className="text-slate-400">Commission ({defaultCommissionRate}%):</span>
+                                <span>₹{(1000 * parseFloat(defaultCommissionRate || "0") / 100).toFixed(2)}</span>
                               </div>
                               <Separator className="my-1" />
                               <div className="flex justify-between font-medium">
                                 <span className="text-slate-300">Subadmin receives:</span>
-                                <span className="text-primary">₹{(1000 + 1000 * parseFloat(commissionRates.deposit || "0") / 100).toFixed(2)}</span>
+                                <span className="text-primary">₹{(1000 + 1000 * parseFloat(defaultCommissionRate || "0") / 100).toFixed(2)}</span>
                               </div>
                             </div>
                           </div>
@@ -1204,17 +1186,10 @@ export default function AdminSettingsPage() {
             <CardFooter>
               <Button 
                 onClick={() => {
-                  // Save platform-wide default commission rate
+                  // Save platform-wide default commission rate for fund transfers
                   saveCommissionMutation.mutate({
                     defaultRates: {
-                      coin_flip: Math.round(parseFloat(commissionRates.coin_flip) * 100),
-                      cricket_toss: Math.round(parseFloat(commissionRates.cricket_toss) * 100),
-                      // team_match removed from commission rates
-                      satamatka_jodi: Math.round(parseFloat(commissionRates.satamatka_jodi) * 100),
-                      satamatka_harf: Math.round(parseFloat(commissionRates.satamatka_harf) * 100),
-                      satamatka_crossing: Math.round(parseFloat(commissionRates.satamatka_crossing) * 100),
-                      satamatka_odd_even: Math.round(parseFloat(commissionRates.satamatka_odd_even) * 100),
-                      deposit: Math.round(parseFloat(commissionRates.deposit) * 100)
+                      deposit: Math.round(parseFloat(defaultCommissionRate) * 100)
                     }
                   });
                 }}
