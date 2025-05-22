@@ -106,6 +106,69 @@ const marketFormSchema = z.object({
   resultTime: z.string().min(5, "Result time is required"),
 });
 
+// Market Betting Stats Component
+function MarketBettingStats({ marketId, status }: { marketId: number; status: string }) {
+  const { data: marketGames = [] } = useQuery({
+    queryKey: [`/api/satamatka/markets/${marketId}/games`],
+    enabled: status === "open" || status === "closed",
+  });
+
+  if (status === "waiting" || status === "resulted") {
+    return (
+      <div className="text-sm text-slate-400">
+        {status === "waiting" ? "Not started" : "Completed"}
+      </div>
+    );
+  }
+
+  // Calculate stats for active/closed markets
+  const activeBets = marketGames.filter(game => game.result === "pending").length;
+  const totalBetAmount = marketGames
+    .filter(game => game.result === "pending")
+    .reduce((sum, game) => sum + (game.betAmount || 0), 0);
+
+  // Calculate potential win based on game modes and odds
+  const potentialWin = marketGames
+    .filter(game => game.result === "pending")
+    .reduce((sum, game) => {
+      const betAmount = game.betAmount || 0;
+      let multiplier = 1;
+      
+      // Estimate multipliers based on game mode
+      switch (game.gameMode) {
+        case "jodi": multiplier = 90; break;
+        case "harf": multiplier = 9; break;
+        case "crossing": multiplier = 95; break;
+        case "odd_even": multiplier = 1.9; break;
+        default: multiplier = 1;
+      }
+      
+      return sum + (betAmount * multiplier);
+    }, 0);
+
+  if (activeBets === 0) {
+    return (
+      <div className="text-sm text-slate-400">
+        No active bets
+      </div>
+    );
+  }
+
+  return (
+    <div className="text-sm">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="font-semibold text-blue-600">{activeBets}</span>
+        <span className="text-slate-600">bets</span>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-slate-500">
+        <span>₹{(totalBetAmount / 100).toLocaleString()}</span>
+        <span className="text-slate-400">→</span>
+        <span className="text-orange-600 font-medium">₹{(potentialWin / 100).toLocaleString()}</span>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminMarketManagementPage() {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("all");
@@ -1138,7 +1201,7 @@ function MarketTable({
         <TableHeader>
           <TableRow>
             <TableHead>Market</TableHead>
-            <TableHead>Type</TableHead>
+            <TableHead>Active Bets</TableHead>
             <TableHead>Open Time</TableHead>
             <TableHead>Close Time</TableHead>
             <TableHead>Result</TableHead>
@@ -1167,7 +1230,9 @@ function MarketTable({
                   <span className="font-medium">{market.name}</span>
                 </div>
               </TableCell>
-              <TableCell>{market.type}</TableCell>
+              <TableCell>
+                <MarketBettingStats marketId={market.id} status={market.status} />
+              </TableCell>
               <TableCell>{formatDate(market.openTime)}</TableCell>
               <TableCell>{formatDate(market.closeTime)}</TableCell>
               <TableCell>
