@@ -300,7 +300,18 @@ function calculateRiskData(games: any[], oddValue: number) {
     // Only count active bets for liability calculations (null result OR 'pending' result)
     if (!game.result || game.result === 'pending') {
       const betAmount = game.betAmount;
-      const potentialPayout = betAmount * (oddValue / 100);
+      
+      // Calculate potential payout based on specific game mode
+      let multiplier = 1;
+      switch (game.gameMode) {
+        case 'jodi': multiplier = 90; break;
+        case 'harf': multiplier = 9; break;
+        case 'crossing': multiplier = 95; break;
+        case 'odd_even': multiplier = 1.9; break;
+        default: multiplier = oddValue / 100; // Fallback to admin setting
+      }
+      
+      const potentialPayout = betAmount * multiplier;
       
       totalBetAmount += betAmount;
       potentialLiability += potentialPayout;
