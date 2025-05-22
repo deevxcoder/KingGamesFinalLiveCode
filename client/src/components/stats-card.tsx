@@ -1,4 +1,4 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
 interface StatsCardProps {
   winRate: number;
@@ -8,8 +8,7 @@ interface StatsCardProps {
 
 export default function StatsCard({ winRate, totalBets, showFullWidth = false }: StatsCardProps) {
   return (
-    <Card className={`bg-slate-900/70 shadow-lg border border-slate-800 ${showFullWidth ? 'w-full' : 'w-full lg:w-auto'}`}>
-      <CardContent className="p-4">
+    <Card className={`bg-slate-900/70 shadow-lg border border-slate-800 p-4 ${showFullWidth ? 'w-full' : 'w-full lg:w-auto'}`}>
         <div className="flex items-center justify-between w-full">
           <div>
             <p className="text-sm text-slate-400">Win Rate</p>
@@ -36,7 +35,6 @@ export default function StatsCard({ winRate, totalBets, showFullWidth = false }:
             </>
           )}
         </div>
-      </CardContent>
     </Card>
   );
 }
