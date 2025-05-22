@@ -1744,7 +1744,15 @@ app.get("/api/games/my-history", async (req, res, next) => {
             }
             else if (game.gameMode === SatamatkaGameMode.CROSSING) {
               // For Crossing, check if the prediction matches the result in any order
-              const digits = game.prediction.replace(/[^0-9,]/g, '').split(',');
+              // Clean and prepare prediction digits - handle different prediction formats
+              let digits = [];
+              if (game.prediction.includes(',')) {
+                // Format: "0,1,2"
+                digits = game.prediction.replace(/[^0-9,]/g, '').split(',').map(d => d.trim());
+              } else {
+                // Format: "012" or other formats without commas
+                digits = game.prediction.replace(/[^0-9]/g, '').split('');
+              }
               
               // Extract the actual crossing combinations from the digits
               // Crossing means any combination of the digits in any order
@@ -1757,7 +1765,7 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 }
               }
               
-              // Also consider the reverse of the result (e.g., if result is "01", also check for "10")
+              // Consider both the result and its reverse (e.g., if result is "01", also check for "10")
               const resultToCheck = closeResult;
               const reverseResult = closeResult.length === 2 ? closeResult[1] + closeResult[0] : closeResult;
               
@@ -1768,8 +1776,16 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 payout = game.betAmount * (oddValue / 10000); // Apply configured odds
               }
               
-              // Debugging log to help understand result calculation
-              console.log(`Crossing game: Prediction=${game.prediction}, Digits=${JSON.stringify(digits)}, Combinations=${JSON.stringify(crossingCombinations)}, Result=${resultToCheck}, IsWinner=${isWinner}`);
+              // Detailed debugging log to help understand result calculation
+              console.log(`Crossing game ID ${game.id}:`);
+              console.log(`  Prediction: ${game.prediction}`);
+              console.log(`  Parsed digits: ${JSON.stringify(digits)}`);
+              console.log(`  Generated combinations: ${JSON.stringify(crossingCombinations)}`);
+              console.log(`  Result to check: ${resultToCheck} / ${reverseResult}`);
+              console.log(`  Is winner: ${isWinner}`);
+              if (isWinner) {
+                console.log(`  Payout amount: ${payout / 100} rupees`);
+              }
             }
             else if (game.gameMode === SatamatkaGameMode.ODD_EVEN) {
               // For Odd-Even, check if prediction matches the result's parity
