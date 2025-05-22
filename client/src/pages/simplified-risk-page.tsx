@@ -1009,20 +1009,20 @@ export default function SimplifiedRiskPage() {
                             <CardContent>
                               {/* Match Summary */}
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                <div className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                  <div className="text-lg font-bold">{match.summary.totalBets}</div>
+                                <div className="text-center p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                                  <div className="text-lg font-bold text-foreground">{match.summary.totalBets}</div>
                                   <div className="text-xs text-muted-foreground">Total Bets</div>
                                 </div>
-                                <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                  <div className="text-lg font-bold">₹{(match.summary.totalAmount / 100).toFixed(0)}</div>
+                                <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                                  <div className="text-lg font-bold text-foreground">₹{(match.summary.totalAmount / 100).toFixed(0)}</div>
                                   <div className="text-xs text-muted-foreground">Total Amount</div>
                                 </div>
-                                <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                  <div className="text-lg font-bold">₹{(match.summary.potentialProfit / 100).toFixed(0)}</div>
+                                <div className="text-center p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                                  <div className="text-lg font-bold text-foreground">₹{(match.summary.potentialProfit / 100).toFixed(0)}</div>
                                   <div className="text-xs text-muted-foreground">Potential Profit</div>
                                 </div>
-                                <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                                  <div className="text-lg font-bold">₹{(match.summary.potentialLoss / 100).toFixed(0)}</div>
+                                <div className="text-center p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                                  <div className="text-lg font-bold text-foreground">₹{(match.summary.potentialLoss / 100).toFixed(0)}</div>
                                   <div className="text-xs text-muted-foreground">Potential Loss</div>
                                 </div>
                               </div>
@@ -1030,11 +1030,11 @@ export default function SimplifiedRiskPage() {
                               {/* Team-wise Analysis */}
                               <div className="grid md:grid-cols-2 gap-6">
                                 {/* Team A */}
-                                <Card className="border-primary/20">
-                                  <CardHeader className="pb-3">
+                                <Card className="border-primary/30 bg-primary/5">
+                                  <CardHeader className="pb-3 border-b border-primary/20">
                                     <div className="flex items-center justify-between">
-                                      <CardTitle className="text-base">{match.matchInfo.teamA}</CardTitle>
-                                      <Badge variant="outline" className="text-xs">
+                                      <CardTitle className="text-base text-foreground">{match.matchInfo.teamA}</CardTitle>
+                                      <Badge variant="outline" className="text-xs bg-primary/10 border-primary/30">
                                         Odds: {(match.matchInfo.oddTeamA / 100).toFixed(2)}x
                                       </Badge>
                                     </div>
@@ -1077,11 +1077,11 @@ export default function SimplifiedRiskPage() {
                                 </Card>
 
                                 {/* Team B */}
-                                <Card className="border-secondary/20">
-                                  <CardHeader className="pb-3">
+                                <Card className="border-primary/30 bg-primary/5">
+                                  <CardHeader className="pb-3 border-b border-primary/20">
                                     <div className="flex items-center justify-between">
-                                      <CardTitle className="text-base">{match.matchInfo.teamB}</CardTitle>
-                                      <Badge variant="outline" className="text-xs">
+                                      <CardTitle className="text-base text-foreground">{match.matchInfo.teamB}</CardTitle>
+                                      <Badge variant="outline" className="text-xs bg-primary/10 border-primary/30">
                                         Odds: {(match.matchInfo.oddTeamB / 100).toFixed(2)}x
                                       </Badge>
                                     </div>
