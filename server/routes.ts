@@ -5,6 +5,7 @@ import { storage } from "./storage";
 import { db } from "./db";
 import { z } from "zod";
 import { getAdminRiskManagement, getSubadminRiskManagement } from "./risk-management";
+import { fixCrossingBets } from "./fix-crossing-bets";
 
 import { 
   GameOutcome, 
