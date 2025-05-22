@@ -112,9 +112,12 @@ export default function SubadminManagementPage() {
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
   const [isGameOddsDialogOpen, setIsGameOddsDialogOpen] = useState(false);
+  const [isViewPlayersDialogOpen, setIsViewPlayersDialogOpen] = useState(false);
   const [selectedSubadminId, setSelectedSubadminId] = useState<number | null>(null);
   const [selectedSubadminName, setSelectedSubadminName] = useState<string>("");
   const [activeTab, setActiveTab] = useState("subadmins");
+  const [playersPage, setPlayersPage] = useState(1);
+  const playersPerPage = 10;
 
   const form = useForm<z.infer<typeof createSubadminSchema>>({
     resolver: zodResolver(createSubadminSchema),
@@ -143,6 +146,41 @@ export default function SubadminManagementPage() {
     queryKey: ["/api/users"],
     select: (data: any) => data.filter((user: any) => user.role === UserRole.SUBADMIN),
     enabled: !!user && user.role === UserRole.ADMIN,
+  });
+
+  // Fetch players assigned to selected subadmin for view players modal
+  const { data: subadminPlayers = [], isLoading: isLoadingSubadminPlayers } = useQuery({
+    queryKey: ["/api/users", selectedSubadminId],
+    queryFn: async () => {
+      const response: any[] = await apiRequest("GET", "/api/users");
+      return response.filter((u: any) => u.role === UserRole.PLAYER && u.assignedTo === selectedSubadminId);
+    },
+    enabled: isViewPlayersDialogOpen && !!selectedSubadminId,
+  });
+
+  // Fetch active bets for players
+  const { data: playersBetsData = {}, isLoading: isLoadingPlayersBets } = useQuery({
+    queryKey: ["/api/games/active-bets", selectedSubadminId],
+    queryFn: async () => {
+      if (!selectedSubadminId) return {};
+      
+      // Get all games to calculate active bets and potential wins
+      const games: any[] = await apiRequest("GET", "/api/games");
+      const activeBets: Record<number, { totalBets: number; potentialWin: number }> = {};
+      
+      games.forEach((game: any) => {
+        if (game.status === 'pending' && game.userId) {
+          if (!activeBets[game.userId]) {
+            activeBets[game.userId] = { totalBets: 0, potentialWin: 0 };
+          }
+          activeBets[game.userId].totalBets += 1;
+          activeBets[game.userId].potentialWin += game.potentialWin || 0;
+        }
+      });
+      
+      return activeBets;
+    },
+    enabled: isViewPlayersDialogOpen && !!selectedSubadminId,
   });
 
   // Create subadmin mutation
@@ -286,6 +324,13 @@ export default function SubadminManagementPage() {
 
   const handleUnblockSubadmin = (userId: number) => {
     unblockSubadminMutation.mutate(userId);
+  };
+
+  const openViewPlayersDialog = (subadmin: any) => {
+    setSelectedSubadminId(subadmin.id);
+    setSelectedSubadminName(subadmin.username);
+    setPlayersPage(1); // Reset to first page
+    setIsViewPlayersDialogOpen(true);
   };
   
   // Fetch users that are players assigned to this subadmin
@@ -617,6 +662,16 @@ export default function SubadminManagementPage() {
                               >
                                 <Percent className="h-4 w-4 mr-2" />
                                 Game Odds
+                              </Button>
+                              
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openViewPlayersDialog(subadmin)}
+                                className="text-purple-500 border-purple-500/20 hover:bg-purple-500/10"
+                              >
+                                <Users className="h-4 w-4 mr-2" />
+                                View Players
                               </Button>
                               
 
@@ -1268,6 +1323,113 @@ export default function SubadminManagementPage() {
         </DialogContent>
       </Dialog>
 
+      {/* View Players Modal */}
+      <Dialog open={isViewPlayersDialogOpen} onOpenChange={setIsViewPlayersDialogOpen}>
+        <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Players under {selectedSubadminName}</DialogTitle>
+            <DialogDescription>
+              View all players assigned to this subadmin with their betting details
+            </DialogDescription>
+          </DialogHeader>
+          
+          {isLoadingSubadminPlayers || isLoadingPlayersBets ? (
+            <div className="flex justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {subadminPlayers.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No players assigned to this subadmin</p>
+                </div>
+              ) : (
+                <>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Username</TableHead>
+                          <TableHead>Balance</TableHead>
+                          <TableHead>Total Active Bets</TableHead>
+                          <TableHead>Potential Win</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {subadminPlayers
+                          .slice((playersPage - 1) * playersPerPage, playersPage * playersPerPage)
+                          .map((player: any) => {
+                            const playerBets = playersBetsData[player.id] || { totalBets: 0, potentialWin: 0 };
+                            return (
+                              <TableRow key={player.id}>
+                                <TableCell className="font-medium">
+                                  {player.username}
+                                </TableCell>
+                                <TableCell>
+                                  ₹{(player.balance / 100)?.toFixed(2) || '0.00'}
+                                </TableCell>
+                                <TableCell>
+                                  {playerBets.totalBets}
+                                </TableCell>
+                                <TableCell>
+                                  ₹{(playerBets.potentialWin / 100)?.toFixed(2) || '0.00'}
+                                </TableCell>
+                                <TableCell>
+                                  {player.isBlocked ? (
+                                    <Badge variant="destructive">Blocked</Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                                      Active
+                                    </Badge>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  
+                  {/* Pagination */}
+                  {subadminPlayers.length > playersPerPage && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm text-muted-foreground">
+                        Showing {((playersPage - 1) * playersPerPage) + 1} to{' '}
+                        {Math.min(playersPage * playersPerPage, subadminPlayers.length)} of{' '}
+                        {subadminPlayers.length} players
+                      </p>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPlayersPage(prev => Math.max(prev - 1, 1))}
+                          disabled={playersPage === 1}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                          Previous
+                        </Button>
+                        <span className="text-sm">
+                          Page {playersPage} of {Math.ceil(subadminPlayers.length / playersPerPage)}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setPlayersPage(prev => Math.min(prev + 1, Math.ceil(subadminPlayers.length / playersPerPage)))}
+                          disabled={playersPage >= Math.ceil(subadminPlayers.length / playersPerPage)}
+                        >
+                          Next
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
     </DashboardLayout>
   );
