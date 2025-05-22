@@ -118,6 +118,56 @@ router.get("/open-matches", async (req, res) => {
   }
 });
 
+// Get cricket match betting statistics
+router.get("/match-stats", requireRole(["admin", "subadmin"]), async (req, res) => {
+  try {
+    const matches = await db.select()
+      .from(teamMatches)
+      .where(eq(teamMatches.category, "cricket_toss"))
+      .orderBy(desc(teamMatches.id));
+
+    const stats = [];
+
+    for (const match of matches) {
+      // Get all bets for this match
+      const bets = await db.select()
+        .from(games)
+        .where(
+          and(
+            eq(games.gameType, "cricket"),
+            eq(games.matchId, match.id),
+            eq(games.status, "pending")
+          )
+        );
+      
+      // Calculate stats for each team
+      const teamABets = bets.filter((bet: any) => bet.betData?.prediction === 'team_a');
+      const teamBBets = bets.filter((bet: any) => bet.betData?.prediction === 'team_b');
+      
+      const teamAStats = {
+        totalBets: teamABets.length,
+        potentialWin: teamABets.reduce((sum: number, bet: any) => sum + (bet.payout || 0), 0)
+      };
+      
+      const teamBStats = {
+        totalBets: teamBBets.length,
+        potentialWin: teamBBets.reduce((sum: number, bet: any) => sum + (bet.payout || 0), 0)
+      };
+
+      stats.push({
+        matchId: match.id,
+        teamA: teamAStats,
+        teamB: teamBStats
+      });
+    }
+
+    res.json(stats);
+  } catch (error) {
+    console.error("Error fetching cricket match stats:", error);
+    res.status(500).json({ message: "Failed to fetch cricket match stats" });
+  }
+});
+
 // Create a new cricket toss match
 router.post("/matches", requireRole(["admin", "subadmin"]), upload.single('coverImage'), async (req, res) => {
   try {
