@@ -103,6 +103,7 @@ export async function getAdminRiskManagement(req: Request, res: Response) {
     };
     
     return res.status(200).json(response);
+    console.log("🔍 Cricket match analysis found:", cricketTossRiskData.matchAnalysis?.length || 0);
   } catch (error) {
     console.error("Error in admin risk management:", error);
     return res.status(500).json({ message: "Failed to get risk management data" });
