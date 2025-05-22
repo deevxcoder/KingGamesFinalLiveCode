@@ -868,6 +868,7 @@ export default function SimplifiedRiskPage() {
                                     <TableHead>Bet Amount</TableHead>
                                     <TableHead>Potential Win</TableHead>
                                     <TableHead>Risk Level</TableHead>
+                                    <TableHead>Action</TableHead>
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -907,6 +908,17 @@ export default function SimplifiedRiskPage() {
                                         <TableCell>₹{(totalBetAmount / 100).toFixed(2)}</TableCell>
                                         <TableCell>₹{(potentialWin / 100).toFixed(2)}</TableCell>
                                         <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                        <TableCell>
+                                          {totalBets > 0 && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => showPlayerDetails(gamesForLeftDigit, `Left Digit A${digit} Players (${totalBets} players)`)}
+                                            >
+                                              <Eye className="h-4 w-4" />
+                                            </Button>
+                                          )}
+                                        </TableCell>
                                       </TableRow>
                                     );
                                   })}
@@ -929,6 +941,7 @@ export default function SimplifiedRiskPage() {
                                     <TableHead>Bet Amount</TableHead>
                                     <TableHead>Potential Win</TableHead>
                                     <TableHead>Risk Level</TableHead>
+                                    <TableHead>Action</TableHead>
                                   </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -968,6 +981,17 @@ export default function SimplifiedRiskPage() {
                                         <TableCell>₹{(totalBetAmount / 100).toFixed(2)}</TableCell>
                                         <TableCell>₹{(potentialWin / 100).toFixed(2)}</TableCell>
                                         <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                        <TableCell>
+                                          {totalBets > 0 && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => showPlayerDetails(gamesForRightDigit, `Right Digit B${digit} Players (${totalBets} players)`)}
+                                            >
+                                              <Eye className="h-4 w-4" />
+                                            </Button>
+                                          )}
+                                        </TableCell>
                                       </TableRow>
                                     );
                                   })}
@@ -987,6 +1011,7 @@ export default function SimplifiedRiskPage() {
                               <TableHead className="font-semibold text-foreground">Bet Types</TableHead>
                               <TableHead className="w-[120px] font-semibold text-foreground">Market</TableHead>
                               <TableHead className="w-[100px] font-semibold text-foreground">Risk Level</TableHead>
+                              <TableHead className="w-[120px] font-semibold text-foreground">Action</TableHead>
                               <TableHead className="w-[200px] font-semibold text-foreground">Player Details</TableHead>
                             </TableRow>
                           </TableHeader>
@@ -1053,6 +1078,16 @@ export default function SimplifiedRiskPage() {
                                   </TableCell>
                                   <TableCell>
                                     {getRiskLevelBadge(riskLevel)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => showPlayerDetails(gamesForNumber, `Number ${num} Players (${gamesForNumber.length} players)`)}
+                                    >
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Players
+                                    </Button>
                                   </TableCell>
                                   <TableCell>
                                     {Array.from(new Set(gamesForNumber.map(game => {
