@@ -3540,16 +3540,17 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
           // Use existing commission
           completeCommissions.push(commission);
         } else {
-          // Use platform default commission or fallback if not set
-          const defaultRate = platformDefaultRates[gameType] !== undefined
-            ? platformDefaultRates[gameType]
-            : fallbackDefaultRates[gameType as keyof typeof fallbackDefaultRates] || 10;
-            
-          completeCommissions.push({
-            gameType,
-            subadminId,
-            commissionRate: defaultRate
-          });
+          // Use platform default commission if set by admin
+          const defaultRate = platformDefaultRates[gameType];
+          if (defaultRate !== undefined) {
+            completeCommissions.push({
+              gameType,
+              subadminId,
+              commissionRate: defaultRate
+            });
+          }
+          // If no platform default is set, don't include this game type
+          // This forces admin to set rates explicitly
         }
       }
       
@@ -3692,24 +3693,14 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       });
       
-      // Fallback default commission rates if no system settings exist
-      const fallbackDefaultRates = {
-        'team_match': 10,
-        'cricket_toss': 10,
-        'coin_flip': 10,
-        'satamatka_jodi': 8,
-        'satamatka_harf': 8,
-        'satamatka_odd_even': 10,
-        'satamatka_crossing': 8
-      };
-      
-      // Merge the found settings with fallbacks where needed
+      // Only return rates that have been actually set by admin - no hardcoded fallbacks
       const completeDefaultRates: {[key: string]: number} = {};
       
       for (const gameType of gameTypes) {
-        completeDefaultRates[gameType] = defaultRates[gameType] !== undefined
-          ? defaultRates[gameType]
-          : fallbackDefaultRates[gameType as keyof typeof fallbackDefaultRates] / 100;
+        if (defaultRates[gameType] !== undefined) {
+          completeDefaultRates[gameType] = defaultRates[gameType];
+        }
+        // If no setting exists, don't include it - let admin set their own rates
       }
       
       res.json(completeDefaultRates);

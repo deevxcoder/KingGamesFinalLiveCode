@@ -88,14 +88,14 @@ export default function AdminSettingsPage() {
   useEffect(() => {
     if (defaultCommissionData) {
       setCommissionRates({
-        coin_flip: (defaultCommissionData.coin_flip / 100)?.toString() || "2.5",
-        cricket_toss: (defaultCommissionData.cricket_toss / 100)?.toString() || "3.0",
+        coin_flip: (defaultCommissionData.coin_flip / 100)?.toString() || "",
+        cricket_toss: (defaultCommissionData.cricket_toss / 100)?.toString() || "",
         // team_match removed
-        satamatka_jodi: (defaultCommissionData.satamatka_jodi / 100)?.toString() || "3.5",
-        satamatka_harf: (defaultCommissionData.satamatka_harf / 100)?.toString() || "4.0",
-        satamatka_crossing: (defaultCommissionData.satamatka_crossing / 100)?.toString() || "3.0",
-        satamatka_odd_even: (defaultCommissionData.satamatka_odd_even / 100)?.toString() || "2.0",
-        deposit: (defaultCommissionData.deposit / 100)?.toString() || "5.0"
+        satamatka_jodi: (defaultCommissionData.satamatka_jodi / 100)?.toString() || "",
+        satamatka_harf: (defaultCommissionData.satamatka_harf / 100)?.toString() || "",
+        satamatka_crossing: (defaultCommissionData.satamatka_crossing / 100)?.toString() || "",
+        satamatka_odd_even: (defaultCommissionData.satamatka_odd_even / 100)?.toString() || "",
+        deposit: (defaultCommissionData.deposit / 100)?.toString() || ""
       });
     }
   }, [defaultCommissionData]);
