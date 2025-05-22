@@ -70,9 +70,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         markets = await storage.getRecentMarketResults(Number(limit));
       }
       
-      // Filter only resulted markets and format for public display
+      // Format for public display - only include markets with actual results
       const publicResults = markets
-        .filter(market => market.status === 'resulted' && market.openResult)
+        .filter(market => market.status === 'resulted' && market.openResult !== null && market.openResult !== '')
         .map(market => ({
           id: market.id,
           name: market.name,
@@ -88,7 +88,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
       res.json(publicResults);
     } catch (err) {
-      next(err);
+      console.error('Error in public market results API:', err);
+      res.status(500).json({ error: 'Failed to fetch market results' });
     }
   });
 
