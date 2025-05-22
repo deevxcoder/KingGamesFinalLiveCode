@@ -167,8 +167,21 @@ export default function RiskManagementPage() {
   useEffect(() => {
     if (data?.marketInfo) {
       setMarketInfo(data.marketInfo);
+      
+      // Auto-select the active market (first one without results)
+      if (marketFilter === 'all') {
+        const activeMarketId = Object.keys(data.marketInfo).find(marketId => {
+          const market = data.marketInfo[marketId];
+          // Find markets that are still active (no results yet)
+          return market && (!market.status || market.status === 'open');
+        });
+        
+        if (activeMarketId) {
+          setMarketFilter(parseInt(activeMarketId));
+        }
+      }
     }
-  }, [data]);
+  }, [data, marketFilter]);
 
   // Function to save risk thresholds
   const saveRiskThresholds = (values: any) => {
