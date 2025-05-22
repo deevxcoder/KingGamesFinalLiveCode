@@ -177,26 +177,32 @@ export default function SubadminManagementPage() {
   // Fetch active bets for players
   const { data: playersBetsData = {}, isLoading: isLoadingPlayersBets } = useQuery({
     queryKey: ["/api/games/active-bets", selectedSubadminId],
+    enabled: isViewPlayersDialogOpen && !!selectedSubadminId,
     queryFn: async () => {
       if (!selectedSubadminId) return {};
       
       // Get all games to calculate active bets and potential wins
-      const games = await apiRequest("GET", "/api/games") as any[];
+      const games = await apiRequest("GET", "/api/games");
+      console.log("All games for bet calculation:", games);
+      
       const activeBets: Record<number, { totalBets: number; potentialWin: number }> = {};
       
-      games.forEach((game: any) => {
-        if (game.status === 'pending' && game.userId) {
-          if (!activeBets[game.userId]) {
-            activeBets[game.userId] = { totalBets: 0, potentialWin: 0 };
+      if (Array.isArray(games)) {
+        games.forEach((game: any) => {
+          console.log(`Game ${game.id}: status=${game.status}, userId=${game.userId}, payout=${game.payout}`);
+          if (game.status === 'pending' && game.userId) {
+            if (!activeBets[game.userId]) {
+              activeBets[game.userId] = { totalBets: 0, potentialWin: 0 };
+            }
+            activeBets[game.userId].totalBets += 1;
+            activeBets[game.userId].potentialWin += game.payout || 0;
           }
-          activeBets[game.userId].totalBets += 1;
-          activeBets[game.userId].potentialWin += game.potentialWin || 0;
-        }
-      });
+        });
+      }
       
+      console.log("Calculated active bets:", activeBets);
       return activeBets;
     },
-    enabled: isViewPlayersDialogOpen && !!selectedSubadminId,
   });
 
   // Create subadmin mutation
