@@ -1709,11 +1709,32 @@ app.get("/api/games/my-history", async (req, res, next) => {
               const firstDigit = closeResult[0]; 
               const secondDigit = closeResult[1];
               
+              // Handle different Harf prediction formats (A0, B1, etc.)
+              let harfDigit = game.prediction;
+              let isLeftDigit = false;
+              let isRightDigit = false;
+              
+              // Handle formatted predictions like A0, A1, B0, B1
+              if (game.prediction.startsWith('A')) {
+                harfDigit = game.prediction.substring(1);
+                isLeftDigit = true;
+              } else if (game.prediction.startsWith('B')) {
+                harfDigit = game.prediction.substring(1);
+                isRightDigit = true;
+              } else if (game.prediction.startsWith('L')) {
+                harfDigit = game.prediction.substring(1);
+                isLeftDigit = true;
+              } else if (game.prediction.startsWith('R')) {
+                harfDigit = game.prediction.substring(1);
+                isRightDigit = true;
+              }
+              
+              // Check if the prediction matches the appropriate position
               if (
-                (game.prediction === firstDigit) || 
-                (game.prediction === secondDigit) ||
-                (game.prediction === `L${firstDigit}`) ||
-                (game.prediction === `R${secondDigit}`)
+                (isLeftDigit && harfDigit === firstDigit) || 
+                (isRightDigit && harfDigit === secondDigit) ||
+                // For single digit predictions without position indicator
+                (!isLeftDigit && !isRightDigit && (game.prediction === firstDigit || game.prediction === secondDigit))
               ) {
                 isWinner = true;
                 const oddValue = await getOddsValue(game.gameMode);
@@ -1721,9 +1742,22 @@ app.get("/api/games/my-history", async (req, res, next) => {
               }
             }
             else if (game.gameMode === SatamatkaGameMode.CROSSING) {
-              // For Crossing, check if any digit in prediction matches either digit in result
+              // For Crossing, check if the prediction matches the result in any order
               const digits = game.prediction.replace(/[^0-9,]/g, '').split(',');
-              if (digits.includes(closeResult[0]) || digits.includes(closeResult[1])) {
+              
+              // Extract the actual crossing combinations from the digits
+              // Crossing means any combination of the digits in any order
+              const crossingCombinations = [];
+              for (let i = 0; i < digits.length; i++) {
+                for (let j = 0; j < digits.length; j++) {
+                  if (i !== j) {
+                    crossingCombinations.push(digits[i] + digits[j]);
+                  }
+                }
+              }
+              
+              // Check if any of the crossing combinations match the result exactly
+              if (crossingCombinations.includes(closeResult)) {
                 isWinner = true;
                 const oddValue = await getOddsValue(game.gameMode);
                 payout = game.betAmount * (oddValue / 10000); // Apply configured odds
