@@ -129,6 +129,12 @@ export default function AdminCricketTossPage() {
     queryKey: ["/api/cricket-toss/matches"],
     staleTime: 10000,
   });
+
+  // Query to fetch cricket match betting stats
+  const { data: cricketMatchStats = [], isLoading: isLoadingStats } = useQuery<any[]>({
+    queryKey: ["/api/cricket-toss/match-stats"],
+    staleTime: 5000,
+  });
   
   // Filter matches based on status and search query
   const openMatches = cricketTossMatches.filter(match => match.status === "open");
@@ -162,6 +168,20 @@ export default function AdminCricketTossPage() {
   };
   
   const filteredMatches = getFilteredMatches();
+
+  // Helper function to get match stats
+  const getMatchStats = (matchId: number) => {
+    if (!Array.isArray(cricketMatchStats)) {
+      return {
+        teamA: { totalBets: 0, potentialWin: 0 },
+        teamB: { totalBets: 0, potentialWin: 0 }
+      };
+    }
+    return cricketMatchStats.find((stat: any) => stat.matchId === matchId) || {
+      teamA: { totalBets: 0, potentialWin: 0 },
+      teamB: { totalBets: 0, potentialWin: 0 }
+    };
+  };
 
   // Mutation to create a new cricket toss match
   const createCricketTossMutation = useMutation({
@@ -412,38 +432,54 @@ export default function AdminCricketTossPage() {
                 <TableRow>
                   <TableHead>Match</TableHead>
                   <TableHead>Match Time</TableHead>
-                  <TableHead>Odds</TableHead>
+                  <TableHead>Team A Bets</TableHead>
+                  <TableHead>Team B Bets</TableHead>
                   <TableHead>Result</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredMatches.map((match: CricketTossMatch) => (
-                  <TableRow key={match.id}>
-                    <TableCell>
-                      <div className="flex flex-col">
-                        <div className="flex justify-between items-center">
-                          <span className="font-medium">{match.teamA} vs {match.teamB}</span>
-                        </div>
-                        {match.description && (
-                          <div className="text-xs text-gray-500 mt-1">{match.description}</div>
-                        )}
-                        {match.coverImage && (
-                          <div className="w-full mt-2">
-                            <img 
-                              src={match.coverImage} 
-                              alt={`${match.teamA} vs ${match.teamB}`}
-                              className="w-full h-12 object-cover rounded-md" 
-                            />
+                {filteredMatches.map((match: CricketTossMatch) => {
+                  const matchStats = getMatchStats(match.id);
+                  return (
+                    <TableRow key={match.id}>
+                      <TableCell>
+                        <div className="flex flex-col">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">{match.teamA} vs {match.teamB}</span>
                           </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>{formatDate(new Date(match.matchTime))}</TableCell>
-                    <TableCell>
-                      {match.teamA}: {formatOdds(match.oddTeamA)} / {match.teamB}: {formatOdds(match.oddTeamB)}
-                    </TableCell>
+                          {match.description && (
+                            <div className="text-xs text-gray-500 mt-1">{match.description}</div>
+                          )}
+                          {match.coverImage && (
+                            <div className="w-full mt-2">
+                              <img 
+                                src={match.coverImage} 
+                                alt={`${match.teamA} vs ${match.teamB}`}
+                                className="w-full h-12 object-cover rounded-md" 
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatDate(new Date(match.matchTime))}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col space-y-1">
+                          <div className="text-sm font-medium">{match.teamA}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {matchStats.teamA.totalBets} bets • ₹{(matchStats.teamA.potentialWin / 100)?.toFixed(2) || '0.00'} potential
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-col space-y-1">
+                          <div className="text-sm font-medium">{match.teamB}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {matchStats.teamB.totalBets} bets • ₹{(matchStats.teamB.potentialWin / 100)?.toFixed(2) || '0.00'} potential
+                          </div>
+                        </div>
+                      </TableCell>
                     <TableCell>
                       {match.result === "pending" ? (
                         "Pending"
@@ -492,8 +528,9 @@ export default function AdminCricketTossPage() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
-                  </TableRow>
-                ))}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           ) : (
