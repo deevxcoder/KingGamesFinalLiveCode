@@ -178,17 +178,13 @@ export default function SubadminManagementPage() {
   const { data: playersBetsData = {}, isLoading: isLoadingPlayersBets } = useQuery({
     queryKey: ["/api/games/active-bets", selectedSubadminId],
     enabled: isViewPlayersDialogOpen && !!selectedSubadminId,
-    queryFn: async () => {
-      if (!selectedSubadminId) return {};
-      
-      // Get all games to calculate active bets and potential wins
-      const games = await apiRequest("GET", "/api/games");
-      console.log("All games for bet calculation:", games);
+    select: (data: any) => {
+      console.log("All games for bet calculation:", data);
       
       const activeBets: Record<number, { totalBets: number; potentialWin: number }> = {};
       
-      if (Array.isArray(games)) {
-        games.forEach((game: any) => {
+      if (Array.isArray(data)) {
+        data.forEach((game: any) => {
           console.log(`Game ${game.id}: status=${game.status}, userId=${game.userId}, payout=${game.payout}`);
           if (game.status === 'pending' && game.userId) {
             if (!activeBets[game.userId]) {
