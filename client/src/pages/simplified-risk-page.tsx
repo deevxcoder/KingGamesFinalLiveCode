@@ -486,8 +486,8 @@ export default function SimplifiedRiskPage() {
                   </Card>
                 </div>
                 
-                <Card className="mb-6 border-border/40 bg-card/50">
-                  <CardHeader className="border-b border-border/30">
+                <Card className="mb-6 border-primary/20 bg-primary/5">
+                  <CardHeader className="border-b border-primary/20">
                     <CardTitle>Jantri Risk Analysis</CardTitle>
                     <CardDescription>
                       View and analyze bets by number, market, and player
@@ -517,7 +517,7 @@ export default function SimplifiedRiskPage() {
                           <span className="font-semibold w-24">View Mode:</span>
                           <div className="flex flex-wrap items-center gap-2">
                             <Badge 
-                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'all' ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-primary/20 hover:bg-primary/30 text-foreground'}`}
                               onClick={() => {
                                 setViewMode('regular');
                                 setBetTypeFilter('all');
@@ -526,7 +526,7 @@ export default function SimplifiedRiskPage() {
                               All Numbers
                             </Badge>
                             <Badge 
-                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'jodi' ? 'bg-primary text-primary-foreground' : 'bg-primary/20 hover:bg-primary/30 text-foreground'}`}
                               onClick={() => {
                                 setViewMode('regular');
                                 setBetTypeFilter('jodi');
@@ -535,13 +535,13 @@ export default function SimplifiedRiskPage() {
                               Jodi Only
                             </Badge>
                             <Badge 
-                              className={`cursor-pointer px-3 py-1 ${viewMode === 'odd-even' ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'odd-even' ? 'bg-primary text-primary-foreground' : 'bg-primary/20 hover:bg-primary/30 text-foreground'}`}
                               onClick={() => setViewMode('odd-even')}
                             >
                               Odd/Even
                             </Badge>
                             <Badge 
-                              className={`cursor-pointer px-3 py-1 ${viewMode === 'harf' ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'harf' ? 'bg-primary text-primary-foreground' : 'bg-primary/20 hover:bg-primary/30 text-foreground'}`}
                               onClick={() => setViewMode('harf')}
                             >
                               Harf (A0-B9)
@@ -688,11 +688,11 @@ export default function SimplifiedRiskPage() {
                         </div>
                       ) : viewMode === 'harf' ? (
                         <div className="p-4">
-                          <h3 className="text-lg font-bold mb-4">Harf Risk Management</h3>
+                          <h3 className="text-lg font-bold mb-4 text-primary-foreground">Harf Risk Management</h3>
                           
                           {/* Left Digits (A0-A9) Table */}
-                          <Card className="mb-6">
-                            <CardHeader>
+                          <Card className="mb-6 border-primary/20 bg-primary/5">
+                            <CardHeader className="border-b border-primary/20">
                               <CardTitle className="text-base">Left Digit (A0-A9) - Position 1</CardTitle>
                             </CardHeader>
                             <CardContent>
@@ -811,9 +811,9 @@ export default function SimplifiedRiskPage() {
                           </Card>
                         </div>
                       ) : (
-                        <Table className="border-collapse bg-card/30">
+                        <Table className="border-collapse bg-primary/5">
                           <TableHeader className="sticky top-0 z-10">
-                            <TableRow className="border-b border-border/70 bg-background/80 backdrop-blur-sm">
+                            <TableRow className="border-b border-primary/30 bg-primary/10 backdrop-blur-sm">
                               <TableHead className="w-[80px] font-semibold text-foreground">Number</TableHead>
                               <TableHead className="w-[100px] font-semibold text-foreground">Active Bets</TableHead>
                               <TableHead className="w-[150px] font-semibold text-foreground">Bet Amount</TableHead>
@@ -866,10 +866,10 @@ export default function SimplifiedRiskPage() {
                                 <TableRow 
                                   key={num}
                                   className={
-                                    riskLevel === 'high' ? 'bg-red-950/30 hover:bg-red-950/40 border-b border-red-900/30' :
-                                    riskLevel === 'medium' ? 'bg-orange-950/30 hover:bg-orange-950/40 border-b border-orange-900/30' :
-                                    riskLevel === 'low' ? 'bg-blue-950/30 hover:bg-blue-950/40 border-b border-blue-900/30' : 
-                                    'bg-background/20 hover:bg-muted/50 border-b border-border/40'
+                                    riskLevel === 'high' ? 'bg-primary-foreground/5 hover:bg-primary-foreground/10 border-b border-primary/30' :
+                                    riskLevel === 'medium' ? 'bg-primary/5 hover:bg-primary/10 border-b border-primary/20' :
+                                    riskLevel === 'low' ? 'bg-primary/10 hover:bg-primary/15 border-b border-primary/30' : 
+                                    'bg-background hover:bg-primary/5 border-b border-primary/10'
                                   }
                                 >
                                   <TableCell className="font-medium">{num}</TableCell>
