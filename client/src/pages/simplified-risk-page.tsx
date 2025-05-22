@@ -768,6 +768,17 @@ export default function SimplifiedRiskPage() {
                                         <span className="font-medium">Risk Level:</span>
                                         <span>{getRiskLevelBadge(riskLevel)}</span>
                                       </div>
+                                      {totalBets > 0 && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="w-full mt-3"
+                                          onClick={() => showPlayerDetails(oddGames, `Odd Numbers Players (${totalBets} players)`)}
+                                        >
+                                          <Eye className="h-4 w-4 mr-2" />
+                                          View Players
+                                        </Button>
+                                      )}
                                     </div>
                                   );
                                 })()}
@@ -821,6 +832,17 @@ export default function SimplifiedRiskPage() {
                                         <span className="font-medium">Risk Level:</span>
                                         <span>{getRiskLevelBadge(riskLevel)}</span>
                                       </div>
+                                      {totalBets > 0 && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="w-full mt-3"
+                                          onClick={() => showPlayerDetails(evenGames, `Even Numbers Players (${totalBets} players)`)}
+                                        >
+                                          <Eye className="h-4 w-4 mr-2" />
+                                          View Players
+                                        </Button>
+                                      )}
                                     </div>
                                   );
                                 })()}
