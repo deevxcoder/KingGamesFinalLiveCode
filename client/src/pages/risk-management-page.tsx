@@ -699,8 +699,8 @@ export default function RiskManagementPage() {
                                       if (game.result && game.result !== 'pending') return false;
                                       if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                       
-                                      // For left digit, the game prediction should match the first character of the two-digit number
-                                      return game.prediction && game.prediction.length === 2 && game.prediction[0] === digit;
+                                      // For harf mode, match A0, A1, etc. format
+                                      return game.gameMode === 'harf' && game.prediction === `A${digit}`;
                                     });
                                     
                                     // Calculate totals
@@ -761,8 +761,8 @@ export default function RiskManagementPage() {
                                       if (game.result && game.result !== 'pending') return false;
                                       if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                       
-                                      // For right digit, the game prediction should match the second character of the two-digit number
-                                      return game.prediction && game.prediction.length === 2 && game.prediction[1] === digit;
+                                      // For harf mode, match B0, B1, etc. format
+                                      return game.gameMode === 'harf' && game.prediction === `B${digit}`;
                                     });
                                     
                                     // Calculate totals
