@@ -351,23 +351,24 @@ async function getCricketMatchAnalysis(games: any[], oddValue: number) {
       
       console.log(`Team A bets: ${teamABets.length}, Team B bets: ${teamBBets.length}`);
       
-      // Get the actual odds that should be used for calculations
-      // Priority: 1. Subadmin custom odds (if set), 2. Database default odds
-      const effectiveOddValue = oddValue; // This comes from the admin/subadmin odds system
+      // Use the database match odds directly for cricket toss (not the admin system odds)
+      // Cricket toss uses fixed odds stored in the match data (usually 2.00x)
+      const teamAOdds = match.oddTeamA / 100; // Convert from 200 to 2.00
+      const teamBOdds = match.oddTeamB / 100; // Convert from 200 to 2.00
       
-      // Calculate team A statistics using effective odds
+      // Calculate team A statistics using match-specific odds
       const teamAStats = {
         totalBets: teamABets.length,
         totalAmount: teamABets.reduce((sum, game) => sum + game.betAmount, 0),
-        potentialPayout: teamABets.reduce((sum, game) => sum + (game.betAmount * (effectiveOddValue / 100)), 0),
+        potentialPayout: teamABets.reduce((sum, game) => sum + (game.betAmount * teamAOdds), 0),
         users: Array.from(new Set(teamABets.map(game => game.userId)))
       };
       
-      // Calculate team B statistics using effective odds
+      // Calculate team B statistics using match-specific odds
       const teamBStats = {
         totalBets: teamBBets.length,
         totalAmount: teamBBets.reduce((sum, game) => sum + game.betAmount, 0),
-        potentialPayout: teamBBets.reduce((sum, game) => sum + (game.betAmount * (effectiveOddValue / 100)), 0),
+        potentialPayout: teamBBets.reduce((sum, game) => sum + (game.betAmount * teamBOdds), 0),
         users: Array.from(new Set(teamBBets.map(game => game.userId)))
       };
       
