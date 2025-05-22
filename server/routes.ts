@@ -1756,12 +1756,19 @@ app.get("/api/games/my-history", async (req, res, next) => {
                 }
               }
               
-              // Check if any of the crossing combinations match the result exactly
-              if (crossingCombinations.includes(closeResult)) {
+              // Also consider the reverse of the result (e.g., if result is "01", also check for "10")
+              const resultToCheck = closeResult;
+              const reverseResult = closeResult.length === 2 ? closeResult[1] + closeResult[0] : closeResult;
+              
+              // Check if any of the crossing combinations match the result or its reverse
+              if (crossingCombinations.includes(resultToCheck) || crossingCombinations.includes(reverseResult)) {
                 isWinner = true;
                 const oddValue = await getOddsValue(game.gameMode);
                 payout = game.betAmount * (oddValue / 10000); // Apply configured odds
               }
+              
+              // Debugging log to help understand result calculation
+              console.log(`Crossing game: Prediction=${game.prediction}, Digits=${JSON.stringify(digits)}, Combinations=${JSON.stringify(crossingCombinations)}, Result=${resultToCheck}, IsWinner=${isWinner}`);
             }
             else if (game.gameMode === SatamatkaGameMode.ODD_EVEN) {
               // For Odd-Even, check if prediction matches the result's parity
