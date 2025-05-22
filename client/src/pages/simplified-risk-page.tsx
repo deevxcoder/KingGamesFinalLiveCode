@@ -810,17 +810,17 @@ export default function SimplifiedRiskPage() {
                           </Card>
                         </div>
                       ) : (
-                        <Table>
+                        <Table className="border-collapse">
                           <TableHeader className="sticky top-0 bg-background z-10">
-                            <TableRow>
-                              <TableHead className="w-[80px]">Number</TableHead>
-                              <TableHead className="w-[100px]">Active Bets</TableHead>
-                              <TableHead className="w-[150px]">Bet Amount</TableHead>
-                              <TableHead className="w-[150px]">Potential Win</TableHead>
-                              <TableHead>Bet Types</TableHead>
-                              <TableHead className="w-[120px]">Market</TableHead>
-                              <TableHead className="w-[100px]">Risk Level</TableHead>
-                              <TableHead className="w-[200px]">Player Details</TableHead>
+                            <TableRow className="border-b border-border">
+                              <TableHead className="w-[80px] bg-background">Number</TableHead>
+                              <TableHead className="w-[100px] bg-background">Active Bets</TableHead>
+                              <TableHead className="w-[150px] bg-background">Bet Amount</TableHead>
+                              <TableHead className="w-[150px] bg-background">Potential Win</TableHead>
+                              <TableHead className="bg-background">Bet Types</TableHead>
+                              <TableHead className="w-[120px] bg-background">Market</TableHead>
+                              <TableHead className="w-[100px] bg-background">Risk Level</TableHead>
+                              <TableHead className="w-[200px] bg-background">Player Details</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -865,9 +865,10 @@ export default function SimplifiedRiskPage() {
                                 <TableRow 
                                   key={num}
                                   className={
-                                    riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20' :
-                                    riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20' :
-                                    riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                                    riskLevel === 'high' ? 'bg-red-950/30 hover:bg-red-950/40 border-b border-red-900/30' :
+                                    riskLevel === 'medium' ? 'bg-orange-950/30 hover:bg-orange-950/40 border-b border-orange-900/30' :
+                                    riskLevel === 'low' ? 'bg-blue-950/30 hover:bg-blue-950/40 border-b border-blue-900/30' : 
+                                    'bg-background hover:bg-muted/50 border-b border-border'
                                   }
                                 >
                                   <TableCell className="font-medium">{num}</TableCell>
