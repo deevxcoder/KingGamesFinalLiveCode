@@ -1012,7 +1012,6 @@ export default function SimplifiedRiskPage() {
                               <TableHead className="w-[120px] font-semibold text-foreground">Market</TableHead>
                               <TableHead className="w-[100px] font-semibold text-foreground">Risk Level</TableHead>
                               <TableHead className="w-[120px] font-semibold text-foreground">Action</TableHead>
-                              <TableHead className="w-[200px] font-semibold text-foreground">Player Details</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody className="bg-transparent">
@@ -1088,14 +1087,6 @@ export default function SimplifiedRiskPage() {
                                       <Eye className="h-4 w-4 mr-2" />
                                       View Players
                                     </Button>
-                                  </TableCell>
-                                  <TableCell>
-                                    {Array.from(new Set(gamesForNumber.map(game => {
-                                      const userId = game.userId?.toString();
-                                      return userId && userInfo[userId] 
-                                        ? userInfo[userId].username 
-                                        : 'Unknown';
-                                    }))).join(', ')}
                                   </TableCell>
                                 </TableRow>
                               );
