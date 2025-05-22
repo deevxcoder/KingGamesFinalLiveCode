@@ -486,20 +486,20 @@ export default function SimplifiedRiskPage() {
                   </Card>
                 </div>
                 
-                <Card className="mb-6">
-                  <CardHeader>
+                <Card className="mb-6 border-border/40 bg-card/50">
+                  <CardHeader className="border-b border-border/30">
                     <CardTitle>Jantri Risk Analysis</CardTitle>
                     <CardDescription>
                       View and analyze bets by number, market, and player
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4 mb-4">
+                  <CardContent className="pt-6">
+                    <div className="space-y-5 mb-6">
                       <div className="flex flex-wrap items-center gap-4">
                         <div className="flex items-center space-x-2">
                           <span className="font-semibold w-24">Market:</span>
                           <select 
-                            className="p-2 border rounded-md w-48 bg-background"
+                            className="p-2 border rounded-md w-48 bg-background/70 border-border/60 focus:border-primary/70 focus:ring-1 focus:ring-primary/50"
                             value={marketFilter === 'all' ? 'all' : marketFilter.toString()}
                             onChange={(e) => setMarketFilter(e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10))}
                           >
@@ -515,9 +515,9 @@ export default function SimplifiedRiskPage() {
                         {/* View Selector */}
                         <div className="flex items-center space-x-2">
                           <span className="font-semibold w-24">View Mode:</span>
-                          <div className="flex items-center space-x-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <Badge 
-                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'all' ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}
                               onClick={() => {
                                 setViewMode('regular');
                                 setBetTypeFilter('all');
@@ -526,7 +526,7 @@ export default function SimplifiedRiskPage() {
                               All Numbers
                             </Badge>
                             <Badge 
-                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}
                               onClick={() => {
                                 setViewMode('regular');
                                 setBetTypeFilter('jodi');
@@ -535,20 +535,22 @@ export default function SimplifiedRiskPage() {
                               Jodi Only
                             </Badge>
                             <Badge 
-                              className={`cursor-pointer px-3 py-1 ${viewMode === 'odd-even' ? 'bg-primary' : 'bg-slate-700'}`}
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'odd-even' ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}
                               onClick={() => setViewMode('odd-even')}
                             >
                               Odd/Even
                             </Badge>
                             <Badge 
-                              className={`cursor-pointer px-3 py-1 ${viewMode === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'harf' ? 'bg-primary' : 'bg-muted hover:bg-muted/80'}`}
                               onClick={() => setViewMode('harf')}
                             >
                               Harf (A0-B9)
                             </Badge>
                           </div>
                         </div>
-                        <div className="flex items-center space-x-3">
+                      </div>
+                      
+                      <div className="flex flex-wrap items-center gap-3 py-3 px-4 bg-muted/30 rounded-md border border-border/30">
                           <div className="flex items-center space-x-1">
                             <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
                             <span className="text-xs">High Risk (₹{(riskThresholds.high/100).toFixed(2)}+)</span>
@@ -564,13 +566,12 @@ export default function SimplifiedRiskPage() {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="ml-2 text-xs" 
+                            className="ml-auto text-xs bg-background/70 hover:bg-background" 
                             onClick={() => setRiskConfigOpen(true)}
                           >
                             Configure Risk Levels
                           </Button>
                         </div>
-                      </div>
                     </div>
                     
                     <ScrollArea className="h-[600px]">
@@ -810,20 +811,20 @@ export default function SimplifiedRiskPage() {
                           </Card>
                         </div>
                       ) : (
-                        <Table className="border-collapse">
-                          <TableHeader className="sticky top-0 bg-background z-10">
-                            <TableRow className="border-b border-border">
-                              <TableHead className="w-[80px] bg-background">Number</TableHead>
-                              <TableHead className="w-[100px] bg-background">Active Bets</TableHead>
-                              <TableHead className="w-[150px] bg-background">Bet Amount</TableHead>
-                              <TableHead className="w-[150px] bg-background">Potential Win</TableHead>
-                              <TableHead className="bg-background">Bet Types</TableHead>
-                              <TableHead className="w-[120px] bg-background">Market</TableHead>
-                              <TableHead className="w-[100px] bg-background">Risk Level</TableHead>
-                              <TableHead className="w-[200px] bg-background">Player Details</TableHead>
+                        <Table className="border-collapse bg-card/30">
+                          <TableHeader className="sticky top-0 z-10">
+                            <TableRow className="border-b border-border/70 bg-background/80 backdrop-blur-sm">
+                              <TableHead className="w-[80px] font-semibold text-foreground">Number</TableHead>
+                              <TableHead className="w-[100px] font-semibold text-foreground">Active Bets</TableHead>
+                              <TableHead className="w-[150px] font-semibold text-foreground">Bet Amount</TableHead>
+                              <TableHead className="w-[150px] font-semibold text-foreground">Potential Win</TableHead>
+                              <TableHead className="font-semibold text-foreground">Bet Types</TableHead>
+                              <TableHead className="w-[120px] font-semibold text-foreground">Market</TableHead>
+                              <TableHead className="w-[100px] font-semibold text-foreground">Risk Level</TableHead>
+                              <TableHead className="w-[200px] font-semibold text-foreground">Player Details</TableHead>
                             </TableRow>
                           </TableHeader>
-                          <TableBody>
+                          <TableBody className="bg-transparent">
                             {Array.from({ length: 100 }, (_, i) => {
                               // Format number as two digits (e.g., 00, 01, ..., 99)
                               const num = i.toString().padStart(2, '0');
@@ -868,7 +869,7 @@ export default function SimplifiedRiskPage() {
                                     riskLevel === 'high' ? 'bg-red-950/30 hover:bg-red-950/40 border-b border-red-900/30' :
                                     riskLevel === 'medium' ? 'bg-orange-950/30 hover:bg-orange-950/40 border-b border-orange-900/30' :
                                     riskLevel === 'low' ? 'bg-blue-950/30 hover:bg-blue-950/40 border-b border-blue-900/30' : 
-                                    'bg-background hover:bg-muted/50 border-b border-border'
+                                    'bg-background/20 hover:bg-muted/50 border-b border-border/40'
                                   }
                                 >
                                   <TableCell className="font-medium">{num}</TableCell>
