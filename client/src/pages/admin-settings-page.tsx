@@ -1563,9 +1563,9 @@ export default function AdminSettingsPage() {
                         </div>
                       </div>
                       
-                      {/* Sports Betting Card Image Section */}
+                      {/* Sports Exchange Card Image Section */}
                       <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
-                        <h3 className="text-lg font-medium mb-4">Sports Betting Card Image</h3>
+                        <h3 className="text-lg font-medium mb-4">Sports Exchange Card Image</h3>
                         
                         <div className="flex flex-col gap-6">
                           <div className="flex items-center gap-4">
@@ -1579,7 +1579,7 @@ export default function AdminSettingsPage() {
                               ) : (
                                 <Upload className="h-4 w-4" />
                               )}
-                              Upload Sports Betting Image
+                              Upload Sports Exchange Image
                             </Button>
                             <input
                               type="file"
@@ -1600,7 +1600,7 @@ export default function AdminSettingsPage() {
                                 >
                                   <img 
                                     src={image.url} 
-                                    alt="Sports Betting Card" 
+                                    alt="Sports Exchange Card" 
                                     className="object-cover w-full h-[160px]"
                                   />
                                   
@@ -1626,7 +1626,7 @@ export default function AdminSettingsPage() {
                                     
                                     <div className="flex items-center justify-between">
                                       <div className="text-white text-sm font-medium">
-                                        Sports Betting
+                                        Sports Exchange
                                       </div>
                                       
                                       <Button
@@ -1644,7 +1644,7 @@ export default function AdminSettingsPage() {
                             
                             {gameCardImages.filter(img => img.gameType === 'sports').length === 0 && (
                               <div className="py-6 px-4 text-center bg-slate-800/30 border border-dashed border-slate-700 rounded-lg">
-                                <p className="text-slate-400">No Sports Betting card image uploaded yet. Upload an image to use as background for the Sports Betting card.</p>
+                                <p className="text-slate-400">No Sports Exchange card image uploaded yet. Upload an image to use as background for the Sports Exchange card.</p>
                               </div>
                             )}
                           </div>
