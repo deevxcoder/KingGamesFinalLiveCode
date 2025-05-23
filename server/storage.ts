@@ -437,6 +437,15 @@ export class DatabaseStorage implements IStorage {
     
     return updatedMarket;
   }
+  
+  async updateSatamatkaMarket(id: number, data: Partial<InsertSatamatkaMarket>): Promise<SatamatkaMarket | undefined> {
+    const [updatedMarket] = await db.update(satamatkaMarkets)
+      .set(data)
+      .where(eq(satamatkaMarkets.id, id))
+      .returning();
+    
+    return updatedMarket;
+  }
 
   async getSatamatkaGamesByMarketId(marketId: number): Promise<Game[]> {
     return await db.select()
