@@ -401,7 +401,7 @@ export default function SubadminManagementPage() {
       if (data && typeof data.commissionRate === 'number') {
         return {
           ...data,
-          commissionRate: data.commissionRate / 100  // Convert: 2000 → 20 (for 20%), 1000 → 10 (for 10%)
+          commissionRate: data.commissionRate / 10000  // Convert: 100000 → 10 (default 10%), 20000 → 2 (for 2%)
         };
       }
       return data;
@@ -416,7 +416,7 @@ export default function SubadminManagementPage() {
       }
       
       return apiRequest("POST", `/api/admin/deposit-commissions/${selectedSubadminId}`, {
-        commissionRate: Math.round(values.depositCommissionRate * 100)  // Convert: 20% → 2000 for database
+        commissionRate: Math.round(values.depositCommissionRate * 10000)  // Convert: 10% → 100000 for database
       });
     },
     onSuccess: () => {
