@@ -439,10 +439,15 @@ export default function SubadminManagementPage() {
       const rate = (depositCommission as any)?.commissionRate;
       if (typeof rate === 'number') {
         const formValues = {
-          depositCommissionRate: rate / 100,
+          depositCommissionRate: rate / 100, // Always convert from database format (1000) to percentage (10)
         };
         commissionForm.reset(formValues);
       }
+    } else if (isCommissionDialogOpen) {
+      // Reset to 0 when opening dialog without data
+      commissionForm.reset({
+        depositCommissionRate: 0,
+      });
     }
   }, [depositCommission, commissionForm, isCommissionDialogOpen]);
   
