@@ -300,84 +300,90 @@ export default function CricketTossPage() {
                       {selectedMatch.teamA} vs {selectedMatch.teamB} - {formatDate(new Date(selectedMatch.matchTime))}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid gap-4">
-                      {/* Removed duplicate cover image from here */}
-                      <div className="grid grid-cols-2 gap-4">
+                  <CardContent className="space-y-6">
+                    {/* Team Selection - Mobile Optimized */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium block">Choose Your Team</label>
+                      <div className="grid grid-cols-2 gap-3">
                         <Button
                           variant={selectedTeam === "team_a" ? "default" : "outline"}
-                          className="h-16"
+                          className="h-20 p-4 text-center"
                           onClick={() => setSelectedTeam("team_a")}
                         >
-                          <div className="flex flex-col items-center justify-center gap-1">
-                            <div>{selectedMatch.teamA}</div>
-
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <div className="font-bold text-lg">{selectedMatch.teamA}</div>
                           </div>
                         </Button>
                         <Button
                           variant={selectedTeam === "team_b" ? "default" : "outline"}
-                          className="h-16"
+                          className="h-20 p-4 text-center"
                           onClick={() => setSelectedTeam("team_b")}
                         >
-                          <div className="flex flex-col items-center justify-center gap-1">
-                            <div>{selectedMatch.teamB}</div>
-
+                          <div className="flex flex-col items-center justify-center gap-2">
+                            <div className="font-bold text-lg">{selectedMatch.teamB}</div>
                           </div>
                         </Button>
                       </div>
+                    </div>
 
-                      <div className="grid grid-cols-2 gap-4 items-start">
-                        <div>
-                          <label htmlFor="betAmount" className="text-sm font-medium mb-1 block">
-                            Bet Amount (₹)
-                          </label>
-                          <Input
-                            id="betAmount"
-                            type="number"
-                            value={betAmount}
-                            onChange={(e) => setBetAmount(e.target.value)}
-                            min="10"
-                            step="10"
-                            className="mb-2"
-                          />
-                          
-                          {/* Quick bet amount selection */}
-                          <div className="grid grid-cols-3 gap-2 mt-1">
-                            {[100, 500, 1000, 2000, 5000, 10000].map((amount) => (
-                              <Button
-                                key={amount}
-                                type="button"
-                                size="sm"
-                                variant={parseInt(betAmount) === amount ? "default" : "outline"}
-                                onClick={() => setBetAmount(amount.toString())}
-                                className="text-xs py-1"
-                              >
-                                ₹{amount}
-                              </Button>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <label className="text-sm font-medium mb-1 block">
-                            Potential Win
-                          </label>
-                          <div className="text-xl font-bold mb-2">
-                            ₹{calculatePotentialWin(betAmount, selectedTeam).toFixed(2)}
-                          </div>
-                          <div className="text-xs text-gray-500 mt-4">
-                            Select a team and enter your bet amount to calculate potential winnings.
-                          </div>
-                        </div>
+                    {/* Bet Amount Section - Mobile Optimized */}
+                    <div className="space-y-3">
+                      <label htmlFor="betAmount" className="text-sm font-medium block">
+                        Bet Amount (₹)
+                      </label>
+                      <Input
+                        id="betAmount"
+                        type="number"
+                        value={betAmount}
+                        onChange={(e) => setBetAmount(e.target.value)}
+                        min="10"
+                        step="10"
+                        className="h-12 text-lg"
+                        placeholder="Enter amount"
+                      />
+                      
+                      {/* Quick bet amount selection - Mobile Optimized */}
+                      <div className="grid grid-cols-3 gap-2">
+                        {[100, 500, 1000, 2000, 5000, 10000].map((amount) => (
+                          <Button
+                            key={amount}
+                            type="button"
+                            size="sm"
+                            variant={parseInt(betAmount) === amount ? "default" : "outline"}
+                            onClick={() => setBetAmount(amount.toString())}
+                            className="h-10 text-sm font-medium"
+                          >
+                            ₹{amount}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Potential Win - Mobile Optimized */}
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <label className="text-sm font-medium block mb-2">
+                        Potential Win
+                      </label>
+                      <div className="text-2xl font-bold text-primary">
+                        ₹{calculatePotentialWin(betAmount, selectedTeam).toFixed(2)}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        Select a team and enter your bet amount to calculate potential winnings.
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => setSelectedMatch(null)}>
+                  <CardFooter className="flex flex-col gap-3 sm:flex-row sm:justify-between">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSelectedMatch(null)}
+                      className="h-12 w-full sm:w-auto"
+                    >
                       Cancel
                     </Button>
                     <Button 
                       onClick={handlePlaceBet} 
                       disabled={!selectedTeam || placeBetMutation.isPending}
+                      className="h-12 w-full sm:w-auto bg-primary hover:bg-primary/90"
                     >
                       {placeBetMutation.isPending ? "Placing Bet..." : "Place Bet"}
                     </Button>
