@@ -398,11 +398,14 @@ export default function SubadminManagementPage() {
     enabled: !!selectedSubadminId && isCommissionDialogOpen,
     select: (data: any) => {
       // Convert commission rate from database format (1000) to percentage format (10) immediately
+      console.log('Raw commission data from API:', data);
       if (data && typeof data.commissionRate === 'number') {
-        return {
+        const converted = {
           ...data,
-          commissionRate: data.commissionRate / 100
+          commissionRate: data.commissionRate / 10000  // Convert: 100000 → 10 (for 10%)
         };
+        console.log('Converted commission data:', converted);
+        return converted;
       }
       return data;
     }
