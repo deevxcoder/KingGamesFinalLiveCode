@@ -1670,6 +1670,13 @@ app.get("/api/games/my-history", async (req, res, next) => {
         return res.status(404).json({ message: "Market not found" });
       }
       
+      // Check if the market already has results declared
+      if (existingMarket.status === 'resulted') {
+        return res.status(403).json({ 
+          message: "Cannot edit market after results have been declared" 
+        });
+      }
+      
       // Convert string dates to Date objects if they're strings
       if (formData.openTime && typeof formData.openTime === 'string') {
         formData.openTime = new Date(formData.openTime);

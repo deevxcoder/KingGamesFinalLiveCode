@@ -82,6 +82,7 @@ export interface IStorage {
   getSatamatkaMarket(id: number): Promise<SatamatkaMarket | undefined>;
   getAllSatamatkaMarkets(): Promise<SatamatkaMarket[]>;
   getActiveSatamatkaMarkets(): Promise<SatamatkaMarket[]>;
+  updateSatamatkaMarket(id: number, data: Partial<InsertSatamatkaMarket>): Promise<SatamatkaMarket | undefined>;
   updateSatamatkaMarketResults(id: number, openResult?: string, closeResult?: string): Promise<SatamatkaMarket | undefined>;
   updateSatamatkaMarketStatus(id: number, status: string): Promise<SatamatkaMarket | undefined>;
   getSatamatkaGamesByMarketId(marketId: number): Promise<Game[]>;
