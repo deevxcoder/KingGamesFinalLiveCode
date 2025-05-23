@@ -435,14 +435,14 @@ export default function SubadminManagementPage() {
   
   // Set form values when deposit commission data is loaded
   useEffect(() => {
-    if (depositCommission) {
+    if (depositCommission && isCommissionDialogOpen) {
       const formValues = {
         depositCommissionRate: depositCommission.commissionRate / 100,
       };
 
       commissionForm.reset(formValues);
     }
-  }, [depositCommission, commissionForm]);
+  }, [depositCommission, commissionForm, isCommissionDialogOpen]);
   
   // Open commission dialog for a specific subadmin
   const openCommissionDialog = (subadmin: any) => {
