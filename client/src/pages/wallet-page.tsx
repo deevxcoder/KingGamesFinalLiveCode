@@ -321,16 +321,16 @@ export default function WalletPage() {
                       
                       return (
                         <>
-                          {/* Mobile-Optimized Transaction Table */}
+                          {/* Enhanced Transaction Table with Full Details */}
                           <div className="overflow-x-auto">
                             <Table>
                               <TableHeader>
                                 <TableRow>
-                                  <TableHead className="w-[100px]">Date</TableHead>
-                                  <TableHead>Type</TableHead>
+                                  <TableHead className="w-[120px]">Date & Time</TableHead>
+                                  <TableHead>Transaction Details</TableHead>
                                   <TableHead className="text-right">Amount</TableHead>
-                                  <TableHead className="text-right">Balance</TableHead>
-                                  <TableHead className="w-[80px]">Status</TableHead>
+                                  <TableHead className="text-right">Balance After</TableHead>
+                                  <TableHead className="w-[100px]">Status</TableHead>
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -343,28 +343,50 @@ export default function WalletPage() {
                                     return (
                                       <TableRow key={item.id}>
                                         <TableCell className="text-sm">
-                                          {formatDate(request.createdAt).split(' ')[0]}
+                                          <div className="flex flex-col">
+                                            <span className="font-medium">{formatDate(request.createdAt).split(' ')[0]}</span>
+                                            <span className="text-xs text-muted-foreground">
+                                              {formatDate(request.createdAt).split(' ').slice(1).join(' ')}
+                                            </span>
+                                          </div>
                                         </TableCell>
                                         <TableCell>
-                                          <div className="flex flex-col">
+                                          <div className="flex flex-col space-y-1">
                                             <span className="font-medium text-sm">{title} Request</span>
-                                            <span className="text-xs text-muted-foreground">
-                                              {request.paymentMode}
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                              <Badge variant="outline" className="text-xs">
+                                                {request.paymentMode}
+                                              </Badge>
+                                            </div>
+                                            {request.reviewedBy && (
+                                              <span className="text-xs text-muted-foreground">
+                                                Reviewed by Admin
+                                              </span>
+                                            )}
+                                            {request.notes && (
+                                              <span className="text-xs text-muted-foreground">
+                                                {request.notes}
+                                              </span>
+                                            )}
                                           </div>
                                         </TableCell>
                                         <TableCell className="text-right">
                                           <span className={
                                             request.requestType === RequestType.DEPOSIT 
-                                              ? "text-green-600" 
-                                              : "text-red-600"
+                                              ? "text-green-600 font-medium" 
+                                              : "text-red-600 font-medium"
                                           }>
                                             {request.requestType === RequestType.DEPOSIT ? '+' : '-'}
                                             ₹{request.amount.toFixed(2)}
                                           </span>
                                         </TableCell>
-                                        <TableCell className="text-right text-sm text-muted-foreground">
-                                          -
+                                        <TableCell className="text-right">
+                                          <span className="text-sm text-muted-foreground">
+                                            {request.status === RequestStatus.APPROVED ? 
+                                              `₹${user ? (user.balance / 100).toFixed(2) : '0.00'}` : 
+                                              '-'
+                                            }
+                                          </span>
                                         </TableCell>
                                         <TableCell>
                                           <Badge 
@@ -388,20 +410,33 @@ export default function WalletPage() {
                                     return (
                                       <TableRow key={item.id}>
                                         <TableCell className="text-sm">
-                                          {formatDate(transaction.createdAt).split(' ')[0]}
-                                        </TableCell>
-                                        <TableCell>
                                           <div className="flex flex-col">
-                                            <span className="font-medium text-sm">
-                                              {transaction.amount > 0 ? "Credit" : "Debit"}
-                                            </span>
+                                            <span className="font-medium">{formatDate(transaction.createdAt).split(' ')[0]}</span>
                                             <span className="text-xs text-muted-foreground">
-                                              {transaction.description?.split(' ').slice(0, 3).join(' ') || "Balance update"}
+                                              {formatDate(transaction.createdAt).split(' ').slice(1).join(' ')}
                                             </span>
                                           </div>
                                         </TableCell>
+                                        <TableCell>
+                                          <div className="flex flex-col space-y-1">
+                                            <span className="font-medium text-sm">
+                                              {transaction.amount > 0 ? "Funds Added" : "Funds Deducted"}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                              {transaction.description || "Balance update"}
+                                            </span>
+                                            {transaction.performer && (
+                                              <div className="flex items-center gap-1">
+                                                <User className="h-3 w-3" />
+                                                <span className="text-xs text-muted-foreground">
+                                                  by {transaction.performer.username} ({transaction.performer.role})
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </TableCell>
                                         <TableCell className="text-right">
-                                          <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
+                                          <span className={transaction.amount > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
                                             {transaction.amount > 0 ? '+' : ''}
                                             ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
                                           </span>
