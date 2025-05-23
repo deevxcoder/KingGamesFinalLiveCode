@@ -397,15 +397,12 @@ export default function SubadminManagementPage() {
     queryKey: [`/api/admin/deposit-commissions/${selectedSubadminId}`],
     enabled: !!selectedSubadminId && isCommissionDialogOpen,
     select: (data: any) => {
-      // Convert commission rate from database format (1000) to percentage format (10) immediately
-      console.log('Raw commission data from API:', data);
+      // Convert commission rate from database format to percentage format for display
       if (data && typeof data.commissionRate === 'number') {
-        const converted = {
+        return {
           ...data,
-          commissionRate: data.commissionRate / 10000  // Convert: 100000 → 10 (for 10%)
+          commissionRate: data.commissionRate / 100  // Convert: 2000 → 20 (for 20%), 1000 → 10 (for 10%)
         };
-        console.log('Converted commission data:', converted);
-        return converted;
       }
       return data;
     }
@@ -419,7 +416,7 @@ export default function SubadminManagementPage() {
       }
       
       return apiRequest("POST", `/api/admin/deposit-commissions/${selectedSubadminId}`, {
-        commissionRate: Math.round(values.depositCommissionRate * 100)
+        commissionRate: Math.round(values.depositCommissionRate * 100)  // Convert: 20% → 2000 for database
       });
     },
     onSuccess: () => {
