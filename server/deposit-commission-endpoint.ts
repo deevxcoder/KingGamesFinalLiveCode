@@ -29,11 +29,11 @@ export async function getSubadminDepositCommission(subadminId: number): Promise<
       return parseInt(defaultSetting[0].settingValue);
     }
     
-    // If no system default, use 30% as fallback
-    return 3000; // Default 30% commission rate
+    // If no system default, use 10% as fallback
+    return 1000; // Default 10% commission rate
   } catch (error) {
     console.error('Error getting subadmin commission rate:', error);
-    return 3000; // Default to 30% on error
+    return 1000; // Default to 10% on error
   }
 }
 
