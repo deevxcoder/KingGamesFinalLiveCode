@@ -125,31 +125,20 @@ export default function MarketCard({
   // Get result display component
   const getResultDisplay = () => {
     if (status === "resulted" && (openResult || closeResult)) {
-      return (
-        <div className="flex justify-center items-center gap-6 py-2">
-          {openResult && (
+      // Use closeResult as primary, fallback to openResult if closeResult is not available
+      const resultToShow = closeResult || openResult;
+      
+      if (resultToShow) {
+        return (
+          <div className="flex justify-center items-center py-2">
             <div className="text-center">
-              <div className="text-xs text-muted-foreground mb-1">Open</div>
               <Badge variant="outline" className="text-xl font-bold px-3 py-1">
-                {openResult}
+                {resultToShow}
               </Badge>
             </div>
-          )}
-          
-          {openResult && closeResult && (
-            <div className="text-muted-foreground">-</div>
-          )}
-          
-          {closeResult && (
-            <div className="text-center">
-              <div className="text-xs text-muted-foreground mb-1">Close</div>
-              <Badge variant="outline" className="text-xl font-bold px-3 py-1">
-                {closeResult}
-              </Badge>
-            </div>
-          )}
-        </div>
-      );
+          </div>
+        );
+      }
     }
     return null;
   };
