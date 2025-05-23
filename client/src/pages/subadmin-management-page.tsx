@@ -435,19 +435,21 @@ export default function SubadminManagementPage() {
   
   // Set form values when deposit commission data is loaded
   useEffect(() => {
-    if (depositCommission && isCommissionDialogOpen) {
-      const rate = (depositCommission as any)?.commissionRate;
-      if (typeof rate === 'number') {
-        const formValues = {
-          depositCommissionRate: rate / 100, // Always convert from database format (1000) to percentage (10)
-        };
-        commissionForm.reset(formValues);
+    if (isCommissionDialogOpen) {
+      if (depositCommission) {
+        const rate = (depositCommission as any)?.commissionRate;
+        if (typeof rate === 'number') {
+          const formValues = {
+            depositCommissionRate: rate / 100, // Always convert from database format (1000) to percentage (10)
+          };
+          commissionForm.reset(formValues);
+        }
+      } else {
+        // Reset to 0 when opening dialog without commission data
+        commissionForm.reset({
+          depositCommissionRate: 0,
+        });
       }
-    } else if (isCommissionDialogOpen) {
-      // Reset to 0 when opening dialog without data
-      commissionForm.reset({
-        depositCommissionRate: 0,
-      });
     }
   }, [depositCommission, commissionForm, isCommissionDialogOpen]);
   
