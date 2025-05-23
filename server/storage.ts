@@ -328,7 +328,12 @@ export class DatabaseStorage implements IStorage {
   async getActiveGames(): Promise<Game[]> {
     return await db.select()
       .from(games)
-      .where(isNull(games.result)) // Games without a result are considered active
+      .where(
+        or(
+          isNull(games.result),
+          eq(games.result, 'pending')
+        )
+      ) // Games without a result or with result='pending' are considered active
       .orderBy(desc(games.createdAt));
   }
 

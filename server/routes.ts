@@ -4069,29 +4069,44 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      // Get active bet amount (sum of all bet amounts for games with status "pending") - only from direct admin players
+      // Get active bet amount - only from direct admin players using the actual game data
       const activeGames = await storage.getActiveGames();
       const filteredActiveGames = activeGames.filter(game => directAdminPlayerIds.includes(game.userId));
+      
+      // Debug info for active games
+      console.log(`Found ${activeGames.length} active games, ${filteredActiveGames.length} from direct admin players`);
+      
+      // Sum active bet amounts (converting from paisa to rupees for display)
       const activeBetAmount = filteredActiveGames.reduce((sum, game) => sum + game.betAmount, 0);
       
-      // Calculate potential payout (maximum possible payout from all active games) - only from direct admin players
+      // Calculate potential payout from all active games - only from direct admin players
       const potentialPayout = filteredActiveGames.reduce((sum, game) => {
-        // Calculate the maximum possible payout based on game type and odds
-        let maxPayout = 0;
+        // Calculate the maximum possible payout based on game type and gameMode
+        let multiplier = 2; // Default multiplier
         
         if (game.gameType === GameType.COIN_FLIP) {
           // Typically 2x the bet amount for coin flip
-          maxPayout = game.betAmount * 2;
+          multiplier = 2;
         } else if (game.gameType === GameType.SATAMATKA) {
-          // Could be up to 9x or more depending on the specific game
-          maxPayout = game.betAmount * 9;
+          // Get multiplier based on game mode
+          if (game.gameMode === 'jodi') {
+            multiplier = 90; // 90x for jodi bets
+          } else if (game.gameMode === 'harf') {
+            multiplier = 9; // 9x for harf bets
+          } else if (game.gameMode === 'crossing') {
+            multiplier = 9; // 9x for crossing bets
+          } else if (game.gameMode === 'odd_even') {
+            multiplier = 1.9; // 1.9x for odd/even bets
+          } else {
+            multiplier = 9; // Default for Satamatka
+          }
         } else if (game.gameType === GameType.CRICKET_TOSS) {
           // Typically 2x the bet amount for cricket toss
-          maxPayout = game.betAmount * 2;
-        } else if (game.gameType === GameType.TEAM_MATCH) {
-          // Depends on the odds, typically around 2x
-          maxPayout = game.betAmount * 2;
-        }
+          multiplier = 2;
+        } 
+        
+        const maxPayout = game.betAmount * multiplier;
+        console.log(`Game ${game.id}: type=${game.gameType}, mode=${game.gameMode}, bet=${game.betAmount}, multiplier=${multiplier}, maxPayout=${maxPayout}`);
         
         return sum + maxPayout;
       }, 0);
