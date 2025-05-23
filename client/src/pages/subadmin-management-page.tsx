@@ -401,6 +401,9 @@ export default function SubadminManagementPage() {
       if (data && typeof data.commissionRate === 'number') {
         return {
           ...data,
+          // For platform default (when isDefault is true), the value is stored as 1000 = 10%
+          // For individual commissions, the value is stored as 2000 = 20%
+          // Both need to be divided by 100 to get the percentage for display
           commissionRate: data.commissionRate / 100  // Convert: 2000 → 20 (for 20%), 1000 → 10 (for 10%)
         };
       }
