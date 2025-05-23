@@ -874,8 +874,8 @@ export default function SimplifiedRiskPage() {
                                       if (game.result && game.result !== 'pending') return false;
                                       if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                       
-                                      // For left digit, the game prediction should match the first character of the two-digit number
-                                      return game.prediction && game.prediction.length === 2 && game.prediction[0] === digit;
+                                      // For left digit (A0-A9), check if it's a harf bet with "A" prefix
+                                      return game.gameMode === 'harf' && game.prediction === `A${digit}`;
                                     });
                                     
                                     // Calculate totals
@@ -947,8 +947,8 @@ export default function SimplifiedRiskPage() {
                                       if (game.result && game.result !== 'pending') return false;
                                       if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                       
-                                      // For right digit, the game prediction should match the second character of the two-digit number
-                                      return game.prediction && game.prediction.length === 2 && game.prediction[1] === digit;
+                                      // For right digit (B0-B9), check if it's a harf bet with "B" prefix
+                                      return game.gameMode === 'harf' && game.prediction === `B${digit}`;
                                     });
                                     
                                     // Calculate totals
