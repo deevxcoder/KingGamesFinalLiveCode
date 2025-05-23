@@ -26,7 +26,9 @@ export async function getSubadminDepositCommission(subadminId: number): Promise<
       .limit(1);
       
     if (defaultSetting.length > 0) {
-      return parseInt(defaultSetting[0].settingValue);
+      // Platform default is stored as 100000 = 10%, but we need to return it as 1000 to match individual commission format
+      const platformDefault = parseInt(defaultSetting[0].settingValue);
+      return platformDefault / 100; // Convert 100000 to 1000 to match individual commission storage format
     }
     
     // If no system default, use 10% as fallback
