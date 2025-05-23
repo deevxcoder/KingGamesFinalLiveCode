@@ -589,7 +589,7 @@ export default function RiskManagementPage() {
                             {/* Odd Numbers Section */}
                             <Card>
                               <CardHeader>
-                                <CardTitle className="text-base">Odd Numbers</CardTitle>
+                                <CardTitle className="text-base">Odd Bet Type</CardTitle>
                               </CardHeader>
                               <CardContent>
                                 {(() => {
@@ -641,7 +641,7 @@ export default function RiskManagementPage() {
                             {/* Even Numbers Section */}
                             <Card>
                               <CardHeader>
-                                <CardTitle className="text-base">Even Numbers</CardTitle>
+                                <CardTitle className="text-base">Even Bet Type</CardTitle>
                               </CardHeader>
                               <CardContent>
                                 {(() => {
