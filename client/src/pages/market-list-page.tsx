@@ -82,30 +82,52 @@ export default function MarketListPage() {
       </div>
 
       <Tabs defaultValue="active" value={activeTab} onValueChange={setActiveTab}>
-        {/* Mobile view: scrollable tabs */}
-        <div className="md:hidden mb-6 overflow-x-auto scrollbar-none">
-          <TabsList className="inline-flex flex-nowrap min-w-max border-b-0 px-1">
-            <TabsTrigger value="active" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
-              <Clock className="h-4 w-4 mr-1" />
-              <span>Active ({openMarkets.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value="upcoming" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
-              <PauseCircle className="h-4 w-4 mr-1" />
-              <span>Upcoming ({upcomingMarkets.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value="closed" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
-              <Timer className="h-4 w-4 mr-1" />
-              <span>Waiting ({closedMarkets.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value="resulted" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
-              <CheckCircle2 className="h-4 w-4 mr-1" />
-              <span>Results ({resultedMarkets.length})</span>
-            </TabsTrigger>
-            <TabsTrigger value="all" className="flex-shrink-0 flex items-center justify-center whitespace-nowrap">
-              <AlertCircle className="h-4 w-4 mr-1" />
-              <span>All ({allMarkets.length})</span>
-            </TabsTrigger>
-          </TabsList>
+        {/* Mobile view: optimized scrollable tabs */}
+        <div className="md:hidden mb-6">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+            <TabsList className="inline-flex flex-nowrap min-w-max h-12 p-1 gap-1">
+              <TabsTrigger 
+                value="active" 
+                className="flex-shrink-0 flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium transition-all"
+              >
+                <Clock className="h-4 w-4 mr-2" />
+                <span>Active ({openMarkets.length})</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="upcoming" 
+                className="flex-shrink-0 flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium transition-all"
+              >
+                <PauseCircle className="h-4 w-4 mr-2" />
+                <span>Upcoming ({upcomingMarkets.length})</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="closed" 
+                className="flex-shrink-0 flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium transition-all"
+              >
+                <Timer className="h-4 w-4 mr-2" />
+                <span>Waiting ({closedMarkets.length})</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="resulted" 
+                className="flex-shrink-0 flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium transition-all"
+              >
+                <CheckCircle2 className="h-4 w-4 mr-2" />
+                <span>Results ({resultedMarkets.length})</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="all" 
+                className="flex-shrink-0 flex items-center justify-center whitespace-nowrap px-3 py-2 text-sm font-medium transition-all"
+              >
+                <AlertCircle className="h-4 w-4 mr-2" />
+                <span>All ({allMarkets.length})</span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          {/* Mobile filter indicator */}
+          <div className="mt-2 text-xs text-muted-foreground text-center">
+            Swipe to see more filters →
+          </div>
         </div>
         
         {/* Desktop view: grid tabs */}
