@@ -94,12 +94,12 @@ export default function SubadminCommissionManagementPage() {
         method: 'POST',
         data: {
           commissions: [
-            { gameType: 'cricket_toss', commissionRate: Math.round(values.cricketToss * 100) },
-            { gameType: 'coin_flip', commissionRate: Math.round(values.coinFlip * 100) },
-            { gameType: 'satamatka_jodi', commissionRate: Math.round(values.satamatkaJodi * 100) },
-            { gameType: 'satamatka_harf', commissionRate: Math.round(values.satamatkaHarf * 100) },
-            { gameType: 'satamatka_odd_even', commissionRate: Math.round(values.satamatkaOddEven * 100) },
-            { gameType: 'satamatka_crossing', commissionRate: Math.round(values.satamatkaCrossing * 100) },
+            { gameType: 'cricket_toss', commissionRate: Math.round(values.cricketToss * 10000) },
+            { gameType: 'coin_flip', commissionRate: Math.round(values.coinFlip * 10000) },
+            { gameType: 'satamatka_jodi', commissionRate: Math.round(values.satamatkaJodi * 10000) },
+            { gameType: 'satamatka_harf', commissionRate: Math.round(values.satamatkaHarf * 10000) },
+            { gameType: 'satamatka_odd_even', commissionRate: Math.round(values.satamatkaOddEven * 10000) },
+            { gameType: 'satamatka_crossing', commissionRate: Math.round(values.satamatkaCrossing * 10000) },
           ]
         }
       });
@@ -144,17 +144,17 @@ export default function SubadminCommissionManagementPage() {
 
       commissions.forEach((commission: any) => {
         if (commission.gameType === 'cricket_toss') {
-          formValues.cricketToss = commission.commissionRate / 100;
+          formValues.cricketToss = commission.commissionRate / 10000;
         } else if (commission.gameType === 'coin_flip') {
-          formValues.coinFlip = commission.commissionRate / 100;
+          formValues.coinFlip = commission.commissionRate / 10000;
         } else if (commission.gameType === 'satamatka_jodi') {
-          formValues.satamatkaJodi = commission.commissionRate / 100;
+          formValues.satamatkaJodi = commission.commissionRate / 10000;
         } else if (commission.gameType === 'satamatka_harf') {
-          formValues.satamatkaHarf = commission.commissionRate / 100;
+          formValues.satamatkaHarf = commission.commissionRate / 10000;
         } else if (commission.gameType === 'satamatka_odd_even') {
-          formValues.satamatkaOddEven = commission.commissionRate / 100;
+          formValues.satamatkaOddEven = commission.commissionRate / 10000;
         } else if (commission.gameType === 'satamatka_crossing') {
-          formValues.satamatkaCrossing = commission.commissionRate / 100;
+          formValues.satamatkaCrossing = commission.commissionRate / 10000;
         }
       });
 
