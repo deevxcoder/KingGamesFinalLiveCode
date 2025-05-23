@@ -1224,148 +1224,195 @@ export default function WalletPage() {
                 </div>
               ) : (
                 <>
-                  <div className="space-y-4">
-                    {/* Create a combined array of all transactions for unified view */}
-                    {(() => {
-                      // Define types for our combined transactions
-                      type RequestTransaction = {
-                        id: string;
-                        isRequest: true;
-                        createdAt: string;
-                        requestData: WalletRequest;
-                      };
+                  {/* Mobile-optimized transaction table */}
+                  {(() => {
+                    // Define types for our combined transactions
+                    type RequestTransaction = {
+                      id: string;
+                      isRequest: true;
+                      createdAt: string;
+                      requestData: WalletRequest;
+                    };
+                    
+                    type DirectTransaction = {
+                      id: string;
+                      isRequest: false;
+                      createdAt: string;
+                      transactionData: any;
+                    };
+                    
+                    type CombinedTransaction = RequestTransaction | DirectTransaction;
+                    
+                    // Create transaction-like objects from wallet requests for unified sorting
+                    const requestTransactions: RequestTransaction[] = walletRequests.map(request => ({
+                      id: `req-${request.id}`,
+                      isRequest: true,
+                      createdAt: request.createdAt,
+                      requestData: request
+                    }));
+                    
+                    // Mark direct transactions
+                    const directTransactions: DirectTransaction[] = transactions.map(tx => ({
+                      id: `tx-${tx.id}`,
+                      isRequest: false,
+                      createdAt: tx.createdAt,
+                      transactionData: tx
+                    }));
+                    
+                    // Combine and sort by date (newest first)
+                    const allTransactions: CombinedTransaction[] = [...requestTransactions, ...directTransactions]
+                      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                    
+                    // Pagination calculation
+                    const totalItems = allTransactions.length;
+                    const totalPages = Math.ceil(totalItems / itemsPerPage);
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+                    const currentItems = allTransactions.slice(startIndex, endIndex);
                       
-                      type DirectTransaction = {
-                        id: string;
-                        isRequest: false;
-                        createdAt: string;
-                        transactionData: any;
-                      };
-                      
-                      type CombinedTransaction = RequestTransaction | DirectTransaction;
-                      
-                      // Create transaction-like objects from wallet requests for unified sorting
-                      const requestTransactions: RequestTransaction[] = walletRequests.map(request => ({
-                        id: `req-${request.id}`,
-                        isRequest: true,
-                        createdAt: request.createdAt,
-                        requestData: request
-                      }));
-                      
-                      // Mark direct transactions
-                      const directTransactions: DirectTransaction[] = transactions.map(tx => ({
-                        id: `tx-${tx.id}`,
-                        isRequest: false,
-                        createdAt: tx.createdAt,
-                        transactionData: tx
-                      }));
-                      
-                      // Combine and sort by date (newest first)
-                      const allTransactions: CombinedTransaction[] = [...requestTransactions, ...directTransactions]
-                        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-                      
-                      // Pagination calculation
-                      const totalItems = allTransactions.length;
-                      const totalPages = Math.ceil(totalItems / itemsPerPage);
-                      const startIndex = (currentPage - 1) * itemsPerPage;
-                      const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-                      const currentItems = allTransactions.slice(startIndex, endIndex);
-                      
-                      return (
-                        <>
-                          {/* Render each transaction or request */}
-                          {currentItems.map(item => {
-                            if (item.isRequest) {
-                              // It's a wallet request
-                              const request = item.requestData;
-                              const { color, bgColor, icon } = getStatusInfo(request.status as RequestStatus);
-                              const { title, icon: typeIcon } = getRequestTypeInfo(request.requestType as RequestType);
-                              
-                              return (
-                                <div key={item.id} className="border border-slate-800 rounded-lg overflow-hidden">
-                                  <div className="flex items-center justify-between p-4">
-                                    <div className="flex items-center">
-                                      <div className="mr-4">
-                                        {typeIcon}
-                                      </div>
-                                      <div>
-                                        <h4 className="font-medium">{title} Request - ₹{request.amount.toFixed(2)}</h4>
-                                        <p className="text-sm text-muted-foreground">
-                                          {formatDate(request.createdAt)}
-                                        </p>
-                                      </div>
-                                    </div>
-                                    <div className={`px-3 py-1 rounded-full flex items-center ${bgColor}`}>
-                                      {icon}
-                                      <span className={`ml-1 text-sm font-medium ${color}`}>
-                                        {request.status}
-                                      </span>
-                                    </div>
-                                  </div>
-
-                                  <div className="px-4 pb-4 text-sm border-t border-slate-800 bg-slate-950/50">
-                                    <div className="mt-2 flex items-center gap-2">
-                                      <strong>Payment Method:</strong> 
-                                      <Badge variant="outline" className={
-                                        request.paymentMode === PaymentMode.UPI 
-                                          ? "bg-blue-950/40 text-blue-400 border-blue-800"
-                                          : "bg-amber-950/40 text-amber-400 border-amber-800"
-                                      }>
-                                        {request.paymentMode}
-                                      </Badge>
-                                    </div>
-                                    
-                                    {/* Payment details based on payment mode */}
-                                    {request.paymentMode === PaymentMode.UPI && request.paymentDetails.upiId && (
-                                      <p className="mt-2"><strong>UPI ID:</strong> {request.paymentDetails.upiId}</p>
-                                    )}
-                                    
-                                    {request.paymentMode === PaymentMode.BANK && (
-                                      <>
-                                        {request.paymentDetails.bankName && 
-                                          <p className="mt-2"><strong>Bank:</strong> {request.paymentDetails.bankName}</p>}
-                                        {request.paymentDetails.accountNumber && 
-                                          <p><strong>Account:</strong> {request.paymentDetails.accountNumber}</p>}
-                                      </>
-                                    )}
-                                    
-                                    {request.reviewedBy && (
-                                      <p className="mt-2">
-                                        <strong>Reviewed by:</strong> Admin
-                                      </p>
-                                    )}
-                                    
-                                    {request.status === RequestStatus.REJECTED && request.notes && (
-                                      <p className="mt-2 text-red-600">
-                                        <strong>Reason:</strong> {request.notes}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            } else {
-                              // It's a direct transaction
-                              const transaction = item.transactionData;
-                              return (
-                                <div key={item.id} className="border border-slate-800 rounded-lg overflow-hidden">
-                                  <div className="flex items-center justify-between p-4">
-                                    <div className="flex items-center">
-                                      <div className="mr-4">
-                                        {transaction.amount > 0 ? (
-                                          <ArrowDown className="h-5 w-5 text-green-600" />
-                                        ) : (
-                                          <ArrowUp className="h-5 w-5 text-red-600" />
-                                        )}
-                                      </div>
-                                      <div>
-                                        <h4 className="font-medium">
-                                          {transaction.amount > 0 ? "Fund Credit" : "Fund Debit"} - 
-                                          <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
-                                            {transaction.amount > 0 ? " +" : " "}
-                                            ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
+                    return (
+                      <>
+                        {/* Mobile-Optimized Transaction Table */}
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead className="w-[100px]">Date</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead className="text-right">Balance</TableHead>
+                                <TableHead className="w-[80px]">Status</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {currentItems.map(item => {
+                                if (item.isRequest) {
+                                  // It's a wallet request
+                                  const request = item.requestData;
+                                  const { title } = getRequestTypeInfo(request.requestType as RequestType);
+                                  
+                                  return (
+                                    <TableRow key={item.id}>
+                                      <TableCell className="text-sm">
+                                        {formatDate(request.createdAt).split(' ')[0]}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex flex-col">
+                                          <span className="font-medium text-sm">{title} Request</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {request.paymentMode}
                                           </span>
-                                        </h4>
-                                        <p className="text-sm text-muted-foreground">
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <span className={
+                                          request.requestType === RequestType.DEPOSIT 
+                                            ? "text-green-600" 
+                                            : "text-red-600"
+                                        }>
+                                          {request.requestType === RequestType.DEPOSIT ? '+' : '-'}
+                                          ₹{request.amount.toFixed(2)}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="text-right text-sm text-muted-foreground">
+                                        -
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge 
+                                          variant={
+                                            request.status === RequestStatus.APPROVED 
+                                              ? "default" 
+                                              : request.status === RequestStatus.REJECTED 
+                                                ? "destructive" 
+                                                : "secondary"
+                                          }
+                                          className="text-xs"
+                                        >
+                                          {request.status}
+                                        </Badge>
+                                      </TableCell>
+                                    </TableRow>
+                                } else {
+                                  // It's a direct transaction
+                                  const transaction = item.transactionData;
+                                  return (
+                                    <TableRow key={item.id}>
+                                      <TableCell className="text-sm">
+                                        {formatDate(transaction.createdAt).split(' ')[0]}
+                                      </TableCell>
+                                      <TableCell>
+                                        <div className="flex flex-col">
+                                          <span className="font-medium text-sm">
+                                            {transaction.amount > 0 ? "Credit" : "Debit"}
+                                          </span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {transaction.description?.split(' ').slice(0, 3).join(' ') || "Balance update"}
+                                          </span>
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <span className={transaction.amount > 0 ? "text-green-600" : "text-red-600"}>
+                                          {transaction.amount > 0 ? '+' : ''}
+                                          ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <span className="font-medium text-primary">
+                                          ₹{(transaction.balanceAfter / 100).toFixed(2)}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Badge variant="default" className="text-xs">
+                                          Complete
+                                        </Badge>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                }
+                              })}
+                            </TableBody>
+                          </Table>
+                        
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                          <div className="mt-6 flex justify-center">
+                            <Pagination>
+                              <PaginationContent>
+                                <PaginationItem>
+                                  <PaginationPrevious 
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                  />
+                                </PaginationItem>
+                                
+                                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                  const pageNum = i + 1;
+                                  return (
+                                    <PaginationItem key={pageNum}>
+                                      <PaginationLink
+                                        onClick={() => setCurrentPage(pageNum)}
+                                        isActive={currentPage === pageNum}
+                                        className="cursor-pointer"
+                                      >
+                                        {pageNum}
+                                      </PaginationLink>
+                                    </PaginationItem>
+                                  );
+                                })}
+                                
+                                <PaginationItem>
+                                  <PaginationNext 
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                                  />
+                                </PaginationItem>
+                              </PaginationContent>
+                            </Pagination>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                                           {formatDate(transaction.createdAt)}
                                         </p>
                                       </div>
