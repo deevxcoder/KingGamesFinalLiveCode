@@ -396,6 +396,16 @@ export default function SubadminManagementPage() {
   const { data: depositCommission, isLoading: isLoadingCommissions, refetch: refetchCommissions } = useQuery({
     queryKey: [`/api/admin/deposit-commissions/${selectedSubadminId}`],
     enabled: !!selectedSubadminId && isCommissionDialogOpen,
+    select: (data: any) => {
+      // Convert commission rate from database format (1000) to percentage format (10) immediately
+      if (data && typeof data.commissionRate === 'number') {
+        return {
+          ...data,
+          commissionRate: data.commissionRate / 100
+        };
+      }
+      return data;
+    }
   });
   
   // Update deposit commission mutation
@@ -437,13 +447,10 @@ export default function SubadminManagementPage() {
   useEffect(() => {
     if (isCommissionDialogOpen) {
       if (depositCommission) {
-        const rate = (depositCommission as any)?.commissionRate;
-        if (typeof rate === 'number') {
-          const formValues = {
-            depositCommissionRate: rate / 100, // Always convert from database format (1000) to percentage (10)
-          };
-          commissionForm.reset(formValues);
-        }
+        const formValues = {
+          depositCommissionRate: depositCommission.commissionRate, // Already converted in the query
+        };
+        commissionForm.reset(formValues);
       } else {
         // Reset to 0 when opening dialog without commission data
         commissionForm.reset({
