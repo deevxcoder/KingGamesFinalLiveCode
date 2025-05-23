@@ -593,15 +593,14 @@ export default function RiskManagementPage() {
                               </CardHeader>
                               <CardContent>
                                 {(() => {
-                                  // Filter games for odd numbers
+                                  // Filter games specifically for "odd" bet type in odd_even game mode
                                   const oddGames = data.detailedData.gameData.filter(game => {
                                     if (game.gameType !== 'satamatka') return false;
                                     if (game.result && game.result !== 'pending') return false;
                                     if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                     
-                                    // Check if prediction is an odd number (last digit is odd)
-                                    const num = parseInt(game.prediction, 10);
-                                    return !isNaN(num) && num % 2 !== 0;
+                                    // Only include bets with odd_even game mode and odd prediction
+                                    return game.gameMode === 'odd_even' && game.prediction === 'odd';
                                   });
                                   
                                   // Calculate totals
@@ -646,15 +645,14 @@ export default function RiskManagementPage() {
                               </CardHeader>
                               <CardContent>
                                 {(() => {
-                                  // Filter games for even numbers
+                                  // Filter games specifically for "even" bet type in odd_even game mode
                                   const evenGames = data.detailedData.gameData.filter(game => {
                                     if (game.gameType !== 'satamatka') return false;
                                     if (game.result && game.result !== 'pending') return false;
                                     if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                     
-                                    // Check if prediction is an even number (last digit is even)
-                                    const num = parseInt(game.prediction, 10);
-                                    return !isNaN(num) && num % 2 === 0;
+                                    // Only include bets with odd_even game mode and even prediction
+                                    return game.gameMode === 'odd_even' && game.prediction === 'even';
                                   });
                                   
                                   // Calculate totals
