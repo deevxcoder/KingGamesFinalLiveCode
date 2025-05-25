@@ -386,10 +386,27 @@ async function getCricketMatchAnalysis(games: any[], oddValue: number) {
       
       console.log(`Team A bets: ${teamABets.length}, Team B bets: ${teamBBets.length}`);
       
-      // Use the database match odds directly for cricket toss (not the admin system odds)
-      // Cricket toss uses fixed odds stored in the match data (usually 2.00x)
-      const teamAOdds = match.oddTeamA / 100; // Convert from 200 to 2.00
-      const teamBOdds = match.oddTeamB / 100; // Convert from 200 to 2.00
+      // Use custom odds from game odds system (prioritize subadmin custom odds)
+      // First check if there are custom odds for cricket toss, otherwise use match odds
+      let teamAOdds = match.oddTeamA / 100; // Default to match odds (2.00x)
+      let teamBOdds = match.oddTeamB / 100; // Default to match odds (2.00x)
+      
+      // Check if any of the players in this match have subadmin with custom cricket toss odds
+      const allPlayerIds = [...teamABets.map(g => g.userId), ...teamBBets.map(g => g.userId)];
+      if (allPlayerIds.length > 0) {
+        // Get the first player's subadmin assignment to check for custom odds
+        const firstPlayer = await storage.getUser(allPlayerIds[0]);
+        if (firstPlayer && firstPlayer.assignedTo) {
+          const subadminOdds = await storage.getGameOddsBySubadmin(firstPlayer.assignedTo);
+          const customOdds = subadminOdds.find(odd => odd.gameType === 'cricket_toss');
+          if (customOdds && customOdds.oddValue) {
+            // Convert from database format (19000 = 1.9) to multiplier
+            const customMultiplier = customOdds.oddValue / 10000;
+            teamAOdds = customMultiplier;
+            teamBOdds = customMultiplier;
+          }
+        }
+      }
       
       // Calculate team A statistics using match-specific odds
       const teamAStats = {
@@ -432,8 +449,8 @@ async function getCricketMatchAnalysis(games: any[], oddValue: number) {
           teamB: match.teamB,
           description: match.description,
           matchTime: match.matchTime,
-          oddTeamA: match.oddTeamA,
-          oddTeamB: match.oddTeamB,
+          oddTeamA: Math.round(teamAOdds * 100), // Use actual calculated odds
+          oddTeamB: Math.round(teamBOdds * 100), // Use actual calculated odds  
           status: match.status
         },
         teamAStats,

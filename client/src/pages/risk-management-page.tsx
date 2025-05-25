@@ -1560,7 +1560,25 @@ export default function SimplifiedRiskPage() {
                       <Users className="h-4 w-4 text-purple-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{cricketTossData.activePlayers || 0}</div>
+                      <div className="text-2xl font-bold">
+                        {(() => {
+                          // Calculate actual active users from cricket match analysis
+                          let activeUsers = 0;
+                          if (data.detailedData?.cricketMatchAnalysis) {
+                            const allUsers = new Set();
+                            data.detailedData.cricketMatchAnalysis.forEach((match: any) => {
+                              if (match.teamAStats?.users) {
+                                match.teamAStats.users.forEach((userId: number) => allUsers.add(userId));
+                              }
+                              if (match.teamBStats?.users) {
+                                match.teamBStats.users.forEach((userId: number) => allUsers.add(userId));
+                              }
+                            });
+                            activeUsers = allUsers.size;
+                          }
+                          return activeUsers;
+                        })()}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         Players with active cricket bets
                       </p>
