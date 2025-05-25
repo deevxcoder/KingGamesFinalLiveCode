@@ -864,6 +864,132 @@ export default function SimplifiedRiskPage() {
                         </div>
                     </div>
                     
+                    {/* Statistics Cards Section */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                      {(() => {
+                        // Calculate filtered statistics based on current filters
+                        const filteredGames = data.detailedData.gameData.filter(game => {
+                          if (game.gameType !== 'satamatka') return false;
+                          if (game.result && game.result !== 'pending') return false;
+                          if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
+                          
+                          // Apply bet type filters
+                          if (viewMode === 'regular') {
+                            if (betTypeFilter === 'jodi') {
+                              return game.gameMode === 'jodi';
+                            } else if (betTypeFilter === 'all') {
+                              return true; // Include all regular bet types
+                            }
+                          } else if (viewMode === 'odd-even') {
+                            return game.gameMode === 'odd_even';
+                          } else if (viewMode === 'harf') {
+                            return game.gameMode === 'harf';
+                          }
+                          
+                          return true;
+                        });
+                        
+                        // Calculate totals
+                        const totalBets = filteredGames.length;
+                        const totalBetAmount = filteredGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                        const uniqueUsers = new Set(filteredGames.map(game => game.playerId)).size;
+                        
+                        // Calculate potential win based on bet types and odds
+                        const potentialWin = filteredGames.reduce((sum, game) => {
+                          let multiplier = 1;
+                          
+                          // Get appropriate multiplier based on game mode
+                          if (game.gameMode === 'jodi' && gameOddsData) {
+                            const jodiOdds = gameOddsData.find((odd: any) => odd.gameType === 'satamatka_jodi');
+                            multiplier = jodiOdds?.oddValue || 95;
+                          } else if (game.gameMode === 'odd_even' && gameOddsData) {
+                            const oddEvenOdds = gameOddsData.find((odd: any) => odd.gameType === 'satamatka_odd_even');
+                            multiplier = oddEvenOdds?.oddValue || 1.95;
+                          } else if (game.gameMode === 'harf' && gameOddsData) {
+                            const harfOdds = gameOddsData.find((odd: any) => odd.gameType === 'satamatka_harf');
+                            multiplier = harfOdds?.oddValue || 9.5;
+                          } else if (game.gameMode === 'single' && gameOddsData) {
+                            const singleOdds = gameOddsData.find((odd: any) => odd.gameType === 'satamatka_single');
+                            multiplier = singleOdds?.oddValue || 9.5;
+                          }
+                          
+                          return sum + ((game.betAmount || 0) * multiplier);
+                        }, 0);
+                        
+                        return (
+                          <>
+                            {/* Total Active Bet Amount */}
+                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">Total Bet Amount</p>
+                                    <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">₹{(totalBetAmount / 100).toFixed(2)}</p>
+                                  </div>
+                                  <div className="h-12 w-12 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                            
+                            {/* Potential Win */}
+                            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 border-green-200 dark:border-green-700">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-green-600 dark:text-green-400">Potential Win</p>
+                                    <p className="text-2xl font-bold text-green-800 dark:text-green-200">₹{(potentialWin / 100).toFixed(2)}</p>
+                                  </div>
+                                  <div className="h-12 w-12 bg-green-500 rounded-full flex items-center justify-center">
+                                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                            
+                            {/* Total Active Users */}
+                            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-purple-600 dark:text-purple-400">Active Users</p>
+                                    <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">{uniqueUsers}</p>
+                                  </div>
+                                  <div className="h-12 w-12 bg-purple-500 rounded-full flex items-center justify-center">
+                                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                            
+                            {/* Total Bet Count */}
+                            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-700">
+                              <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                  <div>
+                                    <p className="text-sm font-medium text-orange-600 dark:text-orange-400">Total Bets</p>
+                                    <p className="text-2xl font-bold text-orange-800 dark:text-orange-200">{totalBets}</p>
+                                  </div>
+                                  <div className="h-12 w-12 bg-orange-500 rounded-full flex items-center justify-center">
+                                    <svg className="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </>
+                        );
+                      })()}
+                    </div>
+                    
                     <ScrollArea className="h-[600px]">
                       {viewMode === 'odd-even' ? (
                         <div className="p-4">
