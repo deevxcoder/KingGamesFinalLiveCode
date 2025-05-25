@@ -156,6 +156,12 @@ export default function RiskManagementPage() {
     refetchInterval: 60000 // Refetch every minute to keep data fresh
   });
   
+  // Fetch game odds for the current user (admin or subadmin)
+  const { data: oddsData, isLoading: isLoadingOdds } = useQuery({
+    queryKey: [isAdmin ? '/api/odds/admin' : '/api/game-odds/subadmin', user?.id],
+    enabled: !!user,
+  });
+  
   // Use real user names from the API
   useEffect(() => {
     if (data?.userInfo) {
@@ -603,10 +609,25 @@ export default function RiskManagementPage() {
                                     return game.gameMode === 'odd_even' && game.prediction === 'odd';
                                   });
                                   
+                                  // Get the actual odds for odd_even games from fetched data
+                                  let oddEvenMultiplier = 1.9; // Default fallback
+                                  
+                                  if (oddsData && Array.isArray(oddsData)) {
+                                    // Find the odds for satamatka_odd_even game type
+                                    const oddEvenData = oddsData.find(odd => 
+                                      odd.gameType === 'satamatka_odd_even');
+                                    
+                                    if (oddEvenData && oddEvenData.oddValue !== undefined) {
+                                      // Use the odds from database
+                                      oddEvenMultiplier = oddEvenData.oddValue;
+                                      console.log('Using odd_even odds from database:', oddEvenMultiplier);
+                                    }
+                                  }
+                                  
                                   // Calculate totals
                                   const totalBets = oddGames.length;
                                   const totalBetAmount = oddGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                  const potentialWin = oddGames.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
+                                  const potentialWin = oddGames.reduce((sum, game) => sum + ((game.betAmount || 0) * oddEvenMultiplier), 0);
                                   
                                   // Define risk level
                                   let riskLevel = 'none';
@@ -655,10 +676,25 @@ export default function RiskManagementPage() {
                                     return game.gameMode === 'odd_even' && game.prediction === 'even';
                                   });
                                   
+                                  // Get the actual odds for odd_even games from fetched data
+                                  let oddEvenMultiplier = 1.9; // Default fallback
+                                  
+                                  if (oddsData && Array.isArray(oddsData)) {
+                                    // Find the odds for satamatka_odd_even game type
+                                    const oddEvenData = oddsData.find(odd => 
+                                      odd.gameType === 'satamatka_odd_even');
+                                    
+                                    if (oddEvenData && oddEvenData.oddValue !== undefined) {
+                                      // Use the odds from database
+                                      oddEvenMultiplier = oddEvenData.oddValue;
+                                      console.log('Using odd_even odds from database for even bets:', oddEvenMultiplier);
+                                    }
+                                  }
+                                  
                                   // Calculate totals
                                   const totalBets = evenGames.length;
                                   const totalBetAmount = evenGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                  const potentialWin = evenGames.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
+                                  const potentialWin = evenGames.reduce((sum, game) => sum + ((game.betAmount || 0) * oddEvenMultiplier), 0);
                                   
                                   // Define risk level
                                   let riskLevel = 'none';
