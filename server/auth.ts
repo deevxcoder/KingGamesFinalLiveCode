@@ -233,6 +233,50 @@ export function setupAuth(app: Express) {
     });
   });
 
+  // Login as subadmin - only available to admin users
+  app.post("/api/admin/login-as/:userId", async (req, res, next) => {
+    try {
+      // Check if user is authenticated and is an admin
+      if (!req.isAuthenticated() || req.user.role !== UserRole.ADMIN) {
+        return res.status(403).json({ message: "Forbidden: Only admins can use this feature" });
+      }
+      
+      const { userId } = req.params;
+      
+      // Find the user to login as
+      const targetUser = await storage.getUser(parseInt(userId));
+      if (!targetUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Verify that the target user is a subadmin
+      if (targetUser.role !== UserRole.SUBADMIN) {
+        return res.status(403).json({ 
+          message: "You can only login as subadmin accounts" 
+        });
+      }
+      
+      // Switch the login to the subadmin account
+      req.logout((err) => {
+        if (err) return next(err);
+        
+        req.login(targetUser, (err: Error | null) => {
+          if (err) {
+            console.log("Login-as error:", err);
+            return next(err);
+          }
+          // Remove password from the response
+          const { password, ...userWithoutPassword } = targetUser as SelectUser;
+          console.log(`Admin logged in as subadmin: ${targetUser.username}`);
+          res.status(200).json(userWithoutPassword);
+        });
+      });
+    } catch (err) {
+      console.error("Error in login-as functionality:", err);
+      next(err);
+    }
+  });
+
   app.get("/api/user", (req, res) => {
     if (!req.isAuthenticated()) return res.sendStatus(401);
     // Remove password from the response

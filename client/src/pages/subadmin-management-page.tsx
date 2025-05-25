@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useLocation } from "wouter";
 
 // UI Components
 import {
@@ -67,6 +68,7 @@ import {
   Lock,
   ChevronLeft,
   ChevronRight,
+  LogIn,
 } from "lucide-react";
 
 // Schema for creating a new subadmin
@@ -110,6 +112,7 @@ type GameOdds = z.infer<typeof gameOddsSchema>;
 export default function SubadminManagementPage() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [_, setLocation] = useLocation();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
   const [isCommissionDialogOpen, setIsCommissionDialogOpen] = useState(false);
@@ -317,6 +320,38 @@ export default function SubadminManagementPage() {
 
   const handleUnblockSubadmin = (userId: number) => {
     unblockSubadminMutation.mutate(userId);
+  };
+  
+  // Login as subadmin mutation
+  const loginAsSubadminMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const res = await apiRequest("POST", `/api/admin/login-as/${userId}`, {});
+      return await res.json();
+    },
+    onSuccess: (userData) => {
+      toast({
+        title: "Logged in as subadmin",
+        description: `You are now logged in as ${userData.username}`,
+      });
+      
+      // Update the current user in the cache
+      queryClient.setQueryData(["/api/user"], userData);
+      
+      // Redirect to dashboard
+      setLocation("/dashboard");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Login failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Handle login as subadmin
+  const handleLoginAsSubadmin = (userId: number) => {
+    loginAsSubadminMutation.mutate(userId);
   };
 
   const openViewPlayersDialog = (subadmin: any) => {
