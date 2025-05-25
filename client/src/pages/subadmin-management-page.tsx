@@ -720,7 +720,15 @@ export default function SubadminManagementPage() {
                                 View Players
                               </Button>
                               
-
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleLoginAsSubadmin(subadmin.id)}
+                                className="text-blue-600 border-blue-600/20 hover:bg-blue-600/10"
+                              >
+                                <LogIn className="h-4 w-4 mr-2" />
+                                Login as
+                              </Button>
                               
                               {subadmin.isBlocked ? (
                                 <Button
