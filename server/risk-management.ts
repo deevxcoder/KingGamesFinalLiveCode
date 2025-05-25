@@ -40,6 +40,8 @@ export async function getAdminRiskManagement(req: Request, res: Response) {
     // Check if admin wants to filter by specific subadmin
     const subadminId = req.query.subadminId ? parseInt(req.query.subadminId as string) : null;
     
+    console.log("🔍 Admin risk management request with subadminId:", subadminId);
+    
     // Admin gets platform-wide risk management data or filtered by subadmin
     const marketGameRiskData = await getMarketGameRiskData(subadminId);
     const cricketTossRiskData = await getCricketTossRiskData(subadminId);
@@ -294,8 +296,13 @@ async function getMarketGameRiskData(subadminId?: number | null) {
     const subadminUsers = await storage.getUsersByAssignedTo(subadminId);
     const subadminUserIds = subadminUsers.map(user => user.id);
     
+    console.log(`🔍 Subadmin ${subadminId} has ${subadminUsers.length} assigned users:`, subadminUserIds);
+    console.log(`🔍 Before filtering: ${activeMarketGames.length} market games`);
+    
     // Filter games to only include those from subadmin's users
     activeMarketGames = activeMarketGames.filter(game => subadminUserIds.includes(game.userId));
+    
+    console.log(`🔍 After filtering: ${activeMarketGames.length} market games for subadmin ${subadminId}`);
   }
   
   // Get market game odds set by admin
@@ -318,8 +325,13 @@ async function getCricketTossRiskData(subadminId?: number | null) {
     const subadminUsers = await storage.getUsersByAssignedTo(subadminId);
     const subadminUserIds = subadminUsers.map(user => user.id);
     
+    console.log(`🔍 Cricket: Subadmin ${subadminId} has ${subadminUsers.length} assigned users:`, subadminUserIds);
+    console.log(`🔍 Cricket: Before filtering: ${games.length} cricket games`);
+    
     // Filter games to only include those from subadmin's users
     games = games.filter(game => subadminUserIds.includes(game.userId));
+    
+    console.log(`🔍 Cricket: After filtering: ${games.length} cricket games for subadmin ${subadminId}`);
   }
   
   // Get cricket toss odds set by admin
