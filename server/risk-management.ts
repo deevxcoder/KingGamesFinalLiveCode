@@ -37,9 +37,12 @@ interface RiskManagementResponse {
  */
 export async function getAdminRiskManagement(req: Request, res: Response) {
   try {
-    // Admin gets platform-wide risk management data
-    const marketGameRiskData = await getMarketGameRiskData();
-    const cricketTossRiskData = await getCricketTossRiskData();
+    // Check if admin wants to filter by specific subadmin
+    const subadminId = req.query.subadminId ? parseInt(req.query.subadminId as string) : null;
+    
+    // Admin gets platform-wide risk management data or filtered by subadmin
+    const marketGameRiskData = await getMarketGameRiskData(subadminId);
+    const cricketTossRiskData = await getCricketTossRiskData(subadminId);
     
     // Fetch real user information for all users involved in games
     const userIds = Array.from(new Set([
@@ -256,7 +259,7 @@ export async function getSubadminRiskManagement(req: Request, res: Response) {
 /**
  * Get risk management data for market games
  */
-async function getMarketGameRiskData() {
+async function getMarketGameRiskData(subadminId?: number | null) {
   // Get all active/open markets
   const activeMarkets = await storage.getActiveSatamatkaMarkets();
   
@@ -280,10 +283,20 @@ async function getMarketGameRiskData() {
   
   // Get games only from active markets
   const activeMarketIds = activeMarkets.map(market => market.id);
-  const games = await storage.getGamesByType(GameType.SATAMATKA);
-  const activeMarketGames = games.filter(game => 
+  let games = await storage.getGamesByType(GameType.SATAMATKA);
+  let activeMarketGames = games.filter(game => 
     game.marketId && activeMarketIds.includes(game.marketId)
   );
+
+  // Filter games by subadmin if specified
+  if (subadminId) {
+    // Get users assigned to this subadmin
+    const subadminUsers = await storage.getUsersByAssignedTo(subadminId);
+    const subadminUserIds = subadminUsers.map(user => user.id);
+    
+    // Filter games to only include those from subadmin's users
+    activeMarketGames = activeMarketGames.filter(game => subadminUserIds.includes(game.userId));
+  }
   
   // Get market game odds set by admin
   const marketOdds = await storage.getGameOddByType(GameType.SATAMATKA);
@@ -295,9 +308,19 @@ async function getMarketGameRiskData() {
 /**
  * Get risk management data for cricket toss games with detailed match analysis
  */
-async function getCricketTossRiskData() {
+async function getCricketTossRiskData(subadminId?: number | null) {
   // Get all cricket toss games
-  const games = await storage.getGamesByType(GameType.CRICKET_TOSS);
+  let games = await storage.getGamesByType(GameType.CRICKET_TOSS);
+
+  // Filter games by subadmin if specified
+  if (subadminId) {
+    // Get users assigned to this subadmin
+    const subadminUsers = await storage.getUsersByAssignedTo(subadminId);
+    const subadminUserIds = subadminUsers.map(user => user.id);
+    
+    // Filter games to only include those from subadmin's users
+    games = games.filter(game => subadminUserIds.includes(game.userId));
+  }
   
   // Get cricket toss odds set by admin
   const cricketOdds = await storage.getGameOddByType(GameType.CRICKET_TOSS);
