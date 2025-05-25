@@ -237,7 +237,11 @@ export function setupAuth(app: Express) {
   app.post("/api/admin/login-as/:userId", async (req, res, next) => {
     try {
       // Check if user is authenticated and is an admin
-      if (!req.isAuthenticated() || req.user.role !== UserRole.ADMIN) {
+      if (!req.isAuthenticated()) {
+        return res.status(401).json({ message: "Unauthorized: Please login first" });
+      }
+      
+      if (req.user.role !== UserRole.ADMIN) {
         return res.status(403).json({ message: "Forbidden: Only admins can use this feature" });
       }
       
@@ -256,24 +260,44 @@ export function setupAuth(app: Express) {
         });
       }
       
+      // Ensure we don't expose the password in the response
+      const { password, ...userWithoutPassword } = targetUser as SelectUser;
+      
       // Switch the login to the subadmin account
-      req.logout((err) => {
-        if (err) return next(err);
-        
-        req.login(targetUser, (err: Error | null) => {
+      await new Promise<void>((resolve, reject) => {
+        req.logout((err) => {
           if (err) {
-            console.log("Login-as error:", err);
-            return next(err);
+            console.error("Logout error during login-as:", err);
+            return reject(err);
           }
-          // Remove password from the response
-          const { password, ...userWithoutPassword } = targetUser as SelectUser;
-          console.log(`Admin logged in as subadmin: ${targetUser.username}`);
-          res.status(200).json(userWithoutPassword);
+          resolve();
         });
       });
+      
+      // After logout completes, login as the target user
+      await new Promise<void>((resolve, reject) => {
+        req.login(targetUser, (err) => {
+          if (err) {
+            console.error("Login-as error:", err);
+            return reject(err);
+          }
+          resolve();
+        });
+      });
+      
+      console.log(`Admin logged in as subadmin: ${targetUser.username}`);
+      
+      // Important: Set the response header to JSON to prevent any middleware from changing it
+      res.setHeader('Content-Type', 'application/json');
+      return res.status(200).json(userWithoutPassword);
     } catch (err) {
       console.error("Error in login-as functionality:", err);
-      next(err);
+      // Make sure we return a proper JSON error response
+      if (!res.headersSent) {
+        res.status(500).json({ message: "Internal server error during login-as operation" });
+      } else {
+        next(err);
+      }
     }
   });
 
