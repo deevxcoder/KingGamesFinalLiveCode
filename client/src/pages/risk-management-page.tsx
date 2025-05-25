@@ -606,7 +606,7 @@ export default function RiskManagementPage() {
                                   // Calculate totals
                                   const totalBets = oddGames.length;
                                   const totalBetAmount = oddGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                  const potentialWin = oddGames.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                                  const potentialWin = oddGames.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
                                   
                                   // Define risk level
                                   let riskLevel = 'none';
@@ -658,7 +658,7 @@ export default function RiskManagementPage() {
                                   // Calculate totals
                                   const totalBets = evenGames.length;
                                   const totalBetAmount = evenGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                  const potentialWin = evenGames.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                                  const potentialWin = evenGames.reduce((sum, game) => sum + ((game.betAmount || 0) * 1.9), 0);
                                   
                                   // Define risk level
                                   let riskLevel = 'none';
