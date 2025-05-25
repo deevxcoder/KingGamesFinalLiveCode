@@ -445,7 +445,45 @@ export default function SimplifiedRiskPage() {
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-sm">Potential Win:</span>
-                                <span className="font-semibold text-green-600">₹{((player.betAmount * 90) / 100).toFixed(2)}</span>
+                                <span className="font-semibold text-green-600">
+                                  {(() => {
+                                    // Determine the appropriate multiplier based on game type and prediction
+                                    let multiplier = 90; // Default fallback
+                                    
+                                    if (gameOddsData && Array.isArray(gameOddsData)) {
+                                      // Determine the game type based on player's bet
+                                      let gameTypeKey = 'satamatka_jodi'; // Default
+                                      
+                                      if (player.gameMode === 'harf' || 
+                                          player.prediction?.startsWith('A') || 
+                                          player.prediction?.startsWith('B')) {
+                                        gameTypeKey = 'satamatka_harf';
+                                      } else if (player.gameMode === 'oddeven' || 
+                                                player.prediction === 'odd' || 
+                                                player.prediction === 'even') {
+                                        gameTypeKey = 'satamatka_odd_even';
+                                      } else if (/^\d{2}$/.test(player.prediction)) {
+                                        gameTypeKey = 'satamatka_jodi';
+                                      }
+                                      
+                                      // Find odds for this game type
+                                      const odds = gameOddsData.find((odd: any) => odd.gameType === gameTypeKey);
+                                      
+                                      if (odds && odds.oddValue !== undefined) {
+                                        // Parse odds value based on format
+                                        if (odds.oddValue >= 100000) {
+                                          multiplier = odds.oddValue / 10000;
+                                        } else if (odds.oddValue >= 10) {
+                                          multiplier = odds.oddValue;
+                                        } else {
+                                          multiplier = odds.oddValue;
+                                        }
+                                      }
+                                    }
+                                    
+                                    return `₹${((player.betAmount * multiplier) / 100).toFixed(2)}`;
+                                  })()}
+                                </span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-sm">Bet Type:</span>
