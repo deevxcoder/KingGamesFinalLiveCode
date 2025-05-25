@@ -1555,14 +1555,14 @@ export default function SimplifiedRiskPage() {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Potential Profit
+                        Total Active Bet Amount
                       </CardTitle>
-                      <TrendingUp className="h-4 w-4 text-green-500" />
+                      <Target className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(cricketTossData.potentialProfit/100).toFixed(2)}</div>
+                      <div className="text-2xl font-bold">₹{(cricketTossData.totalBetAmount/100).toFixed(2)}</div>
                       <p className="text-xs text-muted-foreground">
-                        Best case scenario
+                        Total amount wagered on cricket toss
                       </p>
                     </CardContent>
                   </Card>
@@ -1570,14 +1570,14 @@ export default function SimplifiedRiskPage() {
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Potential Liability
+                        Potential Win
                       </CardTitle>
-                      <TrendingDown className="h-4 w-4 text-red-500" />
+                      <TrendingUp className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">₹{(cricketTossData.potentialLiability/100).toFixed(2)}</div>
                       <p className="text-xs text-muted-foreground">
-                        Worst case scenario
+                        Maximum possible payout
                       </p>
                     </CardContent>
                   </Card>
