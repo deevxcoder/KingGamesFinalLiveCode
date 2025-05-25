@@ -318,7 +318,7 @@ export default function SimplifiedRiskPage() {
 
         {/* Subadmin Filter Section (Admin Only) */}
         {isAdmin && (
-          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 border-blue-200 dark:border-gray-700">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-lg">
                 <Filter className="h-5 w-5" />
@@ -386,7 +386,7 @@ export default function SimplifiedRiskPage() {
               
               {/* Selected Subadmin Info */}
               {selectedSubadminId && (
-                <div className="mt-4 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border">
+                <div className="mt-4 p-3 bg-white/50 dark:bg-gray-700/50 rounded-lg border dark:border-gray-600">
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4" />
                     <span className="font-medium">
