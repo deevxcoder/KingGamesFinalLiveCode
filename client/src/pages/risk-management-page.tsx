@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { UserRole } from "@shared/schema";
 import { useQuery } from "@tanstack/react-query";
@@ -33,7 +33,10 @@ import {
   TrendingUp,
   Users,
   Target,
-  Loader2
+  Loader2,
+  Eye,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
@@ -112,7 +115,7 @@ function LoadingSkeleton() {
   );
 }
 
-export default function RiskManagementPage() {
+export default function SimplifiedRiskPage() {
   const { user } = useAuth();
   const isAdmin = user?.role === UserRole.ADMIN;
   const isSubadmin = user?.role === UserRole.SUBADMIN;
@@ -132,6 +135,13 @@ export default function RiskManagementPage() {
   
   // Whether risk configuration dialog is open
   const [riskConfigOpen, setRiskConfigOpen] = useState(false);
+  
+  // Player details modal state
+  const [playerDetailsModal, setPlayerDetailsModal] = useState(false);
+  const [selectedPlayers, setSelectedPlayers] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [modalTitle, setModalTitle] = useState('');
+  const playersPerPage = 10;
   
   // Form for risk threshold configuration
   const riskConfigForm = useForm({
@@ -157,37 +167,24 @@ export default function RiskManagementPage() {
   });
   
   // Fetch game odds for the current user (admin or subadmin)
-  const { data: oddsData, isLoading: isLoadingOdds } = useQuery({
+  const { data: gameOddsData, isLoading: isLoadingOdds } = useQuery({
     queryKey: [isAdmin ? '/api/odds/admin' : '/api/game-odds/subadmin', user?.id],
     enabled: !!user,
   });
   
   // Use real user names from the API
-  useEffect(() => {
+  React.useEffect(() => {
     if (data?.userInfo) {
       setUserInfo(data.userInfo);
     }
   }, [data]);
   
   // Use real market names from the API
-  useEffect(() => {
+  React.useEffect(() => {
     if (data?.marketInfo) {
       setMarketInfo(data.marketInfo);
-      
-      // Auto-select the active market (first one without results)
-      if (marketFilter === 'all') {
-        const activeMarketId = Object.keys(data.marketInfo).find(marketId => {
-          const market = data.marketInfo[marketId];
-          // Find markets that are still active (no results yet)
-          return market && (!market.status || market.status === 'open');
-        });
-        
-        if (activeMarketId) {
-          setMarketFilter(parseInt(activeMarketId));
-        }
-      }
     }
-  }, [data, marketFilter]);
+  }, [data]);
 
   // Function to save risk thresholds
   const saveRiskThresholds = (values: any) => {
@@ -207,6 +204,20 @@ export default function RiskManagementPage() {
     if (level === 'low') return <Badge className="bg-[#9333EA] text-white">Low</Badge>;
     return null;
   };
+
+  // Function to show player details in modal
+  const showPlayerDetails = (players: any[], title: string) => {
+    setSelectedPlayers(players);
+    setModalTitle(title);
+    setCurrentPage(1);
+    setPlayerDetailsModal(true);
+  };
+
+  // Calculate pagination for player details
+  const totalPages = Math.ceil(selectedPlayers.length / playersPerPage);
+  const startIndex = (currentPage - 1) * playersPerPage;
+  const endIndex = startIndex + playersPerPage;
+  const currentPlayers = selectedPlayers.slice(startIndex, endIndex);
 
   // Prepare data conditionally but without using hooks
   let marketGameData = null;
@@ -395,6 +406,162 @@ export default function RiskManagementPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Player Details Modal */}
+        <Dialog open={playerDetailsModal} onOpenChange={setPlayerDetailsModal}>
+          <DialogContent className="sm:max-w-4xl max-h-[90vh] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                {modalTitle}
+              </DialogTitle>
+              <DialogDescription>
+                Player betting details with risk analysis
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="flex-1 min-h-0">
+              <ScrollArea className="h-[60vh] pr-4">
+                <div className="space-y-4">
+                  {currentPlayers.map((player, index) => (
+                    <Card key={startIndex + index} className="border-l-4 border-l-primary">
+                      <CardContent className="p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <h4 className="font-semibold text-base mb-2">
+                              {userInfo[player.userId] ? userInfo[player.userId].username : `Player ${player.userId}`}
+                            </h4>
+                            <div className="space-y-1 text-sm text-muted-foreground">
+                              <div>Player ID: {player.userId}</div>
+                              <div>Market: {marketInfo[player.marketId] ? marketInfo[player.marketId].name : `Market ${player.marketId}`}</div>
+                              <div>Prediction: <span className="font-medium text-foreground">{player.prediction}</span></div>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm">Bet Amount:</span>
+                                <span className="font-semibold">₹{(player.betAmount / 100).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Potential Win:</span>
+                                <span className="font-semibold text-green-600">
+                                  {(() => {
+                                    // Determine the appropriate multiplier based on game type and prediction
+                                    let multiplier = 90; // Default fallback
+                                    
+                                    if (gameOddsData && Array.isArray(gameOddsData)) {
+                                      // Determine the game type based on player's bet
+                                      let gameTypeKey = 'satamatka_jodi'; // Default
+                                      
+                                      if (player.gameMode === 'harf' || 
+                                          player.prediction?.startsWith('A') || 
+                                          player.prediction?.startsWith('B')) {
+                                        gameTypeKey = 'satamatka_harf';
+                                      } else if (player.gameMode === 'oddeven' || 
+                                                player.prediction === 'odd' || 
+                                                player.prediction === 'even') {
+                                        gameTypeKey = 'satamatka_odd_even';
+                                      } else if (/^\d{2}$/.test(player.prediction)) {
+                                        gameTypeKey = 'satamatka_jodi';
+                                      }
+                                      
+                                      // Find odds for this game type
+                                      const odds = gameOddsData.find((odd: any) => odd.gameType === gameTypeKey);
+                                      
+                                      if (odds && odds.oddValue !== undefined) {
+                                        // Parse odds value based on format
+                                        if (odds.oddValue >= 100000) {
+                                          multiplier = odds.oddValue / 10000;
+                                        } else if (odds.oddValue >= 10) {
+                                          multiplier = odds.oddValue;
+                                        } else {
+                                          multiplier = odds.oddValue;
+                                        }
+                                      }
+                                    }
+                                    
+                                    return `₹${((player.betAmount * multiplier) / 100).toFixed(2)}`;
+                                  })()}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm">Bet Type:</span>
+                                <span className="text-sm">{player.gameMode || player.betType || 'jodi'}</span>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex flex-col items-end">
+                            <div className="mb-2">
+                              {(() => {
+                                let riskLevel = 'low';
+                                if (player.betAmount > riskThresholds.high) riskLevel = 'high';
+                                else if (player.betAmount > riskThresholds.medium) riskLevel = 'medium';
+                                return getRiskLevelBadge(riskLevel);
+                              })()}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Game ID: {player.id}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              Status: {player.result || 'Pending'}
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  
+                  {currentPlayers.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No player data available
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  Showing {startIndex + 1} to {Math.min(endIndex, selectedPlayers.length)} of {selectedPlayers.length} players
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Previous
+                  </Button>
+                  <span className="text-sm">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setPlayerDetailsModal(false)}>
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         <Separator />
 
         {/* Detailed Analysis Tabs */}
@@ -408,183 +575,184 @@ export default function RiskManagementPage() {
             
             {marketGameData && (
               <>
-                {/* Stats Overview Cards */}
+                {/* Satamatka Overview Statistics Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
                   <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Active Satamatka Bets
+                        Total Active Bets
                       </CardTitle>
                       <Activity className="h-4 w-4 text-primary" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{marketGameData.activeBets}</div>
-                      <p className="text-xs text-muted-foreground">
-                        From {marketGameData.totalBets} total bets
-                      </p>
-                      <div className="mt-3">
-                        <Progress 
-                          value={marketGameData.totalBets > 0 ? (marketGameData.activeBets / marketGameData.totalBets) * 100 : 0} 
-                          className="h-2" 
-                        />
+                      <div className="text-2xl font-bold">
+                        {data.detailedData.gameData.filter(game => 
+                          game.gameType === 'satamatka' && 
+                          (!game.result || game.result === 'pending')
+                        ).length}
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        All bet types in Satamatka markets
+                      </p>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        High Risk Bets
+                        Total Potential Win
                       </CardTitle>
-                      <AlertTriangle className="h-4 w-4 text-primary" />
+                      <TrendingUp className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">{marketGameData.highRiskBets}</div>
-                      <p className="text-xs text-muted-foreground">
-                        Require immediate attention
-                      </p>
-                      <div className="mt-3">
-                        <Progress 
-                          value={marketGameData.activeBets > 0 ? (marketGameData.highRiskBets / marketGameData.activeBets) * 100 : 0} 
-                          className="h-2 bg-red-200" 
-                          indicatorClassName="bg-red-500"
-                        />
+                      <div className="text-2xl font-bold">
+                        ₹{(data.detailedData.gameData
+                          .filter(game => 
+                            game.gameType === 'satamatka' && 
+                            (!game.result || game.result === 'pending')
+                          )
+                          .reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0) / 100
+                        ).toFixed(2)}
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Maximum possible payout
+                      </p>
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Current Exposure
+                        Total Bet Amount
                       </CardTitle>
-                      <Target className="h-4 w-4 text-primary" />
+                      <Target className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(marketGameData.exposureAmount/100).toFixed(2)}</div>
-                      <p className="text-xs text-muted-foreground">
-                        From active bets
-                      </p>
-                      <div className="mt-3 flex items-center space-x-2">
-                        <TrendingUp className="h-4 w-4 text-green-500" />
-                        <span className="text-xs text-green-600">
-                          Potential Profit: ₹{(marketGameData.potentialProfit/100).toFixed(2)}
-                        </span>
+                      <div className="text-2xl font-bold">
+                        ₹{(data.detailedData.gameData
+                          .filter(game => 
+                            game.gameType === 'satamatka' && 
+                            (!game.result || game.result === 'pending')
+                          )
+                          .reduce((sum, game) => sum + (game.betAmount || 0), 0) / 100
+                        ).toFixed(2)}
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Total amount wagered
+                      </p>
                     </CardContent>
                   </Card>
-                  
-                  <Card>
+
+                  <Card className="border-primary/20 bg-primary/5">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
-                        Potential Liability
+                        Unique Active Users
                       </CardTitle>
-                      <TrendingDown className="h-4 w-4 text-red-500" />
+                      <Users className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(marketGameData.potentialLiability/100).toFixed(2)}</div>
-                      <p className="text-xs text-muted-foreground">
-                        Maximum possible loss
-                      </p>
-                      <div className="mt-3 flex items-center space-x-2">
-                        <div className="text-xs">
-                          <span className="font-medium">Risk Coverage: </span>
-                          <span className="text-blue-600">{marketGameData.potentialLiability > 0 ? Math.min(100, Math.round((marketGameData.potentialProfit / marketGameData.potentialLiability) * 100)) : 0}%</span>
-                        </div>
+                      <div className="text-2xl font-bold">
+                        {new Set(data.detailedData.gameData
+                          .filter(game => 
+                            game.gameType === 'satamatka' && 
+                            (!game.result || game.result === 'pending')
+                          )
+                          .map(game => game.userId)
+                        ).size}
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Players with active bets
+                      </p>
                     </CardContent>
                   </Card>
                 </div>
                 
-                {/* Grid view showing all numbers from 00-99 */}
-                <Card className="mb-6">
-                  <CardHeader>
-                    <CardTitle>Satamatka Numbers (00-99)</CardTitle>
-                    <CardDescription>Comprehensive view of all numbers with active bets</CardDescription>
+                <Card className="mb-6 border-primary/20 bg-primary/5">
+                  <CardHeader className="border-b border-primary/20">
+                    <CardTitle>Jantri Risk Analysis</CardTitle>
+                    <CardDescription>
+                      View and analyze bets by number, market, and player
+                    </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <div className="mb-4 flex flex-col space-y-3">
-                      {/* Market Filter */}
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold w-24">Market Filter:</span>
-                        <select 
-                          className="p-2 rounded-md bg-background border border-input text-sm" 
-                          value={marketFilter === 'all' ? 'all' : marketFilter.toString()}
-                          onChange={(e) => setMarketFilter(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-                        >
-                          <option value="all">All Markets</option>
-                          {Object.entries(marketInfo).map(([marketId, market]) => (
-                            <option key={marketId} value={marketId}>
-                              {market.name}
-                            </option>
-                          ))}
-                        </select>
+                  <CardContent className="pt-6">
+                    <div className="space-y-5 mb-6">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold w-24">Market:</span>
+                          <select 
+                            className="p-2 border rounded-md w-48 bg-background/70 border-border/60 focus:border-primary/70 focus:ring-1 focus:ring-primary/50"
+                            value={marketFilter === 'all' ? 'all' : marketFilter.toString()}
+                            onChange={(e) => setMarketFilter(e.target.value === 'all' ? 'all' : parseInt(e.target.value, 10))}
+                          >
+                            <option value="all">All Markets</option>
+                            {Object.entries(marketInfo).map(([id, market]) => (
+                              <option key={id} value={id}>
+                                {market.name} ({market.type})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        {/* View Selector */}
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold w-24">View Mode:</span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'all' ? 'bg-primary text-primary-foreground' : 'bg-primary/20 hover:bg-primary/30 text-foreground'}`}
+                              onClick={() => {
+                                setViewMode('regular');
+                                setBetTypeFilter('all');
+                              }}
+                            >
+                              All Numbers
+                            </Badge>
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'jodi' ? 'bg-primary text-primary-foreground' : 'bg-primary/20 hover:bg-primary/30 text-foreground'}`}
+                              onClick={() => {
+                                setViewMode('regular');
+                                setBetTypeFilter('jodi');
+                              }}
+                            >
+                              Jodi Only
+                            </Badge>
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'odd-even' ? 'bg-primary text-primary-foreground' : 'bg-primary/20 hover:bg-primary/30 text-foreground'}`}
+                              onClick={() => setViewMode('odd-even')}
+                            >
+                              Odd/Even
+                            </Badge>
+                            <Badge 
+                              className={`cursor-pointer px-3 py-1 ${viewMode === 'harf' ? 'bg-primary text-primary-foreground' : 'bg-primary/20 hover:bg-primary/30 text-foreground'}`}
+                              onClick={() => setViewMode('harf')}
+                            >
+                              Harf (A0-B9)
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
                       
-                      {/* Bet Type Filter - Jodi only for simplicity */}
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold w-24">View Mode:</span>
-                        <div className="flex items-center space-x-2">
-                          <Badge 
-                            className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'all' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => {
-                              setViewMode('regular');
-                              setBetTypeFilter('all');
-                            }}
+                      <div className="flex flex-wrap items-center gap-3 py-3 px-4 bg-muted/30 rounded-md border border-border/30">
+                          <div className="flex items-center space-x-1">
+                            <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
+                            <span className="text-xs">High Risk (₹{(riskThresholds.high/100).toFixed(2)}+)</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <span className="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
+                            <span className="text-xs">Medium Risk (₹{(riskThresholds.medium/100).toFixed(2)}+)</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
+                            <span className="text-xs">Low Risk (Above ₹0)</span>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="ml-auto text-xs bg-background/70 hover:bg-background" 
+                            onClick={() => setRiskConfigOpen(true)}
                           >
-                            All Numbers
-                          </Badge>
-                          <Badge 
-                            className={`cursor-pointer px-3 py-1 ${viewMode === 'regular' && betTypeFilter === 'jodi' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => {
-                              setViewMode('regular');
-                              setBetTypeFilter('jodi');
-                            }}
-                          >
-                            Jodi Only
-                          </Badge>
-                          <Badge 
-                            className={`cursor-pointer px-3 py-1 ${viewMode === 'odd-even' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => {
-                              setViewMode('odd-even');
-                              setBetTypeFilter('all');
-                            }}
-                          >
-                            Odd/Even
-                          </Badge>
-                          <Badge 
-                            className={`cursor-pointer px-3 py-1 ${viewMode === 'harf' ? 'bg-primary' : 'bg-slate-700'}`}
-                            onClick={() => {
-                              setViewMode('harf');
-                              setBetTypeFilter('all');
-                            }}
-                          >
-                            Harf (A0-B9)
-                          </Badge>
+                            Configure Risk Levels
+                          </Button>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center space-x-1">
-                          <span className="inline-block w-3 h-3 rounded-full bg-red-500"></span>
-                          <span className="text-xs">High Risk (₹{(riskThresholds.high/100).toFixed(2)}+)</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <span className="inline-block w-3 h-3 rounded-full bg-orange-500"></span>
-                          <span className="text-xs">Medium Risk (₹{(riskThresholds.medium/100).toFixed(2)}+)</span>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <span className="inline-block w-3 h-3 rounded-full bg-blue-500"></span>
-                          <span className="text-xs">Low Risk (Above ₹0)</span>
-                        </div>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="ml-2 text-xs" 
-                          onClick={() => setRiskConfigOpen(true)}
-                        >
-                          Configure Risk Levels
-                        </Button>
-                      </div>
                     </div>
                     
                     <ScrollArea className="h-[600px]">
@@ -605,41 +773,47 @@ export default function RiskManagementPage() {
                                     if (game.result && game.result !== 'pending') return false;
                                     if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                     
-                                    // Only include bets with odd_even game mode and odd prediction
+                                    // Look for games specifically with "odd" bet type in odd_even game mode
                                     return game.gameMode === 'odd_even' && game.prediction === 'odd';
                                   });
                                   
-                                  // Get the actual odds for odd_even games from fetched data
-                                  let oddEvenMultiplier = 1.9; // Default fallback
+                                  // Get game odds from context if available
+                                  let oddEvenMultiplier = 1.9; // Default odds multiplier
                                   
-                                  if (oddsData && Array.isArray(oddsData)) {
-                                    // Find the odds for satamatka_odd_even game type
-                                    const oddEvenData = oddsData.find(odd => 
+                                  // Try to get the custom odds for satamatka_odd_even game type
+                                  if (data.gameOdds && Array.isArray(data.gameOdds)) {
+                                    const oddEvenData = data.gameOdds.find(odd => 
                                       odd.gameType === 'satamatka_odd_even');
                                     
-                                    if (oddEvenData && oddEvenData.oddValue !== undefined) {
-                                      console.log('Raw odd_even odds value:', oddEvenData.oddValue, 'Type:', typeof oddEvenData.oddValue);
-                                      
-                                      // Handle different formats of the odds value
-                                      if (oddEvenData.oddValue >= 10000) {
-                                        // Format used for subadmin: 19000 = 1.9
-                                        oddEvenMultiplier = oddEvenData.oddValue / 10000;
-                                      } else if (oddEvenData.oddValue >= 10) {
-                                        // Alternative format: 19 = 1.9
-                                        oddEvenMultiplier = oddEvenData.oddValue / 10;
-                                      } else {
-                                        // Format used for admin: 1.95 = 1.95
-                                        oddEvenMultiplier = oddEvenData.oddValue;
-                                      }
-                                      
-                                      console.log('Using calculated odd_even multiplier:', oddEvenMultiplier);
+                                    if (oddEvenData && oddEvenData.oddValue) {
+                                      // Database stores odds as integer values (e.g., 19000 for 1.9)
+                                      oddEvenMultiplier = oddEvenData.oddValue / 10000;
+                                      console.log('Using satamatka_odd_even odds from database:', oddEvenMultiplier);
                                     }
                                   }
                                   
                                   // Calculate totals
                                   const totalBets = oddGames.length;
                                   const totalBetAmount = oddGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                  const potentialWin = oddGames.reduce((sum, game) => sum + ((game.betAmount || 0) * oddEvenMultiplier), 0);
+                                  // Using the gameOddsData directly to calculate potential win
+                                  let oddEvenMultiplierValue = 1.9; // Default fallback
+                                  
+                                  if (gameOddsData && Array.isArray(gameOddsData)) {
+                                    console.log('Game odds data:', gameOddsData);
+                                    const oddEvenOdds = gameOddsData.find((odd: any) => 
+                                      odd.gameType === 'satamatka_odd_even');
+                                    
+                                    if (oddEvenOdds && oddEvenOdds.oddValue !== undefined) {
+                                      console.log('Raw odd_even odds value:', oddEvenOdds.oddValue, 'Type:', typeof oddEvenOdds.oddValue);
+                                      
+                                      // The value is already in the correct format (1.95)
+                                      oddEvenMultiplierValue = oddEvenOdds.oddValue;
+                                      
+                                      console.log('Using actual odd_even multiplier:', oddEvenMultiplierValue);
+                                    }
+                                  }
+                                  
+                                  const potentialWin = oddGames.reduce((sum, game) => sum + ((game.betAmount || 0) * oddEvenMultiplierValue), 0);
                                   
                                   // Define risk level
                                   let riskLevel = 'none';
@@ -665,6 +839,17 @@ export default function RiskManagementPage() {
                                         <span className="font-medium">Risk Level:</span>
                                         <span>{getRiskLevelBadge(riskLevel)}</span>
                                       </div>
+                                      {totalBets > 0 && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="w-full mt-3"
+                                          onClick={() => showPlayerDetails(oddGames, `Odd Numbers Players (${totalBets} players)`)}
+                                        >
+                                          <Eye className="h-4 w-4 mr-2" />
+                                          View Players
+                                        </Button>
+                                      )}
                                     </div>
                                   );
                                 })()}
@@ -684,41 +869,47 @@ export default function RiskManagementPage() {
                                     if (game.result && game.result !== 'pending') return false;
                                     if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                     
-                                    // Only include bets with odd_even game mode and even prediction
+                                    // Look for games specifically with "even" bet type in odd_even game mode
                                     return game.gameMode === 'odd_even' && game.prediction === 'even';
                                   });
                                   
-                                  // Get the actual odds for odd_even games from fetched data
-                                  let oddEvenMultiplier = 1.9; // Default fallback
+                                  // Get game odds from context if available
+                                  let oddEvenMultiplier = 1.9; // Default odds multiplier
                                   
-                                  if (oddsData && Array.isArray(oddsData)) {
-                                    // Find the odds for satamatka_odd_even game type
-                                    const oddEvenData = oddsData.find(odd => 
+                                  // Try to get the custom odds for satamatka_odd_even game type
+                                  if (data.gameOdds && Array.isArray(data.gameOdds)) {
+                                    const oddEvenData = data.gameOdds.find(odd => 
                                       odd.gameType === 'satamatka_odd_even');
                                     
-                                    if (oddEvenData && oddEvenData.oddValue !== undefined) {
-                                      console.log('Raw odd_even odds value for even bets:', oddEvenData.oddValue, 'Type:', typeof oddEvenData.oddValue);
-                                      
-                                      // Handle different formats of the odds value
-                                      if (oddEvenData.oddValue >= 10000) {
-                                        // Format used for subadmin: 19000 = 1.9
-                                        oddEvenMultiplier = oddEvenData.oddValue / 10000;
-                                      } else if (oddEvenData.oddValue >= 10) {
-                                        // Alternative format: 19 = 1.9
-                                        oddEvenMultiplier = oddEvenData.oddValue / 10;
-                                      } else {
-                                        // Format used for admin: 1.95 = 1.95
-                                        oddEvenMultiplier = oddEvenData.oddValue;
-                                      }
-                                      
-                                      console.log('Using calculated odd_even multiplier for even bets:', oddEvenMultiplier);
+                                    if (oddEvenData && oddEvenData.oddValue) {
+                                      // Database stores odds as integer values (e.g., 19000 for 1.9)
+                                      oddEvenMultiplier = oddEvenData.oddValue / 10000;
+                                      console.log('Using satamatka_odd_even odds from database for even bets:', oddEvenMultiplier);
                                     }
                                   }
                                   
                                   // Calculate totals
                                   const totalBets = evenGames.length;
                                   const totalBetAmount = evenGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                  const potentialWin = evenGames.reduce((sum, game) => sum + ((game.betAmount || 0) * oddEvenMultiplier), 0);
+                                  // Using the gameOddsData directly to calculate potential win
+                                  let oddEvenMultiplierValue = 1.9; // Default fallback
+                                  
+                                  if (gameOddsData && Array.isArray(gameOddsData)) {
+                                    console.log('Game odds data for even bets:', gameOddsData);
+                                    const oddEvenOdds = gameOddsData.find((odd: any) => 
+                                      odd.gameType === 'satamatka_odd_even');
+                                    
+                                    if (oddEvenOdds && oddEvenOdds.oddValue !== undefined) {
+                                      console.log('Raw odd_even odds value for even:', oddEvenOdds.oddValue, 'Type:', typeof oddEvenOdds.oddValue);
+                                      
+                                      // The value is already in the correct format (1.95)
+                                      oddEvenMultiplierValue = oddEvenOdds.oddValue;
+                                      
+                                      console.log('Using actual odd_even multiplier for even:', oddEvenMultiplierValue);
+                                    }
+                                  }
+                                  
+                                  const potentialWin = evenGames.reduce((sum, game) => sum + ((game.betAmount || 0) * oddEvenMultiplierValue), 0);
                                   
                                   // Define risk level
                                   let riskLevel = 'none';
@@ -744,6 +935,17 @@ export default function RiskManagementPage() {
                                         <span className="font-medium">Risk Level:</span>
                                         <span>{getRiskLevelBadge(riskLevel)}</span>
                                       </div>
+                                      {totalBets > 0 && (
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="w-full mt-3"
+                                          onClick={() => showPlayerDetails(evenGames, `Even Numbers Players (${totalBets} players)`)}
+                                        >
+                                          <Eye className="h-4 w-4 mr-2" />
+                                          View Players
+                                        </Button>
+                                      )}
                                     </div>
                                   );
                                 })()}
@@ -753,14 +955,26 @@ export default function RiskManagementPage() {
                         </div>
                       ) : viewMode === 'harf' ? (
                         <div className="p-4">
-                          <h3 className="text-lg font-bold mb-4">Harf Risk Management</h3>
-                          <div className="grid grid-cols-2 gap-6 mb-8">
-                            <Card>
-                              <CardHeader>
-                                <CardTitle className="text-base">Left Digit (A0-A9)</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="grid grid-cols-5 gap-4">
+                          <h3 className="text-lg font-bold mb-4 text-primary-foreground">Harf Risk Management</h3>
+                          
+                          {/* Left Digits (A0-A9) Table */}
+                          <Card className="mb-6 border-primary/20 bg-primary/5">
+                            <CardHeader className="border-b border-primary/20">
+                              <CardTitle className="text-base">Left Digit (A0-A9) - Position 1</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Number</TableHead>
+                                    <TableHead>Active Bets</TableHead>
+                                    <TableHead>Bet Amount</TableHead>
+                                    <TableHead>Potential Win</TableHead>
+                                    <TableHead>Risk Level</TableHead>
+                                    <TableHead>Action</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                   {Array.from({ length: 10 }, (_, i) => {
                                     const digit = i.toString();
                                     
@@ -770,14 +984,40 @@ export default function RiskManagementPage() {
                                       if (game.result && game.result !== 'pending') return false;
                                       if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                       
-                                      // For harf mode, match A0, A1, etc. format
+                                      // For left digit (A0-A9), check if it's a harf bet with "A" prefix
                                       return game.gameMode === 'harf' && game.prediction === `A${digit}`;
                                     });
                                     
                                     // Calculate totals
                                     const totalBets = gamesForLeftDigit.length;
                                     const totalBetAmount = gamesForLeftDigit.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                    const potentialWin = gamesForLeftDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                                    // Get the actual odds for harf games from fetched data
+                                    let harfMultiplier = 9; // Default fallback
+                                    
+                                    if (gameOddsData && Array.isArray(gameOddsData)) {
+                                      const harfOdds = gameOddsData.find((odd: any) => 
+                                        odd.gameType === 'satamatka_harf');
+                                      
+                                      if (harfOdds && harfOdds.oddValue !== undefined) {
+                                        console.log('Raw harf odds value:', harfOdds.oddValue, 'Type:', typeof harfOdds.oddValue);
+                                        
+                                        // Handle different formats of the odds value
+                                        if (harfOdds.oddValue >= 10000) {
+                                          // Format: 90000 = 9
+                                          harfMultiplier = harfOdds.oddValue / 10000;
+                                        } else if (harfOdds.oddValue >= 10) {
+                                          // Format: 95 = 9.5
+                                          harfMultiplier = harfOdds.oddValue;
+                                        } else {
+                                          // Direct value format
+                                          harfMultiplier = harfOdds.oddValue;
+                                        }
+                                        
+                                        console.log('Using actual harf multiplier:', harfMultiplier);
+                                      }
+                                    }
+                                    
+                                    const potentialWin = gamesForLeftDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * harfMultiplier), 0);
                                     
                                     // Define risk level
                                     let riskLevel = 'none';
@@ -786,43 +1026,54 @@ export default function RiskManagementPage() {
                                     else if (totalBetAmount > 0) riskLevel = 'low';
                                     
                                     return (
-                                      <Card key={`left-${digit}`} className={
-                                        riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
-                                        riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' :
-                                        riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : ''
+                                      <TableRow key={`left-${digit}`} className={
+                                        riskLevel === 'high' ? 'bg-primary/20 hover:bg-primary/25 border-b border-primary/30' :
+                                        riskLevel === 'medium' ? 'bg-primary/10 hover:bg-primary/15 border-b border-primary/20' :
+                                        riskLevel === 'low' ? 'bg-primary/5 hover:bg-primary/10 border-b border-primary/10' : 
+                                        'hover:bg-primary/5 border-b border-primary/5'
                                       }>
-                                        <CardHeader className="p-3 pb-0">
-                                          <CardTitle className="text-base text-center">A{digit}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="p-3 text-sm">
-                                          <div className="space-y-1">
-                                            <div className="flex justify-between">
-                                              <span>Bets:</span>
-                                              <span>{totalBets}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Amount:</span>
-                                              <span>₹{(totalBetAmount / 100).toFixed(0)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Win:</span>
-                                              <span>₹{(potentialWin / 100).toFixed(0)}</span>
-                                            </div>
-                                          </div>
-                                        </CardContent>
-                                      </Card>
+                                        <TableCell className="font-medium">A{digit}</TableCell>
+                                        <TableCell>{totalBets}</TableCell>
+                                        <TableCell>₹{(totalBetAmount / 100).toFixed(2)}</TableCell>
+                                        <TableCell>₹{(potentialWin / 100).toFixed(2)}</TableCell>
+                                        <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                        <TableCell>
+                                          {totalBets > 0 && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => showPlayerDetails(gamesForLeftDigit, `Left Digit A${digit} Players (${totalBets} players)`)}
+                                            >
+                                              <Eye className="h-4 w-4" />
+                                            </Button>
+                                          )}
+                                        </TableCell>
+                                      </TableRow>
                                     );
                                   })}
-                                </div>
-                              </CardContent>
-                            </Card>
-                            
-                            <Card>
-                              <CardHeader>
-                                <CardTitle className="text-base">Right Digit (B0-B9)</CardTitle>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="grid grid-cols-5 gap-4">
+                                </TableBody>
+                              </Table>
+                            </CardContent>
+                          </Card>
+                          
+                          {/* Right Digits (B0-B9) Table */}
+                          <Card className="border-primary/20 bg-primary/5">
+                            <CardHeader className="border-b border-primary/20">
+                              <CardTitle className="text-base">Right Digit (B0-B9) - Position 2</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <Table>
+                                <TableHeader>
+                                  <TableRow>
+                                    <TableHead>Number</TableHead>
+                                    <TableHead>Active Bets</TableHead>
+                                    <TableHead>Bet Amount</TableHead>
+                                    <TableHead>Potential Win</TableHead>
+                                    <TableHead>Risk Level</TableHead>
+                                    <TableHead>Action</TableHead>
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
                                   {Array.from({ length: 10 }, (_, i) => {
                                     const digit = i.toString();
                                     
@@ -832,14 +1083,40 @@ export default function RiskManagementPage() {
                                       if (game.result && game.result !== 'pending') return false;
                                       if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
                                       
-                                      // For harf mode, match B0, B1, etc. format
+                                      // For right digit (B0-B9), check if it's a harf bet with "B" prefix
                                       return game.gameMode === 'harf' && game.prediction === `B${digit}`;
                                     });
                                     
                                     // Calculate totals
                                     const totalBets = gamesForRightDigit.length;
                                     const totalBetAmount = gamesForRightDigit.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                    const potentialWin = gamesForRightDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                                    // Get the actual odds for harf games from fetched data
+                                    let harfMultiplier = 9; // Default fallback
+                                    
+                                    if (gameOddsData && Array.isArray(gameOddsData)) {
+                                      const harfOdds = gameOddsData.find((odd: any) => 
+                                        odd.gameType === 'satamatka_harf');
+                                      
+                                      if (harfOdds && harfOdds.oddValue !== undefined) {
+                                        console.log('Raw harf odds value for right digit:', harfOdds.oddValue, 'Type:', typeof harfOdds.oddValue);
+                                        
+                                        // Handle different formats of the odds value
+                                        if (harfOdds.oddValue >= 10000) {
+                                          // Format: 90000 = 9
+                                          harfMultiplier = harfOdds.oddValue / 10000;
+                                        } else if (harfOdds.oddValue >= 10) {
+                                          // Format: 95 = 9.5
+                                          harfMultiplier = harfOdds.oddValue;
+                                        } else {
+                                          // Direct value format
+                                          harfMultiplier = harfOdds.oddValue;
+                                        }
+                                        
+                                        console.log('Using actual harf multiplier for right digit:', harfMultiplier);
+                                      }
+                                    }
+                                    
+                                    const potentialWin = gamesForRightDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * harfMultiplier), 0);
                                     
                                     // Define risk level
                                     let riskLevel = 'none';
@@ -848,147 +1125,156 @@ export default function RiskManagementPage() {
                                     else if (totalBetAmount > 0) riskLevel = 'low';
                                     
                                     return (
-                                      <Card key={`right-${digit}`} className={
-                                        riskLevel === 'high' ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800' :
-                                        riskLevel === 'medium' ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' :
-                                        riskLevel === 'low' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : ''
+                                      <TableRow key={`right-${digit}`} className={
+                                        riskLevel === 'high' ? 'bg-primary/20 hover:bg-primary/25 border-b border-primary/30' :
+                                        riskLevel === 'medium' ? 'bg-primary/10 hover:bg-primary/15 border-b border-primary/20' :
+                                        riskLevel === 'low' ? 'bg-primary/5 hover:bg-primary/10 border-b border-primary/10' : 
+                                        'hover:bg-primary/5 border-b border-primary/5'
                                       }>
-                                        <CardHeader className="p-3 pb-0">
-                                          <CardTitle className="text-base text-center">B{digit}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="p-3 text-sm">
-                                          <div className="space-y-1">
-                                            <div className="flex justify-between">
-                                              <span>Bets:</span>
-                                              <span>{totalBets}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Amount:</span>
-                                              <span>₹{(totalBetAmount / 100).toFixed(0)}</span>
-                                            </div>
-                                            <div className="flex justify-between">
-                                              <span>Win:</span>
-                                              <span>₹{(potentialWin / 100).toFixed(0)}</span>
-                                            </div>
-                                          </div>
-                                        </CardContent>
-                                      </Card>
+                                        <TableCell className="font-medium">B{digit}</TableCell>
+                                        <TableCell>{totalBets}</TableCell>
+                                        <TableCell>₹{(totalBetAmount / 100).toFixed(2)}</TableCell>
+                                        <TableCell>₹{(potentialWin / 100).toFixed(2)}</TableCell>
+                                        <TableCell>{getRiskLevelBadge(riskLevel)}</TableCell>
+                                        <TableCell>
+                                          {totalBets > 0 && (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => showPlayerDetails(gamesForRightDigit, `Right Digit B${digit} Players (${totalBets} players)`)}
+                                            >
+                                              <Eye className="h-4 w-4" />
+                                            </Button>
+                                          )}
+                                        </TableCell>
+                                      </TableRow>
                                     );
                                   })}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          </div>
+                                </TableBody>
+                              </Table>
+                            </CardContent>
+                          </Card>
                         </div>
                       ) : (
-                        <Table>
-                          <TableHeader className="sticky top-0 bg-background z-10">
-                            <TableRow>
-                              <TableHead className="w-[80px]">Number</TableHead>
-                              <TableHead className="w-[100px]">Active Bets</TableHead>
-                              <TableHead className="w-[150px]">Bet Amount</TableHead>
-                              <TableHead className="w-[150px]">Potential Win</TableHead>
-                              <TableHead>Bet Types</TableHead>
-                              <TableHead className="w-[120px]">Market</TableHead>
-                              <TableHead className="w-[100px]">Risk Level</TableHead>
-                              <TableHead className="w-[200px]">Player Details</TableHead>
+                        <Table className="border-collapse bg-primary/5">
+                          <TableHeader className="sticky top-0 z-10">
+                            <TableRow className="border-b border-primary/30 bg-primary/10 backdrop-blur-sm">
+                              <TableHead className="w-[80px] font-semibold text-foreground">Number</TableHead>
+                              <TableHead className="w-[100px] font-semibold text-foreground">Active Bets</TableHead>
+                              <TableHead className="w-[150px] font-semibold text-foreground">Bet Amount</TableHead>
+                              <TableHead className="w-[150px] font-semibold text-foreground">Potential Win</TableHead>
+                              <TableHead className="font-semibold text-foreground">Bet Types</TableHead>
+                              <TableHead className="w-[120px] font-semibold text-foreground">Market</TableHead>
+                              <TableHead className="w-[100px] font-semibold text-foreground">Risk Level</TableHead>
+                              <TableHead className="w-[120px] font-semibold text-foreground">Action</TableHead>
                             </TableRow>
                           </TableHeader>
-                          <TableBody>
-                          {Array.from({ length: 100 }, (_, i) => {
-                            // Format number as two digits (e.g., 00, 01, ..., 99)
-                            const num = i.toString().padStart(2, '0');
-                            
-                            // Filter games for this number
-                            const gamesForNumber = data.detailedData.gameData.filter(game => {
-                              if (game.gameType !== 'satamatka') return false;
-                              if (game.result && game.result !== 'pending') return false;
-                              if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
-                              if (betTypeFilter !== 'all' && game.prediction !== betTypeFilter && game.prediction !== num) return false;
+                          <TableBody className="bg-transparent">
+                            {Array.from({ length: 100 }, (_, i) => {
+                              // Format number as two digits (e.g., 00, 01, ..., 99)
+                              const num = i.toString().padStart(2, '0');
                               
-                              // Match exact number predictions (jodi format - 00 to 99)
-                              return game.prediction === num;
-                            });
-                            
-                            // Calculate total bet amount for this number
-                            const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                            
-                            // Calculate potential win amount (90x for Jodi)
-                            const potentialWin = gamesForNumber.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
-                            
-                            // Get bet types for this number
-                            const betTypes = Array.from(new Set(gamesForNumber.map(game => 
-                              game.gameMode || "Jodi"
-                            ))).join(', ');
-                            
-                            // Define the risk level based on bet amount using configurable thresholds
-                            let riskLevel = 'none';
-                            if (totalBetAmount > riskThresholds.high) riskLevel = 'high';
-                            else if (totalBetAmount > riskThresholds.medium) riskLevel = 'medium';
-                            else if (totalBetAmount > 0) riskLevel = 'low';
-                            
-                            // Skip rows with no bets
-                            if (gamesForNumber.length === 0) {
-                              return null;
-                            }
-                            
-                            return (
-                              <TableRow 
-                                key={num}
-                                className={
-                                  riskLevel === 'high' 
-                                    ? 'bg-red-500/10'
-                                    : riskLevel === 'medium'
-                                      ? 'bg-orange-500/10'
-                                      : riskLevel === 'low'
-                                        ? 'bg-blue-500/10'
-                                        : ''
+                              // Filter games for this number
+                              const gamesForNumber = data.detailedData.gameData.filter(game => {
+                                if (game.gameType !== 'satamatka') return false;
+                                if (game.result && game.result !== 'pending') return false;
+                                if (marketFilter !== 'all' && game.marketId !== marketFilter) return false;
+                                if (betTypeFilter !== 'all' && game.prediction !== betTypeFilter && game.prediction !== num) return false;
+                                
+                                // Match exact number predictions (jodi format - 00 to 99)
+                                return game.prediction === num;
+                              });
+                              
+                              // Calculate total bet amount for this number
+                              const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
+                              
+                              // Get the actual odds for jodi games from fetched data
+                              let jodiMultiplier = 90; // Default fallback
+                              
+                              if (gameOddsData && Array.isArray(gameOddsData)) {
+                                const jodiOdds = gameOddsData.find((odd: any) => 
+                                  odd.gameType === 'satamatka_jodi');
+                                
+                                if (jodiOdds && jodiOdds.oddValue !== undefined) {
+                                  console.log('Raw jodi odds value:', jodiOdds.oddValue, 'Type:', typeof jodiOdds.oddValue);
+                                  
+                                  // Handle different formats of the odds value
+                                  if (jodiOdds.oddValue >= 100000) {
+                                    // Format: 900000 = 90
+                                    jodiMultiplier = jodiOdds.oddValue / 10000;
+                                  } else if (jodiOdds.oddValue >= 10) {
+                                    // Format: 95 = 95
+                                    jodiMultiplier = jodiOdds.oddValue;
+                                  } else {
+                                    // Direct value format
+                                    jodiMultiplier = jodiOdds.oddValue;
+                                  }
+                                  
+                                  console.log('Using actual jodi multiplier:', jodiMultiplier);
                                 }
-                              >
-                                <TableCell className="font-bold">{num}</TableCell>
-                                <TableCell>{gamesForNumber.length}</TableCell>
-                                <TableCell>
-                                  {totalBetAmount > 0 
-                                    ? `₹${totalBetAmount.toFixed(2)}` 
-                                    : "-"}
-                                </TableCell>
-                                <TableCell>
-                                  {potentialWin > 0
-                                    ? `₹${potentialWin.toFixed(2)}`
-                                    : "-"}
-                                </TableCell>
-                                <TableCell>{betTypes || "Jodi"}</TableCell>
-                                <TableCell>
-                                  {gamesForNumber.length > 0 && (
-                                    <div className="flex flex-col space-y-1">
-                                      {Array.from(new Set(gamesForNumber.map(game => game.marketId))).map(marketId => (
-                                        <Badge key={marketId} variant="outline">
-                                          {marketInfo[marketId]?.name || `Market ${marketId}`}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  )}
-                                </TableCell>
-                                <TableCell>
-                                  {getRiskLevelBadge(riskLevel)}
-                                </TableCell>
-                                <TableCell>
-                                  {gamesForNumber.length > 0 && (
-                                    <div className="flex flex-col space-y-1">
-                                      {Array.from(new Set(gamesForNumber.map(game => game.userId))).map(userId => (
-                                        <div key={userId} className="flex items-center space-x-1">
-                                          <Users className="h-3 w-3" />
-                                          <span className="text-xs">{userInfo[userId]?.username || `User ${userId}`}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  )}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          }).filter(Boolean)}
-                        </TableBody>
-                      </Table>
+                              }
+                              
+                              // Calculate potential win using dynamic odds
+                              const potentialWin = gamesForNumber.reduce((sum, game) => sum + ((game.betAmount || 0) * jodiMultiplier), 0);
+                              
+                              // Get bet types for this number
+                              const betTypes = Array.from(new Set(gamesForNumber.map(game => 
+                                game.gameMode || "Jodi"
+                              ))).join(', ');
+                              
+                              // Define the risk level based on bet amount using configurable thresholds
+                              let riskLevel = 'none';
+                              if (totalBetAmount > riskThresholds.high) riskLevel = 'high';
+                              else if (totalBetAmount > riskThresholds.medium) riskLevel = 'medium';
+                              else if (totalBetAmount > 0) riskLevel = 'low';
+                              
+                              // Skip rows with no bets
+                              if (gamesForNumber.length === 0) {
+                                return null;
+                              }
+                              
+                              return (
+                                <TableRow 
+                                  key={num}
+                                  className={
+                                    riskLevel === 'high' ? 'bg-primary-foreground/5 hover:bg-primary-foreground/10 border-b border-primary/30' :
+                                    riskLevel === 'medium' ? 'bg-primary/5 hover:bg-primary/10 border-b border-primary/20' :
+                                    riskLevel === 'low' ? 'bg-primary/10 hover:bg-primary/15 border-b border-primary/30' : 
+                                    'bg-background hover:bg-primary/5 border-b border-primary/10'
+                                  }
+                                >
+                                  <TableCell className="font-medium">{num}</TableCell>
+                                  <TableCell>{gamesForNumber.length}</TableCell>
+                                  <TableCell>₹{(totalBetAmount / 100).toFixed(2)}</TableCell>
+                                  <TableCell>₹{(potentialWin / 100).toFixed(2)}</TableCell>
+                                  <TableCell>{betTypes}</TableCell>
+                                  <TableCell>
+                                    {Array.from(new Set(gamesForNumber.map(game => {
+                                      const marketId = game.marketId?.toString();
+                                      return marketId && marketInfo[marketId] 
+                                        ? marketInfo[marketId].name 
+                                        : 'Unknown';
+                                    }))).join(', ')}
+                                  </TableCell>
+                                  <TableCell>
+                                    {getRiskLevelBadge(riskLevel)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => showPlayerDetails(gamesForNumber, `Number ${num} Players (${gamesForNumber.length} players)`)}
+                                    >
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      View Players
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            }).filter(Boolean)}
+                          </TableBody>
+                        </Table>
+                      )}
                     </ScrollArea>
                   </CardContent>
                 </Card>
@@ -997,9 +1283,9 @@ export default function RiskManagementPage() {
           </TabsContent>
           
           <TabsContent value="cricket-toss" className="mt-0">
-            {/* Cricket Toss Risk Management Content */}
             {cricketTossData ? (
               <div className="space-y-6">
+                {/* Cricket Overview Cards */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                   <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -1061,9 +1347,9 @@ export default function RiskManagementPage() {
                     </CardContent>
                   </Card>
                 </div>
-                
-                {/* Cricket Match-wise Risk Analysis */}
-                <Card className="mt-6">
+
+                {/* Cricket Match Analysis */}
+                <Card>
                   <CardHeader>
                     <CardTitle>Cricket Toss Match Analysis</CardTitle>
                     <CardDescription>Detailed risk assessment for each cricket match with team-wise betting data</CardDescription>
@@ -1092,34 +1378,34 @@ export default function RiskManagementPage() {
                               </div>
                             </CardHeader>
                             <CardContent>
-                              {/* Match Summary Stats */}
+                              {/* Match Summary */}
                               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                                <div className="text-center p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
-                                  <div className="text-lg font-bold">{match.summary.totalBets}</div>
+                                <div className="text-center p-3 bg-primary/10 border border-primary/20 rounded-lg">
+                                  <div className="text-lg font-bold text-foreground">{match.summary.totalBets}</div>
                                   <div className="text-xs text-muted-foreground">Total Bets</div>
                                 </div>
-                                <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                                  <div className="text-lg font-bold">₹{(match.summary.totalAmount / 100).toFixed(0)}</div>
+                                <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                                  <div className="text-lg font-bold text-foreground">₹{(match.summary.totalAmount / 100).toFixed(0)}</div>
                                   <div className="text-xs text-muted-foreground">Total Amount</div>
                                 </div>
-                                <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                                  <div className="text-lg font-bold">₹{(match.summary.potentialProfit / 100).toFixed(0)}</div>
+                                <div className="text-center p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                                  <div className="text-lg font-bold text-foreground">₹{(match.summary.potentialProfit / 100).toFixed(0)}</div>
                                   <div className="text-xs text-muted-foreground">Potential Profit</div>
                                 </div>
-                                <div className="text-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                                  <div className="text-lg font-bold">₹{(match.summary.potentialLoss / 100).toFixed(0)}</div>
+                                <div className="text-center p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                                  <div className="text-lg font-bold text-foreground">₹{(match.summary.potentialLoss / 100).toFixed(0)}</div>
                                   <div className="text-xs text-muted-foreground">Potential Loss</div>
                                 </div>
                               </div>
 
-                              {/* Team-wise Betting Analysis */}
+                              {/* Team-wise Analysis */}
                               <div className="grid md:grid-cols-2 gap-6">
-                                {/* Team A Analysis */}
-                                <Card className="border-primary/20">
-                                  <CardHeader className="pb-3">
+                                {/* Team A */}
+                                <Card className="border-primary/30 bg-primary/5">
+                                  <CardHeader className="pb-3 border-b border-primary/20">
                                     <div className="flex items-center justify-between">
-                                      <CardTitle className="text-base">{match.matchInfo.teamA}</CardTitle>
-                                      <Badge variant="outline" className="text-xs">
+                                      <CardTitle className="text-base text-foreground">{match.matchInfo.teamA}</CardTitle>
+                                      <Badge variant="outline" className="text-xs bg-primary/10 border-primary/30">
                                         Odds: {(match.matchInfo.oddTeamA / 100).toFixed(2)}x
                                       </Badge>
                                     </div>
@@ -1138,7 +1424,7 @@ export default function RiskManagementPage() {
                                       <span className="font-bold text-red-600">₹{(match.teamAStats.potentialPayout / 100).toFixed(0)}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                      <span className="text-sm text-muted-foreground">Unique Players:</span>
+                                      <span className="text-sm text-muted-foreground">Players:</span>
                                       <span className="font-medium">{match.teamAStats.users.length}</span>
                                     </div>
                                     {match.teamAStats.users.length > 0 && (
@@ -1161,12 +1447,12 @@ export default function RiskManagementPage() {
                                   </CardContent>
                                 </Card>
 
-                                {/* Team B Analysis */}
-                                <Card className="border-secondary/20">
-                                  <CardHeader className="pb-3">
+                                {/* Team B */}
+                                <Card className="border-primary/30 bg-primary/5">
+                                  <CardHeader className="pb-3 border-b border-primary/20">
                                     <div className="flex items-center justify-between">
-                                      <CardTitle className="text-base">{match.matchInfo.teamB}</CardTitle>
-                                      <Badge variant="outline" className="text-xs">
+                                      <CardTitle className="text-base text-foreground">{match.matchInfo.teamB}</CardTitle>
+                                      <Badge variant="outline" className="text-xs bg-primary/10 border-primary/30">
                                         Odds: {(match.matchInfo.oddTeamB / 100).toFixed(2)}x
                                       </Badge>
                                     </div>
@@ -1185,7 +1471,7 @@ export default function RiskManagementPage() {
                                       <span className="font-bold text-red-600">₹{(match.teamBStats.potentialPayout / 100).toFixed(0)}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                      <span className="text-sm text-muted-foreground">Unique Players:</span>
+                                      <span className="text-sm text-muted-foreground">Players:</span>
                                       <span className="font-medium">{match.teamBStats.users.length}</span>
                                     </div>
                                     {match.teamBStats.users.length > 0 && (
@@ -1227,8 +1513,8 @@ export default function RiskManagementPage() {
             ) : (
               <Card>
                 <CardHeader>
-                  <CardTitle>Cricket Toss Risk Analysis</CardTitle>
-                  <CardDescription>No cricket toss games data available</CardDescription>
+                  <CardTitle>Cricket Toss Risk Management</CardTitle>
+                  <CardDescription>No cricket toss data available</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p>There are currently no active cricket toss games in the system.</p>

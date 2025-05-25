@@ -35,7 +35,7 @@ import LeaderboardPage from "@/pages/leaderboard-page";
 import SettingsRouter from "@/pages/settings-router";
 import UserDetailsPage from "@/pages/user-details-page";
 import ResetZonePage from "@/pages/reset-zone-page";
-import RiskManagementPage from "@/pages/simplified-risk-page";
+import RiskManagementPage from "@/pages/risk-management-page";
 import ResultsPage from "@/pages/results-page";
 
 function Router() {
