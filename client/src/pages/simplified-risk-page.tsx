@@ -953,7 +953,33 @@ export default function SimplifiedRiskPage() {
                                     // Calculate totals
                                     const totalBets = gamesForLeftDigit.length;
                                     const totalBetAmount = gamesForLeftDigit.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                    const potentialWin = gamesForLeftDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                                    // Get the actual odds for harf games from fetched data
+                                    let harfMultiplier = 9; // Default fallback
+                                    
+                                    if (gameOddsData && Array.isArray(gameOddsData)) {
+                                      const harfOdds = gameOddsData.find((odd: any) => 
+                                        odd.gameType === 'satamatka_harf');
+                                      
+                                      if (harfOdds && harfOdds.oddValue !== undefined) {
+                                        console.log('Raw harf odds value:', harfOdds.oddValue, 'Type:', typeof harfOdds.oddValue);
+                                        
+                                        // Handle different formats of the odds value
+                                        if (harfOdds.oddValue >= 10000) {
+                                          // Format: 90000 = 9
+                                          harfMultiplier = harfOdds.oddValue / 10000;
+                                        } else if (harfOdds.oddValue >= 10) {
+                                          // Format: 95 = 9.5
+                                          harfMultiplier = harfOdds.oddValue;
+                                        } else {
+                                          // Direct value format
+                                          harfMultiplier = harfOdds.oddValue;
+                                        }
+                                        
+                                        console.log('Using actual harf multiplier:', harfMultiplier);
+                                      }
+                                    }
+                                    
+                                    const potentialWin = gamesForLeftDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * harfMultiplier), 0);
                                     
                                     // Define risk level
                                     let riskLevel = 'none';
@@ -1026,7 +1052,33 @@ export default function SimplifiedRiskPage() {
                                     // Calculate totals
                                     const totalBets = gamesForRightDigit.length;
                                     const totalBetAmount = gamesForRightDigit.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                    const potentialWin = gamesForRightDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                                    // Get the actual odds for harf games from fetched data
+                                    let harfMultiplier = 9; // Default fallback
+                                    
+                                    if (gameOddsData && Array.isArray(gameOddsData)) {
+                                      const harfOdds = gameOddsData.find((odd: any) => 
+                                        odd.gameType === 'satamatka_harf');
+                                      
+                                      if (harfOdds && harfOdds.oddValue !== undefined) {
+                                        console.log('Raw harf odds value for right digit:', harfOdds.oddValue, 'Type:', typeof harfOdds.oddValue);
+                                        
+                                        // Handle different formats of the odds value
+                                        if (harfOdds.oddValue >= 10000) {
+                                          // Format: 90000 = 9
+                                          harfMultiplier = harfOdds.oddValue / 10000;
+                                        } else if (harfOdds.oddValue >= 10) {
+                                          // Format: 95 = 9.5
+                                          harfMultiplier = harfOdds.oddValue;
+                                        } else {
+                                          // Direct value format
+                                          harfMultiplier = harfOdds.oddValue;
+                                        }
+                                        
+                                        console.log('Using actual harf multiplier for right digit:', harfMultiplier);
+                                      }
+                                    }
+                                    
+                                    const potentialWin = gamesForRightDigit.reduce((sum, game) => sum + ((game.betAmount || 0) * harfMultiplier), 0);
                                     
                                     // Define risk level
                                     let riskLevel = 'none';
@@ -1098,8 +1150,34 @@ export default function SimplifiedRiskPage() {
                               // Calculate total bet amount for this number
                               const totalBetAmount = gamesForNumber.reduce((sum, game) => sum + (game.betAmount || 0), 0);
                               
-                              // Calculate potential win amount (90x for Jodi)
-                              const potentialWin = gamesForNumber.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                              // Get the actual odds for jodi games from fetched data
+                              let jodiMultiplier = 90; // Default fallback
+                              
+                              if (gameOddsData && Array.isArray(gameOddsData)) {
+                                const jodiOdds = gameOddsData.find((odd: any) => 
+                                  odd.gameType === 'satamatka_jodi');
+                                
+                                if (jodiOdds && jodiOdds.oddValue !== undefined) {
+                                  console.log('Raw jodi odds value:', jodiOdds.oddValue, 'Type:', typeof jodiOdds.oddValue);
+                                  
+                                  // Handle different formats of the odds value
+                                  if (jodiOdds.oddValue >= 100000) {
+                                    // Format: 900000 = 90
+                                    jodiMultiplier = jodiOdds.oddValue / 10000;
+                                  } else if (jodiOdds.oddValue >= 10) {
+                                    // Format: 95 = 95
+                                    jodiMultiplier = jodiOdds.oddValue;
+                                  } else {
+                                    // Direct value format
+                                    jodiMultiplier = jodiOdds.oddValue;
+                                  }
+                                  
+                                  console.log('Using actual jodi multiplier:', jodiMultiplier);
+                                }
+                              }
+                              
+                              // Calculate potential win using dynamic odds
+                              const potentialWin = gamesForNumber.reduce((sum, game) => sum + ((game.betAmount || 0) * jodiMultiplier), 0);
                               
                               // Get bet types for this number
                               const betTypes = Array.from(new Set(gamesForNumber.map(game => 
