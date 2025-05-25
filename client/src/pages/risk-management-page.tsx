@@ -189,12 +189,19 @@ export default function SimplifiedRiskPage() {
   
   // Fetch game odds for the current user (admin or subadmin)
   const { data: gameOddsData, isLoading: isLoadingOdds } = useQuery({
-    queryKey: [isAdmin ? '/api/odds/admin' : '/api/game-odds/subadmin', user?.id],
+    queryKey: [isAdmin ? '/api/odds/admin' : `/api/game-odds/subadmin/${user?.id}`, user?.id],
     queryFn: async () => {
       try {
-        const endpoint = isAdmin ? '/api/odds/admin' : '/api/game-odds/subadmin';
+        // Use the proper endpoint based on user role
+        // For subadmins, use their specific ID to get their custom odds
+        const endpoint = isAdmin 
+          ? '/api/odds/admin' 
+          : `/api/game-odds/subadmin/${user?.id}`;
+        
+        console.log(`Fetching game odds from: ${endpoint}`);
         const response = await apiRequest('GET', endpoint);
         const data = await response.json();
+        console.log('Retrieved game odds data:', data);
         return data;
       } catch (error) {
         console.error("Error fetching game odds:", error);
