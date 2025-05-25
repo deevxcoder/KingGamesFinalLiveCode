@@ -36,7 +36,9 @@ import {
   Loader2,
   Eye,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Search,
+  Filter
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
@@ -63,6 +65,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import { Slider } from "@/components/ui/slider";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface RiskSummary {
   totalBetAmount: number;
@@ -143,6 +152,10 @@ export default function SimplifiedRiskPage() {
   const [modalTitle, setModalTitle] = useState('');
   const playersPerPage = 10;
   
+  // Subadmin filtering state (only for admin users)
+  const [selectedSubadminId, setSelectedSubadminId] = useState<number | null>(null);
+  const [subadminSearch, setSubadminSearch] = useState('');
+  
   // Form for risk threshold configuration
   const riskConfigForm = useForm({
     defaultValues: {
@@ -157,13 +170,21 @@ export default function SimplifiedRiskPage() {
 
   // Fetch risk management data
   const { data, isLoading, error } = useQuery<RiskManagementData>({
-    queryKey: [endpoint],
+    queryKey: [endpoint, selectedSubadminId],
     queryFn: async () => {
-      const response = await apiRequest('GET', endpoint);
+      const url = selectedSubadminId ? `${endpoint}?subadminId=${selectedSubadminId}` : endpoint;
+      const response = await apiRequest('GET', url);
       const data = await response.json();
       return data as RiskManagementData;
     },
     refetchInterval: 60000 // Refetch every minute to keep data fresh
+  });
+
+  // Fetch subadmins list for admin users
+  const { data: subadmins = [], isLoading: isLoadingSubadmins } = useQuery({
+    queryKey: ["/api/users"],
+    select: (data: any) => data.filter((user: any) => user.role === UserRole.SUBADMIN),
+    enabled: !!user && user.role === UserRole.ADMIN,
   });
   
   // Fetch game odds for the current user (admin or subadmin)
@@ -218,6 +239,11 @@ export default function SimplifiedRiskPage() {
   const startIndex = (currentPage - 1) * playersPerPage;
   const endIndex = startIndex + playersPerPage;
   const currentPlayers = selectedPlayers.slice(startIndex, endIndex);
+
+  // Filter subadmins based on search
+  const filteredSubadmins = subadmins.filter((subadmin: any) =>
+    subadmin.username.toLowerCase().includes(subadminSearch.toLowerCase())
+  );
 
   // Prepare data conditionally but without using hooks
   let marketGameData = null;
@@ -289,6 +315,89 @@ export default function SimplifiedRiskPage() {
             </p>
           </div>
         </div>
+
+        {/* Subadmin Filter Section (Admin Only) */}
+        {isAdmin && (
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 border-blue-200 dark:border-blue-800">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Filter className="h-5 w-5" />
+                Filter by Subadmin
+              </CardTitle>
+              <CardDescription>
+                Filter jantri data by specific subadmin to analyze their players' betting patterns
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-4">
+                {/* Search Input */}
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search subadmins..."
+                    value={subadminSearch}
+                    onChange={(e) => setSubadminSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                {/* Subadmin Dropdown */}
+                <div className="flex-1">
+                  <Select
+                    value={selectedSubadminId?.toString() || "all"}
+                    onValueChange={(value) => {
+                      setSelectedSubadminId(value === "all" ? null : parseInt(value));
+                      setSubadminSearch(''); // Clear search when selecting
+                    }}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select subadmin" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Subadmins</SelectItem>
+                      {filteredSubadmins.map((subadmin: any) => (
+                        <SelectItem key={subadmin.id} value={subadmin.id.toString()}>
+                          {subadmin.username}
+                          {subadmin.isBlocked && (
+                            <Badge variant="destructive" className="ml-2 text-xs">
+                              Blocked
+                            </Badge>
+                          )}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                {/* Clear Filter Button */}
+                {selectedSubadminId && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedSubadminId(null);
+                      setSubadminSearch('');
+                    }}
+                    className="shrink-0"
+                  >
+                    Clear Filter
+                  </Button>
+                )}
+              </div>
+              
+              {/* Selected Subadmin Info */}
+              {selectedSubadminId && (
+                <div className="mt-4 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span className="font-medium">
+                      Viewing data for: {subadmins.find((s: any) => s.id === selectedSubadminId)?.username}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
         
         {/* Risk Configuration Dialog */}
         <Dialog open={riskConfigOpen} onOpenChange={setRiskConfigOpen}>
