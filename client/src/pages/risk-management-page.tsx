@@ -618,10 +618,21 @@ export default function RiskManagementPage() {
                                       odd.gameType === 'satamatka_odd_even');
                                     
                                     if (oddEvenData && oddEvenData.oddValue !== undefined) {
-                                      // Use the odds from database - divide by 10000 to get the decimal multiplier
-                                      // The database stores odds as integer values (1.9 is stored as 19000)
-                                      oddEvenMultiplier = oddEvenData.oddValue / 10000;
-                                      console.log('Using odd_even odds from database:', oddEvenMultiplier);
+                                      console.log('Raw odd_even odds value:', oddEvenData.oddValue, 'Type:', typeof oddEvenData.oddValue);
+                                      
+                                      // Handle different formats of the odds value
+                                      if (oddEvenData.oddValue >= 10000) {
+                                        // Format used for subadmin: 19000 = 1.9
+                                        oddEvenMultiplier = oddEvenData.oddValue / 10000;
+                                      } else if (oddEvenData.oddValue >= 10) {
+                                        // Alternative format: 19 = 1.9
+                                        oddEvenMultiplier = oddEvenData.oddValue / 10;
+                                      } else {
+                                        // Format used for admin: 1.95 = 1.95
+                                        oddEvenMultiplier = oddEvenData.oddValue;
+                                      }
+                                      
+                                      console.log('Using calculated odd_even multiplier:', oddEvenMultiplier);
                                     }
                                   }
                                   
@@ -686,10 +697,21 @@ export default function RiskManagementPage() {
                                       odd.gameType === 'satamatka_odd_even');
                                     
                                     if (oddEvenData && oddEvenData.oddValue !== undefined) {
-                                      // Use the odds from database - divide by 10000 to get the decimal multiplier
-                                      // The database stores odds as integer values (1.9 is stored as 19000)
-                                      oddEvenMultiplier = oddEvenData.oddValue / 10000;
-                                      console.log('Using odd_even odds from database for even bets:', oddEvenMultiplier);
+                                      console.log('Raw odd_even odds value for even bets:', oddEvenData.oddValue, 'Type:', typeof oddEvenData.oddValue);
+                                      
+                                      // Handle different formats of the odds value
+                                      if (oddEvenData.oddValue >= 10000) {
+                                        // Format used for subadmin: 19000 = 1.9
+                                        oddEvenMultiplier = oddEvenData.oddValue / 10000;
+                                      } else if (oddEvenData.oddValue >= 10) {
+                                        // Alternative format: 19 = 1.9
+                                        oddEvenMultiplier = oddEvenData.oddValue / 10;
+                                      } else {
+                                        // Format used for admin: 1.95 = 1.95
+                                        oddEvenMultiplier = oddEvenData.oddValue;
+                                      }
+                                      
+                                      console.log('Using calculated odd_even multiplier for even bets:', oddEvenMultiplier);
                                     }
                                   }
                                   

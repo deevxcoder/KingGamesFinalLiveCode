@@ -761,13 +761,17 @@ export default function SimplifiedRiskPage() {
                                   let oddEvenMultiplierValue = 1.9; // Default fallback
                                   
                                   if (gameOddsData && Array.isArray(gameOddsData)) {
+                                    console.log('Game odds data:', gameOddsData);
                                     const oddEvenOdds = gameOddsData.find((odd: any) => 
                                       odd.gameType === 'satamatka_odd_even');
                                     
                                     if (oddEvenOdds && oddEvenOdds.oddValue !== undefined) {
-                                      // The database stores odds as integer values (1.9 is stored as 19000)
-                                      oddEvenMultiplierValue = oddEvenOdds.oddValue / 10000;
-                                      console.log('Using odd_even odds from database for odds calculation:', oddEvenMultiplierValue);
+                                      console.log('Raw odd_even odds value:', oddEvenOdds.oddValue, 'Type:', typeof oddEvenOdds.oddValue);
+                                      
+                                      // The value is already in the correct format (1.95)
+                                      oddEvenMultiplierValue = oddEvenOdds.oddValue;
+                                      
+                                      console.log('Using actual odd_even multiplier:', oddEvenMultiplierValue);
                                     }
                                   }
                                   
@@ -853,13 +857,17 @@ export default function SimplifiedRiskPage() {
                                   let oddEvenMultiplierValue = 1.9; // Default fallback
                                   
                                   if (gameOddsData && Array.isArray(gameOddsData)) {
+                                    console.log('Game odds data for even bets:', gameOddsData);
                                     const oddEvenOdds = gameOddsData.find((odd: any) => 
                                       odd.gameType === 'satamatka_odd_even');
                                     
                                     if (oddEvenOdds && oddEvenOdds.oddValue !== undefined) {
-                                      // The database stores odds as integer values (1.9 is stored as 19000)
-                                      oddEvenMultiplierValue = oddEvenOdds.oddValue / 10000;
-                                      console.log('Using odd_even odds from database for even bets:', oddEvenMultiplierValue);
+                                      console.log('Raw odd_even odds value for even:', oddEvenOdds.oddValue, 'Type:', typeof oddEvenOdds.oddValue);
+                                      
+                                      // The value is already in the correct format (1.95)
+                                      oddEvenMultiplierValue = oddEvenOdds.oddValue;
+                                      
+                                      console.log('Using actual odd_even multiplier for even:', oddEvenMultiplierValue);
                                     }
                                   }
                                   
