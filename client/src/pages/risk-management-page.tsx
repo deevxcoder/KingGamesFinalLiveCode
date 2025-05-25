@@ -1575,7 +1575,18 @@ export default function SimplifiedRiskPage() {
                       <TrendingUp className="h-4 w-4 text-green-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold">₹{(cricketTossData.potentialLiability/100).toFixed(2)}</div>
+                      <div className="text-2xl font-bold">
+                        ₹{(() => {
+                          // Calculate actual cricket match potential payout
+                          let totalPotentialPayout = 0;
+                          if (data.detailedData?.cricketMatchAnalysis) {
+                            totalPotentialPayout = data.detailedData.cricketMatchAnalysis.reduce((sum: number, match: any) => {
+                              return sum + (match.summary?.maxPotentialPayout || 0);
+                            }, 0);
+                          }
+                          return (totalPotentialPayout / 100).toFixed(2);
+                        })()}
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         Maximum possible payout
                       </p>
