@@ -190,6 +190,23 @@ export default function SimplifiedRiskPage() {
   // Fetch game odds for the current user (admin or subadmin)
   const { data: gameOddsData, isLoading: isLoadingOdds } = useQuery({
     queryKey: [isAdmin ? '/api/odds/admin' : '/api/game-odds/subadmin', user?.id],
+    queryFn: async () => {
+      try {
+        const endpoint = isAdmin ? '/api/odds/admin' : '/api/game-odds/subadmin';
+        const response = await apiRequest('GET', endpoint);
+        const data = await response.json();
+        return data;
+      } catch (error) {
+        console.error("Error fetching game odds:", error);
+        // Return default odds in case of error
+        return [
+          { gameType: 'satamatka_jodi', oddValue: 95 },
+          { gameType: 'satamatka_odd_even', oddValue: 1.95 },
+          { gameType: 'satamatka_harf', oddValue: 9.5 },
+          { gameType: 'satamatka_single', oddValue: 9.5 }
+        ];
+      }
+    },
     enabled: !!user,
   });
   
@@ -896,23 +913,53 @@ export default function SimplifiedRiskPage() {
                         
                         // Calculate potential win based on bet types and odds
                         const potentialWin = filteredGames.reduce((sum, game) => {
-                          let multiplier = 1;
+                          // Default multipliers in case game odds data is unavailable
+                          const defaultMultipliers = {
+                            jodi: 95,
+                            odd_even: 1.95,
+                            harf: 9.5,
+                            single: 9.5,
+                            crossing: 9.5,
+                            default: 9.5
+                          };
                           
-                          // Get appropriate multiplier based on game mode
-                          if (game.gameMode === 'jodi' && gameOddsData) {
-                            const jodiOdds = gameOddsData.find((odd: any) => odd.gameType === 'satamatka_jodi');
-                            multiplier = jodiOdds?.oddValue || 95;
-                          } else if (game.gameMode === 'odd_even' && gameOddsData) {
-                            const oddEvenOdds = gameOddsData.find((odd: any) => odd.gameType === 'satamatka_odd_even');
-                            multiplier = oddEvenOdds?.oddValue || 1.95;
-                          } else if (game.gameMode === 'harf' && gameOddsData) {
-                            const harfOdds = gameOddsData.find((odd: any) => odd.gameType === 'satamatka_harf');
-                            multiplier = harfOdds?.oddValue || 9.5;
-                          } else if (game.gameMode === 'single' && gameOddsData) {
-                            const singleOdds = gameOddsData.find((odd: any) => odd.gameType === 'satamatka_single');
-                            multiplier = singleOdds?.oddValue || 9.5;
+                          // Initialize with default multiplier based on game mode
+                          let multiplier = defaultMultipliers[game.gameMode as keyof typeof defaultMultipliers] || defaultMultipliers.default;
+                          
+                          // If game odds data is available, use it instead of defaults
+                          if (gameOddsData && Array.isArray(gameOddsData)) {
+                            let gameTypeKey = '';
+                            
+                            // Map game mode to the corresponding game type in the odds data
+                            switch (game.gameMode) {
+                              case 'jodi':
+                                gameTypeKey = 'satamatka_jodi';
+                                break;
+                              case 'odd_even':
+                                gameTypeKey = 'satamatka_odd_even';
+                                break;
+                              case 'harf':
+                                gameTypeKey = 'satamatka_harf';
+                                break;
+                              case 'single':
+                                gameTypeKey = 'satamatka_single';
+                                break;
+                              case 'crossing':
+                                gameTypeKey = 'satamatka_crossing';
+                                break;
+                              default:
+                                gameTypeKey = '';
+                            }
+                            
+                            if (gameTypeKey) {
+                              const odds = gameOddsData.find((odd: any) => odd.gameType === gameTypeKey);
+                              if (odds && odds.oddValue) {
+                                multiplier = odds.oddValue;
+                              }
+                            }
                           }
                           
+                          // Calculate potential win amount for this game
                           return sum + ((game.betAmount || 0) * multiplier);
                         }, 0);
                         
