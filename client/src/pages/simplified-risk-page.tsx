@@ -166,6 +166,12 @@ export default function SimplifiedRiskPage() {
     refetchInterval: 60000 // Refetch every minute to keep data fresh
   });
   
+  // Fetch game odds for the current user (admin or subadmin)
+  const { data: gameOddsData, isLoading: isLoadingOdds } = useQuery({
+    queryKey: [isAdmin ? '/api/odds/admin' : '/api/game-odds/subadmin', user?.id],
+    enabled: !!user,
+  });
+  
   // Use real user names from the API
   React.useEffect(() => {
     if (data?.userInfo) {
@@ -733,10 +739,39 @@ export default function SimplifiedRiskPage() {
                                     return game.gameMode === 'odd_even' && game.prediction === 'odd';
                                   });
                                   
+                                  // Get game odds from context if available
+                                  let oddEvenMultiplier = 1.9; // Default odds multiplier
+                                  
+                                  // Try to get the custom odds for satamatka_odd_even game type
+                                  if (data.gameOdds && Array.isArray(data.gameOdds)) {
+                                    const oddEvenData = data.gameOdds.find(odd => 
+                                      odd.gameType === 'satamatka_odd_even');
+                                    
+                                    if (oddEvenData && oddEvenData.oddValue) {
+                                      // Database stores odds as integer values (e.g., 19000 for 1.9)
+                                      oddEvenMultiplier = oddEvenData.oddValue / 10000;
+                                      console.log('Using satamatka_odd_even odds from database:', oddEvenMultiplier);
+                                    }
+                                  }
+                                  
                                   // Calculate totals
                                   const totalBets = oddGames.length;
                                   const totalBetAmount = oddGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                  const potentialWin = oddGames.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                                  // Using the gameOddsData directly to calculate potential win
+                                  let oddEvenMultiplierValue = 1.9; // Default fallback
+                                  
+                                  if (gameOddsData && Array.isArray(gameOddsData)) {
+                                    const oddEvenOdds = gameOddsData.find((odd: any) => 
+                                      odd.gameType === 'satamatka_odd_even');
+                                    
+                                    if (oddEvenOdds && oddEvenOdds.oddValue !== undefined) {
+                                      // The database stores odds as integer values (1.9 is stored as 19000)
+                                      oddEvenMultiplierValue = oddEvenOdds.oddValue / 10000;
+                                      console.log('Using odd_even odds from database for odds calculation:', oddEvenMultiplierValue);
+                                    }
+                                  }
+                                  
+                                  const potentialWin = oddGames.reduce((sum, game) => sum + ((game.betAmount || 0) * oddEvenMultiplierValue), 0);
                                   
                                   // Define risk level
                                   let riskLevel = 'none';
@@ -796,10 +831,39 @@ export default function SimplifiedRiskPage() {
                                     return game.gameMode === 'odd_even' && game.prediction === 'even';
                                   });
                                   
+                                  // Get game odds from context if available
+                                  let oddEvenMultiplier = 1.9; // Default odds multiplier
+                                  
+                                  // Try to get the custom odds for satamatka_odd_even game type
+                                  if (data.gameOdds && Array.isArray(data.gameOdds)) {
+                                    const oddEvenData = data.gameOdds.find(odd => 
+                                      odd.gameType === 'satamatka_odd_even');
+                                    
+                                    if (oddEvenData && oddEvenData.oddValue) {
+                                      // Database stores odds as integer values (e.g., 19000 for 1.9)
+                                      oddEvenMultiplier = oddEvenData.oddValue / 10000;
+                                      console.log('Using satamatka_odd_even odds from database for even bets:', oddEvenMultiplier);
+                                    }
+                                  }
+                                  
                                   // Calculate totals
                                   const totalBets = evenGames.length;
                                   const totalBetAmount = evenGames.reduce((sum, game) => sum + (game.betAmount || 0), 0);
-                                  const potentialWin = evenGames.reduce((sum, game) => sum + ((game.betAmount || 0) * 90), 0);
+                                  // Using the gameOddsData directly to calculate potential win
+                                  let oddEvenMultiplierValue = 1.9; // Default fallback
+                                  
+                                  if (gameOddsData && Array.isArray(gameOddsData)) {
+                                    const oddEvenOdds = gameOddsData.find((odd: any) => 
+                                      odd.gameType === 'satamatka_odd_even');
+                                    
+                                    if (oddEvenOdds && oddEvenOdds.oddValue !== undefined) {
+                                      // The database stores odds as integer values (1.9 is stored as 19000)
+                                      oddEvenMultiplierValue = oddEvenOdds.oddValue / 10000;
+                                      console.log('Using odd_even odds from database for even bets:', oddEvenMultiplierValue);
+                                    }
+                                  }
+                                  
+                                  const potentialWin = evenGames.reduce((sum, game) => sum + ((game.betAmount || 0) * oddEvenMultiplierValue), 0);
                                   
                                   // Define risk level
                                   let riskLevel = 'none';
