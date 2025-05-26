@@ -508,14 +508,14 @@ export default function HomePage() {
               Profile
             </Button>
             
-            {/* Wallet Settings */}
+            {/* Wallet */}
             <Button 
               variant="outline"
               className="py-6 border-slate-700 text-orange-300 hover:bg-slate-800 hover:text-orange-200"
-              onClick={() => setLocation("/wallet-settings")}
+              onClick={() => setLocation("/wallet")}
             >
               <Wallet className="h-5 w-5 mr-2" />
-              Wallet Settings
+              Wallet
             </Button>
             
             {/* Cricket Toss Management - Admin Only */}
