@@ -381,9 +381,9 @@ export default function WalletPage() {
                                           </span>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                          <span className="text-sm text-muted-foreground">
+                                          <span className="font-medium text-primary">
                                             {request.status === RequestStatus.APPROVED ? 
-                                              `₹${user ? (user.balance / 100).toFixed(2) : '0.00'}` : 
+                                              `₹${request.balanceAfter ? (request.balanceAfter / 100).toFixed(2) : user ? (user.balance / 100).toFixed(2) : '0.00'}` : 
                                               '-'
                                             }
                                           </span>
