@@ -433,12 +433,12 @@ export default function CricketTossPage() {
                           <span>{formatPrediction(bet.prediction, bet)}</span>
                         </div>
                       </TableCell>
-                      <TableCell>₹{bet.betAmount}</TableCell>
+                      <TableCell>₹{(bet.betAmount / 100).toFixed(2)}</TableCell>
                       <TableCell className={getResultClass(bet)}>
                         {getResultText(bet)}
                       </TableCell>
                       <TableCell>
-                        {bet.payout > 0 ? `₹${bet.payout}` : "-"}
+                        {bet.payout > 0 ? `₹${(bet.payout / 100).toFixed(2)}` : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
