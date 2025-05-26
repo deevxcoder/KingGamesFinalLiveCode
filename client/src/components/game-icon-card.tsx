@@ -34,8 +34,8 @@ export default function GameIconCard({
       className={`overflow-hidden transition-all hover:scale-105 border-slate-700 shadow-sm ${!comingSoon ? 'cursor-pointer' : 'cursor-default'}`}
       onClick={handleClick}
     >
-      <CardContent className="p-0">
-        <div className={`flex flex-col items-center justify-center p-6 ${gradient}`}>
+      <CardContent className="p-0 relative">
+        <div className={`flex flex-col items-center justify-center p-6 h-full ${gradient}`}>
           <Icon className="h-10 w-10 text-white mb-2" />
           <h3 className="font-medium text-white text-lg text-center">{title}</h3>
           
