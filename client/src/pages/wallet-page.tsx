@@ -334,127 +334,168 @@ export default function WalletPage() {
                                 </TableRow>
                               </TableHeader>
                               <TableBody>
-                                {currentItems.map(item => {
-                                  if (item.isRequest) {
-                                    // Wallet request
-                                    const request = item.data as WalletRequest;
-                                    const { title } = getRequestTypeInfo(request.requestType as RequestType);
-                                    
-                                    return (
-                                      <TableRow key={item.id}>
-                                        <TableCell className="text-sm">
-                                          <div className="flex flex-col">
-                                            <span className="font-medium">{formatDate(request.createdAt).split(' ')[0]}</span>
-                                            <span className="text-xs text-muted-foreground">
-                                              {formatDate(request.createdAt).split(' ').slice(1).join(' ')}
-                                            </span>
-                                          </div>
-                                        </TableCell>
-                                        <TableCell>
-                                          <div className="flex flex-col space-y-1">
-                                            <span className="font-medium text-sm">{title} Request</span>
-                                            <div className="flex items-center gap-2">
-                                              <Badge variant="outline" className="text-xs">
-                                                {request.paymentMode}
-                                              </Badge>
-                                            </div>
-                                            {request.reviewedBy && (
-                                              <span className="text-xs text-muted-foreground">
-                                                Reviewed by Admin
-                                              </span>
-                                            )}
-                                            {request.notes && (
-                                              <span className="text-xs text-muted-foreground">
-                                                {request.notes}
-                                              </span>
-                                            )}
-                                          </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                          <span className={
-                                            request.requestType === RequestType.DEPOSIT 
-                                              ? "text-green-600 font-medium" 
-                                              : "text-red-600 font-medium"
-                                          }>
-                                            {request.requestType === RequestType.DEPOSIT ? '+' : '-'}
-                                            ₹{request.amount.toFixed(2)}
-                                          </span>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                          <span className="font-medium text-primary">
-                                            {request.status === RequestStatus.APPROVED ? 
-                                              `₹${request.balanceAfter ? (request.balanceAfter / 100).toFixed(2) : user ? (user.balance / 100).toFixed(2) : '0.00'}` : 
-                                              '-'
-                                            }
-                                          </span>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Badge 
-                                            variant={
-                                              request.status === RequestStatus.APPROVED 
-                                                ? "default" 
-                                                : request.status === RequestStatus.REJECTED 
-                                                  ? "destructive" 
-                                                  : "secondary"
-                                            }
-                                            className="text-xs"
-                                          >
-                                            {request.status}
-                                          </Badge>
-                                        </TableCell>
-                                      </TableRow>
-                                    );
-                                  } else {
-                                    // Direct transaction
-                                    const transaction = item.data;
-                                    return (
-                                      <TableRow key={item.id}>
-                                        <TableCell className="text-sm">
-                                          <div className="flex flex-col">
-                                            <span className="font-medium">{formatDate(transaction.createdAt).split(' ')[0]}</span>
-                                            <span className="text-xs text-muted-foreground">
-                                              {formatDate(transaction.createdAt).split(' ').slice(1).join(' ')}
-                                            </span>
-                                          </div>
-                                        </TableCell>
-                                        <TableCell>
-                                          <div className="flex flex-col space-y-1">
-                                            <span className="font-medium text-sm">
-                                              {transaction.amount > 0 ? "Funds Added" : "Funds Deducted"}
-                                            </span>
-                                            <span className="text-xs text-muted-foreground">
-                                              {transaction.description || "Balance update"}
-                                            </span>
-                                            {transaction.performer && (
-                                              <div className="flex items-center gap-1">
-                                                <User className="h-3 w-3" />
-                                                <span className="text-xs text-muted-foreground">
-                                                  by {transaction.performer.username} ({transaction.performer.role})
-                                                </span>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                          <span className={transaction.amount > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
-                                            {transaction.amount > 0 ? '+' : ''}
-                                            ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
-                                          </span>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                          <span className="font-medium text-primary">
-                                            ₹{(transaction.balanceAfter / 100).toFixed(2)}
-                                          </span>
-                                        </TableCell>
-                                        <TableCell>
-                                          <Badge variant="default" className="text-xs">
-                                            Complete
-                                          </Badge>
-                                        </TableCell>
-                                      </TableRow>
-                                    );
+                                {(() => {
+                                  // Calculate running balance for transactions displayed on current page
+                                  let currentBalance = user?.balance || 0;
+                                  
+                                  // First, calculate the starting balance for this page by working backwards from current balance
+                                  // through all transactions before the current page
+                                  const transactionsBeforePage = allTransactions.slice(0, startIndex);
+                                  let balanceAtPageStart = currentBalance;
+                                  
+                                  for (let i = 0; i < transactionsBeforePage.length; i++) {
+                                    const item = transactionsBeforePage[i];
+                                    if (item.isRequest) {
+                                      const request = item.data as WalletRequest;
+                                      if (request.status === RequestStatus.APPROVED) {
+                                        const amount = request.requestType === RequestType.DEPOSIT ? request.amount * 100 : -request.amount * 100;
+                                        balanceAtPageStart -= amount;
+                                      }
+                                    } else {
+                                      const transaction = item.data;
+                                      balanceAtPageStart -= transaction.amount;
+                                    }
                                   }
-                                })}
+                                  
+                                  // Now render each transaction with correct balance
+                                  let runningBalance = balanceAtPageStart;
+                                  
+                                  return currentItems.map((item, pageIndex) => {
+                                    let balanceAfter = runningBalance;
+                                    
+                                    if (item.isRequest) {
+                                      // Wallet request
+                                      const request = item.data as WalletRequest;
+                                      const { title } = getRequestTypeInfo(request.requestType as RequestType);
+                                      
+                                      // Calculate balance after this transaction
+                                      if (request.status === RequestStatus.APPROVED) {
+                                        const amount = request.requestType === RequestType.DEPOSIT ? request.amount * 100 : -request.amount * 100;
+                                        balanceAfter = runningBalance + amount;
+                                        runningBalance = balanceAfter;
+                                      }
+                                      
+                                      return (
+                                        <TableRow key={item.id}>
+                                          <TableCell className="text-sm">
+                                            <div className="flex flex-col">
+                                              <span className="font-medium">{formatDate(request.createdAt).split(' ')[0]}</span>
+                                              <span className="text-xs text-muted-foreground">
+                                                {formatDate(request.createdAt).split(' ').slice(1).join(' ')}
+                                              </span>
+                                            </div>
+                                          </TableCell>
+                                          <TableCell>
+                                            <div className="flex flex-col space-y-1">
+                                              <span className="font-medium text-sm">{title} Request</span>
+                                              <div className="flex items-center gap-2">
+                                                <Badge variant="outline" className="text-xs">
+                                                  {request.paymentMode}
+                                                </Badge>
+                                              </div>
+                                              {request.reviewedBy && (
+                                                <span className="text-xs text-muted-foreground">
+                                                  Reviewed by Admin
+                                                </span>
+                                              )}
+                                              {request.notes && (
+                                                <span className="text-xs text-muted-foreground">
+                                                  {request.notes}
+                                                </span>
+                                              )}
+                                            </div>
+                                          </TableCell>
+                                          <TableCell className="text-right">
+                                            <span className={
+                                              request.requestType === RequestType.DEPOSIT 
+                                                ? "text-green-600 font-medium" 
+                                                : "text-red-600 font-medium"
+                                            }>
+                                              {request.requestType === RequestType.DEPOSIT ? '+' : '-'}
+                                              ₹{request.amount.toFixed(2)}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell className="text-right">
+                                            <span className="font-medium text-primary">
+                                              {request.status === RequestStatus.APPROVED ? 
+                                                `₹${(balanceAfter / 100).toFixed(2)}` : 
+                                                '-'
+                                              }
+                                            </span>
+                                          </TableCell>
+                                          <TableCell>
+                                            <Badge 
+                                              variant={
+                                                request.status === RequestStatus.APPROVED 
+                                                  ? "default" 
+                                                  : request.status === RequestStatus.REJECTED 
+                                                    ? "destructive" 
+                                                    : "secondary"
+                                              }
+                                              className="text-xs"
+                                            >
+                                              {request.status}
+                                            </Badge>
+                                          </TableCell>
+                                        </TableRow>
+                                      );
+                                    } else {
+                                      // Direct transaction
+                                      const transaction = item.data;
+                                      
+                                      // Update running balance
+                                      balanceAfter = runningBalance + transaction.amount;
+                                      runningBalance = balanceAfter;
+                                      
+                                      return (
+                                        <TableRow key={item.id}>
+                                          <TableCell className="text-sm">
+                                            <div className="flex flex-col">
+                                              <span className="font-medium">{formatDate(transaction.createdAt).split(' ')[0]}</span>
+                                              <span className="text-xs text-muted-foreground">
+                                                {formatDate(transaction.createdAt).split(' ').slice(1).join(' ')}
+                                              </span>
+                                            </div>
+                                          </TableCell>
+                                          <TableCell>
+                                            <div className="flex flex-col space-y-1">
+                                              <span className="font-medium text-sm">
+                                                {transaction.amount > 0 ? "Funds Added" : "Funds Deducted"}
+                                              </span>
+                                              <span className="text-xs text-muted-foreground">
+                                                {transaction.description || "Balance update"}
+                                              </span>
+                                              {transaction.performer && (
+                                                <div className="flex items-center gap-1">
+                                                  <User className="h-3 w-3" />
+                                                  <span className="text-xs text-muted-foreground">
+                                                    by {transaction.performer.username} ({transaction.performer.role})
+                                                  </span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </TableCell>
+                                          <TableCell className="text-right">
+                                            <span className={transaction.amount > 0 ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+                                              {transaction.amount > 0 ? '+' : ''}
+                                              ₹{(Math.abs(transaction.amount) / 100).toFixed(2)}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell className="text-right">
+                                            <span className="font-medium text-primary">
+                                              ₹{(balanceAfter / 100).toFixed(2)}
+                                            </span>
+                                          </TableCell>
+                                          <TableCell>
+                                            <Badge variant="default" className="text-xs">
+                                              Complete
+                                            </Badge>
+                                          </TableCell>
+                                        </TableRow>
+                                      );
+                                    }
+                                  });
+                                })()}
                               </TableBody>
                             </Table>
                           </div>
