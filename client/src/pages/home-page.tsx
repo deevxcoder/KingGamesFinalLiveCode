@@ -389,7 +389,7 @@ export default function HomePage() {
           />
           <GameIconCard
             id="sportsexchange"
-            title="Sports Exchange"
+            title="Exchange"
             icon={Target}
             path="#"
             gradient="bg-gradient-to-r from-slate-600 to-blue-800"
