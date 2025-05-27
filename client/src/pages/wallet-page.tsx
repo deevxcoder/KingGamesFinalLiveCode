@@ -937,7 +937,7 @@ IFSC Code: ${paymentModeDetails.bankDetails!.ifscCode}`;
                             </div>
                             <div className="text-right">
                               <div className="font-medium">
-                                ₹{(request.amount / 100).toFixed(2)}
+                                ₹{request.amount.toFixed(2)}
                               </div>
                               <Badge variant={
                                 request.status === RequestStatus.APPROVED ? "default" :
