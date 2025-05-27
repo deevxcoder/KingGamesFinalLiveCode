@@ -168,6 +168,81 @@ router.get("/match-stats", requireRole(["admin", "subadmin"]), async (req, res) 
   }
 });
 
+// Update an existing cricket toss match
+router.put("/matches/:id", requireRole(["admin", "subadmin"]), upload.single('coverImage'), async (req, res) => {
+  try {
+    const matchId = parseInt(req.params.id);
+    if (isNaN(matchId)) {
+      return res.status(400).json({ message: "Invalid match ID" });
+    }
+
+    // Check if the match exists and is not resulted
+    const existingMatch = await db.select()
+      .from(teamMatches)
+      .where(
+        and(
+          eq(teamMatches.id, matchId),
+          eq(teamMatches.category, "cricket_toss")
+        )
+      )
+      .limit(1);
+
+    if (existingMatch.length === 0) {
+      return res.status(404).json({ message: "Cricket toss match not found" });
+    }
+
+    // Check if match is resulted (cannot edit resulted matches)
+    if (existingMatch[0].status === "resulted") {
+      return res.status(400).json({ message: "Cannot edit a match that has already been resulted" });
+    }
+
+    // Handle form-data
+    const teamA = req.body.teamA;
+    const teamB = req.body.teamB;
+    const description = req.body.description;
+    const matchTime = req.body.matchTime;
+    
+    // Process cover image if it was uploaded
+    let coverImage: string | undefined = existingMatch[0].coverImage;
+    
+    if (req.file) {
+      coverImage = `/uploads/cricket-toss/${req.file.filename}`;
+    }
+    
+    // Validate the data
+    if (!teamA || !teamB || !matchTime) {
+      return res.status(400).json({ message: "Missing required fields: teamA, teamB, or matchTime" });
+    }
+    
+    // Parse the datetime string as local time without timezone conversion
+    const [datePart, timePart] = matchTime.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+    
+    // Create date in local timezone without UTC conversion
+    const localMatchTime = new Date(year, month - 1, day, hour, minute);
+    
+    // Update object
+    const updateData = {
+      teamA,
+      teamB,
+      description,
+      matchTime: localMatchTime,
+      coverImage,
+    };
+
+    const updatedMatch = await db.update(teamMatches)
+      .set(updateData)
+      .where(eq(teamMatches.id, matchId))
+      .returning();
+    
+    res.json(updatedMatch[0]);
+  } catch (error) {
+    console.error("Error updating cricket toss match:", error);
+    res.status(500).json({ message: "Failed to update cricket toss match" });
+  }
+});
+
 // Create a new cricket toss match
 router.post("/matches", requireRole(["admin", "subadmin"]), upload.single('coverImage'), async (req, res) => {
   try {

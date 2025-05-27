@@ -68,6 +68,16 @@ const createCricketTossSchema = z.object({
   // We'll use fixed odds: 2.00 for both teams
 });
 
+// Define the schema for editing a cricket toss match
+const editCricketTossSchema = z.object({
+  teamA: z.string().min(1, "Team A is required"),
+  teamB: z.string().min(1, "Team B is required"),
+  description: z.string().optional(),
+  matchDate: z.string().min(1, "Match date is required"),
+  matchTime: z.string().min(1, "Match time is required"),
+  coverImage: z.instanceof(File).optional(),
+});
+
 // Type for a cricket toss match
 interface CricketTossMatch {
   id: number;
@@ -106,6 +116,8 @@ export default function AdminCricketTossPage() {
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [editingMatch, setEditingMatch] = useState<CricketTossMatch | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -115,6 +127,18 @@ export default function AdminCricketTossPage() {
   // Form setup for creating a new cricket toss match
   const form = useForm<z.infer<typeof createCricketTossSchema>>({
     resolver: zodResolver(createCricketTossSchema),
+    defaultValues: {
+      teamA: "",
+      teamB: "",
+      description: "",
+      matchDate: new Date().toISOString().split("T")[0],
+      matchTime: "12:00",
+    },
+  });
+
+  // Form setup for editing a cricket toss match
+  const editForm = useForm<z.infer<typeof editCricketTossSchema>>({
+    resolver: zodResolver(editCricketTossSchema),
     defaultValues: {
       teamA: "",
       teamB: "",
@@ -236,6 +260,56 @@ export default function AdminCricketTossPage() {
     },
   });
 
+  // Mutation to edit a cricket toss match
+  const editCricketTossMutation = useMutation({
+    mutationFn: async ({ id, values }: { id: number; values: z.infer<typeof editCricketTossSchema> }) => {
+      // Create form data to handle file uploads
+      const formData = new FormData();
+      formData.append("teamA", values.teamA);
+      formData.append("teamB", values.teamB);
+      
+      // Combine date and time keeping local timezone like satamatka markets
+      const combinedDateTime = `${values.matchDate}T${values.matchTime}:00`;
+      formData.append("matchTime", combinedDateTime);
+      
+      if (values.description) formData.append("description", values.description);
+      
+      // Append cover image if provided
+      if (values.coverImage) formData.append("coverImage", values.coverImage);
+      
+      // Use fetch directly for FormData
+      const response = await fetch(`/api/cricket-toss/matches/${id}`, {
+        method: "PUT",
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update cricket toss match");
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Cricket Toss Match Updated",
+        description: "The cricket toss match has been updated successfully.",
+      });
+      editForm.reset();
+      setEditOpen(false);
+      setEditingMatch(null);
+      setCoverImagePreview(null);
+      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/matches"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update cricket toss match",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Mutation to close betting for a match
   const closeBettingMutation = useMutation({
     mutationFn: async (matchId: number) => {
@@ -314,6 +388,34 @@ export default function AdminCricketTossPage() {
   // Handle form submission for creating a new cricket toss match
   const onSubmit = (values: z.infer<typeof createCricketTossSchema>) => {
     createCricketTossMutation.mutate(values);
+  };
+
+  // Handle form submission for editing a cricket toss match
+  const onEditSubmit = (values: z.infer<typeof editCricketTossSchema>) => {
+    if (editingMatch) {
+      editCricketTossMutation.mutate({ id: editingMatch.id, values });
+    }
+  };
+
+  // Handle edit action
+  const handleEditMatch = (match: CricketTossMatch) => {
+    setEditingMatch(match);
+    
+    // Parse the match time to get date and time parts
+    const matchDate = new Date(match.matchTime);
+    const dateStr = matchDate.toISOString().split('T')[0];
+    const timeStr = `${matchDate.getHours().toString().padStart(2, '0')}:${matchDate.getMinutes().toString().padStart(2, '0')}`;
+    
+    // Populate the edit form with existing data
+    editForm.reset({
+      teamA: match.teamA,
+      teamB: match.teamB,
+      description: match.description || "",
+      matchDate: dateStr,
+      matchTime: timeStr,
+    });
+    
+    setEditOpen(true);
   };
 
   // Function to handle opening the close betting confirmation dialog
@@ -515,6 +617,16 @@ export default function AdminCricketTossPage() {
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
                           
                           <DropdownMenuSeparator />
+                          
+                          {/* Edit option - only available for non-resulted matches */}
+                          {match.status !== "resulted" && (
+                            <DropdownMenuItem 
+                              onClick={() => handleEditMatch(match)}
+                            >
+                              <Calendar className="mr-2 h-4 w-4" />
+                              Edit Match
+                            </DropdownMenuItem>
+                          )}
                           
                           {match.status === "open" && (
                             <DropdownMenuItem 
@@ -721,6 +833,179 @@ export default function AdminCricketTossPage() {
                     disabled={createCricketTossMutation.isPending}
                   >
                     {createCricketTossMutation.isPending ? "Creating..." : "Create Match"}
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for editing a cricket toss match */}
+      <Dialog open={editOpen && !!editingMatch} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Cricket Toss Match</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-6">
+                {/* Team Names */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="teamA"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Team A</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter team A name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="teamB"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Team B</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Enter team B name" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={editForm.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description (Optional)</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter match description" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Two column layout for date and time */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={editForm.control}
+                    name="matchDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Match Date</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="date"
+                            min={new Date().toISOString().split("T")[0]}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={editForm.control}
+                    name="matchTime"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Match Time</FormLabel>
+                        <FormControl>
+                          <select 
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            {...field}
+                          >
+                            <option value="">Select time</option>
+                            {Array.from({ length: 24 }).map((_, hour) => (
+                              Array.from({ length: 4 }).map((_, minute) => {
+                                const h = hour;
+                                const m = minute * 15;
+                                const timeValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                                const displayHour = h % 12 === 0 ? 12 : h % 12;
+                                const ampm = h < 12 ? 'AM' : 'PM';
+                                const displayTime = `${displayHour}:${m.toString().padStart(2, '0')} ${ampm}`;
+                                return (
+                                  <option key={timeValue} value={timeValue}>
+                                    {displayTime}
+                                  </option>
+                                );
+                              })
+                            )).flat()}
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <FormField
+                  control={editForm.control}
+                  name="coverImage"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Cover Banner Image (Optional)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            onChange(file);
+                            
+                            // Preview the image
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = (e) => {
+                                setCoverImagePreview(e.target?.result as string);
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      {coverImagePreview && (
+                        <div className="mt-2">
+                          <img 
+                            src={coverImagePreview} 
+                            alt="Cover Image Preview" 
+                            className="w-full h-32 object-cover rounded-md border border-gray-200"
+                          />
+                        </div>
+                      )}
+                      <FormDescription>Upload a new banner image for this match (optional)</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setEditOpen(false);
+                      setEditingMatch(null);
+                      setCoverImagePreview(null);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="submit"
+                    disabled={editCricketTossMutation.isPending}
+                  >
+                    {editCricketTossMutation.isPending ? "Updating..." : "Update Match"}
                   </Button>
                 </div>
               </form>
