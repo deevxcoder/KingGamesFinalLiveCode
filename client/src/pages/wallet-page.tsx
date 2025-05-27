@@ -204,7 +204,7 @@ export default function WalletPage() {
         proofImageUrl = await uploadProofImage(proofImage);
       }
 
-      const response = await fetch("/api/wallet/deposit", {
+      const response = await fetch("/api/wallet/requests", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -212,6 +212,7 @@ export default function WalletPage() {
         credentials: "include",
         body: JSON.stringify({
           ...values,
+          requestType: "deposit",
           proofImageUrl,
         }),
       });
@@ -245,13 +246,16 @@ export default function WalletPage() {
   // Withdrawal mutation
   const withdrawalMutation = useMutation({
     mutationFn: async (values: WithdrawalFormValues) => {
-      const response = await fetch("/api/wallet/withdrawal", {
+      const response = await fetch("/api/wallet/requests", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify(values),
+        body: JSON.stringify({
+          ...values,
+          requestType: "withdrawal",
+        }),
       });
 
       if (!response.ok) {
