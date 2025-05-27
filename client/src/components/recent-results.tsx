@@ -192,7 +192,7 @@ function ResultItem({ result }: { result: MarketResult }) {
           <p className={`font-medium text-3xl ${result.name === "Dishawar" || result.name === "Gali" 
             ? "text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary"
             : "text-pink-400"}`}>
-            {formatResult(result.openResult)}
+            {formatResult(result.openResult || result.closeResult)}
           </p>
         </div>
       </div>
