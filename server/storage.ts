@@ -273,26 +273,25 @@ export class DatabaseStorage implements IStorage {
   
   async deleteUser(userId: number): Promise<boolean> {
     try {
-      // Use raw SQL to handle the cascading deletions properly
-      await db.execute(sql`
-        -- Delete from deposit_commissions first
-        DELETE FROM deposit_commissions WHERE subadmin_id = ${userId};
-        
-        -- Delete from game_odds  
-        DELETE FROM game_odds WHERE subadmin_id = ${userId};
-        
-        -- Delete transactions
-        DELETE FROM transactions WHERE user_id = ${userId};
-        
-        -- Delete games
-        DELETE FROM games WHERE user_id = ${userId};
-        
-        -- Update assigned users
-        UPDATE users SET assigned_to = NULL WHERE assigned_to = ${userId};
-        
-        -- Finally delete the user
-        DELETE FROM users WHERE id = ${userId};
-      `);
+      // Execute each deletion separately to avoid multiple command issues
+      
+      // Delete from deposit_commissions first
+      await db.execute(sql`DELETE FROM deposit_commissions WHERE subadmin_id = ${userId}`);
+      
+      // Delete from game_odds  
+      await db.execute(sql`DELETE FROM game_odds WHERE subadmin_id = ${userId}`);
+      
+      // Delete transactions
+      await db.execute(sql`DELETE FROM transactions WHERE user_id = ${userId}`);
+      
+      // Delete games
+      await db.execute(sql`DELETE FROM games WHERE user_id = ${userId}`);
+      
+      // Update assigned users
+      await db.execute(sql`UPDATE users SET assigned_to = NULL WHERE assigned_to = ${userId}`);
+      
+      // Finally delete the user
+      await db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
       
       return true;
     } catch (error) {
