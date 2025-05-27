@@ -38,13 +38,13 @@ export default function GameIconCard({
         <div className={`flex flex-col items-center justify-center p-6 h-full min-h-[128px] ${gradient}`}>
           <Icon className="h-10 w-10 text-white mb-2" />
           <h3 className="font-medium text-white text-lg text-center">{title}</h3>
-          
-          {comingSoon && (
-            <Badge className="mt-2 bg-orange-900/70 text-orange-300 border-orange-500/30">
-              Coming Soon
-            </Badge>
-          )}
         </div>
+        
+        {comingSoon && (
+          <Badge className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-orange-900/70 text-orange-300 border-orange-500/30">
+            Coming Soon
+          </Badge>
+        )}
       </CardContent>
     </Card>
   );
