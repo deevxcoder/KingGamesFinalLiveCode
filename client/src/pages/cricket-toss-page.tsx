@@ -304,7 +304,14 @@ export default function CricketTossPage() {
                   <CardHeader>
                     <CardTitle>Place Your Bet</CardTitle>
                     <CardDescription>
-                      {selectedMatch.teamA} vs {selectedMatch.teamB} - {formatDate(new Date(selectedMatch.matchTime))}
+                      {selectedMatch.teamA} vs {selectedMatch.teamB} - {new Date(selectedMatch.matchTime).toLocaleString('en-IN', { 
+                        year: 'numeric',
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">

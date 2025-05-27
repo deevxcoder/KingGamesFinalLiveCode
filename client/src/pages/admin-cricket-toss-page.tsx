@@ -463,7 +463,14 @@ export default function AdminCricketTossPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{formatDate(new Date(match.matchTime))}</TableCell>
+                      <TableCell>{new Date(match.matchTime).toLocaleString('en-IN', { 
+                        year: 'numeric',
+                        month: 'short', 
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                        hour12: true
+                      })}</TableCell>
                       <TableCell>
                         <div className="flex flex-col space-y-1">
                           <div className="text-sm font-medium">{match.teamA}</div>
