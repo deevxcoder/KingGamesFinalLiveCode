@@ -1016,7 +1016,7 @@ IFSC Code: ${paymentModeDetails.bankDetails!.ifscCode}`;
                                 </div>
                                 <div className="text-right">
                                   <div className={`font-medium ${item.data.amount > 0 ? "text-green-600" : "text-red-600"}`}>
-                                    {item.data.amount > 0 ? "+" : ""}₹{Math.abs(item.data.amount).toFixed(2)}
+                                    {item.data.amount > 0 ? "+" : ""}₹{(Math.abs(item.data.amount) / 100).toFixed(2)}
                                   </div>
                                   <div className="text-xs text-muted-foreground">
                                     Balance: ₹{(item.data.balanceAfter / 100).toFixed(2)}
