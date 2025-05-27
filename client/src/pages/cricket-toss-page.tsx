@@ -245,7 +245,14 @@ export default function CricketTossPage() {
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span>Match Time:</span>
-                          <span>{formatDate(new Date(match.matchTime))}</span>
+                          <span>{new Date(match.matchTime).toLocaleString('en-IN', { 
+                            year: 'numeric',
+                            month: 'short', 
+                            day: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true
+                          })}</span>
                         </div>
                         <Separator />
                         {match.coverImage && (

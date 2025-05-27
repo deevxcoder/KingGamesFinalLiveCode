@@ -629,26 +629,27 @@ export default function AdminCricketTossPage() {
                       <FormItem>
                         <FormLabel>Match Time</FormLabel>
                         <FormControl>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
+                          <select 
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                            {...field}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select time" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Array.from({ length: 24 }).map((_, hour) => (
-                                <React.Fragment key={hour}>
-                                  <SelectItem value={`${hour.toString().padStart(2, '0')}:00`}>
-                                    {hour.toString().padStart(2, '0')}:00
-                                  </SelectItem>
-                                  <SelectItem value={`${hour.toString().padStart(2, '0')}:30`}>
-                                    {hour.toString().padStart(2, '0')}:30
-                                  </SelectItem>
-                                </React.Fragment>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            <option value="">Select time</option>
+                            {Array.from({ length: 24 }).map((_, hour) => (
+                              Array.from({ length: 4 }).map((_, minute) => {
+                                const h = hour;
+                                const m = minute * 15;
+                                const timeValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+                                const displayHour = h % 12 === 0 ? 12 : h % 12;
+                                const ampm = h < 12 ? 'AM' : 'PM';
+                                const displayTime = `${displayHour}:${m.toString().padStart(2, '0')} ${ampm}`;
+                                return (
+                                  <option key={timeValue} value={timeValue}>
+                                    {displayTime}
+                                  </option>
+                                );
+                              })
+                            )).flat()}
+                          </select>
                         </FormControl>
                         <FormMessage />
                       </FormItem>
