@@ -18,6 +18,9 @@ export default function AdminSettingsPage() {
 
   // Payment Settings
   const [upiId, setUpiId] = useState("");
+  const [qrCodeUrl, setQrCodeUrl] = useState("");
+  const [isUploadingQr, setIsUploadingQr] = useState(false);
+  const qrFileInputRef = useRef<HTMLInputElement>(null);
   const [bankName, setBankName] = useState("");
   const [accountNumber, setAccountNumber] = useState("");
   const [accountName, setAccountName] = useState("");
@@ -346,6 +349,46 @@ export default function AdminSettingsPage() {
     }
   });
   
+  // Upload QR code mutation
+  const uploadQrMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const response = await fetch('/api/upload/qr-code', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to upload QR code';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          errorMessage = await response.text() || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setQrCodeUrl(data.imageUrl);
+      setIsUploadingQr(false);
+      toast({
+        title: "QR Code Uploaded",
+        description: "UPI QR code has been uploaded successfully.",
+      });
+    },
+    onError: (error: Error) => {
+      setIsUploadingQr(false);
+      toast({
+        title: "Upload Failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
   // Upload hero image mutation
   const uploadHeroMutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -549,7 +592,7 @@ export default function AdminSettingsPage() {
     saveWalletPaymentDetailsMutation.mutate({
       upi: {
         id: upiId,
-        qrCode: null
+        qrCode: qrCodeUrl || null
       },
       bank: {
         name: bankName,
@@ -787,6 +830,20 @@ export default function AdminSettingsPage() {
     return selectedGameImages[gameType] === filename;
   };
 
+  // Handle QR code upload
+  const handleQrUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!event.target.files || event.target.files.length === 0) {
+      return;
+    }
+    
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('qrImage', file);
+    
+    setIsUploadingQr(true);
+    uploadQrMutation.mutate(formData);
+  };
+
   // Handle game card image upload
   const handleGameCardImageUpload = (event: React.ChangeEvent<HTMLInputElement>, gameType: string) => {
     if (!event.target.files || event.target.files.length === 0) {
@@ -856,14 +913,66 @@ export default function AdminSettingsPage() {
                     <div>
                       <h3 className="text-lg font-medium">UPI Payment</h3>
                       <Separator className="my-2" />
-                      <div className="space-y-2">
-                        <Label htmlFor="upiId">UPI ID</Label>
-                        <Input 
-                          id="upiId" 
-                          value={upiId} 
-                          onChange={(e) => setUpiId(e.target.value)} 
-                          placeholder="username@ybl"
-                        />
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="upiId">UPI IDs (One per line)</Label>
+                          <textarea 
+                            id="upiId" 
+                            value={upiId} 
+                            onChange={(e) => setUpiId(e.target.value)} 
+                            placeholder="username@ybl&#10;company@paytm&#10;business@gpay"
+                            className="w-full p-3 border rounded-md bg-background text-foreground min-h-[100px] resize-vertical"
+                            rows={4}
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Enter multiple UPI IDs, one per line. Users will see these options when making deposits.
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label>UPI QR Code (Optional)</Label>
+                          <div className="flex items-center gap-4">
+                            <Button
+                              onClick={() => qrFileInputRef.current?.click()}
+                              className="gap-2"
+                              disabled={isUploadingQr}
+                              variant="outline"
+                            >
+                              {isUploadingQr ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Upload className="h-4 w-4" />
+                              )}
+                              Upload QR Code
+                            </Button>
+                            <input
+                              type="file"
+                              ref={qrFileInputRef}
+                              className="hidden"
+                              accept="image/*"
+                              onChange={handleQrUpload}
+                            />
+                            {qrCodeUrl && (
+                              <div className="flex items-center gap-2">
+                                <img 
+                                  src={qrCodeUrl} 
+                                  alt="UPI QR Code" 
+                                  className="w-16 h-16 border rounded object-cover"
+                                />
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setQrCodeUrl("")}
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Upload a QR code image that users can scan to make UPI payments quickly.
+                          </p>
+                        </div>
                       </div>
                     </div>
 
