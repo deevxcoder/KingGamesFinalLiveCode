@@ -243,10 +243,28 @@ export default function WalletPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={updateTab}>
-          <TabsList className="grid w-full grid-cols-2 mb-8">
-            <TabsTrigger value="balance">Balance</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
-          </TabsList>
+          {(() => {
+            // Check if user is a direct player (assigned to admin or null)
+            const isDirectPlayer = user?.role === "player" && (!user.assignedTo || user.assignedTo === 1);
+            
+            if (isDirectPlayer) {
+              return (
+                <TabsList className="grid w-full grid-cols-4 mb-8">
+                  <TabsTrigger value="balance">Balance</TabsTrigger>
+                  <TabsTrigger value="deposit">Deposit</TabsTrigger>
+                  <TabsTrigger value="withdraw">Withdraw</TabsTrigger>
+                  <TabsTrigger value="history">History</TabsTrigger>
+                </TabsList>
+              );
+            } else {
+              return (
+                <TabsList className="grid w-full grid-cols-2 mb-8">
+                  <TabsTrigger value="balance">Balance</TabsTrigger>
+                  <TabsTrigger value="history">History</TabsTrigger>
+                </TabsList>
+              );
+            }
+          })()}
 
           <TabsContent value="balance">
             <Card>
@@ -269,6 +287,157 @@ export default function WalletPage() {
                   View All Transactions
                 </Button>
               </CardFooter>
+            </Card>
+          </TabsContent>
+
+          {/* Deposit Tab */}
+          <TabsContent value="deposit">
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Funds</CardTitle>
+                <CardDescription>
+                  Deposit money into your account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="deposit-amount">Amount (₹)</Label>
+                    <Input 
+                      id="deposit-amount"
+                      type="number" 
+                      placeholder="Enter amount (min ₹100)" 
+                      min="100"
+                      max="100000"
+                    />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <Label>Payment Method</Label>
+                    <RadioGroup defaultValue="upi">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="upi" id="upi" />
+                        <Label htmlFor="upi">UPI Payment</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="bank" id="bank" />
+                        <Label htmlFor="bank">Bank Transfer</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {paymentModeDetails?.upiDetails && (
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                      <h4 className="font-medium mb-2">UPI Payment Details</h4>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Pay to: <span className="font-mono">{paymentModeDetails.upiDetails.upiId}</span>
+                      </p>
+                      {paymentModeDetails.upiDetails.qrImageUrl && (
+                        <div className="mt-2">
+                          <img 
+                            src={paymentModeDetails.upiDetails.qrImageUrl} 
+                            alt="QR Code" 
+                            className="w-32 h-32 border rounded"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <Label htmlFor="transaction-id">Transaction ID</Label>
+                    <Input 
+                      id="transaction-id"
+                      placeholder="Enter your transaction ID" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="proof-upload">Payment Proof (Screenshot)</Label>
+                    <Input 
+                      id="proof-upload"
+                      type="file" 
+                      accept="image/*"
+                    />
+                  </div>
+
+                  <Button className="w-full">
+                    Submit Deposit Request
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Withdraw Tab */}
+          <TabsContent value="withdraw">
+            <Card>
+              <CardHeader>
+                <CardTitle>Withdraw Funds</CardTitle>
+                <CardDescription>
+                  Withdraw money from your account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="mb-6 p-4 rounded-lg bg-muted/50">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-full bg-primary">
+                      <IndianRupee className="h-4 w-4 text-primary-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold">Your balance: ₹{user?.balance ? (user.balance / 100).toFixed(2) : '0.00'}</h3>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Minimum withdrawal amount is ₹500. Maximum is ₹50,000.
+                  </p>
+                </div>
+
+                <form className="space-y-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="withdraw-amount">Amount (₹)</Label>
+                    <Input 
+                      id="withdraw-amount"
+                      type="number" 
+                      placeholder="Enter amount (min ₹500)" 
+                      min="500"
+                      max="50000"
+                    />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <Label>Withdrawal Method</Label>
+                    <RadioGroup defaultValue="upi">
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="upi" id="withdraw-upi" />
+                        <Label htmlFor="withdraw-upi">UPI</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="bank" id="withdraw-bank" />
+                        <Label htmlFor="withdraw-bank">Bank Transfer</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="upi-id">UPI ID</Label>
+                    <Input 
+                      id="upi-id"
+                      placeholder="your-upi@bank" 
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="withdraw-notes">Notes (Optional)</Label>
+                    <Input 
+                      id="withdraw-notes"
+                      placeholder="Any additional information" 
+                    />
+                  </div>
+
+                  <Button className="w-full">
+                    Submit Withdrawal Request
+                  </Button>
+                </form>
+              </CardContent>
             </Card>
           </TabsContent>
 
