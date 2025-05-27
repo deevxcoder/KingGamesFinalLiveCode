@@ -11,6 +11,7 @@ import {
   gameOdds,
   transactions,
   walletRequests,
+  depositCommissions,
   User, 
   InsertUser, 
   Game, 
@@ -272,36 +273,26 @@ export class DatabaseStorage implements IStorage {
   
   async deleteUser(userId: number): Promise<boolean> {
     try {
-      // First, delete related records to avoid foreign key constraints
-      
-      // Delete deposit commissions where this user is a subadmin
-      await db.delete(depositCommissions)
-        .where(eq(depositCommissions.subadminId, userId));
-      
-      // Delete game odds for this user
-      await db.delete(gameOdds)
-        .where(eq(gameOdds.subadminId, userId));
-      
-      // Delete games created by this user
-      await db.delete(games)
-        .where(eq(games.createdBy, userId));
-      
-      // Delete transactions involving this user
-      await db.delete(transactions)
-        .where(or(
-          eq(transactions.userId, userId),
-          eq(transactions.fromUserId, userId),
-          eq(transactions.toUserId, userId)
-        ));
-      
-      // Update users assigned to this user (if it's a subadmin being deleted)
-      await db.update(users)
-        .set({ assignedTo: null })
-        .where(eq(users.assignedTo, userId));
-      
-      // Finally, delete the user
-      const result = await db.delete(users)
-        .where(eq(users.id, userId));
+      // Use raw SQL to handle the cascading deletions properly
+      await db.execute(sql`
+        -- Delete from deposit_commissions first
+        DELETE FROM deposit_commissions WHERE subadmin_id = ${userId};
+        
+        -- Delete from game_odds  
+        DELETE FROM game_odds WHERE subadmin_id = ${userId};
+        
+        -- Delete transactions
+        DELETE FROM transactions WHERE user_id = ${userId};
+        
+        -- Delete games
+        DELETE FROM games WHERE user_id = ${userId};
+        
+        -- Update assigned users
+        UPDATE users SET assigned_to = NULL WHERE assigned_to = ${userId};
+        
+        -- Finally delete the user
+        DELETE FROM users WHERE id = ${userId};
+      `);
       
       return true;
     } catch (error) {
