@@ -191,7 +191,7 @@ export default function AdminCricketTossPage() {
       formData.append("teamA", values.teamA);
       formData.append("teamB", values.teamB);
       
-      // Combine date and time into one string
+      // Combine date and time keeping local timezone like satamatka markets
       const combinedDateTime = `${values.matchDate}T${values.matchTime}:00`;
       formData.append("matchTime", combinedDateTime);
       

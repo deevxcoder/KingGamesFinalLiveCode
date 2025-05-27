@@ -193,11 +193,19 @@ router.post("/matches", requireRole(["admin", "subadmin"]), upload.single('cover
     }
     
     // Create object for insertion
+    // Parse the datetime string as local time without timezone conversion
+    const [datePart, timePart] = matchTime.split('T');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hour, minute] = timePart.split(':').map(Number);
+    
+    // Create date in local timezone without UTC conversion
+    const localMatchTime = new Date(year, month - 1, day, hour, minute);
+    
     const matchData = {
       teamA,
       teamB,
       description,
-      matchTime: new Date(matchTime),
+      matchTime: localMatchTime,
       oddTeamA,
       oddTeamB,
       oddDraw: null, // No draw option for cricket toss
