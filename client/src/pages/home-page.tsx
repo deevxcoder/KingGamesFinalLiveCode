@@ -385,7 +385,7 @@ export default function HomePage() {
             title="Coin Flip"
             icon={Coins}
             path="/coinflip"
-            gradient="bg-gradient-to-r from-amber-700 to-yellow-600"
+            gradient="bg-gradient-to-r from-orange-700 to-orange-500"
           />
           <GameIconCard
             id="sportsexchange"
