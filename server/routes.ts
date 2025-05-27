@@ -72,7 +72,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Format for public display - only include markets with actual results
       const publicResults = markets
-        .filter(market => market.status === 'resulted' && market.openResult !== null && market.openResult !== '')
+        .filter(market => market.status === 'resulted' && 
+          ((market.openResult !== null && market.openResult !== '') || 
+           (market.closeResult !== null && market.closeResult !== '')))
         .map(market => ({
           id: market.id,
           name: market.name,
@@ -105,7 +107,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const markets = await storage.getMarketResultsByDateRange(startOfDay, endOfDay);
       
       const todayResults = markets
-        .filter(market => market.status === 'resulted' && market.openResult)
+        .filter(market => market.status === 'resulted' && 
+          ((market.openResult !== null && market.openResult !== '') || 
+           (market.closeResult !== null && market.closeResult !== '')))
         .map(market => ({
           id: market.id,
           name: market.name,
