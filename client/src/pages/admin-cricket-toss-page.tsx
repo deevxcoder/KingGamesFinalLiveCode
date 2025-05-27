@@ -463,14 +463,18 @@ export default function AdminCricketTossPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{new Date(match.matchTime).toLocaleString('en-IN', { 
-                        year: 'numeric',
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}</TableCell>
+                      <TableCell>{(() => {
+                        const timeString = match.matchTime.replace('T', ' ').replace('.000Z', '').replace('Z', '');
+                        const localDate = new Date(timeString);
+                        return localDate.toLocaleString('en-IN', { 
+                          year: 'numeric',
+                          month: 'short', 
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        });
+                      })()}</TableCell>
                       <TableCell>
                         <div className="flex flex-col space-y-1">
                           <div className="text-sm font-medium">{match.teamA}</div>

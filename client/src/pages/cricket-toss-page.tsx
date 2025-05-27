@@ -245,14 +245,19 @@ export default function CricketTossPage() {
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span>Match Time:</span>
-                          <span>{new Date(match.matchTime).toLocaleString('en-IN', { 
-                            year: 'numeric',
-                            month: 'short', 
-                            day: 'numeric',
-                            hour: 'numeric',
-                            minute: '2-digit',
-                            hour12: true
-                          })}</span>
+                          <span>{(() => {
+                            // Parse the time string as local time to avoid timezone conversion
+                            const timeString = match.matchTime.replace('T', ' ').replace('.000Z', '').replace('Z', '');
+                            const localDate = new Date(timeString);
+                            return localDate.toLocaleString('en-IN', { 
+                              year: 'numeric',
+                              month: 'short', 
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true
+                            });
+                          })()}</span>
                         </div>
                         <Separator />
                         {match.coverImage && (
@@ -304,14 +309,18 @@ export default function CricketTossPage() {
                   <CardHeader>
                     <CardTitle>Place Your Bet</CardTitle>
                     <CardDescription>
-                      {selectedMatch.teamA} vs {selectedMatch.teamB} - {new Date(selectedMatch.matchTime).toLocaleString('en-IN', { 
-                        year: 'numeric',
-                        month: 'short', 
-                        day: 'numeric',
-                        hour: 'numeric',
-                        minute: '2-digit',
-                        hour12: true
-                      })}
+                      {selectedMatch.teamA} vs {selectedMatch.teamB} - {(() => {
+                        const timeString = selectedMatch.matchTime.replace('T', ' ').replace('.000Z', '').replace('Z', '');
+                        const localDate = new Date(timeString);
+                        return localDate.toLocaleString('en-IN', { 
+                          year: 'numeric',
+                          month: 'short', 
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                          hour12: true
+                        });
+                      })()}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
