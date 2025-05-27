@@ -921,35 +921,112 @@ IFSC Code: ${paymentModeDetails.bankDetails!.ifscCode}`;
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {walletRequests.map((request) => (
-                        <div key={request.id} className="p-4 border rounded-lg">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {getRequestTypeInfo(request.requestType).icon}
-                              <div>
-                                <h4 className="font-medium">
-                                  {getRequestTypeInfo(request.requestType).title}
-                                </h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {formatDate(request.createdAt)}
-                                </p>
+                      {/* Combine and sort all transactions by date (newest first) */}
+                      {(() => {
+                        const allTransactions = [
+                          ...walletRequests.map(request => ({
+                            id: `req-${request.id}`,
+                            type: 'request',
+                            createdAt: request.createdAt,
+                            data: request
+                          })),
+                          ...transactions.map(transaction => ({
+                            id: `txn-${transaction.id}`,
+                            type: 'transaction',
+                            createdAt: transaction.createdAt,
+                            data: transaction
+                          }))
+                        ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+                        return allTransactions.map((item) => (
+                          <div key={item.id} className="p-4 border rounded-lg">
+                            {item.type === 'request' ? (
+                              // Wallet Request Display
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  {getRequestTypeInfo(item.data.requestType).icon}
+                                  <div>
+                                    <h4 className="font-medium">
+                                      {getRequestTypeInfo(item.data.requestType).title}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground">
+                                      {formatDate(item.data.createdAt)}
+                                      {item.data.status === RequestStatus.APPROVED && item.data.approvedBy && (
+                                        <span className="ml-2 text-green-600">
+                                          • Approved by {item.data.approver?.username || `Admin #${item.data.approvedBy}`}
+                                        </span>
+                                      )}
+                                      {item.data.status === RequestStatus.REJECTED && item.data.rejectedBy && (
+                                        <span className="ml-2 text-red-600">
+                                          • Rejected by {item.data.rejector?.username || `Admin #${item.data.rejectedBy}`}
+                                        </span>
+                                      )}
+                                    </p>
+                                    {item.data.notes && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        Note: {item.data.notes}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-medium">
+                                    ₹{item.data.amount.toFixed(2)}
+                                  </div>
+                                  <Badge variant={
+                                    item.data.status === RequestStatus.APPROVED ? "default" :
+                                    item.data.status === RequestStatus.REJECTED ? "destructive" :
+                                    "secondary"
+                                  }>
+                                    {item.data.status}
+                                  </Badge>
+                                </div>
                               </div>
-                            </div>
-                            <div className="text-right">
-                              <div className="font-medium">
-                                ₹{request.amount.toFixed(2)}
+                            ) : (
+                              // Direct Transaction Display (Admin Actions)
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  {item.data.amount > 0 ? (
+                                    <div className="p-2 rounded-full bg-green-100 dark:bg-green-900">
+                                      <ArrowDown className="h-4 w-4 text-green-600" />
+                                    </div>
+                                  ) : (
+                                    <div className="p-2 rounded-full bg-red-100 dark:bg-red-900">
+                                      <ArrowUp className="h-4 w-4 text-red-600" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <h4 className="font-medium">
+                                      {item.data.amount > 0 ? "Fund Credit" : "Fund Debit"}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground">
+                                      {formatDate(item.data.createdAt)}
+                                      {item.data.performer && (
+                                        <span className="ml-2 text-blue-600">
+                                          • By {item.data.performer.username}
+                                        </span>
+                                      )}
+                                    </p>
+                                    {item.data.description && (
+                                      <p className="text-xs text-muted-foreground mt-1">
+                                        {item.data.description}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className={`font-medium ${item.data.amount > 0 ? "text-green-600" : "text-red-600"}`}>
+                                    {item.data.amount > 0 ? "+" : ""}₹{Math.abs(item.data.amount).toFixed(2)}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    Balance: ₹{(item.data.balanceAfter / 100).toFixed(2)}
+                                  </div>
+                                </div>
                               </div>
-                              <Badge variant={
-                                request.status === RequestStatus.APPROVED ? "default" :
-                                request.status === RequestStatus.REJECTED ? "destructive" :
-                                "secondary"
-                              }>
-                                {request.status}
-                              </Badge>
-                            </div>
+                            )}
                           </div>
-                        </div>
-                      ))}
+                        ));
+                      })()}
                     </div>
                   )}
                 </CardContent>
