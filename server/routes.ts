@@ -71,10 +71,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Format for public display - only include markets with actual results
+      console.log('Total markets retrieved:', markets.length);
+      console.log('Sample market data:', markets.slice(0, 2));
+      
       const publicResults = markets
-        .filter(market => market.status === 'resulted' && 
-          ((market.openResult !== null && market.openResult !== '') || 
-           (market.closeResult !== null && market.closeResult !== '')))
+        .filter(market => {
+          const hasResult = market.openResult || market.closeResult;
+          console.log(`Market ${market.name}: status=${market.status}, openResult=${market.openResult}, closeResult=${market.closeResult}, hasResult=${hasResult}`);
+          return market.status === 'resulted' && hasResult;
+        })
         .map(market => ({
           id: market.id,
           name: market.name,
@@ -108,8 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const todayResults = markets
         .filter(market => market.status === 'resulted' && 
-          ((market.openResult !== null && market.openResult !== '') || 
-           (market.closeResult !== null && market.closeResult !== '')))
+          (market.openResult || market.closeResult))
         .map(market => ({
           id: market.id,
           name: market.name,
