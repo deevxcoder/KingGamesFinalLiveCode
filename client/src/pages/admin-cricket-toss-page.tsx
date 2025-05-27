@@ -696,11 +696,6 @@ export default function AdminCricketTossPage() {
                   )}
                 />
                 
-                <div className="bg-slate-100 dark:bg-slate-800 p-3 rounded-md">
-                  <p className="text-sm text-slate-700 dark:text-slate-300">
-                    <span className="font-medium">Note:</span> Odds are fixed at 2.00 for both teams.
-                  </p>
-                </div>
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
