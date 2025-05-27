@@ -45,7 +45,7 @@ interface MarketResult {
 
 export default function ResultsPage() {
   const [selectedDate, setSelectedDate] = useState("");
-  const [selectedGame, setSelectedGame] = useState("all");
+  const [selectedMarket, setSelectedMarket] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   // Build query parameters based on filters
@@ -68,12 +68,17 @@ export default function ResultsPage() {
     },
   });
 
-  // Filter results based on game type and search term
+  // Get unique market names for filter dropdown
+  const uniqueMarkets: string[] = results.length > 0 
+    ? Array.from(new Set(results.map((result: MarketResult) => result.name))).sort()
+    : [];
+
+  // Filter results based on market name and search term
   const filteredResults = results.filter((result: MarketResult) => {
-    const matchesGame = selectedGame === "all" || result.type === selectedGame;
+    const matchesMarket = selectedMarket === "all" || result.name === selectedMarket;
     const matchesSearch = !searchTerm || 
       result.name.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesGame && matchesSearch;
+    return matchesMarket && matchesSearch;
   });
 
   const formatResult = (result?: string) => {
@@ -125,7 +130,7 @@ export default function ResultsPage() {
               Filter Results
             </CardTitle>
             <CardDescription>
-              Filter results by date, game type, or search by market name
+              Filter results by date, market name, or search by market name
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -144,22 +149,23 @@ export default function ResultsPage() {
                 />
               </div>
 
-              {/* Game Type Filter */}
+              {/* Market Filter */}
               <div className="space-y-2">
                 <label className="text-sm font-medium text-slate-300">
                   <Target className="w-4 h-4 inline mr-1" />
-                  Game Type
+                  Market
                 </label>
-                <Select value={selectedGame} onValueChange={setSelectedGame}>
+                <Select value={selectedMarket} onValueChange={setSelectedMarket}>
                   <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                    <SelectValue placeholder="Select game type" />
+                    <SelectValue placeholder="Select market" />
                   </SelectTrigger>
                   <SelectContent className="bg-slate-800 border-slate-700">
-                    <SelectItem value="all">All Games</SelectItem>
-                    <SelectItem value="dishawar">Dishawar</SelectItem>
-                    <SelectItem value="gali">Gali</SelectItem>
-                    <SelectItem value="mumbai">Mumbai</SelectItem>
-                    <SelectItem value="kalyan">Kalyan</SelectItem>
+                    <SelectItem value="all">All Markets</SelectItem>
+                    {uniqueMarkets.map((market: string) => (
+                      <SelectItem key={market} value={market}>
+                        {market}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -186,7 +192,7 @@ export default function ResultsPage() {
                 variant="outline"
                 onClick={() => {
                   setSelectedDate("");
-                  setSelectedGame("all");
+                  setSelectedMarket("all");
                   setSearchTerm("");
                 }}
                 className="border-slate-700 text-slate-300 hover:bg-slate-800"
