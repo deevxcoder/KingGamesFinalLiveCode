@@ -12,6 +12,7 @@ const heroSliderUploadsDir = path.join(uploadsDir, 'hero-sliders');
 const gameCardUploadsDir = path.join(uploadsDir, 'gamecards');
 const matchBannerUploadsDir = path.join(uploadsDir, 'match-banners');
 const marketBannerUploadsDir = path.join(uploadsDir, 'market-banners');
+const qrCodeUploadsDir = path.join(uploadsDir, 'qr-codes');
 
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -39,6 +40,10 @@ if (!fs.existsSync(matchBannerUploadsDir)) {
 
 if (!fs.existsSync(marketBannerUploadsDir)) {
   fs.mkdirSync(marketBannerUploadsDir, { recursive: true });
+}
+
+if (!fs.existsSync(qrCodeUploadsDir)) {
+  fs.mkdirSync(qrCodeUploadsDir, { recursive: true });
 }
 
 // File filter to accept only images
@@ -164,8 +169,28 @@ const marketBannerStorage = multer.diskStorage({
   }
 });
 
+// Configure QR code uploads storage
+const qrCodeStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, qrCodeUploadsDir);
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, `qr-code-${uniqueSuffix}${ext}`);
+  }
+});
+
 const marketBannerUpload = multer({ 
   storage: marketBannerStorage,
+  limits: {
+    fileSize: 2 * 1024 * 1024 // 2MB max file size
+  },
+  fileFilter: fileFilter
+});
+
+const qrCodeUpload = multer({ 
+  storage: qrCodeStorage,
   limits: {
     fileSize: 2 * 1024 * 1024 // 2MB max file size
   },
@@ -564,6 +589,28 @@ export function setupUploadRoutes(app: express.Express) {
     } catch (error) {
       console.error('Error deleting market banner image:', error);
       res.status(500).json({ error: 'Failed to delete market banner image' });
+    }
+  });
+
+  // API route to upload QR code images (admin only)
+  app.post('/api/upload/qr-code', requireAdmin, qrCodeUpload.single('qrImage'), (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+      }
+      
+      // Generate URL for the uploaded file
+      const fileUrl = `/uploads/qr-codes/${req.file.filename}`;
+      
+      // Return the URL to the client
+      res.json({ 
+        success: true, 
+        imageUrl: fileUrl,
+        filename: req.file.filename
+      });
+    } catch (error) {
+      console.error('Upload error:', error);
+      res.status(500).json({ error: 'File upload failed' });
     }
   });
 
