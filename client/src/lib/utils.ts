@@ -7,15 +7,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format a date string or Date object into a readable format
+ * Format a date string or Date object into a readable format with Indian timezone
  * @param dateString Date string or Date object
- * @param formatStr Optional format string (defaults to "PPP")
- * @returns Formatted date string
+ * @param formatStr Optional format string (defaults to "MMM dd, yyyy h:mm a")
+ * @returns Formatted date string in IST
  */
 export function formatDate(dateString: string | Date, formatStr: string = "MMM dd, yyyy h:mm a") {
   try {
     const date = typeof dateString === 'string' ? new Date(dateString) : dateString;
-    return format(date, formatStr);
+    
+    // Convert to Indian Standard Time (IST)
+    const istDate = new Date(date.toLocaleString("en-US", {timeZone: "Asia/Kolkata"}));
+    
+    return format(istDate, formatStr);
   } catch (error) {
     console.error("Error formatting date:", error);
     return typeof dateString === 'string' ? dateString : dateString.toString();
