@@ -204,12 +204,24 @@ export default function WalletPage() {
         proofImageUrl = await uploadProofImage(proofImage);
       }
 
-      const response = await apiRequest("/api/wallet/deposit", "POST", {
-        ...values,
-        proofImageUrl,
+      const response = await fetch("/api/wallet/deposit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ...values,
+          proofImageUrl,
+        }),
       });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to submit deposit request");
+      }
       
-      return response;
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -233,9 +245,21 @@ export default function WalletPage() {
   // Withdrawal mutation
   const withdrawalMutation = useMutation({
     mutationFn: async (values: WithdrawalFormValues) => {
-      const response = await apiRequest("/api/wallet/withdrawal", "POST", values);
+      const response = await fetch("/api/wallet/withdrawal", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(values),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to submit withdrawal request");
+      }
       
-      return response;
+      return response.json();
     },
     onSuccess: () => {
       toast({
