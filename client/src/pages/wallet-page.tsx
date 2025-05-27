@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee, Wallet, History, Ban, CheckCircle2, CircleDollarSign, Landmark, Banknote, RefreshCw, CreditCard, User } from "lucide-react";
+import { Loader2, ArrowUp, ArrowDown, FileCheck, CheckCircle, XCircle, Clock, IndianRupee, Wallet, History, Ban, CheckCircle2, CircleDollarSign, Landmark, Banknote, RefreshCw, CreditCard, User, Copy, CheckCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -81,6 +81,27 @@ export default function WalletPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
+
+  // Initialize forms
+  const depositForm = useForm<DepositFormValues>({
+    resolver: zodResolver(depositFormSchema),
+    defaultValues: {
+      amount: 0,
+      paymentMode: "upi",
+      paymentDetails: {},
+      notes: "",
+    },
+  });
+
+  const withdrawalForm = useForm<WithdrawalFormValues>({
+    resolver: zodResolver(withdrawalFormSchema),
+    defaultValues: {
+      amount: 0,
+      paymentMode: "upi",
+      paymentDetails: {},
+      notes: "",
+    },
+  });
   
   // Extract tab parameter from URL or default to "balance"
   const getTabFromUrl = () => {
@@ -105,6 +126,7 @@ export default function WalletPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("upi");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
   
   // Update URL when tab changes
   const updateTab = (tab: string) => {
@@ -173,6 +195,66 @@ export default function WalletPage() {
     enabled: activeTab === "history" || activeTab === "balance"
   });
 
+  // Deposit mutation
+  const depositMutation = useMutation({
+    mutationFn: async (values: DepositFormValues) => {
+      let proofImageUrl = "";
+      
+      if (proofImage) {
+        proofImageUrl = await uploadProofImage(proofImage);
+      }
+
+      const response = await apiRequest("/api/wallet/deposit", "POST", {
+        ...values,
+        proofImageUrl,
+      });
+      
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Deposit Request Submitted",
+        description: "Your deposit request has been submitted successfully and is pending approval.",
+      });
+      depositForm.reset();
+      setProofImage(null);
+      refetchRequests();
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/my-requests"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Deposit Failed",
+        description: error.message || "Failed to submit deposit request",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Withdrawal mutation
+  const withdrawalMutation = useMutation({
+    mutationFn: async (values: WithdrawalFormValues) => {
+      const response = await apiRequest("/api/wallet/withdrawal", "POST", values);
+      
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Withdrawal Request Submitted",
+        description: "Your withdrawal request has been submitted successfully and is pending approval.",
+      });
+      withdrawalForm.reset();
+      refetchRequests();
+      queryClient.invalidateQueries({ queryKey: ["/api/wallet/my-requests"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Withdrawal Failed",
+        description: error.message || "Failed to submit withdrawal request",
+        variant: "destructive",
+      });
+    },
+  });
+
   // File upload handler
   const handleProofImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -199,6 +281,26 @@ export default function WalletPage() {
       return data.imageUrl;
     } catch (error) {
       throw error;
+    }
+  };
+
+  // Copy to clipboard function
+  const copyToClipboard = async (text: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedText(label);
+      toast({
+        title: "Copied!",
+        description: `${label} copied to clipboard`,
+      });
+      // Reset copied state after 2 seconds
+      setTimeout(() => setCopiedText(null), 2000);
+    } catch (error) {
+      toast({
+        title: "Copy Failed",
+        description: "Unable to copy to clipboard",
+        variant: "destructive"
+      });
     }
   };
 
@@ -301,71 +403,208 @@ export default function WalletPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form className="space-y-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="deposit-amount">Amount (₹)</Label>
-                    <Input 
-                      id="deposit-amount"
-                      type="number" 
-                      placeholder="Enter amount (min ₹100)" 
-                      min="100"
-                      max="100000"
+                <Form {...depositForm}>
+                  <form onSubmit={depositForm.handleSubmit((values) => depositMutation.mutate(values))} className="space-y-6">
+                    <FormField
+                      control={depositForm.control}
+                      name="amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Amount (₹)</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder="Enter amount (min ₹100)"
+                              min="100"
+                              max="100000"
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <Label>Payment Method</Label>
-                    <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="upi" id="upi" />
-                        <Label htmlFor="upi">UPI Payment</Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="bank" id="bank" />
-                        <Label htmlFor="bank">Bank Transfer</Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
+                    
+                    <FormField
+                      control={depositForm.control}
+                      name="paymentMode"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Payment Method</FormLabel>
+                          <FormControl>
+                            <RadioGroup 
+                              value={field.value} 
+                              onValueChange={(value) => {
+                                field.onChange(value);
+                                setSelectedPaymentMethod(value);
+                              }}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="upi" id="deposit-upi" />
+                                <Label htmlFor="deposit-upi">UPI Payment</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="bank" id="deposit-bank" />
+                                <Label htmlFor="deposit-bank">Bank Transfer</Label>
+                              </div>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
                   {/* UPI Payment Details */}
                   {selectedPaymentMethod === "upi" && paymentModeDetails?.upiDetails && (
                     <div className="p-4 border rounded-lg bg-muted/50">
-                      <h4 className="font-medium mb-2">UPI Payment Details</h4>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        Pay to: <span className="font-mono">{paymentModeDetails.upiDetails.upiId}</span>
-                      </p>
-                      {paymentModeDetails.upiDetails.qrImageUrl && (
-                        <div className="mt-2">
-                          <img 
-                            src={paymentModeDetails.upiDetails.qrImageUrl} 
-                            alt="QR Code" 
-                            className="w-32 h-32 border rounded"
-                          />
+                      <h4 className="font-medium mb-3">UPI Payment Details</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                          <div>
+                            <span className="text-sm text-muted-foreground">Pay to: </span>
+                            <span className="font-mono font-medium">{paymentModeDetails.upiDetails.upiId}</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(paymentModeDetails.upiDetails!.upiId, "UPI ID")}
+                            className="gap-2"
+                          >
+                            {copiedText === "UPI ID" ? (
+                              <CheckCheck className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            Copy
+                          </Button>
                         </div>
-                      )}
+                        
+                        {paymentModeDetails.upiDetails.qrImageUrl && (
+                          <div className="text-center">
+                            <p className="text-sm text-muted-foreground mb-2">Scan QR Code:</p>
+                            <img 
+                              src={paymentModeDetails.upiDetails.qrImageUrl} 
+                              alt="QR Code" 
+                              className="w-40 h-40 mx-auto border rounded-lg"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
 
                   {/* Bank Transfer Details */}
                   {selectedPaymentMethod === "bank" && paymentModeDetails?.bankDetails && (
                     <div className="p-4 border rounded-lg bg-muted/50">
-                      <h4 className="font-medium mb-2">Bank Transfer Details</h4>
-                      <div className="space-y-2 text-sm">
-                        <div>
-                          <span className="text-muted-foreground">Bank Name: </span>
-                          <span className="font-medium">{paymentModeDetails.bankDetails.bankName}</span>
+                      <h4 className="font-medium mb-3">Bank Transfer Details</h4>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                          <div>
+                            <span className="text-sm text-muted-foreground">Bank Name: </span>
+                            <span className="font-medium">{paymentModeDetails.bankDetails.bankName}</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(paymentModeDetails.bankDetails!.bankName, "Bank Name")}
+                            className="gap-2"
+                          >
+                            {copiedText === "Bank Name" ? (
+                              <CheckCheck className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            Copy
+                          </Button>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">Account Holder: </span>
-                          <span className="font-medium">{paymentModeDetails.bankDetails.accountName}</span>
+                        
+                        <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                          <div>
+                            <span className="text-sm text-muted-foreground">Account Holder: </span>
+                            <span className="font-medium">{paymentModeDetails.bankDetails.accountName}</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(paymentModeDetails.bankDetails!.accountName, "Account Holder")}
+                            className="gap-2"
+                          >
+                            {copiedText === "Account Holder" ? (
+                              <CheckCheck className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            Copy
+                          </Button>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">Account Number: </span>
-                          <span className="font-mono">{paymentModeDetails.bankDetails.accountNumber}</span>
+                        
+                        <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                          <div>
+                            <span className="text-sm text-muted-foreground">Account Number: </span>
+                            <span className="font-mono font-medium">{paymentModeDetails.bankDetails.accountNumber}</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(paymentModeDetails.bankDetails!.accountNumber, "Account Number")}
+                            className="gap-2"
+                          >
+                            {copiedText === "Account Number" ? (
+                              <CheckCheck className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            Copy
+                          </Button>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground">IFSC Code: </span>
-                          <span className="font-mono">{paymentModeDetails.bankDetails.ifscCode}</span>
+                        
+                        <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                          <div>
+                            <span className="text-sm text-muted-foreground">IFSC Code: </span>
+                            <span className="font-mono font-medium">{paymentModeDetails.bankDetails.ifscCode}</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => copyToClipboard(paymentModeDetails.bankDetails!.ifscCode, "IFSC Code")}
+                            className="gap-2"
+                          >
+                            {copiedText === "IFSC Code" ? (
+                              <CheckCheck className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Copy className="h-4 w-4" />
+                            )}
+                            Copy
+                          </Button>
+                        </div>
+                        
+                        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-blue-900 dark:text-blue-100">Complete Bank Details</p>
+                              <p className="text-xs text-blue-700 dark:text-blue-300">Copy all details at once</p>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                const allDetails = `Bank Name: ${paymentModeDetails.bankDetails!.bankName}
+Account Holder: ${paymentModeDetails.bankDetails!.accountName}
+Account Number: ${paymentModeDetails.bankDetails!.accountNumber}
+IFSC Code: ${paymentModeDetails.bankDetails!.ifscCode}`;
+                                copyToClipboard(allDetails, "All Bank Details");
+                              }}
+                              className="gap-2"
+                            >
+                              {copiedText === "All Bank Details" ? (
+                                <CheckCheck className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <Copy className="h-4 w-4" />
+                              )}
+                              Copy All
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
