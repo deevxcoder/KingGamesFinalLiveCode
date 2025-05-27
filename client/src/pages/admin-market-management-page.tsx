@@ -577,26 +577,35 @@ export default function AdminMarketManagementPage() {
       </div>
 
       <Tabs defaultValue="waiting" value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6 grid w-full grid-cols-5">
-          <TabsTrigger value="waiting" className="flex items-center justify-center">
-            <PauseCircle className="h-4 w-4 mr-2" />
-            <span>Upcoming ({waitingMarkets.length})</span>
+        <TabsList className="mb-6 h-auto w-full grid grid-cols-2 md:grid-cols-5 gap-1 p-1">
+          <TabsTrigger value="waiting" className="flex items-center justify-center text-xs md:text-sm py-2 px-1 md:px-3">
+            <PauseCircle className="h-4 w-4 mr-1 md:mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline">Upcoming</span>
+            <span className="sm:hidden">Up</span>
+            <span className="ml-1">({waitingMarkets.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="open" className="flex items-center justify-center">
-            <Clock className="h-4 w-4 mr-2" />
-            <span>Active ({openMarkets.length})</span>
+          <TabsTrigger value="open" className="flex items-center justify-center text-xs md:text-sm py-2 px-1 md:px-3">
+            <Clock className="h-4 w-4 mr-1 md:mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline">Active</span>
+            <span className="sm:hidden">Act</span>
+            <span className="ml-1">({openMarkets.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="closed" className="flex items-center justify-center">
-            <Timer className="h-4 w-4 mr-2" />
-            <span>Waiting Results ({closedMarkets.length})</span>
+          <TabsTrigger value="closed" className="flex items-center justify-center text-xs md:text-sm py-2 px-1 md:px-3 col-span-2 md:col-span-1">
+            <Timer className="h-4 w-4 mr-1 md:mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline">Waiting Results</span>
+            <span className="sm:hidden">Results</span>
+            <span className="ml-1">({closedMarkets.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="resulted" className="flex items-center justify-center">
-            <CheckCircle2 className="h-4 w-4 mr-2" />
-            <span>Resulted ({resultedMarkets.length})</span>
+          <TabsTrigger value="resulted" className="flex items-center justify-center text-xs md:text-sm py-2 px-1 md:px-3">
+            <CheckCircle2 className="h-4 w-4 mr-1 md:mr-2 flex-shrink-0" />
+            <span className="hidden sm:inline">Resulted</span>
+            <span className="sm:hidden">Done</span>
+            <span className="ml-1">({resultedMarkets.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="all" className="flex items-center justify-center">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            <span>All ({allMarkets.length})</span>
+          <TabsTrigger value="all" className="flex items-center justify-center text-xs md:text-sm py-2 px-1 md:px-3">
+            <AlertCircle className="h-4 w-4 mr-1 md:mr-2 flex-shrink-0" />
+            <span>All</span>
+            <span className="ml-1">({allMarkets.length})</span>
           </TabsTrigger>
         </TabsList>
 
