@@ -460,25 +460,53 @@ export default function WalletPage() {
                       <div className="p-4 border rounded-lg bg-muted/50">
                         <h4 className="font-medium mb-3">UPI Payment Details</h4>
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between p-3 bg-background rounded-lg border">
-                            <div>
-                              <span className="text-sm text-muted-foreground">Pay to: </span>
-                              <span className="font-mono font-medium">{paymentModeDetails.upiDetails.upiId}</span>
+                          {/* Parse and display each UPI ID separately */}
+                          {paymentModeDetails.upiDetails.upiId.split('\n').filter(upi => upi.trim()).map((upiId, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-background rounded-lg border">
+                              <div>
+                                <span className="text-sm text-muted-foreground">UPI ID {index + 1}: </span>
+                                <span className="font-mono font-medium">{upiId.trim()}</span>
+                              </div>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => copyToClipboard(upiId.trim(), `UPI ID ${index + 1}`)}
+                                className="gap-2"
+                              >
+                                {copiedText === `UPI ID ${index + 1}` ? (
+                                  <CheckCheck className="h-4 w-4 text-green-500" />
+                                ) : (
+                                  <Copy className="h-4 w-4" />
+                                )}
+                                Copy
+                              </Button>
                             </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => copyToClipboard(paymentModeDetails.upiDetails!.upiId, "UPI ID")}
-                              className="gap-2"
-                            >
-                              {copiedText === "UPI ID" ? (
-                                <CheckCheck className="h-4 w-4 text-green-500" />
-                              ) : (
-                                <Copy className="h-4 w-4" />
-                              )}
-                              Copy
-                            </Button>
-                          </div>
+                          ))}
+                          
+                          {/* Copy All UPI IDs button */}
+                          {paymentModeDetails.upiDetails.upiId.includes('\n') && (
+                            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <p className="text-sm font-medium text-blue-900 dark:text-blue-100">All UPI IDs</p>
+                                  <p className="text-xs text-blue-700 dark:text-blue-300">Copy all UPI IDs at once</p>
+                                </div>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => copyToClipboard(paymentModeDetails.upiDetails!.upiId, "All UPI IDs")}
+                                  className="gap-2"
+                                >
+                                  {copiedText === "All UPI IDs" ? (
+                                    <CheckCheck className="h-4 w-4 text-green-500" />
+                                  ) : (
+                                    <Copy className="h-4 w-4" />
+                                  )}
+                                  Copy All
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                           
                           {paymentModeDetails.upiDetails.qrImageUrl && (
                             <div className="text-center">
