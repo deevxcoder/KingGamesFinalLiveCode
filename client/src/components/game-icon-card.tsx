@@ -41,7 +41,7 @@ export default function GameIconCard({
         </div>
         
         {comingSoon && (
-          <Badge className="absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-orange-900/70 text-orange-300 border-orange-500/30">
+          <Badge className="absolute top-2 right-2 bg-orange-900/80 text-orange-200 border-orange-500/40 text-xs px-2 py-1">
             Coming Soon
           </Badge>
         )}
