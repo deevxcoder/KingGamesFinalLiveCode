@@ -1010,15 +1010,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getRecentMarketResults(limit: number = 20): Promise<SatamatkaMarket[]> {
-    const results = await db.select()
+    return await db.select()
       .from(satamatkaMarkets)
       .where(eq(satamatkaMarkets.status, 'resulted'))
       .orderBy(desc(satamatkaMarkets.createdAt))
       .limit(limit);
-    
-    console.log('getRecentMarketResults: Retrieved', results.length, 'markets');
-    console.log('Sample data:', results.slice(0, 2));
-    return results;
   }
 
   async getMarketResultsByDateRange(startDate: Date, endDate: Date): Promise<SatamatkaMarket[]> {

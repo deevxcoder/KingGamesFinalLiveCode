@@ -70,17 +70,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         markets = await storage.getRecentMarketResults(Number(limit));
       }
       
-      // Format for public display - only include markets with actual results
-      console.log('Total markets retrieved:', markets.length);
-      console.log('Sample market data:', markets.slice(0, 2));
-      
-      const publicResults = markets
-        .filter(market => {
-          const hasResult = market.openResult || market.closeResult;
-          console.log(`Market ${market.name}: status=${market.status}, openResult=${market.openResult}, closeResult=${market.closeResult}, hasResult=${hasResult}`);
-          return market.status === 'resulted' && hasResult;
-        })
-        .map(market => ({
+      // Format for public display - show all resulted markets regardless of result values
+      const publicResults = markets.map(market => ({
           id: market.id,
           name: market.name,
           type: market.type,
