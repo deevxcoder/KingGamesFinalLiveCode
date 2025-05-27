@@ -102,6 +102,7 @@ export default function WalletPage() {
   const [activeTab, setActiveTab] = useState(getTabFromUrl());
   const [proofImage, setProofImage] = useState<File | null>(null);
   const [paymentModeDetails, setPaymentModeDetails] = useState<PaymentDetails | null>(null);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("upi");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   
@@ -314,7 +315,7 @@ export default function WalletPage() {
                   
                   <div className="space-y-4">
                     <Label>Payment Method</Label>
-                    <RadioGroup defaultValue="upi">
+                    <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="upi" id="upi" />
                         <Label htmlFor="upi">UPI Payment</Label>
@@ -326,7 +327,8 @@ export default function WalletPage() {
                     </RadioGroup>
                   </div>
 
-                  {paymentModeDetails?.upiDetails && (
+                  {/* UPI Payment Details */}
+                  {selectedPaymentMethod === "upi" && paymentModeDetails?.upiDetails && (
                     <div className="p-4 border rounded-lg bg-muted/50">
                       <h4 className="font-medium mb-2">UPI Payment Details</h4>
                       <p className="text-sm text-muted-foreground mb-2">
@@ -341,6 +343,31 @@ export default function WalletPage() {
                           />
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {/* Bank Transfer Details */}
+                  {selectedPaymentMethod === "bank" && paymentModeDetails?.bankDetails && (
+                    <div className="p-4 border rounded-lg bg-muted/50">
+                      <h4 className="font-medium mb-2">Bank Transfer Details</h4>
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-muted-foreground">Bank Name: </span>
+                          <span className="font-medium">{paymentModeDetails.bankDetails.bankName}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Account Holder: </span>
+                          <span className="font-medium">{paymentModeDetails.bankDetails.accountName}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">Account Number: </span>
+                          <span className="font-mono">{paymentModeDetails.bankDetails.accountNumber}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">IFSC Code: </span>
+                          <span className="font-mono">{paymentModeDetails.bankDetails.ifscCode}</span>
+                        </div>
+                      </div>
                     </div>
                   )}
 
