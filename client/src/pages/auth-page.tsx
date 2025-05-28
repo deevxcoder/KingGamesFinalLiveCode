@@ -93,7 +93,7 @@ export default function AuthPage() {
       <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8 bg-background">
         <Card className="w-full max-w-md mx-auto">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2">
+            <CardTitle className="text-2xl font-bold text-center flex items-center justify-center gap-2 cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setLocation("/")}>
               <img src="/images/royal-k-logo.svg" alt="Royal K Logo" className="w-8 h-8" />
               <span className="text-primary">King</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-primary">Games</span>
@@ -256,7 +256,7 @@ export default function AuthPage() {
         <div className="max-w-md mx-auto">
           <h1 className="text-4xl font-bold mb-4 flex items-center gap-2">
             Welcome to 
-            <span className="flex items-center">
+            <span className="flex items-center cursor-pointer hover:opacity-80 transition-opacity" onClick={() => setLocation("/")}>
               <img src="/images/royal-k-logo.svg" alt="Royal K Logo" className="w-10 h-10 mr-1" />
               <span className="text-white">King</span>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-amber-300">Games</span>
