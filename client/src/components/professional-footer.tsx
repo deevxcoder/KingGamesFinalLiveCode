@@ -163,28 +163,7 @@ export default function ProfessionalFooter() {
             </ul>
           </div>
           
-          {/* Column 4: Newsletter */}
-          <div>
-            <h3 className="text-lg font-bold mb-4 text-foreground">Stay Updated</h3>
-            <p className="text-muted-foreground text-sm mb-3">
-              Subscribe to receive updates about new features and promotions.
-            </p>
-            <div className="flex mb-4">
-              <input 
-                type="email" 
-                placeholder="Your email" 
-                className="flex-1 px-3 py-2 text-sm rounded-l-md border border-border bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-              />
-              <Button 
-                className="rounded-l-none bg-gradient-to-r from-primary to-blue-400"
-              >
-                Subscribe
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              By subscribing, you agree to our Terms of Service and Privacy Policy.
-            </p>
-          </div>
+
         </div>
         
         <Separator className="my-8" />

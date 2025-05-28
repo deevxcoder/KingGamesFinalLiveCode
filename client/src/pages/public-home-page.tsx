@@ -17,6 +17,7 @@ import HeroSlider from "@/components/hero-slider";
 import { HomePageHeroSlider } from "@/components/home/HomePageHeroSlider";
 import RecentResults from "@/components/recent-results";
 import RecentWinners from "@/components/recent-winners";
+import FloatingWhatsApp from "@/components/floating-whatsapp";
 import { Trophy, Target, Shield, ArrowRight } from "lucide-react";
 
 // Component to display real market results from API
@@ -577,6 +578,9 @@ export default function PublicHomePage() {
 
       {/* Professional Footer */}
       <ProfessionalFooter />
+      
+      {/* Floating WhatsApp Button */}
+      <FloatingWhatsApp />
     </div>
   );
 }
