@@ -7,7 +7,8 @@ import {
   HelpCircle,
   FileText,
   AlertTriangle,
-  Heart
+  Heart,
+  MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -42,7 +43,37 @@ export default function ProfessionalFooter() {
             </div>
           </div>
           
-          {/* Column 2: Quick Links */}
+          {/* Column 2: Contact Us */}
+          <div>
+            <h3 className="text-lg font-bold mb-4 text-foreground">Contact Us</h3>
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700"
+                  onClick={() => window.open('https://wa.me/6282264973815', '_blank')}
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  WhatsApp
+                </Button>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Phone className="h-4 w-4 text-green-600" />
+                  <span>+62 822-6497-3815</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Mail className="h-4 w-4 text-blue-600" />
+                  <a href="mailto:support@kinggames.vip" className="hover:text-primary transition-colors">
+                    support@kinggames.vip
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Column 3: Quick Links */}
           <div>
             <h3 className="text-lg font-bold mb-4 text-foreground">Quick Links</h3>
             <ul className="space-y-2">
