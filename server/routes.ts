@@ -1043,9 +1043,10 @@ app.get("/api/games/my-history", async (req, res, next) => {
         updateData.username = username;
       }
       
-      // Only include password if provided
+      // Only include password if provided - hash it first
       if (password) {
-        updateData.password = password;
+        const { hashPassword } = await import('./auth');
+        updateData.password = await hashPassword(password);
       }
       
       // Update the user with prepared data
