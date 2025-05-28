@@ -45,7 +45,7 @@ const allGames = [
     popularity: "upcoming" as const,
     winRate: 0,
     comingSoon: true,
-    gameType: "sportsexchange" as const // Using game type for automatic image selection
+    gameType: "sports" as const // Using game type for automatic image selection
   },
   {
     id: "kingsoriginal",
