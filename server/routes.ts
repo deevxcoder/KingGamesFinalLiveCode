@@ -4073,9 +4073,19 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
       
       // Debug info for active games
       console.log(`Found ${activeGames.length} total platform-wide active games`);
+      if (activeGames.length > 0) {
+        console.log(`Active games details:`, activeGames.map(g => ({
+          id: g.id,
+          userId: g.userId,
+          gameType: g.gameType,
+          betAmount: g.betAmount,
+          result: g.result
+        })));
+      }
       
       // Sum active bet amounts from ALL users across the entire platform
       const activeBetAmount = activeGames.reduce((sum, game) => sum + game.betAmount, 0);
+      console.log(`Total active bet amount calculated: ${activeBetAmount} paisa (₹${activeBetAmount / 100})`);
       
       // Calculate potential payout from all active games - from entire platform
       const potentialPayout = activeGames.reduce((sum: number, game: any) => {
