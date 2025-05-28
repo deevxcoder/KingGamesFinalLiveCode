@@ -325,11 +325,13 @@ async function getCricketTossRiskData(subadminId?: number | null) {
     
     console.log(`🔍 Cricket: Subadmin ${subadminId} has ${subadminUsers.length} assigned users:`, subadminUserIds);
     console.log(`🔍 Cricket: Before filtering: ${games.length} cricket games`);
+    console.log(`🔍 Cricket: All games:`, games.map(g => ({ id: g.id, userId: g.userId, matchId: g.matchId, result: g.result })));
     
     // Filter games to only include those from subadmin's users
     games = games.filter(game => subadminUserIds.includes(game.userId));
     
     console.log(`🔍 Cricket: After filtering: ${games.length} cricket games for subadmin ${subadminId}`);
+    console.log(`🔍 Cricket: Filtered games:`, games.map(g => ({ id: g.id, userId: g.userId, matchId: g.matchId, result: g.result })));
   }
   
   // Get cricket toss odds set by admin
