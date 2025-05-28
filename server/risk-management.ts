@@ -193,10 +193,7 @@ export async function getSubadminRiskManagement(req: Request, res: Response) {
       defaultMarketOdd?.oddValue || 90
     );
     
-    const cricketRiskData = calculateRiskData(
-      cricketTossGames,
-      defaultCricketOdd?.oddValue || 90
-    );
+    const cricketRiskData = await getCricketTossRiskData(subadminId);
     
     // Create user info mapping
     const userInfo: { [userId: number]: { username: string } } = {};
@@ -245,7 +242,8 @@ export async function getSubadminRiskManagement(req: Request, res: Response) {
         gameData: [
           ...marketRiskData.games,
           ...cricketRiskData.games
-        ]
+        ],
+        cricketMatchAnalysis: cricketRiskData.matchAnalysis || []
       },
       userInfo,
       marketInfo
