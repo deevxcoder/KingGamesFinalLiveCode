@@ -339,7 +339,9 @@ async function getCricketTossRiskData(subadminId?: number | null) {
   const oddValue = cricketOdds?.oddValue || 90; // Default to 90 if not set
   
   // Get match-wise analysis
+  console.log(`🔍 Cricket: About to get match analysis with ${games.length} games`);
   const matchAnalysis = await getCricketMatchAnalysis(games, oddValue);
+  console.log(`🔍 Cricket: Match analysis returned ${matchAnalysis.length} matches`);
   
   const riskData = calculateRiskData(games, oddValue);
   
