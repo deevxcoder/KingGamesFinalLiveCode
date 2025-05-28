@@ -4068,18 +4068,17 @@ app.get("/api/odds/admin", requireRole([UserRole.ADMIN, UserRole.SUBADMIN]), asy
         }
       }
       
-      // Get active bet amount - only from direct admin players using the actual game data
+      // Get active bet amount - from ALL PLATFORM USERS (including subadmins and their players)
       const activeGames = await storage.getActiveGames();
-      const filteredActiveGames = activeGames.filter(game => directAdminPlayerIds.includes(game.userId));
       
       // Debug info for active games
-      console.log(`Found ${activeGames.length} active games, ${filteredActiveGames.length} from direct admin players`);
+      console.log(`Found ${activeGames.length} total platform-wide active games`);
       
-      // Sum active bet amounts (converting from paisa to rupees for display)
-      const activeBetAmount = filteredActiveGames.reduce((sum, game) => sum + game.betAmount, 0);
+      // Sum active bet amounts from ALL users across the entire platform
+      const activeBetAmount = activeGames.reduce((sum, game) => sum + game.betAmount, 0);
       
-      // Calculate potential payout from all active games - only from direct admin players
-      const potentialPayout = filteredActiveGames.reduce((sum, game) => {
+      // Calculate potential payout from all active games - from entire platform
+      const potentialPayout = activeGames.reduce((sum: number, game: any) => {
         // Calculate the maximum possible payout based on game type and gameMode
         let multiplier = 2; // Default multiplier
         
