@@ -82,7 +82,7 @@ const gameCards = [
     path: "#",
     popularity: "upcoming" as const,
     winRate: 0,
-    gameType: "sportsexchange" as const,
+    gameType: "sports" as const,
     comingSoon: true
   }
 ];
