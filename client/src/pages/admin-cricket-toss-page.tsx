@@ -843,11 +843,11 @@ export default function AdminCricketTossPage() {
 
       {/* Dialog for editing a cricket toss match */}
       <Dialog open={editOpen && !!editingMatch} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Edit Cricket Toss Match</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
+          <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent py-4">
             <Form {...editForm}>
               <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-6">
                 {/* Team Names */}
