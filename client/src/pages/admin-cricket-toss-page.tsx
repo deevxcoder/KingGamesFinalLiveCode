@@ -3,7 +3,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -23,7 +29,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -54,7 +66,18 @@ import { formatDate } from "@/lib/utils";
 import { apiRequest } from "@/lib/queryClient";
 import { Badge } from "@/components/ui/badge";
 import DashboardLayout from "@/components/dashboard-layout";
-import { Check, X, MoreVertical, Calendar, Search, Clock, CheckCircle2, AlertCircle, Plus, Filter } from "lucide-react";
+import {
+  Check,
+  X,
+  MoreVertical,
+  Calendar,
+  Search,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Plus,
+  Filter,
+} from "lucide-react";
 import { format } from "date-fns";
 
 // Define the schema for creating a cricket toss match
@@ -108,19 +131,25 @@ interface BetData {
 }
 
 export default function AdminCricketTossPage() {
-  const [selectedMatch, setSelectedMatch] = useState<CricketTossMatch | null>(null);
+  const [selectedMatch, setSelectedMatch] = useState<CricketTossMatch | null>(
+    null,
+  );
   const [open, setOpen] = useState(false);
   const [declareOpen, setDeclareOpen] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [matchToClose, setMatchToClose] = useState<number | null>(null);
-  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(
+    null,
+  );
   const [activeTab, setActiveTab] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-  const [editingMatch, setEditingMatch] = useState<CricketTossMatch | null>(null);
+  const [editingMatch, setEditingMatch] = useState<CricketTossMatch | null>(
+    null,
+  );
   const [editOpen, setEditOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Today's date formatted for display
   const dateString = format(new Date(), "EEEE, MMMM d, yyyy");
 
@@ -149,26 +178,36 @@ export default function AdminCricketTossPage() {
   });
 
   // Query to fetch cricket toss matches
-  const { data: cricketTossMatches = [], isLoading } = useQuery<CricketTossMatch[]>({
+  const { data: cricketTossMatches = [], isLoading } = useQuery<
+    CricketTossMatch[]
+  >({
     queryKey: ["/api/cricket-toss/matches"],
     staleTime: 10000,
   });
 
   // Query to fetch cricket match betting stats
-  const { data: cricketMatchStats = [], isLoading: isLoadingStats } = useQuery<any[]>({
+  const { data: cricketMatchStats = [], isLoading: isLoadingStats } = useQuery<
+    any[]
+  >({
     queryKey: ["/api/cricket-toss/match-stats"],
     staleTime: 5000,
   });
-  
+
   // Filter matches based on status and search query
-  const openMatches = cricketTossMatches.filter(match => match.status === "open");
-  const closedMatches = cricketTossMatches.filter(match => match.status === "closed");
-  const resultedMatches = cricketTossMatches.filter(match => match.status === "resulted");
-  
+  const openMatches = cricketTossMatches.filter(
+    (match) => match.status === "open",
+  );
+  const closedMatches = cricketTossMatches.filter(
+    (match) => match.status === "closed",
+  );
+  const resultedMatches = cricketTossMatches.filter(
+    (match) => match.status === "resulted",
+  );
+
   // Filter based on active tab and search query
   const getFilteredMatches = () => {
     let matches = cricketTossMatches;
-    
+
     // Filter by status based on active tab
     if (activeTab === "open") {
       matches = openMatches;
@@ -177,20 +216,22 @@ export default function AdminCricketTossPage() {
     } else if (activeTab === "resulted") {
       matches = resultedMatches;
     }
-    
+
     // Apply search filter if query exists
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      matches = matches.filter(match => 
-        match.teamA.toLowerCase().includes(query) || 
-        match.teamB.toLowerCase().includes(query) || 
-        (match.description && match.description.toLowerCase().includes(query))
+      matches = matches.filter(
+        (match) =>
+          match.teamA.toLowerCase().includes(query) ||
+          match.teamB.toLowerCase().includes(query) ||
+          (match.description &&
+            match.description.toLowerCase().includes(query)),
       );
     }
-    
+
     return matches;
   };
-  
+
   const filteredMatches = getFilteredMatches();
 
   // Helper function to get match stats
@@ -198,13 +239,15 @@ export default function AdminCricketTossPage() {
     if (!Array.isArray(cricketMatchStats)) {
       return {
         teamA: { totalBets: 0, potentialWin: 0 },
-        teamB: { totalBets: 0, potentialWin: 0 }
+        teamB: { totalBets: 0, potentialWin: 0 },
       };
     }
-    return cricketMatchStats.find((stat: any) => stat.matchId === matchId) || {
-      teamA: { totalBets: 0, potentialWin: 0 },
-      teamB: { totalBets: 0, potentialWin: 0 }
-    };
+    return (
+      cricketMatchStats.find((stat: any) => stat.matchId === matchId) || {
+        teamA: { totalBets: 0, potentialWin: 0 },
+        teamB: { totalBets: 0, potentialWin: 0 },
+      }
+    );
   };
 
   // Mutation to create a new cricket toss match
@@ -214,31 +257,34 @@ export default function AdminCricketTossPage() {
       const formData = new FormData();
       formData.append("teamA", values.teamA);
       formData.append("teamB", values.teamB);
-      
+
       // Combine date and time keeping local timezone like satamatka markets
       const combinedDateTime = `${values.matchDate}T${values.matchTime}:00`;
       formData.append("matchTime", combinedDateTime);
-      
-      if (values.description) formData.append("description", values.description);
-      
+
+      if (values.description)
+        formData.append("description", values.description);
+
       // Use fixed odds: 2.00 for both teams
       formData.append("oddTeamA", "200");
       formData.append("oddTeamB", "200");
-      
+
       // Append cover image if provided
       if (values.coverImage) formData.append("coverImage", values.coverImage);
-      
+
       // Use fetch directly for FormData
       const response = await fetch("/api/cricket-toss/matches", {
         method: "POST",
         body: formData,
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to create cricket toss match");
+        throw new Error(
+          errorData.message || "Failed to create cricket toss match",
+        );
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -249,7 +295,9 @@ export default function AdminCricketTossPage() {
       form.reset();
       setOpen(false);
       setCoverImagePreview(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/matches"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/cricket-toss/matches"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -262,32 +310,41 @@ export default function AdminCricketTossPage() {
 
   // Mutation to edit a cricket toss match
   const editCricketTossMutation = useMutation({
-    mutationFn: async ({ id, values }: { id: number; values: z.infer<typeof editCricketTossSchema> }) => {
+    mutationFn: async ({
+      id,
+      values,
+    }: {
+      id: number;
+      values: z.infer<typeof editCricketTossSchema>;
+    }) => {
       // Create form data to handle file uploads
       const formData = new FormData();
       formData.append("teamA", values.teamA);
       formData.append("teamB", values.teamB);
-      
+
       // Combine date and time keeping local timezone like satamatka markets
       const combinedDateTime = `${values.matchDate}T${values.matchTime}:00`;
       formData.append("matchTime", combinedDateTime);
-      
-      if (values.description) formData.append("description", values.description);
-      
+
+      if (values.description)
+        formData.append("description", values.description);
+
       // Append cover image if provided
       if (values.coverImage) formData.append("coverImage", values.coverImage);
-      
+
       // Use fetch directly for FormData
       const response = await fetch(`/api/cricket-toss/matches/${id}`, {
         method: "PUT",
         body: formData,
       });
-      
+
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update cricket toss match");
+        throw new Error(
+          errorData.message || "Failed to update cricket toss match",
+        );
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -299,7 +356,9 @@ export default function AdminCricketTossPage() {
       setEditOpen(false);
       setEditingMatch(null);
       setCoverImagePreview(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/matches"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/cricket-toss/matches"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -314,18 +373,23 @@ export default function AdminCricketTossPage() {
   const closeBettingMutation = useMutation({
     mutationFn: async (matchId: number) => {
       // Use fetch directly to make sure we have more control over the request
-      const response = await fetch(`/api/cricket-toss/matches/${matchId}/close`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
+      const response = await fetch(
+        `/api/cricket-toss/matches/${matchId}/close`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Failed to close betting" }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Failed to close betting" }));
         throw new Error(errorData.message || `HTTP Error: ${response.status}`);
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -335,7 +399,9 @@ export default function AdminCricketTossPage() {
       });
       setConfirmCloseOpen(false);
       setMatchToClose(null);
-      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/matches"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/cricket-toss/matches"],
+      });
     },
     onError: (error: Error) => {
       toast({
@@ -348,21 +414,32 @@ export default function AdminCricketTossPage() {
 
   // Mutation to declare result for a match
   const declareResultMutation = useMutation({
-    mutationFn: async ({ matchId, result }: { matchId: number; result: string }) => {
+    mutationFn: async ({
+      matchId,
+      result,
+    }: {
+      matchId: number;
+      result: string;
+    }) => {
       // Using direct fetch like we did for closeBetting to have more control
-      const response = await fetch(`/api/cricket-toss/matches/${matchId}/result`, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `/api/cricket-toss/matches/${matchId}/result`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ result }),
         },
-        body: JSON.stringify({ result })
-      });
-      
+      );
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "Failed to declare result" }));
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: "Failed to declare result" }));
         throw new Error(errorData.message || `HTTP Error: ${response.status}`);
       }
-      
+
       return await response.json();
     },
     onSuccess: () => {
@@ -371,9 +448,13 @@ export default function AdminCricketTossPage() {
         description: "The result has been declared and payouts processed.",
       });
       setDeclareOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/matches"] });
+      queryClient.invalidateQueries({
+        queryKey: ["/api/cricket-toss/matches"],
+      });
       if (selectedMatch) {
-        queryClient.invalidateQueries({ queryKey: ["/api/cricket-toss/bets", selectedMatch.id] });
+        queryClient.invalidateQueries({
+          queryKey: ["/api/cricket-toss/bets", selectedMatch.id],
+        });
       }
     },
     onError: (error: Error) => {
@@ -400,12 +481,12 @@ export default function AdminCricketTossPage() {
   // Handle edit action
   const handleEditMatch = (match: CricketTossMatch) => {
     setEditingMatch(match);
-    
+
     // Parse the match time to get date and time parts
     const matchDate = new Date(match.matchTime);
-    const dateStr = matchDate.toISOString().split('T')[0];
-    const timeStr = `${matchDate.getHours().toString().padStart(2, '0')}:${matchDate.getMinutes().toString().padStart(2, '0')}`;
-    
+    const dateStr = matchDate.toISOString().split("T")[0];
+    const timeStr = `${matchDate.getHours().toString().padStart(2, "0")}:${matchDate.getMinutes().toString().padStart(2, "0")}`;
+
     // Populate the edit form with existing data
     editForm.reset({
       teamA: match.teamA,
@@ -414,7 +495,7 @@ export default function AdminCricketTossPage() {
       matchDate: dateStr,
       matchTime: timeStr,
     });
-    
+
     setEditOpen(true);
   };
 
@@ -423,7 +504,7 @@ export default function AdminCricketTossPage() {
     setMatchToClose(matchId);
     setConfirmCloseOpen(true);
   };
-  
+
   // Function to confirm and execute the close betting action
   const confirmCloseBetting = () => {
     if (matchToClose) {
@@ -435,7 +516,7 @@ export default function AdminCricketTossPage() {
   // Function to handle declaring result for a match
   const handleDeclareResult = (result: string) => {
     if (!selectedMatch) return;
-    
+
     declareResultMutation.mutate({
       matchId: selectedMatch.id,
       result,
@@ -476,9 +557,9 @@ export default function AdminCricketTossPage() {
             <Calendar className="h-5 w-5 mr-2" />
             <span>{dateString}</span>
           </div>
-          
-          <Button 
-            onClick={() => setOpen(true)} 
+
+          <Button
+            onClick={() => setOpen(true)}
             className="bg-gradient-to-r from-blue-600 to-indigo-600"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -494,15 +575,15 @@ export default function AdminCricketTossPage() {
       <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div className="relative flex items-center flex-1 min-w-[200px]">
           <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search matches..." 
+          <Input
+            placeholder="Search matches..."
             className="pl-10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
-      
+
       {/* Tab navigation */}
       <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6 grid w-full grid-cols-4">
@@ -510,15 +591,24 @@ export default function AdminCricketTossPage() {
             <AlertCircle className="h-4 w-4 mr-2" />
             <span>All ({cricketTossMatches.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="open" className="flex items-center justify-center">
+          <TabsTrigger
+            value="open"
+            className="flex items-center justify-center"
+          >
             <Clock className="h-4 w-4 mr-2" />
             <span>Open ({openMatches.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="closed" className="flex items-center justify-center">
+          <TabsTrigger
+            value="closed"
+            className="flex items-center justify-center"
+          >
             <X className="h-4 w-4 mr-2" />
             <span>Closed ({closedMatches.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="resulted" className="flex items-center justify-center">
+          <TabsTrigger
+            value="resulted"
+            className="flex items-center justify-center"
+          >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             <span>Resulted ({resultedMatches.length})</span>
           </TabsTrigger>
@@ -527,7 +617,9 @@ export default function AdminCricketTossPage() {
         {/* All tabs content */}
         <TabsContent value={activeTab} className="space-y-6">
           {isLoading ? (
-            <div className="flex justify-center p-8">Loading cricket toss matches...</div>
+            <div className="flex justify-center p-8">
+              Loading cricket toss matches...
+            </div>
           ) : filteredMatches.length > 0 ? (
             <Table>
               <TableHeader>
@@ -549,108 +641,133 @@ export default function AdminCricketTossPage() {
                       <TableCell>
                         <div className="flex flex-col">
                           <div className="flex justify-between items-center">
-                            <span className="font-medium">{match.teamA} vs {match.teamB}</span>
+                            <span className="font-medium">
+                              {match.teamA} vs {match.teamB}
+                            </span>
                           </div>
                           {match.description && (
-                            <div className="text-xs text-gray-500 mt-1">{match.description}</div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              {match.description}
+                            </div>
                           )}
                           {match.coverImage && (
                             <div className="w-full mt-2">
-                              <img 
-                                src={match.coverImage} 
+                              <img
+                                src={match.coverImage}
                                 alt={`${match.teamA} vs ${match.teamB}`}
-                                className="w-full h-12 object-cover rounded-md" 
+                                className="w-full h-12 object-cover rounded-md"
                               />
                             </div>
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{(() => {
-                        const timeString = match.matchTime.replace('T', ' ').replace('.000Z', '').replace('Z', '');
-                        const localDate = new Date(timeString);
-                        return localDate.toLocaleString('en-IN', { 
-                          year: 'numeric',
-                          month: 'short', 
-                          day: 'numeric',
-                          hour: 'numeric',
-                          minute: '2-digit',
-                          hour12: true
-                        });
-                      })()}</TableCell>
+                      <TableCell>
+                        {(() => {
+                          const timeString = match.matchTime
+                            .replace("T", " ")
+                            .replace(".000Z", "")
+                            .replace("Z", "");
+                          const localDate = new Date(timeString);
+                          return localDate.toLocaleString("en-IN", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "2-digit",
+                            hour12: true,
+                          });
+                        })()}
+                      </TableCell>
                       <TableCell>
                         <div className="flex flex-col space-y-1">
-                          <div className="text-sm font-medium">{match.teamA}</div>
+                          <div className="text-sm font-medium">
+                            {match.teamA}
+                          </div>
                           <div className="text-xs text-muted-foreground">
-                            {matchStats.teamA.totalBets} bets • ₹{(matchStats.teamA.potentialWin / 100)?.toFixed(2) || '0.00'} potential
+                            {matchStats.teamA.totalBets} bets • ₹
+                            {(matchStats.teamA.potentialWin / 100)?.toFixed(
+                              2,
+                            ) || "0.00"}{" "}
+                            potential
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex flex-col space-y-1">
-                          <div className="text-sm font-medium">{match.teamB}</div>
+                          <div className="text-sm font-medium">
+                            {match.teamB}
+                          </div>
                           <div className="text-xs text-muted-foreground">
-                            {matchStats.teamB.totalBets} bets • ₹{(matchStats.teamB.potentialWin / 100)?.toFixed(2) || '0.00'} potential
+                            {matchStats.teamB.totalBets} bets • ₹
+                            {(matchStats.teamB.potentialWin / 100)?.toFixed(
+                              2,
+                            ) || "0.00"}{" "}
+                            potential
                           </div>
                         </div>
                       </TableCell>
-                    <TableCell>
-                      {match.result === "pending" ? (
-                        "Pending"
-                      ) : match.result === "team_a" ? (
-                        <span className="font-medium text-green-600">{match.teamA}</span>
-                      ) : match.result === "team_b" ? (
-                        <span className="font-medium text-green-600">{match.teamB}</span>
-                      ) : (
-                        match.result
-                      )}
-                    </TableCell>
-                    <TableCell>{getStatusBadge(match.status)}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                            <span className="sr-only">Actions</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          
-                          <DropdownMenuSeparator />
-                          
-                          {/* Edit option - only available for non-resulted matches */}
-                          {match.status !== "resulted" && (
-                            <DropdownMenuItem 
-                              onClick={() => handleEditMatch(match)}
-                            >
-                              <Calendar className="mr-2 h-4 w-4" />
-                              Edit Match
-                            </DropdownMenuItem>
-                          )}
-                          
-                          {match.status === "open" && (
-                            <DropdownMenuItem 
-                              onClick={() => handleCloseBetting(match.id)}
-                            >
-                              <X className="mr-2 h-4 w-4" />
-                              Close Betting
-                            </DropdownMenuItem>
-                          )}
-                          
-                          {match.status === "closed" && (
-                            <DropdownMenuItem 
-                              onClick={() => {
-                                setSelectedMatch(match);
-                                setDeclareOpen(true);
-                              }}
-                            >
-                              <Check className="mr-2 h-4 w-4" />
-                              Declare Result
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                      <TableCell>
+                        {match.result === "pending" ? (
+                          "Pending"
+                        ) : match.result === "team_a" ? (
+                          <span className="font-medium text-green-600">
+                            {match.teamA}
+                          </span>
+                        ) : match.result === "team_b" ? (
+                          <span className="font-medium text-green-600">
+                            {match.teamB}
+                          </span>
+                        ) : (
+                          match.result
+                        )}
+                      </TableCell>
+                      <TableCell>{getStatusBadge(match.status)}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                              <span className="sr-only">Actions</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+
+                            <DropdownMenuSeparator />
+
+                            {/* Edit option - only available for non-resulted matches */}
+                            {match.status !== "resulted" && (
+                              <DropdownMenuItem
+                                onClick={() => handleEditMatch(match)}
+                              >
+                                <Calendar className="mr-2 h-4 w-4" />
+                                Edit Match
+                              </DropdownMenuItem>
+                            )}
+
+                            {match.status === "open" && (
+                              <DropdownMenuItem
+                                onClick={() => handleCloseBetting(match.id)}
+                              >
+                                <X className="mr-2 h-4 w-4" />
+                                Close Betting
+                              </DropdownMenuItem>
+                            )}
+
+                            {match.status === "closed" && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedMatch(match);
+                                  setDeclareOpen(true);
+                                }}
+                              >
+                                <Check className="mr-2 h-4 w-4" />
+                                Declare Result
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -658,16 +775,20 @@ export default function AdminCricketTossPage() {
             </Table>
           ) : (
             <div className="p-8 text-center">
-              <p className="text-gray-500 mb-4">No cricket toss matches found for this filter.</p>
-              <p className="text-sm text-gray-400">Try another filter or create a new match.</p>
+              <p className="text-gray-500 mb-4">
+                No cricket toss matches found for this filter.
+              </p>
+              <p className="text-sm text-gray-400">
+                Try another filter or create a new match.
+              </p>
             </div>
           )}
         </TabsContent>
       </Tabs>
 
       {/* Dialog for creating new match */}
-      <Dialog 
-        open={open} 
+      <Dialog
+        open={open}
         onOpenChange={(isOpen) => {
           setOpen(isOpen);
           if (!isOpen) {
@@ -681,7 +802,10 @@ export default function AdminCricketTossPage() {
           </DialogHeader>
           <div className="max-h-[80vh] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-primary scrollbar-track-transparent">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 {/* Two column layout for team names */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -711,7 +835,7 @@ export default function AdminCricketTossPage() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={form.control}
                   name="description"
@@ -719,13 +843,16 @@ export default function AdminCricketTossPage() {
                     <FormItem>
                       <FormLabel>Description (Optional)</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter match description" />
+                        <Input
+                          {...field}
+                          placeholder="Enter match description"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Two column layout for date and time */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -752,26 +879,29 @@ export default function AdminCricketTossPage() {
                       <FormItem>
                         <FormLabel>Match Time</FormLabel>
                         <FormControl>
-                          <select 
+                          <select
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             {...field}
                           >
                             <option value="">Select time</option>
-                            {Array.from({ length: 24 }).map((_, hour) => (
-                              Array.from({ length: 4 }).map((_, minute) => {
-                                const h = hour;
-                                const m = minute * 15;
-                                const timeValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                                const displayHour = h % 12 === 0 ? 12 : h % 12;
-                                const ampm = h < 12 ? 'AM' : 'PM';
-                                const displayTime = `${displayHour}:${m.toString().padStart(2, '0')} ${ampm}`;
-                                return (
-                                  <option key={timeValue} value={timeValue}>
-                                    {displayTime}
-                                  </option>
-                                );
-                              })
-                            )).flat()}
+                            {Array.from({ length: 24 })
+                              .map((_, hour) =>
+                                Array.from({ length: 4 }).map((_, minute) => {
+                                  const h = hour;
+                                  const m = minute * 15;
+                                  const timeValue = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+                                  const displayHour =
+                                    h % 12 === 0 ? 12 : h % 12;
+                                  const ampm = h < 12 ? "AM" : "PM";
+                                  const displayTime = `${displayHour}:${m.toString().padStart(2, "0")} ${ampm}`;
+                                  return (
+                                    <option key={timeValue} value={timeValue}>
+                                      {displayTime}
+                                    </option>
+                                  );
+                                }),
+                              )
+                              .flat()}
                           </select>
                         </FormControl>
                         <FormMessage />
@@ -779,7 +909,7 @@ export default function AdminCricketTossPage() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={form.control}
                   name="coverImage"
@@ -798,7 +928,9 @@ export default function AdminCricketTossPage() {
                               // Create a preview URL for the selected image
                               const reader = new FileReader();
                               reader.onload = (e) => {
-                                setCoverImagePreview(e.target?.result as string);
+                                setCoverImagePreview(
+                                  e.target?.result as string,
+                                );
                               };
                               reader.readAsDataURL(file);
                             }
@@ -807,19 +939,21 @@ export default function AdminCricketTossPage() {
                       </FormControl>
                       {coverImagePreview && (
                         <div className="mt-2">
-                          <img 
-                            src={coverImagePreview} 
-                            alt="Cover Image Preview" 
+                          <img
+                            src={coverImagePreview}
+                            alt="Cover Image Preview"
                             className="w-full h-32 object-cover rounded-md border border-gray-200"
                           />
                         </div>
                       )}
-                      <FormDescription>Upload a banner image for this match</FormDescription>
+                      <FormDescription>
+                        Upload a banner image for this match
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
@@ -832,7 +966,9 @@ export default function AdminCricketTossPage() {
                     type="submit"
                     disabled={createCricketTossMutation.isPending}
                   >
-                    {createCricketTossMutation.isPending ? "Creating..." : "Create Match"}
+                    {createCricketTossMutation.isPending
+                      ? "Creating..."
+                      : "Create Match"}
                   </Button>
                 </div>
               </form>
@@ -849,7 +985,10 @@ export default function AdminCricketTossPage() {
           </DialogHeader>
           <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/30 scrollbar-track-transparent py-4">
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-6">
+              <form
+                onSubmit={editForm.handleSubmit(onEditSubmit)}
+                className="space-y-6"
+              >
                 {/* Team Names */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -879,7 +1018,7 @@ export default function AdminCricketTossPage() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={editForm.control}
                   name="description"
@@ -887,13 +1026,16 @@ export default function AdminCricketTossPage() {
                     <FormItem>
                       <FormLabel>Description (Optional)</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter match description" />
+                        <Input
+                          {...field}
+                          placeholder="Enter match description"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 {/* Two column layout for date and time */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
@@ -920,26 +1062,29 @@ export default function AdminCricketTossPage() {
                       <FormItem>
                         <FormLabel>Match Time</FormLabel>
                         <FormControl>
-                          <select 
+                          <select
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                             {...field}
                           >
                             <option value="">Select time</option>
-                            {Array.from({ length: 24 }).map((_, hour) => (
-                              Array.from({ length: 4 }).map((_, minute) => {
-                                const h = hour;
-                                const m = minute * 15;
-                                const timeValue = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-                                const displayHour = h % 12 === 0 ? 12 : h % 12;
-                                const ampm = h < 12 ? 'AM' : 'PM';
-                                const displayTime = `${displayHour}:${m.toString().padStart(2, '0')} ${ampm}`;
-                                return (
-                                  <option key={timeValue} value={timeValue}>
-                                    {displayTime}
-                                  </option>
-                                );
-                              })
-                            )).flat()}
+                            {Array.from({ length: 24 })
+                              .map((_, hour) =>
+                                Array.from({ length: 4 }).map((_, minute) => {
+                                  const h = hour;
+                                  const m = minute * 15;
+                                  const timeValue = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+                                  const displayHour =
+                                    h % 12 === 0 ? 12 : h % 12;
+                                  const ampm = h < 12 ? "AM" : "PM";
+                                  const displayTime = `${displayHour}:${m.toString().padStart(2, "0")} ${ampm}`;
+                                  return (
+                                    <option key={timeValue} value={timeValue}>
+                                      {displayTime}
+                                    </option>
+                                  );
+                                }),
+                              )
+                              .flat()}
                           </select>
                         </FormControl>
                         <FormMessage />
@@ -947,7 +1092,7 @@ export default function AdminCricketTossPage() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={editForm.control}
                   name="coverImage"
@@ -962,12 +1107,14 @@ export default function AdminCricketTossPage() {
                           onChange={(e) => {
                             const file = e.target.files?.[0];
                             onChange(file);
-                            
+
                             // Preview the image
                             if (file) {
                               const reader = new FileReader();
                               reader.onload = (e) => {
-                                setCoverImagePreview(e.target?.result as string);
+                                setCoverImagePreview(
+                                  e.target?.result as string,
+                                );
                               };
                               reader.readAsDataURL(file);
                             }
@@ -976,19 +1123,21 @@ export default function AdminCricketTossPage() {
                       </FormControl>
                       {coverImagePreview && (
                         <div className="mt-2">
-                          <img 
-                            src={coverImagePreview} 
-                            alt="Cover Image Preview" 
+                          <img
+                            src={coverImagePreview}
+                            alt="Cover Image Preview"
                             className="w-full h-32 object-cover rounded-md border border-gray-200"
                           />
                         </div>
                       )}
-                      <FormDescription>Upload a new banner image for this match (optional)</FormDescription>
+                      <FormDescription>
+                        Upload a new banner image for this match (optional)
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="flex justify-end gap-2">
                   <Button
                     type="button"
@@ -1005,7 +1154,9 @@ export default function AdminCricketTossPage() {
                     type="submit"
                     disabled={editCricketTossMutation.isPending}
                   >
-                    {editCricketTossMutation.isPending ? "Updating..." : "Update Match"}
+                    {editCricketTossMutation.isPending
+                      ? "Updating..."
+                      : "Update Match"}
                   </Button>
                 </div>
               </form>
@@ -1015,21 +1166,25 @@ export default function AdminCricketTossPage() {
       </Dialog>
 
       {/* Dialog for declaring result */}
-      <Dialog open={declareOpen && !!selectedMatch} onOpenChange={setDeclareOpen}>
+      <Dialog
+        open={declareOpen && !!selectedMatch}
+        onOpenChange={setDeclareOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Declare Cricket Toss Result</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="mb-4">
-              Select the winner for {selectedMatch?.teamA} vs {selectedMatch?.teamB}:
+              Select the winner for {selectedMatch?.teamA} vs{" "}
+              {selectedMatch?.teamB}:
             </p>
             {selectedMatch?.coverImage && (
               <div className="mb-4">
-                <img 
-                  src={selectedMatch.coverImage} 
+                <img
+                  src={selectedMatch.coverImage}
                   alt={`${selectedMatch.teamA} vs ${selectedMatch.teamB}`}
-                  className="w-full h-32 object-cover rounded-md" 
+                  className="w-full h-32 object-cover rounded-md"
                 />
               </div>
             )}
@@ -1050,7 +1205,7 @@ export default function AdminCricketTossPage() {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       {/* Confirmation dialog for closing betting */}
       <Dialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
         <DialogContent>
