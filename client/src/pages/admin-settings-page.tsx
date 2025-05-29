@@ -885,13 +885,42 @@ export default function AdminSettingsPage() {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid w-full grid-cols-5">
-          <TabsTrigger value="payment">Payment Settings</TabsTrigger>
-          <TabsTrigger value="odds">Platform Game Odds</TabsTrigger>
-          <TabsTrigger value="commission">Subadmin Commission</TabsTrigger>
-          <TabsTrigger value="slider">Sliders</TabsTrigger>
-          <TabsTrigger value="gamecards">Game Cards</TabsTrigger>
-        </TabsList>
+        {/* Mobile view: scrollable tabs */}
+        <div className="md:hidden mb-6">
+          <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+            <TabsList className="inline-flex flex-nowrap min-w-max h-12 p-1 gap-1">
+              <TabsTrigger value="payment" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm">
+                Payment
+              </TabsTrigger>
+              <TabsTrigger value="odds" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm">
+                Game Odds
+              </TabsTrigger>
+              <TabsTrigger value="commission" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm">
+                Commission
+              </TabsTrigger>
+              <TabsTrigger value="slider" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm">
+                Sliders
+              </TabsTrigger>
+              <TabsTrigger value="gamecards" className="flex-shrink-0 whitespace-nowrap px-3 py-2 text-sm">
+                Game Cards
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          <div className="mt-2 text-xs text-muted-foreground text-center">
+            Swipe to see more options →
+          </div>
+        </div>
+
+        {/* Desktop view: grid tabs */}
+        <div className="hidden md:block">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="payment">Payment Settings</TabsTrigger>
+            <TabsTrigger value="odds">Platform Game Odds</TabsTrigger>
+            <TabsTrigger value="commission">Subadmin Commission</TabsTrigger>
+            <TabsTrigger value="slider">Sliders</TabsTrigger>
+            <TabsTrigger value="gamecards">Game Cards</TabsTrigger>
+          </TabsList>
+        </div>
         
         {/* Payment Settings Tab */}
         <TabsContent value="payment">
